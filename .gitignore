@@ -2,6 +2,6 @@ __pycache__/
 *.py[cod]
 *.log
 *.zip
+!docs/downloads/*.zip
 .DS_Store
 Thumbs.db
-
