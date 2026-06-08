@@ -2,7 +2,7 @@ xVAULT 2026.06.08
 
 - Vollständiges Rebranding auf xVAULT.
 - Neue Icon-, Fanart- und Banner-Grafiken.
-- Sämtliche Menügrafiken durch den schwarz-rot-weißen xVAULT-Satz ersetzt.
+- Sämtliche Menügrafiken durch den freigestellten 512x512-xVAULT-Satz ersetzt.
 - Film-, Serien- und Personensuche repariert.
 - Unicode- und Sonderzeichen in Suchbegriffen korrigiert.
 - Staffel-, Episoden- und Credits-Navigation stabilisiert.
