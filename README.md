@@ -5,9 +5,9 @@ und TV-Serien.
 
 ## Installation
 
-1. Den Ordner `plugin.video.xvault` als ZIP-Datei packen.
+1. `tools/build_kodi_zip.py` ausführen, um ein Kodi-konformes ZIP zu erzeugen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die erzeugte ZIP-Datei auswählen.
+3. `plugin.video.xvault-2026.06.08.zip` auswählen.
 
 Kodi installiert die in `addon.xml` aufgeführten Abhängigkeiten aus den
 konfigurierten Repositorys.
