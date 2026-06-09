@@ -47,10 +47,10 @@ class sources:
         try:
             try:
                 meta_data = json.loads(meta)
-                list_position = int(control.infoLabel('Container().CurrentItem'))
+                list_position = int(params.get('_xvault_list_position') or control.infoLabel('Container().CurrentItem'))
                 if list_position > 0:
                     meta_data['_xvault_list_position'] = list_position
-                    meta_data['_xvault_list_content'] = control.infoLabel('Container.Content')
+                    meta_data['_xvault_list_content'] = params.get('_xvault_list_content') or control.infoLabel('Container.Content')
                     meta = json.dumps(meta_data)
                     params['sysmeta'] = meta
             except:
