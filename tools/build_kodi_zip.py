@@ -1,10 +1,11 @@
 from pathlib import Path
+import re
 from zipfile import ZIP_DEFLATED, ZipFile
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 REPO_DIR = PROJECT_DIR.parent
-VERSION = "2026.06.09"
+VERSION = "2026.06.09.1"
 ZIP_NAME = f"plugin.video.xvault-{VERSION}.zip"
 OUTPUTS = (
     REPO_DIR / ZIP_NAME,
@@ -60,8 +61,17 @@ def validate(output):
         raise RuntimeError("Website-Dateien wurden in das Add-on-Paket aufgenommen")
 
 
+def update_download_page(output):
+    page = PROJECT_DIR / "docs" / "index.html"
+    digest = __import__("hashlib").sha256(output.read_bytes()).hexdigest().upper()
+    html = page.read_text(encoding="utf-8")
+    html = re.sub(r"<code>[A-F0-9]{64}</code>", f"<code>{digest}</code>", html)
+    page.write_text(html, encoding="utf-8", newline="\n")
+
+
 if __name__ == "__main__":
     for destination in OUTPUTS:
         build(destination)
         validate(destination)
         print(destination)
+    update_download_page(OUTPUTS[-1])

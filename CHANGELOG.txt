@@ -1,5 +1,6 @@
-xVAULT 2026.06.09
+xVAULT 2026.06.09.1
 
+- Hauptmenü neu sortiert und um Kodis native LIVE-TV-Senderliste ergänzt.
 - Vollständiges Rebranding auf xVAULT.
 - Neue Icon-, Fanart- und Banner-Grafiken.
 - Sämtliche Menügrafiken durch den freigestellten 512x512-xVAULT-Satz ersetzt.

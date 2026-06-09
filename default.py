@@ -161,6 +161,9 @@ elif action == 'playURL':
         #print('Kein Video Link gefunden')
         control.infoDialog("Keinen Video Link gefunden", sound=True, icon='WARNING', time=1000)
 
+elif action == 'liveTV':
+    control.execute('ActivateWindow(TVChannels)')
+
 elif action == 'playTrailer':
     try:
         from resources.lib.trailer import playTrailer

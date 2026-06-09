@@ -20,29 +20,12 @@ class navigator:
 	def root(self):
 		self.addDirectoryItem("Suche Filme", 'moviesSearch', '01_suche_filme.png', 'DefaultAddonsSearch.png')
 		self.addDirectoryItem("Suche TV-Serien", 'tvshowsSearch', '02_suche_tv_serien.png', 'DefaultAddonsSearch.png')
-		self.addDirectoryItem("Darsteller - Suche nach Person", 'personSearch', '03_darsteller_suche_nach_person.png', 'DefaultAddonsSearch.png')
+		self.addDirectoryItem("Suche nach Person / Darsteller", 'personSearch', '03_darsteller_suche_nach_person.png', 'DefaultAddonsSearch.png')
 		self.addDirectoryItem("Filme", 'movieNavigator', '04_filme.png', 'DefaultMovies.png')
 		self.addDirectoryItem("TV-Serien", 'tvNavigator', '05_tv_serien.png', 'DefaultTVShows.png')
-		if control.getSetting('downloads') == 'true':
-			import threading
-			_has_files = [False]
-			def _chk():
-				try:
-					_has_files[0] = (
-						len(control.listDir(control.getSetting('download.movie.path'))[0]) > 0 or
-						len(control.listDir(control.getSetting('download.tv.path'))[0]) > 0
-					)
-				except Exception:
-					pass
-			_t = threading.Thread(target=_chk, daemon=True)
-			_t.start()
-			_t.join(timeout=2.0)
-			if _t.is_alive():
-				control.infoDialog('Download-Pfad nicht erreichbar', time=5000)
-			elif _has_files[0]:
-				self.addDirectoryItem("Downloads", 'downloadNavigator', 'downloads.png', 'DefaultFolder.png')
+		self.addDirectoryItem("LIVE-TV", 'liveTV', '06_live_tv.png', 'DefaultTVShows.png', isFolder=False)
+		self.addDirectoryItem("Stream-URL abspielen", 'playURL', '07_stream_url_abspielen.png', 'DefaultAddonWebSkin.png', isFolder=False)
 		self.addDirectoryItem("Werkzeuge", 'toolNavigator', '06_werkzeuge.png', 'DefaultAddonProgram.png')
-		if xbmc.getCondVisibility('system.platform.windows'): self.addDirectoryItem("Stream-URL abspielen", 'playURL', '07_stream_url_abspielen.png', 'DefaultAddonWebSkin.png', isFolder=False)
 		self._endDirectory(content='',cache=False)  # addons  videos  files
 
 # TODO vote_count vote_average popularity revenue
