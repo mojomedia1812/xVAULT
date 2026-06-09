@@ -467,6 +467,62 @@ def setPosition(pos, _name, content='movies'): # org.: episodes
         log_utils.log(_name + ' - System.CurrentControlID:  %s' % getInfoLabel("System.CurrentControlID"), log_utils.LOGINFO)
 
 
+def restoreListPosition(pos, content='', _name=''):
+    """Restore the exact selected media item after playback or a container refresh."""
+    import time
+    import xbmc
+    import xbmcgui
+
+    try:
+        pos = int(pos)
+    except:
+        return False
+    if pos < 1:
+        return False
+
+    index = pos if showparentdiritems() else pos - 1
+    deadline = time.time() + 12
+    monitor = xbmc.Monitor()
+    stable_checks = 0
+    monitor.waitForAbort(0.5)
+
+    while time.time() < deadline and not monitor.abortRequested():
+        try:
+            if xbmc.getCondVisibility('Container.IsUpdating') or \
+                    xbmc.getCondVisibility('Window.IsActive(busydialog)') or \
+                    xbmc.getCondVisibility('Window.IsActive(busydialognocancel)'):
+                stable_checks = 0
+                monitor.waitForAbort(0.2)
+                continue
+
+            current_content = getInfoLabel('Container.Content')
+            if content and current_content != content:
+                stable_checks = 0
+                monitor.waitForAbort(0.2)
+                continue
+
+            control_id = int(getInfoLabel('System.CurrentControlID'))
+            window = xbmcgui.Window(xbmcgui.getCurrentWindowId())
+            window.getControl(control_id).selectItem(index)
+            monitor.waitForAbort(0.25)
+
+            if int(getInfoLabel('Container().CurrentItem')) == pos:
+                stable_checks += 1
+                if stable_checks >= 3:
+                    if getSetting('status.debug') == 'true':
+                        log_utils.log('%s - restored list position: %s' % (_name, pos), log_utils.LOGINFO)
+                    return True
+            else:
+                stable_checks = 0
+        except:
+            stable_checks = 0
+        monitor.waitForAbort(0.2)
+
+    if getSetting('status.debug') == 'true':
+        log_utils.log('%s - failed to restore list position: %s' % (_name, pos), log_utils.LOGWARNING)
+    return False
+
+
 def getParams(_params):
     for key, value in _params.items():
         try:

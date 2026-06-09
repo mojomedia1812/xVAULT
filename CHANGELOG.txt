@@ -1,9 +1,10 @@
-xVAULT 2026.06.08
+xVAULT 2026.06.09
 
 - Vollständiges Rebranding auf xVAULT.
 - Neue Icon-, Fanart- und Banner-Grafiken.
 - Sämtliche Menügrafiken durch den freigestellten 512x512-xVAULT-Satz ersetzt.
 - Installations-ZIP mit Kodi-konformen Pfaden und korrektem Add-on-Wurzelordner neu erstellt.
+- Auswahlposition nach der Wiedergabe für Filme und Episoden beibehalten.
 - Film-, Serien- und Personensuche repariert.
 - Unicode- und Sonderzeichen in Suchbegriffen korrigiert.
 - Staffel-, Episoden- und Credits-Navigation stabilisiert.

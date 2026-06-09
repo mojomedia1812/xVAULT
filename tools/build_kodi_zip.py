@@ -4,7 +4,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 REPO_DIR = PROJECT_DIR.parent
-VERSION = "2026.06.08"
+VERSION = "2026.06.09"
 ZIP_NAME = f"plugin.video.xvault-{VERSION}.zip"
 OUTPUTS = (
     REPO_DIR / ZIP_NAME,

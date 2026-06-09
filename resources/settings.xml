@@ -17,7 +17,7 @@
         <setting id="status.refresh" type="text" label="Status aktualisieren (refresh)" default="" visible="false"/>
         <setting id="status.refresh.movies" type="bool" label="Filme - Status aktualisieren (refresh)" default="true" />
         <setting id="status.refresh.episodes" type="bool" label="Episoden - Status aktualisieren (refresh)" default="true" />
-        <setting id="status.position" type="bool" label="Status - Bei Serien die aktuelle Position setzen" default="true" />
+        <setting id="status.position" type="bool" label="Status - Bei Serien die erste ungesehene Folge auswählen" default="true" />
         <setting id="status.debug" type="bool" label="Debug" default="false" />
     </category>
     <category label="Indexseiten (DE)">

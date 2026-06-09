@@ -28,6 +28,8 @@ class player(xbmc.Player):
         self.currentTime = 0
         self.playcount = 0
         self.watcher_control = False
+        self.list_position = 0
+        self.list_content = ''
         self.isdebug = True if control.getSetting('status.debug') == 'true' else False
 
 
@@ -52,6 +54,8 @@ class player(xbmc.Player):
             self.episode = meta['episode'] if 'episode' in meta else None
 
             self.playcount = meta['playcount'] if 'playcount' in meta else 0
+            self.list_position = int(meta.get('_xvault_list_position', 0) or 0)
+            self.list_content = meta.get('_xvault_list_content', '')
             self.offset = bookmarks().get(self.name, self.year)
 
             from glob import glob
@@ -162,14 +166,20 @@ class player(xbmc.Player):
 
 
     def onPlayBackStopped(self):
+        if self.streamFinished:
+            return
         if self.isdebug: log_utils.log('Start - onPlayBackStopped', log_utils.LOGINFO)
         self.runVideoDB()
         self.streamFinished = True
         bookmarks().reset(self.currentTime, self.totalTime, self.name, self.year)
         if self.isdebug: log_utils.log('vor parentDir - onPlayBackStopped', log_utils.LOGINFO)
-        if self.watcher_control:
+        try:
             self.parentDir()
-            self.watcher_control = False
+        finally:
+            if self.list_position > 0:
+                from resources.lib.utils import restoreListPosition
+                restoreListPosition(self.list_position, self.list_content, __name__)
+        self.watcher_control = False
         if self.isdebug: log_utils.log('Ende - onPlayBackStopped', log_utils.LOGINFO)
 
     def onPlayBackEnded(self):
