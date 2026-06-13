@@ -85,8 +85,44 @@ def update_download_page(output):
     )
     html = re.sub(r"(ZIP-Datei · ).*?(</p>)", rf"\g<1>{size}\2", html)
     html = re.sub(r"<code>[A-F0-9]{64}</code>", f"<code>{digest}</code>", html)
+    html = _update_archive_links(html)
     html = re.sub(r"(<span>Version ).*?(</span>)", rf"\g<1>{VERSION}\2", html)
     page.write_text(html, encoding="utf-8", newline="\n")
+
+
+def _update_archive_links(html):
+    marker = r"(<!-- previous-downloads:start -->)(.*?)(<!-- previous-downloads:end -->)"
+    archive = _archive_downloads_html()
+    return re.sub(marker, rf"\1\n{archive}\n        \3", html, flags=re.S)
+
+
+def _archive_downloads_html():
+    downloads = PROJECT_DIR / "docs" / "downloads"
+    versions = []
+    for path in downloads.glob("plugin.video.xvault-*.zip"):
+        match = re.match(r"plugin\.video\.xvault-(.+)\.zip$", path.name)
+        if not match:
+            continue
+        version = match.group(1)
+        if version == VERSION:
+            continue
+        versions.append((version, path))
+
+    versions.sort(key=lambda item: _version_key(item[0]), reverse=True)
+    if not versions:
+        return '        <li><span>Keine vorherigen Versionen verfuegbar</span></li>'
+
+    lines = []
+    for version, path in versions:
+        lines.append(
+            '        <li><a href="downloads/%s" download>Version %s herunterladen</a><span>%s</span></li>'
+            % (path.name, version, _format_size(path.stat().st_size))
+        )
+    return "\n".join(lines)
+
+
+def _version_key(version):
+    return tuple(int(part) if part.isdigit() else part for part in re.split(r"[.-]", version))
 
 
 def _format_size(size):
