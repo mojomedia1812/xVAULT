@@ -1,3 +1,10 @@
+xVAULT 2026.06.13.1
+
+- Standard-Aktion nach Neuinstallation auf Autoplay gesetzt.
+- Autoplay und Dialogauswahl ueberspringen nicht erreichbare Stream-URLs und versuchen die naechste Quelle.
+- Startpruefung auf neuere xVAULT-Version mit optionaler ZIP-Aktualisierung ergaenzt.
+- GitHub-Pages-Downloadseite und Build-Script fuer aktuelle Release-Pakete aktualisiert.
+
 xVAULT 2026.06.09.1
 
 - Hauptmenü neu sortiert und um Kodis native LIVE-TV-Senderliste ergänzt.

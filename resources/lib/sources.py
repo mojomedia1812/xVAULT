@@ -513,7 +513,7 @@ class sources:
         return self.sources
 
 
-    def sourcesResolve(self, item, info=False):
+    def sourcesResolve(self, item, info=False, check_stream=False):
         try:
             self.url = None
             url = item['url']
@@ -546,9 +546,9 @@ class sources:
                 log_utils.log('Kein Video Link gefunden: Provider %s / %s / %s ' % (item['provider'], item['source'] , str(item['source'])), log_utils.LOGERROR)
                 raise Exception()
 
-            # if not utils.test_stream(url):
-            #     log_utils.log('URL Test Error: %s' % url, log_utils.LOGERROR)
-            #     raise Exception()
+            if check_stream and not local and not utils.test_stream(url):
+                log_utils.log('URL Test Error: Provider %s / %s / %s' % (item['provider'], item['source'], url), log_utils.LOGERROR)
+                raise Exception()
 
             # url = utils.m3u8_check(url)
 
@@ -588,7 +588,7 @@ class sources:
                 try:
                     if items[i]['source'] == block: raise Exception()
 
-                    future = self.executor.submit(self.sourcesResolve, items[i])
+                    future = self.executor.submit(self.sourcesResolve, items[i], False, True)
 
                     try:
                         if progressDialog.iscanceled(): break
@@ -668,7 +668,7 @@ class sources:
             try:
                 if control.abortRequested: return sys.exit()
 
-                url = self.sourcesResolve(items[i])
+                url = self.sourcesResolve(items[i], False, True)
                 if u == None: u = url
                 if not url == None: break
             except:
