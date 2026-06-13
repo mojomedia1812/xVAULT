@@ -30,6 +30,8 @@ class player(xbmc.Player):
         self.watcher_control = False
         self.list_position = 0
         self.list_content = ''
+        self.queue_playback = False
+        self.queue_last = False
         self.isdebug = True if control.getSetting('status.debug') == 'true' else False
 
 
@@ -56,6 +58,8 @@ class player(xbmc.Player):
             self.playcount = meta['playcount'] if 'playcount' in meta else 0
             self.list_position = int(meta.get('_xvault_list_position', 0) or 0)
             self.list_content = meta.get('_xvault_list_content', '')
+            self.queue_playback = bool(meta.get('_xvault_queue_playback', False))
+            self.queue_last = bool(meta.get('_xvault_queue_last', False))
             self.offset = bookmarks().get(self.name, self.year)
 
             from glob import glob
@@ -166,25 +170,29 @@ class player(xbmc.Player):
 
 
     def onPlayBackStopped(self):
+        self._finishPlayback(True)
+
+    def onPlayBackEnded(self):
+        self._finishPlayback(not self.queue_playback or self.queue_last)
+        if self.isdebug: log_utils.log('Ende - onPlayBackEnded', log_utils.LOGINFO)
+
+    def _finishPlayback(self, restore_navigation):
         if self.streamFinished:
             return
         if self.isdebug: log_utils.log('Start - onPlayBackStopped', log_utils.LOGINFO)
         self.runVideoDB()
         self.streamFinished = True
         bookmarks().reset(self.currentTime, self.totalTime, self.name, self.year)
-        if self.isdebug: log_utils.log('vor parentDir - onPlayBackStopped', log_utils.LOGINFO)
-        try:
-            self.parentDir()
-        finally:
-            if self.list_position > 0:
-                from resources.lib.utils import restoreListPosition
-                restoreListPosition(self.list_position, self.list_content, __name__)
+        if restore_navigation:
+            if self.isdebug: log_utils.log('vor parentDir - onPlayBackStopped', log_utils.LOGINFO)
+            try:
+                self.parentDir()
+            finally:
+                if self.list_position > 0:
+                    from resources.lib.utils import restoreListPosition
+                    restoreListPosition(self.list_position, self.list_content, __name__)
         self.watcher_control = False
         if self.isdebug: log_utils.log('Ende - onPlayBackStopped', log_utils.LOGINFO)
-
-    def onPlayBackEnded(self):
-        self.onPlayBackStopped()
-        if self.isdebug: log_utils.log('Ende - onPlayBackEnded', log_utils.LOGINFO)
 
 
     def parentDir(self):

@@ -27,7 +27,7 @@ ADDON_PATH = ADDON.getAddonInfo('path')
 ADDON_VERSION = ADDON.getAddonInfo('version')
 
 INSTALL_TIMEOUT = 90
-INSTALL_OPTIONAL = True
+INSTALL_OPTIONAL = False
 
 # Debug-only helper, not needed for normal playback/download features.
 SKIP_OPTIONAL_INSTALL = set(['script.module.pydevd'])

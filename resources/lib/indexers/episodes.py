@@ -97,6 +97,10 @@ class episodes:
 
 		watchedMenu = "In %s [I]Gesehen[/I]" % control.addonName
 		unwatchedMenu = "In %s [I]Ungesehen[/I]" % control.addonName
+		from resources.lib import seriesqueue
+		queue_meta = json.loads(self.sysmeta)
+		queue_key = seriesqueue.make_key(queue_meta)
+		queue_items = []
 		pos = 0
 		for i in items:
 			try:
@@ -139,6 +143,16 @@ class episodes:
 				if settingFanart == 'true': item.setProperty('Fanart_Image', fanart)
 
 				cm = []
+				queue_index = len(queue_items)
+				queue_items.append(dict(sysmeta))
+				cm.append((
+					'Ab hier abspielen',
+					'RunPlugin(%s?action=playFromHere&queue=%s&index=%s)' % (
+						sysaddon,
+						control.quote_plus(queue_key),
+						queue_index,
+					),
+				))
 				try:
 					playcount = i['playcount'] if sysmeta['playcount'] == 0 else 1
 					if playcount == 1:
@@ -203,6 +217,7 @@ class episodes:
 			except:
 				pass
 
+		seriesqueue.store(queue_key, queue_items)
 		control.content(syshandle, 'movies')	# 'episodes' cpu last sehr hoch / movies
 		if control.skin == 'skin.estuary':
 			control.execute('Container.SetViewMode(%s)' % str(55))

@@ -281,6 +281,10 @@ elif action == 'episodes':
     from resources.lib.indexers import episodes
     episodes.episodes().get(params)
 
+elif action == 'playFromHere':
+    from resources.lib import seriesqueue
+    seriesqueue.start(params)
+
 # sources ---------------------------------
 elif action == 'play':
     try:
