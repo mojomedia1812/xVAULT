@@ -24,6 +24,7 @@ ADDON = xbmcaddon.Addon()
 ADDON_ID = ADDON.getAddonInfo('id')
 ADDON_NAME = ADDON.getAddonInfo('name')
 ADDON_PATH = ADDON.getAddonInfo('path')
+ADDON_VERSION = ADDON.getAddonInfo('version')
 
 INSTALL_TIMEOUT = 90
 INSTALL_OPTIONAL = True
@@ -35,8 +36,12 @@ SKIP_OPTIONAL_INSTALL = set(['script.module.pydevd'])
 def ensure_all_dependencies():
     """Install and enable missing Kodi dependencies before xVAULT imports them."""
     try:
+        if _was_checked():
+            return True
+
         dependencies = _dependencies_from_manifest()
         if not dependencies:
+            _mark_checked()
             return True
 
         required = [addon_id for addon_id, optional in dependencies if not optional]
@@ -49,6 +54,7 @@ def ensure_all_dependencies():
         missing = [(addon_id, optional) for addon_id, optional in installable if not _has_addon(addon_id)]
         if not missing:
             _enable_addons([addon_id for addon_id, optional in installable])
+            _mark_checked()
             return True
 
         _notify('Installiere Abhaengigkeiten...', 'INFO', 3000)
@@ -64,7 +70,10 @@ def ensure_all_dependencies():
             _log('Missing dependencies after install: %s' % ', '.join(still_missing), xbmc.LOGWARNING)
             _notify('Abhaengigkeiten fehlen: %s' % ', '.join(still_missing[:3]), 'WARNING', 7000)
 
-        return len(missing_required) == 0
+        success = len(missing_required) == 0
+        if success:
+            _mark_checked()
+        return success
     except Exception as e:
         _log('Dependency check failed: %s' % str(e), xbmc.LOGERROR)
         return True
@@ -171,6 +180,28 @@ def _set_addon_enabled(addon_id):
         xbmc.executeJSONRPC(json.dumps(request))
     except:
         pass
+
+
+def _was_checked():
+    try:
+        if not xbmcgui:
+            return False
+        value = xbmcgui.Window(10000).getProperty(_checked_property())
+        return value == ADDON_VERSION
+    except:
+        return False
+
+
+def _mark_checked():
+    try:
+        if xbmcgui:
+            xbmcgui.Window(10000).setProperty(_checked_property(), ADDON_VERSION)
+    except:
+        pass
+
+
+def _checked_property():
+    return '%s.dependencies.checked' % ADDON_ID
 
 
 def _translate_path(path):

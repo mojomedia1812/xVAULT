@@ -20,10 +20,33 @@ EXCLUDED_PARTS = {
     ".git",
     "__pycache__",
     "docs",
+    "scrapers_source",
     "tools",
 }
 EXCLUDED_FILES = {
     ".gitignore",
+    "DEPENDENCIES.md",
+    "README.md",
+}
+EXCLUDED_RELATIVE = {
+    Path("resources/lib/cleandate.py"),
+    Path("resources/lib/help.py"),
+    Path("resources/lib/trailer-v2-backup.py"),
+    Path("resources/lib/views.py"),
+    Path("resources/media/_movies-search.png"),
+    Path("resources/media/_series-search.png"),
+    Path("resources/media/box-office.png"),
+    Path("resources/media/downloads.png"),
+    Path("resources/media/highly-rated.png"),
+    Path("resources/media/in-theaters.png"),
+    Path("resources/media/most-popular.png"),
+    Path("resources/media/most-voted.png"),
+    Path("resources/media/plugin-info.png"),
+    Path("resources/media/resolveurl.png"),
+    Path("resources/media/tmdb_search.png"),
+    Path("resources/media/tools.png"),
+    Path("resources/media/url.png"),
+    Path("sites/README.md"),
 }
 EXCLUDED_SUFFIXES = {
     ".pyc",
@@ -36,6 +59,8 @@ def addon_files():
     for path in PROJECT_DIR.rglob("*"):
         relative = path.relative_to(PROJECT_DIR)
         if not path.is_file():
+            continue
+        if relative in EXCLUDED_RELATIVE:
             continue
         if any(part in EXCLUDED_PARTS for part in relative.parts):
             continue

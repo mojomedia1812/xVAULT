@@ -1,3 +1,9 @@
+xVAULT 2026.06.13.3
+
+- Release-Paket um unreferenzierte Media-Dateien, Legacy-Providerduplikate und Backup-/Hilfsdateien verkleinert.
+- Dependency-Check pro Kodi-Sitzung gecached, damit wiederholte Plugin-Starts weniger Startarbeit ausfuehren.
+- Build-Script um explizite Runtime-Ausschluesse erweitert.
+
 xVAULT 2026.06.13.2
 
 - Bootstrap-Installer fuer Kodi-Abhaengigkeiten ergaenzt.
