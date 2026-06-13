@@ -4,6 +4,11 @@
 
 import sys, json
 from urllib.parse import parse_qs, urlsplit
+from resources.lib import dependencies
+
+if not dependencies.ensure_all_dependencies():
+    sys.exit()
+
 from resources.lib import control
 
 params = dict(control.parse_qsl(control.urlsplit(sys.argv[2]).query))

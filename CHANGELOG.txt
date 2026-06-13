@@ -1,3 +1,10 @@
+xVAULT 2026.06.13.2
+
+- Bootstrap-Installer fuer Kodi-Abhaengigkeiten ergaenzt.
+- Fehlende Pflicht- und Funktionsabhaengigkeiten werden beim Service-Start und vor dem Plugin-Start ueber Kodi installiert und aktiviert.
+- Dependency-Check laeuft ohne requests/six/resolveurl, damit fehlende Module nachinstalliert werden koennen.
+- inputstream.adaptive und plugin.video.youtube als optionale Kodi-Abhaengigkeiten dokumentiert.
+
 xVAULT 2026.06.13.1
 
 - Standard-Aktion nach Neuinstallation auf Autoplay gesetzt.

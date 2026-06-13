@@ -52,11 +52,8 @@ mitinstalliert.
 
 ## Empfohlene Manifestkorrekturen
 
-1. `inputstream.adaptive` als optionale Abhängigkeit in `addon.xml` dokumentieren.
-2. `plugin.video.youtube` als optionale Abhängigkeit dokumentieren, sofern Kodi
-   es nicht ungefragt mitinstallieren soll.
-3. `script.module.kodi-six` nach einem Test ohne das Modul aus den
+1. `script.module.kodi-six` nach einem Test ohne das Modul aus den
    Pflichtabhängigkeiten entfernen.
-4. `script.module.pydevd` entfernen, wenn keine Remote-Debug-Builds verteilt
+2. `script.module.pydevd` entfernen, wenn keine Remote-Debug-Builds verteilt
    werden sollen.
 

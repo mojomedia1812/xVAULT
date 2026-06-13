@@ -1,8 +1,8 @@
 
 # 2022-10-09
-# edit 2025-07-15
+# edit 2026-06-13
 
-import sys, os, requests, threading
+import sys, os, threading
 from random import choice
 from xbmcaddon import Addon
 # from resources.lib.requestHandler import cRequestHandler
@@ -106,6 +106,7 @@ def RandomUA():
 
 def _checkdomain(_domain, _provider):
     try:
+        import requests
         requests.packages.urllib3.disable_warnings()  # weil verify = False - ansonst Fehlermeldungen im kodi log
         check=None
         status_code=None
@@ -199,10 +200,8 @@ def ensure_youtube_api_keys():
 
 
 if __name__ == "__main__":
-	import xbmc
-	if not xbmc.getCondVisibility("System.HasAddon(inputstream.adaptive)"):
-		xbmc.executebuiltin('InstallAddon(inputstream.adaptive)')
-		xbmc.executebuiltin('SendClick(11)')
+	from resources.lib import dependencies
+	dependencies.ensure_all_dependencies()
 	check_domains()
 	delHtmlCache()
 	ensure_youtube_api_keys()
