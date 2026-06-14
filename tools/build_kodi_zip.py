@@ -2,6 +2,7 @@ from pathlib import Path
 import hashlib
 import re
 import xml.etree.ElementTree as ET
+import shutil
 from zipfile import ZIP_DEFLATED, ZipFile
 
 
@@ -20,6 +21,8 @@ DOWNLOAD_OUTPUT = PROJECT_DIR / "docs" / "downloads" / ZIP_NAME
 REPOSITORY_PLUGIN_OUTPUT = PROJECT_DIR / "docs" / "zips" / ADDON_ID / ZIP_NAME
 REPOSITORY_OUTPUT = PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID / REPOSITORY_ZIP_NAME
 ADDONS_XML = PROJECT_DIR / "docs" / "addons.xml"
+M3U_DIR = PROJECT_DIR / "m3u"
+DOCS_M3U_DIR = PROJECT_DIR / "docs" / "m3u"
 OUTPUTS = (
     REPO_DIR / ZIP_NAME,
     DOWNLOAD_OUTPUT,
@@ -138,6 +141,14 @@ def update_kodi_repository_metadata():
     )
 
 
+def sync_repository_m3u():
+    if not M3U_DIR.exists():
+        return
+    DOCS_M3U_DIR.mkdir(parents=True, exist_ok=True)
+    for source in M3U_DIR.glob("*.m3u"):
+        shutil.copy2(source, DOCS_M3U_DIR / source.name)
+
+
 def update_download_page(output):
     page = PROJECT_DIR / "docs" / "index.html"
     digest = hashlib.sha256(output.read_bytes()).hexdigest().upper()
@@ -211,6 +222,7 @@ def _xml_body(content):
 
 
 if __name__ == "__main__":
+    sync_repository_m3u()
     for destination in OUTPUTS:
         build(destination)
         validate(destination)

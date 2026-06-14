@@ -19,7 +19,8 @@ werden.
 | `script.module.six` | nicht festgelegt | 1.16.0+matrix.1 | Python-Kompatibilitätsfunktionen | https://github.com/benjaminp/six |
 | `script.module.pyaes` | nicht festgelegt | 1.6.1+matrix.1 | AES-Ver- und Entschlüsselung, unter anderem MyJDownloader und Provider | https://github.com/ricmoo/pyaes |
 | `script.module.infotagger` | nicht festgelegt | 0.0.8 | Kodi-20+-Metadaten für Filme, Serien, Staffeln und Episoden | https://github.com/jurialmunkey/script.module.infotagger |
-| `script.module.resolveurl` | 5.1.100 | Bootstrap | Auflösen unterstützter Video-Hoster und Resolver-Einstellungen | https://github.com/Gujal00/ResolveURL |
+| `script.module.dateutil` | nicht festgelegt | Kodi | Datumsauswertung in der eingebetteten VAVOO.TO-/Stalker-Integration | https://github.com/dateutil/dateutil |
+| `script.module.resolveurl` | 5.1.100 | Bootstrap | Auflösen unterstützter Video-Hoster, Resolver-Einstellungen und VAVOO.TO-Quellen | https://github.com/Gujal00/ResolveURL |
 
 Hinweis: `script.module.resolveurl` ist in `addon.xml` absichtlich als optional
 markiert, damit Kodi die direkte ZIP-Installation von xVAULT nicht wegen eines
@@ -33,6 +34,9 @@ offiziellem ResolveURL-Repository nach.
 |---|---:|---|---|
 | `script.module.download-m3u8` | Bootstrap | Nur für direkte HLS-/M3U8-Downloads | Kodi-Paket: https://github.com/chrisklietsch/repository.kc-kodi/tree/main/repo/script.module.download-m3u8 — Upstream: https://github.com/hwaves/m3u8_To_MP4 (Weiterleitung zu https://github.com/tysoong/m3u8_To_MP4) |
 | `inputstream.adaptive` | 21.5.18 | HLS-/DASH-Wiedergabe; wird durch `service.py` bei Bedarf über Kodi installiert | https://github.com/xbmc/inputstream.adaptive |
+| `inputstream.ffmpegdirect` | Nein | Optionale Live-TV-Wiedergabe mit Timeshift/Open-Mode fuer VAVOO.TO; ohne Add-on nutzt xVAULT fuer HLS `inputstream.adaptive` | https://github.com/xbmc/inputstream.ffmpegdirect |
+| `plugin.video.joyn` | Nein | Wiedergabe der Joyn-Eintraege in den gebuendelten M3U-Listen `tv.m3u` und `tv2.m3u` | Kodi Add-on-Repository |
+| `plugin.video.joyn-at` | Nein | Wiedergabe der Joyn-AT-Eintraege in der gebuendelten M3U-Liste `tv-at.m3u` | Kodi Add-on-Repository |
 | `plugin.video.youtube` | Nein | Trailer-Wiedergabe; ohne Add-on wird die Trailer-Funktion ausgeblendet | https://github.com/anxdpanic/plugin.video.youtube |
 | `script.module.pydevd` | Nein | Nur Entwickler-Debugging; aktive Nutzung wurde nicht gefunden | Kodi-Modul: https://github.com/powlo/script.module.pydevd — Upstream: https://github.com/fabioz/PyDev.Debugger |
 

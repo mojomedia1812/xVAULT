@@ -1,62 +1,86 @@
 # edit 2026-06-14
 
-import xbmc
-
 from resources.lib import control
-from resources.lib import dependencies
 
 
-ADDON_ID = 'plugin.video.vavooto'
-MIN_VERSION = '2026.05.03'
+ACTION_PREFIX = 'vavoo_'
 
 
 def open_root():
-    if _ensure_installed():
-        _open_plugin('plugin://%s/' % ADDON_ID)
+    dispatch({'action': 'root'})
 
 
 def open_favorites():
-    if _ensure_installed():
-        _open_plugin('plugin://%s/?action=favchannels' % ADDON_ID)
+    dispatch({'action': 'favchannels'})
 
 
 def open_settings():
-    if _ensure_installed():
-        control.openSettings(id=ADDON_ID)
+    control.openSettings()
 
 
 def make_m3u():
-    if _ensure_installed():
-        control.execute('RunPlugin(plugin://%s/?action=makem3u)' % ADDON_ID)
+    from resources.lib import m3u_live
+
+    m3u_live.export_all()
 
 
-def _ensure_installed():
-    if _has_addon():
-        return True
+def dispatch(params):
+    """Route embedded VAVOO.TO actions through xVAULT."""
+    from resources.lib.vavoo import stalker, vavoo_tv, vjackson, vjlive
+    from resources.lib.vavoo.utils import clear, execute, log, setSetting
 
-    install = control.yesnoDialog(
-        'VAVOO.TO ist nicht installiert.',
-        'Jetzt aus dem Michaz Repository installieren?',
-        ''
-    )
-    if not install:
-        return False
+    params = dict(params or {})
+    action = _internal_action(params.pop('action', None))
+    tv = params.get('name')
 
-    control.infoDialog('Installiere VAVOO.TO...', icon='INFO', time=3000)
-    if dependencies.install_addon(ADDON_ID, MIN_VERSION):
-        control.infoDialog('VAVOO.TO ist installiert.', icon='INFO', time=3000)
-        return True
+    if tv and (action in (None, '', 'livePlay')):
+        return vjlive.livePlay(tv, params.get('type'), params.get('group'))
 
-    control.infoDialog('VAVOO.TO konnte nicht installiert werden.', icon='ERROR', time=7000)
-    return False
+    if action in (None, '', 'root'):
+        return vjackson.menu(params)
+
+    if action == 'addTvFavorit' and tv:
+        return vjlive.change_favorit(tv)
+
+    if action == 'delTvFavorit' and tv:
+        return vjlive.change_favorit(tv, True)
+
+    if action == 'delallTvFavorit':
+        setSetting('favs', '[]')
+        execute('Container.Refresh')
+        return
+
+    actions = {
+        'choose': lambda: vavoo_tv.choose(),
+        'get_genres': lambda: stalker.get_genres(),
+        'choose_portal': lambda: stalker.choose_portal(),
+        'new_mac': lambda: stalker.new_mac(),
+        'clear': lambda: clear(),
+        'delete_search': lambda: clear_search(params),
+        'channels': lambda: vjlive.channels(params.get('items'), params.get('type'), params.get('group')),
+        'settings': lambda: open_settings(),
+        'favchannels': lambda: vjlive.favchannels(),
+        'makem3u': lambda: make_m3u(),
+    }
+
+    if action in actions:
+        return actions[action]()
+
+    handler = getattr(vjackson, action, None)
+    if callable(handler) and not action.startswith('_'):
+        return handler(params)
+
+    log('Unbekannte action: %s' % action)
+    return vjackson.menu(params)
 
 
-def _open_plugin(plugin_url):
-    control.execute('ActivateWindow(Videos,%s,return)' % plugin_url)
+def clear_search(params):
+    from resources.lib.vavoo.utils import delete_search
+
+    return delete_search(params)
 
 
-def _has_addon():
-    try:
-        return bool(xbmc.getCondVisibility('System.HasAddon(%s)' % ADDON_ID))
-    except Exception:
-        return False
+def _internal_action(action):
+    if action and action.startswith(ACTION_PREFIX):
+        return action[len(ACTION_PREFIX):]
+    return action

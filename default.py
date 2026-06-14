@@ -55,6 +55,26 @@ elif action == 'liveTVNavigator':
     from resources.lib.indexers import navigator
     navigator.navigator().live_tv()
 
+elif action == 'm3uLiveNavigator':
+    from resources.lib import m3u_live
+    m3u_live.list_playlists()
+
+elif action == 'm3uLiveList':
+    from resources.lib import m3u_live
+    m3u_live.list_channels(params.get('playlist'))
+
+elif action == 'm3uLiveExportAll':
+    from resources.lib import m3u_live
+    m3u_live.export_all()
+
+elif action == 'm3uLiveExport':
+    from resources.lib import m3u_live
+    m3u_live.export_playlist(params.get('playlist'))
+
+elif action and action.startswith('vavoo_'):
+    from resources.lib import vavooto
+    vavooto.dispatch(params)
+
 # -------------------------------------------
 elif action == 'download':
     image = params.get('image')

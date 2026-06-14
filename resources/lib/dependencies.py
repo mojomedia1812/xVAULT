@@ -41,7 +41,7 @@ DOWNLOAD_TIMEOUT = 20
 # direct "install from zip" flow, so xVAULT bootstraps them from their upstream
 # Kodi repositories after xVAULT itself has been installed.
 REQUIRED_EXTERNAL_ADDONS = set(['script.module.resolveurl'])
-AUTO_INSTALL_OPTIONAL_EXTERNALS = set(['script.module.download-m3u8'])
+AUTO_INSTALL_OPTIONAL_EXTERNALS = set(['script.module.download-m3u8', 'inputstream.adaptive'])
 EXTERNAL_ADDON_SOURCES = {
     'script.module.resolveurl': {
         'repository_id': 'repository.resolveurl',
@@ -55,15 +55,6 @@ EXTERNAL_ADDON_SOURCES = {
     'script.module.download-m3u8': {
         'metadata_url': 'https://raw.githubusercontent.com/chrisklietsch/repository.kc-kodi/main/repo/addons.xml',
         'datadir': 'https://raw.githubusercontent.com/chrisklietsch/repository.kc-kodi/main/repo/',
-    },
-    'plugin.video.vavooto': {
-        'repository_id': 'repository.michaz',
-        'repository_zip_urls': [
-            'https://michaz1988.github.io/repo/repository.michaz/repository.michaz-5.0.zip',
-            'https://raw.githubusercontent.com/michaz1988/michaz1988.github.io/main/repo/repository.michaz/repository.michaz-5.0.zip',
-        ],
-        'metadata_url': 'https://michaz1988.github.io/repo/addons.xml',
-        'datadir': 'https://michaz1988.github.io/repo/',
     },
 }
 

@@ -140,6 +140,41 @@
         <setting id="bookmarks" type="bool" label="Fortsetzen" default="true" />
         <setting id="bookmarks.auto" type="bool" label="Automatisch Fortsetzen" default="true" enable="!eq(-1,false)" />
     </category>
+    <category label="VAVOO.TO">
+        <setting type="lsep" label="Live-TV" />
+        <setting default="0" id="vavoo.auto" label="IPTV Autoplay" type="enum" values="Auto|Countdown|Manuell" />
+        <setting default="5" id="vavoo.count" label="Countdown Zeit" type="number" option="int" visible="eq(-1,1)" />
+        <setting default="false" id="vavoo.stream_count" type="bool" label="Anzahl Streams im Titel anzeigen"/>
+        <setting default="1" id="vavoo.hlsinputstream" label="HLS Inputstream Addon" type="enum" values="ffmpeg|adaptive" />
+        <setting default="true" id="vavoo.filter" type="bool" label="Kanalfilter verwenden"/>
+        <setting label="M3U-Dateien exportieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=m3uLiveExportAll)"/>
+        <setting label="Alle Favoriten entfernen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=vavoo_delallTvFavorit)"/>
+        <setting id="vavoo.favs" type="text" default="[]" visible="false"/>
+        <setting type="lsep" label="VAVOO" />
+        <setting default="true" id="vavoo.vavoo" type="bool" label="VAVOO TV verwenden"/>
+        <setting label="VAVOO Kanalgruppen Auswahl" type="action" visible="eq(-1,true)" action="RunPlugin(plugin://plugin.video.xvault/?action=vavoo_choose)"/>
+        <setting type="lsep" label="STALKER" />
+        <setting default="true" id="vavoo.stalker" type="bool" label="Stalkerportal verwenden"/>
+        <setting label="STALKER Portal Auswahl" type="action" visible="eq(-1,true)" action="RunPlugin(plugin://plugin.video.xvault/?action=vavoo_choose_portal)"/>
+        <setting label="Neue Mac Adresse" type="action" visible="eq(-2,true)" action="RunPlugin(plugin://plugin.video.xvault/?action=vavoo_new_mac)"/>
+        <setting label="STALKER Kanalgruppen Auswahl" type="action" visible="eq(-3,true)" action="RunPlugin(plugin://plugin.video.xvault/?action=vavoo_get_genres)"/>
+        <setting label="STALKER Portal Check Retries" type="number" id="vavoo.stalker_retry" default="10" visible="eq(-4,true)"/>
+        <setting default="5" id="vavoo.stalk_cache" label="STALKER TV Cache in Std" type="number" option="int" visible="eq(-5,true)" />
+        <setting label="STALKER Portal" type="text" id="vavoo.stalkerurl" default="http://tvip.zeroonemac.xyz:8080/c" visible="eq(-6,true)"/>
+        <setting label="STALKER Mac" type="text" id="vavoo.mac" default="00:1a:79:7c:6c:d2" visible="eq(-7,true)"/>
+        <setting label="STALKER Portal Check" type="text" id="vavoo.portal_ok" default="" visible="eq(-8,true)" enable="false"/>
+        <setting label="Account Info" type="text" id="vavoo.account_info" default="" visible="eq(-9,true)" enable="false"/>
+        <setting type="lsep" label="Video" />
+        <setting default="1" id="vavoo.stream_select" label="Stream Auswahl" type="enum" values="Hoster|Automatisch" />
+        <setting default="true" id="vavoo.auto_try_next_stream" type="bool" visible="eq(-1,0)" label="Automatisch nächsten ähnlichen Stream versuchen"/>
+        <setting default="0" id="vavoo.stream_quali" label="Max Stream Qualität" type="enum" values="1080p|720p|480p" />
+        <setting default="true" id="vavoo.stream_check" type="bool" label="Streams testen"/>
+        <setting label="Suchverlauf löschen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=vavoo_delete_search&amp;id=all)"/>
+        <setting type="lsep" label="Debug" />
+        <setting default="false" id="vavoo.debug" type="bool" label="Debug Logging"/>
+        <setting default="true" id="vavoo.comp" type="bool" label="Cache komprimieren"/>
+        <setting label="Cache löschen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=vavoo_clear)"/>
+    </category>
     <category label="Konten">
         <setting type="lsep" label="Konto [B]SerienStream.to[/B]"/>
         <setting id="serienstream.user" type="text" label="Email" default=""/>

@@ -1,3 +1,20 @@
+xVAULT 2026.06.14.8
+Entwickler: mojomedia1812
+
+- Die bereitgestellten Playlists `tv-at.m3u`, `tv.m3u` und `tv2.m3u` im Repository-Unterordner `m3u` eingebunden.
+- LIVE-TV-Menue um `M3U Live-TV` erweitert: die drei Playlists koennen direkt in xVAULT durchsucht und abgespielt werden.
+- Alte `plugin.video.vavooto`-M3U-URLs werden beim Anzeigen und Exportieren automatisch auf `plugin.video.xvault` / `action=vavoo_livePlay` umgeschrieben.
+- M3U-Export schreibt normalisierte xVAULT-M3U-Dateien ins Addon-Profil.
+- Joyn und Joyn-AT als optionale Addons deklariert, weil einige M3U-Eintraege direkt ueber diese Plugins laufen.
+
+xVAULT 2026.06.14.7
+Entwickler: mojomedia1812
+
+- VAVOO.TO aus dem externen Add-on in xVAULT eingebettet: Live-TV, Filme, Serien, Favoriten, Suche, Gruppenwahl, Stalker-Funktionen und M3U-Erstellung laufen nun ueber `plugin.video.xvault`.
+- VAVOO.TO-Einstellungen in xVAULT uebernommen und mit `vavoo.`-Praefix im xVAULT-Profil gespeichert.
+- VAVOO.TO-M3U-URLs zeigen jetzt auf `plugin://plugin.video.xvault/?action=vavoo_livePlay&name=...`.
+- HLS-Wiedergabe faellt auf `inputstream.adaptive` zurueck, wenn `inputstream.ffmpegdirect` nicht installiert ist.
+
 xVAULT 2026.06.14.6
 Entwickler: mojomedia1812
 

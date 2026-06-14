@@ -57,10 +57,11 @@ class navigator:
 
 	def live_tv(self):
 		self.addDirectoryItem("Kodi LIVE-TV", 'liveTV', '06_live_tv.png', 'DefaultTVShows.png', isFolder=False)
-		self.addDirectoryItem("VAVOO.TO", 'vavooTV', '06_live_tv.png', 'DefaultTVShows.png', isFolder=False)
-		self.addDirectoryItem("VAVOO.TO Favoriten", 'vavooFavorites', '06_live_tv.png', 'DefaultTVShows.png', isFolder=False)
+		self.addDirectoryItem("M3U Live-TV", 'm3uLiveNavigator', '06_live_tv.png', 'DefaultTVShows.png')
+		self.addDirectoryItem("VAVOO.TO", 'vavooTV', '06_live_tv.png', 'DefaultTVShows.png')
+		self.addDirectoryItem("VAVOO.TO Favoriten", 'vavooFavorites', '06_live_tv.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("VAVOO.TO Einstellungen", 'vavooSettings', '06_03_resolver_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
-		self.addDirectoryItem("VAVOO.TO M3U erstellen", 'vavooMakeM3U', '07_stream_url_abspielen.png', 'DefaultAddonWebSkin.png', isFolder=False)
+		self.addDirectoryItem("M3U-Dateien exportieren", 'm3uLiveExportAll', '07_stream_url_abspielen.png', 'DefaultAddonWebSkin.png', isFolder=False)
 		self._endDirectory(content='', cache=False)
 
 	def downloads(self):
