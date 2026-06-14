@@ -1,4 +1,13 @@
+xVAULT 2026.06.14.2
+Entwickler: mojomedia1812
+
+- Erststart-Infoscreen mit Hinweis auf xShip und Dank an das Team xShip ergänzt.
+- Update-Infoscreen ergänzt, der Änderungen seit der zuletzt benutzten Version anzeigt.
+- Changelog-Auswertung liest Versionen, Entwickler und Änderungen aus CHANGELOG.txt.
+- Interner Updater speichert die vorherige Version für den ersten Start nach einer Aktualisierung.
+
 xVAULT 2026.06.14.1
+Entwickler: mojomedia1812
 
 - Nicht im offiziellen Kodi-Repo verfuegbare Abhaengigkeiten werden beim Start aus ihren offiziellen Quellen nachinstalliert.
 - ResolveURL wird aus Gujals ResolveURL-Repository gebootstrappt und intern weiterhin als Pflichtmodul behandelt.
@@ -6,12 +15,14 @@ xVAULT 2026.06.14.1
 - ResolveURL im Manifest optional markiert, damit die direkte ZIP-Installation von xVAULT nicht vor dem Bootstrap blockiert.
 
 xVAULT 2026.06.13.3
+Entwickler: mojomedia1812
 
 - Release-Paket um unreferenzierte Media-Dateien, Legacy-Providerduplikate und Backup-/Hilfsdateien verkleinert.
 - Dependency-Check pro Kodi-Sitzung gecached, damit wiederholte Plugin-Starts weniger Startarbeit ausfuehren.
 - Build-Script um explizite Runtime-Ausschluesse erweitert.
 
 xVAULT 2026.06.13.2
+Entwickler: mojomedia1812
 
 - Bootstrap-Installer fuer Kodi-Abhaengigkeiten ergaenzt.
 - Fehlende Pflicht- und Funktionsabhaengigkeiten werden beim Service-Start und vor dem Plugin-Start ueber Kodi installiert und aktiviert.
@@ -19,6 +30,7 @@ xVAULT 2026.06.13.2
 - inputstream.adaptive und plugin.video.youtube als optionale Kodi-Abhaengigkeiten dokumentiert.
 
 xVAULT 2026.06.13.1
+Entwickler: mojomedia1812
 
 - Standard-Aktion nach Neuinstallation auf Autoplay gesetzt.
 - Autoplay und Dialogauswahl ueberspringen nicht erreichbare Stream-URLs und versuchen die naechste Quelle.
@@ -26,6 +38,7 @@ xVAULT 2026.06.13.1
 - GitHub-Pages-Downloadseite und Build-Script fuer aktuelle Release-Pakete aktualisiert.
 
 xVAULT 2026.06.09.1
+Entwickler: mojomedia1812
 
 - Hauptmenü neu sortiert und um Kodis native LIVE-TV-Senderliste ergänzt.
 - Vollständiges Rebranding auf xVAULT.

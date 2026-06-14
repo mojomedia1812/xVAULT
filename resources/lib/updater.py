@@ -85,6 +85,7 @@ def install_update(version, url):
     try:
         _download(url, temp_zip, version)
         root = _validate_zip(temp_zip, version)
+        _record_pending_update(version)
         _extract_zip_root(temp_zip, root, control.addonPath)
         control.execute('UpdateLocalAddons')
         control.infoDialog(
@@ -105,6 +106,14 @@ def install_update(version, url):
         except:
             pass
     return False
+
+
+def _record_pending_update(target_version):
+    try:
+        from resources.lib import startup_info
+        startup_info.record_pending_update(control.addonVersion, target_version)
+    except Exception as e:
+        log_utils.log('Could not store update startup info: %s' % str(e), log_utils.LOGWARNING)
 
 
 def _download(url, destination, version):
