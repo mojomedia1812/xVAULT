@@ -1,3 +1,10 @@
+xVAULT 2026.06.14.4
+Entwickler: mojomedia1812
+
+- LIVE-TV in ein Untermenue erweitert.
+- Optionale VAVOO.TO-Anbindung ergaenzt: xVAULT kann das externe Add-on aus dem Michaz-Repository installieren und oeffnen.
+- VAVOO.TO-Favoriten, Einstellungen und M3U-Erstellung sind direkt aus xVAULT erreichbar.
+
 xVAULT 2026.06.14.3
 Entwickler: mojomedia1812
 

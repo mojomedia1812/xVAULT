@@ -56,6 +56,15 @@ EXTERNAL_ADDON_SOURCES = {
         'metadata_url': 'https://raw.githubusercontent.com/chrisklietsch/repository.kc-kodi/main/repo/addons.xml',
         'datadir': 'https://raw.githubusercontent.com/chrisklietsch/repository.kc-kodi/main/repo/',
     },
+    'plugin.video.vavooto': {
+        'repository_id': 'repository.michaz',
+        'repository_zip_urls': [
+            'https://michaz1988.github.io/repo/repository.michaz/repository.michaz-5.0.zip',
+            'https://raw.githubusercontent.com/michaz1988/michaz1988.github.io/main/repo/repository.michaz/repository.michaz-5.0.zip',
+        ],
+        'metadata_url': 'https://michaz1988.github.io/repo/addons.xml',
+        'datadir': 'https://michaz1988.github.io/repo/',
+    },
 }
 
 # Debug-only helper, not needed for normal playback/download features.
@@ -118,6 +127,24 @@ def ensure_all_dependencies():
     except Exception as e:
         _log('Dependency check failed: %s' % str(e), xbmc.LOGERROR)
         return True
+
+
+def install_addon(addon_id, min_version=None):
+    """Install an add-on on demand using Kodi first and known external sources as fallback."""
+    try:
+        if _has_addon(addon_id, min_version):
+            _enable_addons([addon_id])
+            return True
+
+        if not _install_addon(addon_id, min_version):
+            return False
+
+        _enable_addons([addon_id])
+        _refresh_addons()
+        return _has_addon(addon_id, min_version)
+    except Exception as e:
+        _log('On-demand install failed for %s: %s' % (addon_id, str(e)), xbmc.LOGERROR)
+        return False
 
 
 def _dependencies_from_manifest():

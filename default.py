@@ -51,6 +51,10 @@ elif action == 'downloadNavigator':
     from resources.lib.indexers import navigator
     navigator.navigator().downloads()
 
+elif action == 'liveTVNavigator':
+    from resources.lib.indexers import navigator
+    navigator.navigator().live_tv()
+
 # -------------------------------------------
 elif action == 'download':
     image = params.get('image')
@@ -175,6 +179,22 @@ elif action == 'playURL':
 
 elif action == 'liveTV':
     control.execute('ActivateWindow(TVChannels)')
+
+elif action == 'vavooTV':
+    from resources.lib import vavooto
+    vavooto.open_root()
+
+elif action == 'vavooFavorites':
+    from resources.lib import vavooto
+    vavooto.open_favorites()
+
+elif action == 'vavooSettings':
+    from resources.lib import vavooto
+    vavooto.open_settings()
+
+elif action == 'vavooMakeM3U':
+    from resources.lib import vavooto
+    vavooto.make_m3u()
 
 elif action == 'playTrailer':
     try:

@@ -15,9 +15,12 @@ werden beim ersten Start von xVAULT automatisch aus ihren offiziellen Quellen
 nachinstalliert. Außerdem legt xVAULT automatisch das Kodi-Repository
 `repository.xvault` an, damit spätere Updates über Kodi gefunden werden.
 
+Im Menü **LIVE-TV** kann xVAULT außerdem das externe Add-on VAVOO.TO öffnen.
+Wenn es noch fehlt, bietet xVAULT eine Installation aus dem Michaz-Repository an.
+
 ## Version
 
-Aktueller Stand: `2026.06.14.3`
+Aktueller Stand: `2026.06.14.4`
 
 Weitere Hinweise zu Abhängigkeiten stehen in
 [`DEPENDENCIES.md`](DEPENDENCIES.md).

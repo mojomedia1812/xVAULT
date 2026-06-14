@@ -114,6 +114,120 @@ h1 {
   margin: 0 0 16px;
 }
 
+.section-kicker {
+  margin: 0 0 8px;
+  color: #ff6672;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.panel p {
+  max-width: 48rem;
+  margin: 0;
+  color: #d5d5d5;
+  line-height: 1.7;
+}
+
+.repo-panel {
+  display: grid;
+  gap: 22px;
+}
+
+.repo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.secondary-download {
+  display: inline-block;
+  padding: 12px 16px;
+  border: 1px solid #666;
+  border-radius: 10px;
+  background: #f2f2f2;
+  color: #111;
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform .15s ease, filter .15s ease;
+}
+
+.secondary-download:hover {
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+}
+
+.plain-link {
+  color: #f2f2f2;
+  font-weight: 700;
+  text-decoration-color: #ff3344;
+  text-underline-offset: 4px;
+}
+
+.repo-links {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.repo-links div {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #292929;
+}
+
+.repo-links dt {
+  color: #888;
+  font-size: .86rem;
+  font-weight: 800;
+}
+
+.repo-links dd {
+  min-width: 0;
+  margin: 0;
+  color: #bbb;
+  overflow-wrap: anywhere;
+}
+
+.repo-links a {
+  color: #f2f2f2;
+  text-decoration-color: #ff3344;
+  text-underline-offset: 4px;
+}
+
+.update-panel {
+  border-color: #473033;
+  background: linear-gradient(145deg, rgba(24, 18, 18, .95), rgba(12, 12, 12, .95));
+}
+
+.tribute-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.tribute-panel h2 {
+  margin-bottom: 2px;
+}
+
+.tribute-panel p + p {
+  margin-top: 0;
+}
+
+.thanks-lines {
+  display: grid;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.thanks-lines p {
+  color: #f2f2f2;
+  font-weight: 800;
+}
+
 ol {
   margin: 0;
   padding-left: 1.4rem;
@@ -203,5 +317,10 @@ footer a {
     align-items: flex-start;
     flex-direction: column;
     gap: 6px;
+  }
+
+  .repo-links div {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
