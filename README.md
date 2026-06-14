@@ -20,7 +20,7 @@ Wenn es noch fehlt, bietet xVAULT eine Installation aus dem Michaz-Repository an
 
 ## Version
 
-Aktueller Stand: `2026.06.14.4`
+Aktueller Stand: `2026.06.14.5`
 
 Weitere Hinweise zu Abhängigkeiten stehen in
 [`DEPENDENCIES.md`](DEPENDENCIES.md).

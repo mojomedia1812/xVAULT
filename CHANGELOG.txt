@@ -1,3 +1,10 @@
+xVAULT 2026.06.14.5
+Entwickler: mojomedia1812
+
+- Erststart-Infoscreen mit erweitertem Dank an Team xShip und michaz1988 aktualisiert.
+- Erststart-Infoscreen wird nun ueber einen eigenen Flag gespeichert.
+- Neuinstallationen mit vorhandenem Kodi-Profil zeigen nicht mehr faelschlich den Update-Infoscreen, wenn der Erststart-Infoscreen noch nicht angezeigt wurde.
+
 xVAULT 2026.06.14.4
 Entwickler: mojomedia1812
 

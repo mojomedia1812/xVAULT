@@ -23,7 +23,10 @@ Unser ausdrücklicher Dank gilt dem ursprünglichen **Team xShip**, insbesondere
 
 xShip war für viele Nutzer ein vertrautes und geschätztes Projekt. Die geleistete Arbeit verdient Anerkennung, Dank und Respekt — besonders für die Zeit, die Mühe und die technische Qualität bis zur Einstellung des Projekts.
 
+Für den Bereich **Live TV** gilt unser besonderer Dank **michaz1988**. Dieser Bereich basiert auf seiner Entwicklung und konnte nur durch seine Arbeit in **xVAULT** integriert werden.
+
 **Danke an das Team xShip.
+Danke an michaz1988.
 Danke für die Basis.
 Danke für eure Arbeit.**
 
@@ -36,20 +39,14 @@ def show_pending_startup_info():
         state = _load_state()
         current_version = control.addonVersion
         previous_version = _pending_previous_version(state, current_version)
+        intro_seen = _intro_seen(state)
 
-        if previous_version and _compare_versions(current_version, previous_version) > 0:
+        if intro_seen and previous_version and _compare_versions(current_version, previous_version) > 0:
             _show_update_info(previous_version, current_version)
             _store_current_state(state, current_version)
             return
 
-        if not state.get('intro_seen') and _has_existing_profile_data():
-            previous_version = _previous_release_before(current_version)
-            if previous_version:
-                _show_update_info(previous_version, current_version)
-                _store_current_state(state, current_version)
-                return
-
-        if not state.get('intro_seen'):
+        if not intro_seen:
             _show_text('xVAULT', INTRO_TEXT)
             _store_current_state(state, current_version, intro_seen=True)
             return
@@ -66,8 +63,6 @@ def record_pending_update(previous_version, target_version):
         state = _load_state()
         state['pending_update_from'] = previous_version
         state['pending_update_to'] = target_version
-        if 'intro_seen' not in state:
-            state['intro_seen'] = True
         state['updated_at'] = int(time.time())
         _save_state(state)
     except Exception:
@@ -84,10 +79,14 @@ def _pending_previous_version(state, current_version):
     if previous and previous != current_version:
         return previous
 
-    if not previous and state.get('intro_seen'):
+    if not previous and _intro_seen(state):
         return _previous_release_before(current_version)
 
     return None
+
+
+def _intro_seen(state):
+    return bool(state.get('intro_screen_seen') or state.get('intro_seen'))
 
 
 def _show_update_info(previous_version, current_version):
@@ -201,8 +200,18 @@ def _store_current_state(state, version, intro_seen=None):
     state['last_started_version'] = version
     if intro_seen is not None:
         state['intro_seen'] = intro_seen
+        state['intro_screen_seen'] = intro_seen
+        if intro_seen:
+            state['intro_screen_seen_version'] = version
+    elif _intro_seen(state):
+        state['intro_seen'] = True
+        state['intro_screen_seen'] = True
+        if not state.get('intro_screen_seen_version'):
+            state['intro_screen_seen_version'] = version
     elif 'intro_seen' not in state:
         state['intro_seen'] = True
+        state['intro_screen_seen'] = True
+        state['intro_screen_seen_version'] = version
     state.pop('pending_update_from', None)
     state.pop('pending_update_to', None)
     state['updated_at'] = int(time.time())
@@ -215,18 +224,6 @@ def _save_state(state):
         os.makedirs(directory)
     with open(STATE_FILE, 'w') as handle:
         json.dump(state, handle, indent=2, sort_keys=True)
-
-
-def _has_existing_profile_data():
-    try:
-        if not os.path.exists(control.addonProfilePath):
-            return False
-        for name in os.listdir(control.addonProfilePath):
-            if name != os.path.basename(STATE_FILE):
-                return True
-    except Exception:
-        pass
-    return False
 
 
 def _compare_versions(left, right):
