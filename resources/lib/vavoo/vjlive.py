@@ -17,13 +17,18 @@ def resolve_link(link):
 		else:
 			return None, None
 	else:
-		_headers = {"user-agent": "MediaHubMX/2", "accept": "application/json", "content-type": "application/json; charset=utf-8", "content-length": "115", "accept-encoding": "gzip", "mediahubmx-signature": getAuthSignature()}
-		_data = {"language": "de", "region": "AT", "url": link, "clientVersion": "3.0.2"}
-		url = "https://vavoo.to/mediahubmx-resolve.json"
-		streamurl = request_json("POST", url, json=_data, headers=_headers, timeout=10, retries=1)[0]["url"]
-		status = int(request("GET", streamurl, timeout=10, stream=True, retries=0, verify=False).status_code)
-		log(f"function resolve_link Staus :{status}")
-		if status < 400: return streamurl, None
+		try:
+			_headers = {"user-agent": "MediaHubMX/2", "accept": "application/json", "content-type": "application/json; charset=utf-8", "content-length": "115", "accept-encoding": "gzip", "mediahubmx-signature": getAuthSignature()}
+			_data = {"language": "de", "region": "AT", "url": link, "clientVersion": "3.0.2"}
+			url = "https://vavoo.to/mediahubmx-resolve.json"
+			streamurl = request_json("POST", url, json=_data, headers=_headers, timeout=10, retries=1)[0]["url"]
+			response = request("GET", streamurl, timeout=8, stream=True, retries=0, verify=False)
+			status = int(response.status_code)
+			response.close()
+			log(f"function resolve_link Staus :{status}")
+			if status < 400: return streamurl, None
+		except Exception:
+			log(format_exc())
 		return None, None
 
 def get_stalker_channels(genres=False):
@@ -118,7 +123,9 @@ def livePlay(name, type=None, group=None):
 	k = 0
 	while True:
 		k += 1
-		if k > len(m): return
+		if k > len(m):
+			showFailedNotification("Kein funktionierender Live-TV-Stream gefunden")
+			return
 		url, headers = resolve_link(m[i])
 		if url: break
 		else:

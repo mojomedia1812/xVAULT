@@ -41,7 +41,12 @@ DOWNLOAD_TIMEOUT = 20
 # direct "install from zip" flow, so xVAULT bootstraps them from their upstream
 # Kodi repositories after xVAULT itself has been installed.
 REQUIRED_EXTERNAL_ADDONS = set(['script.module.resolveurl'])
-AUTO_INSTALL_OPTIONAL_EXTERNALS = set(['script.module.download-m3u8', 'inputstream.adaptive'])
+AUTO_INSTALL_OPTIONAL_EXTERNALS = set([
+    'script.module.download-m3u8',
+    'inputstream.adaptive',
+    'plugin.video.joyn',
+    'plugin.video.joyn-at',
+])
 EXTERNAL_ADDON_SOURCES = {
     'script.module.resolveurl': {
         'repository_id': 'repository.resolveurl',

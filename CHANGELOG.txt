@@ -1,3 +1,11 @@
+xVAULT 2026.06.14.9
+Entwickler: mojomedia1812
+
+- Live-TV-Resolver faengt VAVOO-Timeouts und andere Verbindungsfehler ab, damit Kodi nicht mehr mit einem Python-Fehler abbricht.
+- Wenn alle Live-TV-Streamkandidaten ausfallen, zeigt xVAULT jetzt eine klare Fehlermeldung statt kommentarlos zurueckzukehren.
+- VAVOO-Einstellungen fuer Cache-Kompression, Stalker-Zugangsdaten und Kanalfilter werden nun korrekt aus dem xVAULT-Namespace gelesen.
+- Joyn und Joyn-AT werden fuer die gebuendelten M3U-Live-TV-Eintraege nun automatisch ueber Kodi installiert, falls sie fehlen.
+
 xVAULT 2026.06.14.8
 Entwickler: mojomedia1812
 

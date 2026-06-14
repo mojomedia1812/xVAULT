@@ -195,7 +195,7 @@ def set_cache(key, value, timeout=False):
 	home.setProperty(path, data)
 	file_path = os.path.join(cachepath, path)
 	temp_path = None
-	if addon.getSetting("comp") == "true":
+	if getSetting("comp") == "true":
 		payload = compress(data.encode())
 		mode = "wb"
 	else:
@@ -246,7 +246,7 @@ def get_cache(key):
 def get_cache_or_setting(setting):
 	cacheOk, a = get_cache(setting)
 	if not cacheOk : 
-		a = addon.getSetting(setting)
+		a = getSetting(setting)
 		set_cache(setting, a)
 	return a
 	
@@ -262,7 +262,7 @@ def del_cache(key):
 		pass
 
 def filterout(name):
-	if addon.getSetting("filter") == "true":
+	if getSetting("filter") == "true":
 		name = name.encode().decode("ascii", errors="ignore")
 		for r in(("   ", " "), ("  ", " "), ("SPORT1", "SPORT 1"), ("BIBELTV", "BIBEL TV"), ("DIGITALL", "DIGITAL"), ("EINS", "1"), ("ZWEI", "2"), ("DREI", "3"), ("SIEBEN", "7"), ("III", "3"), ("II", "2"), ("BR TV", "BR"), ("ʜᴅ", "")): name = name.replace(*r).strip()
 		if "BLACK" in name: return "AXN BLACK"
