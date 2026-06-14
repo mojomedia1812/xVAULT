@@ -1,3 +1,9 @@
+xVAULT 2026.06.14.6
+Entwickler: mojomedia1812
+
+- Erststart-Infoscreen formatiert Markdown-Marker sichtbarkeitsfrei: `##` wird als grosse fette Ueberschrift angezeigt, `**...**` als fetter Text.
+- Die Formatierungszeichen werden im Infoscreen nicht mehr angezeigt.
+
 xVAULT 2026.06.14.5
 Entwickler: mojomedia1812
 

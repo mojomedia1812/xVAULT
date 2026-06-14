@@ -181,11 +181,39 @@ def _previous_release_before(version):
 
 
 def _show_text(heading, text):
+    heading, text = _format_info_text(heading, text)
     dialog = xbmcgui.Dialog()
     if hasattr(dialog, 'textviewer'):
         dialog.textviewer(heading, text)
     else:
         dialog.ok(heading, text)
+
+
+def _format_info_text(heading, text):
+    lines = text.splitlines()
+    heading_index = None
+
+    for index, line in enumerate(lines):
+        if line.strip():
+            heading_index = index
+            break
+
+    if heading_index is not None and lines[heading_index].startswith('## '):
+        heading = lines[heading_index][3:].strip() or heading
+        del lines[heading_index]
+        if heading_index < len(lines) and not lines[heading_index].strip():
+            del lines[heading_index]
+
+    formatted_lines = []
+    for line in lines:
+        if line.startswith('## '):
+            formatted_lines.append('[B]%s[/B]' % line[3:].strip())
+        else:
+            formatted_lines.append(line)
+
+    text = '\n'.join(formatted_lines).strip()
+    text = re.sub(r'\*\*(.+?)\*\*', r'[B]\1[/B]', text, flags=re.S)
+    return heading, text
 
 
 def _load_state():
