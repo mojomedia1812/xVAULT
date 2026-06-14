@@ -34,9 +34,6 @@ offiziellem ResolveURL-Repository nach.
 |---|---:|---|---|
 | `script.module.download-m3u8` | Bootstrap | Nur für direkte HLS-/M3U8-Downloads | Kodi-Paket: https://github.com/chrisklietsch/repository.kc-kodi/tree/main/repo/script.module.download-m3u8 — Upstream: https://github.com/hwaves/m3u8_To_MP4 (Weiterleitung zu https://github.com/tysoong/m3u8_To_MP4) |
 | `inputstream.adaptive` | 21.5.18 | HLS-/DASH-Wiedergabe; wird durch `service.py` bei Bedarf über Kodi installiert | https://github.com/xbmc/inputstream.adaptive |
-| `inputstream.ffmpegdirect` | Nein | Optionale Live-TV-Wiedergabe mit Timeshift/Open-Mode fuer VAVOO.TO; ohne Add-on nutzt xVAULT fuer HLS `inputstream.adaptive` | https://github.com/xbmc/inputstream.ffmpegdirect |
-| `plugin.video.joyn` | Bootstrap | Wiedergabe der Joyn-Eintraege in den gebuendelten M3U-Listen `tv.m3u` und `tv2.m3u` | Kodi Add-on-Repository |
-| `plugin.video.joyn-at` | Bootstrap | Wiedergabe der Joyn-AT-Eintraege in der gebuendelten M3U-Liste `tv-at.m3u` | Kodi Add-on-Repository |
 | `plugin.video.youtube` | Nein | Trailer-Wiedergabe; ohne Add-on wird die Trailer-Funktion ausgeblendet | https://github.com/anxdpanic/plugin.video.youtube |
 | `script.module.pydevd` | Nein | Nur Entwickler-Debugging; aktive Nutzung wurde nicht gefunden | Kodi-Modul: https://github.com/powlo/script.module.pydevd — Upstream: https://github.com/fabioz/PyDev.Debugger |
 

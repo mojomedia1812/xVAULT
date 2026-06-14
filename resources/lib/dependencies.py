@@ -44,8 +44,6 @@ REQUIRED_EXTERNAL_ADDONS = set(['script.module.resolveurl'])
 AUTO_INSTALL_OPTIONAL_EXTERNALS = set([
     'script.module.download-m3u8',
     'inputstream.adaptive',
-    'plugin.video.joyn',
-    'plugin.video.joyn-at',
 ])
 EXTERNAL_ADDON_SOURCES = {
     'script.module.resolveurl': {

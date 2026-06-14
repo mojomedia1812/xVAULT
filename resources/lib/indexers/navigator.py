@@ -23,7 +23,6 @@ class navigator:
 		self.addDirectoryItem("Suche nach Person / Darsteller", 'personSearch', '03_darsteller_suche_nach_person.png', 'DefaultAddonsSearch.png')
 		self.addDirectoryItem("Filme", 'movieNavigator', '04_filme.png', 'DefaultMovies.png')
 		self.addDirectoryItem("TV-Serien", 'tvNavigator', '05_tv_serien.png', 'DefaultTVShows.png')
-		self.addDirectoryItem("LIVE-TV", 'liveTVNavigator', '06_live_tv.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("Stream-URL abspielen", 'playURL', '07_stream_url_abspielen.png', 'DefaultAddonWebSkin.png', isFolder=False)
 		self.addDirectoryItem("Werkzeuge", 'toolNavigator', '06_werkzeuge.png', 'DefaultAddonProgram.png')
 		self._endDirectory(content='',cache=False)  # addons  videos  files
@@ -56,12 +55,7 @@ class navigator:
 		self._endDirectory()	# addons  videos  files
 
 	def live_tv(self):
-		self.addDirectoryItem("Kodi LIVE-TV", 'liveTV', '06_live_tv.png', 'DefaultTVShows.png', isFolder=False)
-		self.addDirectoryItem("M3U Live-TV", 'm3uLiveNavigator', '06_live_tv.png', 'DefaultTVShows.png')
-		self.addDirectoryItem("VAVOO.TO", 'vavooTV', '06_live_tv.png', 'DefaultTVShows.png')
-		self.addDirectoryItem("VAVOO.TO Favoriten", 'vavooFavorites', '06_live_tv.png', 'DefaultTVShows.png')
-		self.addDirectoryItem("VAVOO.TO Einstellungen", 'vavooSettings', '06_03_resolver_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
-		self.addDirectoryItem("M3U-Dateien exportieren", 'm3uLiveExportAll', '07_stream_url_abspielen.png', 'DefaultAddonWebSkin.png', isFolder=False)
+		control.infoDialog("LiveTV ist in dieser Version deaktiviert.", icon='WARNING', time=5000)
 		self._endDirectory(content='', cache=False)
 
 	def downloads(self):

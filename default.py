@@ -19,6 +19,23 @@ table = params.get('table')
 title = params.get('title')
 source = params.get('source')
 
+DISABLED_LIVE_TV_ACTIONS = (
+    'liveTVNavigator',
+    'm3uLiveNavigator',
+    'm3uLiveList',
+    'm3uLiveExportAll',
+    'm3uLiveExport',
+    'liveTV',
+    'vavooTV',
+    'vavooFavorites',
+    'vavooMakeM3U',
+)
+
+
+def show_live_tv_disabled():
+    control.infoDialog("LiveTV ist in dieser Version deaktiviert.", icon='WARNING', time=5000)
+
+
 # ------ navigator --------------
 if action == None or action == 'root':
     from resources.lib import repository
@@ -51,25 +68,8 @@ elif action == 'downloadNavigator':
     from resources.lib.indexers import navigator
     navigator.navigator().downloads()
 
-elif action == 'liveTVNavigator':
-    from resources.lib.indexers import navigator
-    navigator.navigator().live_tv()
-
-elif action == 'm3uLiveNavigator':
-    from resources.lib import m3u_live
-    m3u_live.list_playlists()
-
-elif action == 'm3uLiveList':
-    from resources.lib import m3u_live
-    m3u_live.list_channels(params.get('playlist'))
-
-elif action == 'm3uLiveExportAll':
-    from resources.lib import m3u_live
-    m3u_live.export_all()
-
-elif action == 'm3uLiveExport':
-    from resources.lib import m3u_live
-    m3u_live.export_playlist(params.get('playlist'))
+elif action in DISABLED_LIVE_TV_ACTIONS:
+    show_live_tv_disabled()
 
 elif action and action.startswith('vavoo_'):
     from resources.lib import vavooto
@@ -197,24 +197,9 @@ elif action == 'playURL':
         #print('Kein Video Link gefunden')
         control.infoDialog("Keinen Video Link gefunden", sound=True, icon='WARNING', time=1000)
 
-elif action == 'liveTV':
-    control.execute('ActivateWindow(TVChannels)')
-
-elif action == 'vavooTV':
-    from resources.lib import vavooto
-    vavooto.open_root()
-
-elif action == 'vavooFavorites':
-    from resources.lib import vavooto
-    vavooto.open_favorites()
-
 elif action == 'vavooSettings':
     from resources.lib import vavooto
     vavooto.open_settings()
-
-elif action == 'vavooMakeM3U':
-    from resources.lib import vavooto
-    vavooto.make_m3u()
 
 elif action == 'playTrailer':
     try:

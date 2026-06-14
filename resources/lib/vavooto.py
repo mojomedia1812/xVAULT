@@ -4,6 +4,18 @@ from resources.lib import control
 
 
 ACTION_PREFIX = 'vavoo_'
+LIVE_TV_ACTIONS = set([
+    'live',
+    'livePlay',
+    'channels',
+    'favchannels',
+    'group_tv',
+    'a_z_tv',
+    'addTvFavorit',
+    'delTvFavorit',
+    'delallTvFavorit',
+    'makem3u',
+])
 
 
 def open_root():
@@ -26,12 +38,15 @@ def make_m3u():
 
 def dispatch(params):
     """Route embedded VAVOO.TO actions through xVAULT."""
-    from resources.lib.vavoo import stalker, vavoo_tv, vjackson, vjlive
-    from resources.lib.vavoo.utils import clear, execute, log, setSetting
-
     params = dict(params or {})
     action = _internal_action(params.pop('action', None))
     tv = params.get('name')
+
+    if _is_live_tv_action(action, tv):
+        return _show_live_tv_disabled()
+
+    from resources.lib.vavoo import stalker, vavoo_tv, vjackson, vjlive
+    from resources.lib.vavoo.utils import clear, execute, log, setSetting
 
     if tv and (action in (None, '', 'livePlay')):
         return vjlive.livePlay(tv, params.get('type'), params.get('group'))
@@ -84,3 +99,13 @@ def _internal_action(action):
     if action and action.startswith(ACTION_PREFIX):
         return action[len(ACTION_PREFIX):]
     return action
+
+
+def _is_live_tv_action(action, tv=None):
+    if action in LIVE_TV_ACTIONS:
+        return True
+    return bool(tv and action in (None, '', 'livePlay'))
+
+
+def _show_live_tv_disabled():
+    control.infoDialog("LiveTV ist in dieser Version deaktiviert.", icon='WARNING', time=5000)

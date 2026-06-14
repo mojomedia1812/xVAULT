@@ -1,3 +1,10 @@
+xVAULT 2026.06.14.10
+Entwickler: mojomedia1812
+
+- LiveTV im Add-on deaktiviert: Der Hauptmenuepunkt wurde entfernt.
+- Direkte alte LiveTV-, M3U- und VAVOO-Live-Plugin-URLs zeigen nun eine kurze Deaktiviert-Meldung statt Streams zu starten.
+- Joyn und Joyn-AT werden nicht mehr automatisch installiert, weil die M3U-LiveTV-Funktion deaktiviert ist.
+
 xVAULT 2026.06.14.9
 Entwickler: mojomedia1812
 

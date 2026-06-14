@@ -6,7 +6,6 @@ BASEURL = "https://vavoo.to/ccapi/"
 
 def menu(params):
 	set_content("files")
-	addDir2("Live", "DefaultAddonPVRClient", "live")
 	addDir2("Filme", "DefaultMovies", "indexMovie")
 	addDir2("Serien", "DefaultTVShows", "indexSerie")
 	end()
