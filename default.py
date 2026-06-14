@@ -21,6 +21,8 @@ source = params.get('source')
 
 # ------ navigator --------------
 if action == None or action == 'root':
+    from resources.lib import repository
+    repository.ensure_xvault_repository()
     from resources.lib import updater
     if not updater.check_for_update():
         sys.exit()

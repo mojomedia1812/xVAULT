@@ -1,3 +1,10 @@
+xVAULT 2026.06.14.3
+Entwickler: mojomedia1812
+
+- xVAULT legt beim Start automatisch das Kodi-Repository `repository.xvault` an, wenn das Add-on per ZIP installiert wurde.
+- GitHub-Pages-Ausgabe um Kodi-Repository-Metadaten `addons.xml`, `addons.xml.md5` und Repository-ZIP-Struktur erweitert.
+- Build-Script erzeugt neben der Download-ZIP nun auch Kodi-Repository-ZIPs fuer xVAULT und `repository.xvault`.
+
 xVAULT 2026.06.14.2
 Entwickler: mojomedia1812
 

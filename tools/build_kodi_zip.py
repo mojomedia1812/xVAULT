@@ -11,9 +11,19 @@ ADDON = ET.parse(PROJECT_DIR / "addon.xml").getroot()
 ADDON_ID = ADDON.attrib["id"]
 VERSION = ADDON.attrib["version"]
 ZIP_NAME = f"plugin.video.xvault-{VERSION}.zip"
+REPOSITORY_TEMPLATE = PROJECT_DIR / "resources" / "repository" / "addon.xml"
+REPOSITORY = ET.parse(REPOSITORY_TEMPLATE).getroot()
+REPOSITORY_ID = REPOSITORY.attrib["id"]
+REPOSITORY_VERSION = REPOSITORY.attrib["version"]
+REPOSITORY_ZIP_NAME = f"{REPOSITORY_ID}-{REPOSITORY_VERSION}.zip"
+DOWNLOAD_OUTPUT = PROJECT_DIR / "docs" / "downloads" / ZIP_NAME
+REPOSITORY_PLUGIN_OUTPUT = PROJECT_DIR / "docs" / "zips" / ADDON_ID / ZIP_NAME
+REPOSITORY_OUTPUT = PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID / REPOSITORY_ZIP_NAME
+ADDONS_XML = PROJECT_DIR / "docs" / "addons.xml"
 OUTPUTS = (
     REPO_DIR / ZIP_NAME,
-    PROJECT_DIR / "docs" / "downloads" / ZIP_NAME,
+    DOWNLOAD_OUTPUT,
+    REPOSITORY_PLUGIN_OUTPUT,
 )
 
 EXCLUDED_PARTS = {
@@ -92,6 +102,42 @@ def validate(output):
         raise RuntimeError("Website-Dateien wurden in das Add-on-Paket aufgenommen")
 
 
+def build_repository_zip(output):
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with ZipFile(output, "w", ZIP_DEFLATED, compresslevel=9) as archive:
+        archive.writestr(f"{REPOSITORY_ID}/addon.xml", _repository_addon_xml())
+        archive.write(PROJECT_DIR / "resources" / "icon.png", f"{REPOSITORY_ID}/icon.png")
+
+
+def validate_repository_zip(output):
+    with ZipFile(output) as archive:
+        names = archive.namelist()
+        expected_addon = f"{REPOSITORY_ID}/addon.xml"
+        if expected_addon not in names:
+            raise RuntimeError(f"{expected_addon} fehlt im Repository-ZIP")
+        if any(not name.startswith(f"{REPOSITORY_ID}/") for name in names):
+            raise RuntimeError("Repository-ZIP enthält Dateien außerhalb des Add-on-Wurzelordners")
+        root = ET.fromstring(archive.read(expected_addon))
+        if root.attrib.get("id") != REPOSITORY_ID:
+            raise RuntimeError("Repository-ZIP enthält falsche Add-on-ID")
+
+
+def update_kodi_repository_metadata():
+    content = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+        '<addons>\n'
+        f'{_xml_body((PROJECT_DIR / "addon.xml").read_text(encoding="utf-8"))}\n\n'
+        f'{_xml_body(_repository_addon_xml())}\n'
+        '</addons>\n'
+    )
+    ADDONS_XML.write_text(content, encoding="utf-8", newline="\n")
+    (ADDONS_XML.with_suffix(ADDONS_XML.suffix + ".md5")).write_text(
+        hashlib.md5(content.encode("utf-8")).hexdigest(),
+        encoding="utf-8",
+        newline="\n",
+    )
+
+
 def update_download_page(output):
     page = PROJECT_DIR / "docs" / "index.html"
     digest = hashlib.sha256(output.read_bytes()).hexdigest().upper()
@@ -156,9 +202,21 @@ def _format_size(size):
     return ("%.1f KB" % (size / 1024.0)).replace(".", ",")
 
 
+def _repository_addon_xml():
+    return REPOSITORY_TEMPLATE.read_text(encoding="utf-8").strip()
+
+
+def _xml_body(content):
+    return re.sub(r"^\s*<\?xml[^>]*>\s*", "", content, flags=re.S).strip()
+
+
 if __name__ == "__main__":
     for destination in OUTPUTS:
         build(destination)
         validate(destination)
         print(destination)
-    update_download_page(OUTPUTS[-1])
+    build_repository_zip(REPOSITORY_OUTPUT)
+    validate_repository_zip(REPOSITORY_OUTPUT)
+    print(REPOSITORY_OUTPUT)
+    update_kodi_repository_metadata()
+    update_download_page(DOWNLOAD_OUTPUT)

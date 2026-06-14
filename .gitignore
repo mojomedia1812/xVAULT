@@ -3,5 +3,6 @@ __pycache__/
 *.log
 *.zip
 !docs/downloads/*.zip
+!docs/zips/*/*.zip
 .DS_Store
 Thumbs.db

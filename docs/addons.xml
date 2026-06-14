@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addons>
+<addon id="plugin.video.xvault" version="2026.06.14.3" name="[B]xVAULT[/B]" provider-name="xVAULT">
+    <requires>
+        <import addon="xbmc.python" version="3.0.0"/>
+        <import addon="script.module.requests"/>
+        <import addon="script.module.download-m3u8" optional="true"/>
+        <import addon="script.module.six"/>
+        <import addon="script.module.kodi-six"/>
+        <import addon="script.module.pyaes"/>
+        <import addon="script.module.infotagger"/>
+        <import addon="script.module.resolveurl" version="5.1.100" optional="true"/>
+        <import addon="inputstream.adaptive" optional="true"/>
+        <import addon="plugin.video.youtube" optional="true"/>
+        <!-- for remote debug -->
+        <import addon="script.module.pydevd" optional="true"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.service" library="service.py" start="startup" />
+    <extension point="xbmc.addon.metadata">
+        <summary lang="de_DE">Filme und Serien durchsuchen und wiedergeben</summary>
+        <summary lang="en_GB">Browse and play movies and TV shows</summary>
+        <assets>
+			<icon>resources/icon.png</icon>
+			<fanart>resources/fanart.png</fanart>
+			<banner>resources/media/banner.png</banner>
+		</assets>
+    </extension>
+</addon>
+
+<addon id="repository.xvault" name="xVAULT Repository" provider-name="xVAULT" version="1.0.0">
+    <extension point="xbmc.addon.repository" name="xVAULT Repository">
+        <dir>
+            <info compressed="false">https://mojomedia1812.github.io/xVAULT/addons.xml</info>
+            <checksum>https://mojomedia1812.github.io/xVAULT/addons.xml.md5</checksum>
+            <datadir zip="true">https://mojomedia1812.github.io/xVAULT/zips/</datadir>
+        </dir>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="de_DE">Offizielles xVAULT Kodi-Repository</summary>
+        <summary lang="en_GB">Official xVAULT Kodi repository</summary>
+        <description lang="de_DE">Stellt xVAULT-Updates ueber Kodi bereit.</description>
+        <description lang="en_GB">Provides xVAULT updates through Kodi.</description>
+        <platform>all</platform>
+        <assets>
+            <icon>icon.png</icon>
+        </assets>
+    </extension>
+</addon>
+</addons>

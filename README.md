@@ -7,16 +7,17 @@ und TV-Serien.
 
 1. `tools/build_kodi_zip.py` ausführen, um ein Kodi-konformes ZIP zu erzeugen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. `plugin.video.xvault-2026.06.14.2.zip` auswählen.
+3. `plugin.video.xvault-2026.06.14.3.zip` auswählen.
 
 Kodi installiert die offiziellen Abhängigkeiten aus den konfigurierten
 Repositorys. Nicht im offiziellen Kodi-Repo verfügbare Module wie ResolveURL
 werden beim ersten Start von xVAULT automatisch aus ihren offiziellen Quellen
-nachinstalliert.
+nachinstalliert. Außerdem legt xVAULT automatisch das Kodi-Repository
+`repository.xvault` an, damit spätere Updates über Kodi gefunden werden.
 
 ## Version
 
-Aktueller Stand: `2026.06.14.2`
+Aktueller Stand: `2026.06.14.3`
 
 Weitere Hinweise zu Abhängigkeiten stehen in
 [`DEPENDENCIES.md`](DEPENDENCIES.md).
