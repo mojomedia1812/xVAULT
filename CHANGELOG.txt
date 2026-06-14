@@ -1,3 +1,10 @@
+xVAULT 2026.06.14.1
+
+- Nicht im offiziellen Kodi-Repo verfuegbare Abhaengigkeiten werden beim Start aus ihren offiziellen Quellen nachinstalliert.
+- ResolveURL wird aus Gujals ResolveURL-Repository gebootstrappt und intern weiterhin als Pflichtmodul behandelt.
+- download-m3u8 wird bei fehlender Installation aus dem KC-Kodi-Repository-ZIP bezogen.
+- ResolveURL im Manifest optional markiert, damit die direkte ZIP-Installation von xVAULT nicht vor dem Bootstrap blockiert.
+
 xVAULT 2026.06.13.3
 
 - Release-Paket um unreferenzierte Media-Dateien, Legacy-Providerduplikate und Backup-/Hilfsdateien verkleinert.

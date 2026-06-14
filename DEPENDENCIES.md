@@ -1,6 +1,6 @@
 # xVAULT-Abhängigkeiten
 
-Geprüfter Stand: 2026-06-08
+Geprüfter Stand: 2026-06-14
 
 ## Kodi-Grundlage
 
@@ -19,16 +19,29 @@ werden.
 | `script.module.six` | nicht festgelegt | 1.16.0+matrix.1 | Python-Kompatibilitätsfunktionen | https://github.com/benjaminp/six |
 | `script.module.pyaes` | nicht festgelegt | 1.6.1+matrix.1 | AES-Ver- und Entschlüsselung, unter anderem MyJDownloader und Provider | https://github.com/ricmoo/pyaes |
 | `script.module.infotagger` | nicht festgelegt | 0.0.8 | Kodi-20+-Metadaten für Filme, Serien, Staffeln und Episoden | https://github.com/jurialmunkey/script.module.infotagger |
-| `script.module.resolveurl` | 5.1.100 | 5.1.202 | Auflösen unterstützter Video-Hoster und Resolver-Einstellungen | https://github.com/Gujal00/ResolveURL |
+| `script.module.resolveurl` | 5.1.100 | Bootstrap | Auflösen unterstützter Video-Hoster und Resolver-Einstellungen | https://github.com/Gujal00/ResolveURL |
+
+Hinweis: `script.module.resolveurl` ist in `addon.xml` absichtlich als optional
+markiert, damit Kodi die direkte ZIP-Installation von xVAULT nicht wegen eines
+nicht im offiziellen Kodi-Repo vorhandenen Moduls abbricht. xVAULT behandelt es
+im Bootstrap weiterhin als Pflichtabhängigkeit und installiert es aus Gujals
+offiziellem ResolveURL-Repository nach.
 
 ## Optionale Funktionen
 
 | Kodi-ID / Komponente | Lokal installiert | Wann benötigt | Installation / Original-Repository |
 |---|---:|---|---|
-| `script.module.download-m3u8` | Nein | Nur für direkte HLS-/M3U8-Downloads | Kodi-Paket: https://github.com/chrisklietsch/repository.kc-kodi/tree/main/repo/script.module.download-m3u8 — Upstream: https://github.com/hwaves/m3u8_To_MP4 (Weiterleitung zu https://github.com/tysoong/m3u8_To_MP4) |
+| `script.module.download-m3u8` | Bootstrap | Nur für direkte HLS-/M3U8-Downloads | Kodi-Paket: https://github.com/chrisklietsch/repository.kc-kodi/tree/main/repo/script.module.download-m3u8 — Upstream: https://github.com/hwaves/m3u8_To_MP4 (Weiterleitung zu https://github.com/tysoong/m3u8_To_MP4) |
 | `inputstream.adaptive` | 21.5.18 | HLS-/DASH-Wiedergabe; wird durch `service.py` bei Bedarf über Kodi installiert | https://github.com/xbmc/inputstream.adaptive |
 | `plugin.video.youtube` | Nein | Trailer-Wiedergabe; ohne Add-on wird die Trailer-Funktion ausgeblendet | https://github.com/anxdpanic/plugin.video.youtube |
 | `script.module.pydevd` | Nein | Nur Entwickler-Debugging; aktive Nutzung wurde nicht gefunden | Kodi-Modul: https://github.com/powlo/script.module.pydevd — Upstream: https://github.com/fabioz/PyDev.Debugger |
+
+## Bootstrap-Quellen außerhalb des offiziellen Kodi-Repos
+
+| Kodi-ID | Automatische Quelle |
+|---|---|
+| `script.module.resolveurl` | Repository-ZIP: https://gujal00.github.io/repository.resolveurl-1.0.0.zip; Metadaten/Fallback: https://raw.githubusercontent.com/Gujal00/smrzips/master/addons.xml |
+| `script.module.download-m3u8` | Metadaten/Fallback: https://raw.githubusercontent.com/chrisklietsch/repository.kc-kodi/main/repo/addons.xml |
 
 ## Deklariert, aber nicht benötigt
 
