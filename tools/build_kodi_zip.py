@@ -34,7 +34,10 @@ EXCLUDED_PARTS = {
     "__pycache__",
     "docs",
     "scrapers_source",
+    "stream-link-auditor",
     "tools",
+    ".pytest_cache",
+    ".venv",
 }
 EXCLUDED_FILES = {
     ".gitignore",
@@ -84,6 +87,8 @@ def addon_files():
 
 def build(output):
     output.parent.mkdir(parents=True, exist_ok=True)
+    if output.exists():
+        output.unlink()
     with ZipFile(output, "w", ZIP_DEFLATED, compresslevel=9) as archive:
         for source, relative in addon_files():
             archive_name = (Path(ADDON_ID) / relative).as_posix()
@@ -107,6 +112,8 @@ def validate(output):
 
 def build_repository_zip(output):
     output.parent.mkdir(parents=True, exist_ok=True)
+    if output.exists():
+        output.unlink()
     with ZipFile(output, "w", ZIP_DEFLATED, compresslevel=9) as archive:
         archive.writestr(f"{REPOSITORY_ID}/addon.xml", _repository_addon_xml())
         archive.write(PROJECT_DIR / "resources" / "icon.png", f"{REPOSITORY_ID}/icon.png")

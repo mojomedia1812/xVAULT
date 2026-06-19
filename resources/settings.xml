@@ -147,7 +147,7 @@
         <setting default="false" id="vavoo.stream_count" type="bool" label="Anzahl Streams im Titel anzeigen"/>
         <setting default="1" id="vavoo.hlsinputstream" label="HLS Inputstream Addon" type="enum" values="ffmpeg|adaptive" />
         <setting default="true" id="vavoo.filter" type="bool" label="Kanalfilter verwenden"/>
-        <setting label="M3U-Dateien exportieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=m3uLiveExportAll)"/>
+        <setting label="LiveTV-Senderliste aktualisieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=liveTVRefresh)"/>
         <setting label="Alle Favoriten entfernen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=vavoo_delallTvFavorit)"/>
         <setting id="vavoo.favs" type="text" default="[]" visible="false"/>
         <setting type="lsep" label="VAVOO" />

@@ -1,3 +1,12 @@
+xVAULT 2026.06.19.1
+Entwickler: mojomedia1812
+
+- LiveTV wieder aktiviert: Der Hauptmenuepunkt ist im xVAULT-Startmenue zurueck.
+- Beim Oeffnen von LiveTV werden `https://vavoo.to/channels` und `https://huhu.to/channels` parallel geladen und als `v-channels.json` sowie `h-channels.json` im Add-on-Profil gespeichert.
+- xVAULT migriert die deutsche VAVOO-Liste ID-basiert mit fehlenden HUHU-Eintraegen und speichert das Ergebnis als `channels.json`.
+- Das LiveTV-Menue zeigt nur Sender mit `channel_country: Germany` aus `stream-link-auditor.json` und gruppiert sie anhand von `vavoo_channels_categorized.json`.
+- Sender werden ueber die zur ID passende Stream-URL aus `stream-link-auditor.json` aufgeloest und als HLS-Stream wiedergegeben.
+
 xVAULT 2026.06.14.10
 Entwickler: mojomedia1812
 

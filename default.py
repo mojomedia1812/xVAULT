@@ -20,12 +20,10 @@ title = params.get('title')
 source = params.get('source')
 
 DISABLED_LIVE_TV_ACTIONS = (
-    'liveTVNavigator',
     'm3uLiveNavigator',
     'm3uLiveList',
     'm3uLiveExportAll',
     'm3uLiveExport',
-    'liveTV',
     'vavooTV',
     'vavooFavorites',
     'vavooMakeM3U',
@@ -67,6 +65,22 @@ elif action == 'toolNavigator':
 elif action == 'downloadNavigator':
     from resources.lib.indexers import navigator
     navigator.navigator().downloads()
+
+elif action in ('liveTVNavigator', 'liveTV'):
+    from resources.lib import live_tv
+    live_tv.list_categories()
+
+elif action == 'liveTVRefresh':
+    from resources.lib import live_tv
+    live_tv.refresh_catalog()
+
+elif action == 'liveTVCategory':
+    from resources.lib import live_tv
+    live_tv.list_channels(params.get('category'))
+
+elif action == 'liveTVPlay':
+    from resources.lib import live_tv
+    live_tv.play_channel(params.get('id'))
 
 elif action in DISABLED_LIVE_TV_ACTIONS:
     show_live_tv_disabled()
