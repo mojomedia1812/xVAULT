@@ -2,7 +2,10 @@ __pycache__/
 *.py[cod]
 *.log
 *.zip
+!docs/*.zip
 !docs/downloads/*.zip
+!docs/plugin.video.xvault/*.zip
+!docs/repository.xvault/*.zip
 !docs/zips/*/*.zip
 .DS_Store
 Thumbs.db
