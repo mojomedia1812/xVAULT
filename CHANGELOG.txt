@@ -1,3 +1,9 @@
+xVAULT 2026.06.20.1
+Entwickler: mojomedia1812
+
+- Kodi-Repository-Metadaten korrigiert: xVAULT deklariert nun explizit `platform all`, damit Kodi das Add-on in der Repository-Liste als kompatibel anzeigt.
+- Repository-Add-on auf `repository.xvault` 1.0.1 angehoben, damit Kodi alte Repository-Metadaten nicht weiter aus dem Cache nutzt.
+
 xVAULT 2026.06.19.1
 Entwickler: mojomedia1812
 

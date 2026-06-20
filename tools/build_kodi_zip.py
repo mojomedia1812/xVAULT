@@ -168,6 +168,11 @@ def update_download_page(output):
         f'href="downloads/{ZIP_NAME}"',
         html,
     )
+    html = re.sub(
+        r'href="zips/repository\.xvault/repository\.xvault-[^"]+\.zip"',
+        f'href="zips/{REPOSITORY_ID}/{REPOSITORY_ZIP_NAME}"',
+        html,
+    )
     html = re.sub(r"(ZIP-Datei · ).*?(</p>)", rf"\g<1>{size}\2", html)
     html = re.sub(r"<code>[A-F0-9]{64}</code>", f"<code>{digest}</code>", html)
     html = _update_archive_links(html)
