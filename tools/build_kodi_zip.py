@@ -17,9 +17,12 @@ REPOSITORY = ET.parse(REPOSITORY_TEMPLATE).getroot()
 REPOSITORY_ID = REPOSITORY.attrib["id"]
 REPOSITORY_VERSION = REPOSITORY.attrib["version"]
 REPOSITORY_ZIP_NAME = f"{REPOSITORY_ID}-{REPOSITORY_VERSION}.zip"
+REPOSITORY_DIRECT_ZIP_NAME = f"{REPOSITORY_ID}.zip"
 DOWNLOAD_OUTPUT = PROJECT_DIR / "docs" / "downloads" / ZIP_NAME
 REPOSITORY_PLUGIN_OUTPUT = PROJECT_DIR / "docs" / "zips" / ADDON_ID / ZIP_NAME
 REPOSITORY_OUTPUT = PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID / REPOSITORY_ZIP_NAME
+REPOSITORY_DIRECT_OUTPUT = PROJECT_DIR / "docs" / REPOSITORY_DIRECT_ZIP_NAME
+REPOSITORY_VERSIONED_DIRECT_OUTPUT = PROJECT_DIR / "docs" / REPOSITORY_ZIP_NAME
 ADDONS_XML = PROJECT_DIR / "docs" / "addons.xml"
 M3U_DIR = PROJECT_DIR / "m3u"
 DOCS_M3U_DIR = PROJECT_DIR / "docs" / "m3u"
@@ -128,6 +131,13 @@ def validate_repository_zip(output):
             raise RuntimeError("Repository-ZIP enthält falsche Add-on-ID")
 
 
+def sync_repository_zip_aliases():
+    for output in (REPOSITORY_DIRECT_OUTPUT, REPOSITORY_VERSIONED_DIRECT_OUTPUT):
+        shutil.copy2(REPOSITORY_OUTPUT, output)
+        validate_repository_zip(output)
+        print(output)
+
+
 def update_kodi_repository_metadata():
     content = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
@@ -169,8 +179,8 @@ def update_download_page(output):
         html,
     )
     html = re.sub(
-        r'href="zips/repository\.xvault/repository\.xvault-[^"]+\.zip"',
-        f'href="zips/{REPOSITORY_ID}/{REPOSITORY_ZIP_NAME}"',
+        r'href="(?:zips/repository\.xvault/)?repository\.xvault(?:-[^"]+)?\.zip"',
+        f'href="{REPOSITORY_DIRECT_ZIP_NAME}"',
         html,
     )
     html = re.sub(r"(ZIP-Datei · ).*?(</p>)", rf"\g<1>{size}\2", html)
@@ -238,5 +248,6 @@ if __name__ == "__main__":
     build_repository_zip(REPOSITORY_OUTPUT)
     validate_repository_zip(REPOSITORY_OUTPUT)
     print(REPOSITORY_OUTPUT)
+    sync_repository_zip_aliases()
     update_kodi_repository_metadata()
     update_download_page(DOWNLOAD_OUTPUT)
