@@ -15,7 +15,7 @@ from resources.lib import control, log_utils
 
 
 MANIFEST_URL = 'https://raw.githubusercontent.com/mojomedia1812/xVAULT/main/addon.xml'
-DOWNLOAD_URL = 'https://mojomedia1812.github.io/xVAULT/downloads/plugin.video.xvault-%s.zip'
+DOWNLOAD_URL = 'http://xvault.ddnss.de/downloads/plugin.video.xvault-%s.zip'
 REQUEST_TIMEOUT = 10
 
 

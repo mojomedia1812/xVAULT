@@ -1,3 +1,9 @@
+xVAULT 2026.06.20.3
+Entwickler: mojomedia1812
+
+- GitHub-Pages-Custom-Domain `xvault.ddnss.de` fuer das xVAULT-Repository ergaenzt.
+- Repository- und Update-URLs auf `http://xvault.ddnss.de/` umgestellt.
+
 xVAULT 2026.06.20.2
 Entwickler: mojomedia1812
 

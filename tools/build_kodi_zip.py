@@ -9,6 +9,8 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 REPO_DIR = PROJECT_DIR.parent
+SITE_URL = "http://xvault.ddnss.de/"
+LEGACY_SITE_URL = "https://mojomedia1812.github.io/xVAULT/"
 ADDON = ET.parse(PROJECT_DIR / "addon.xml").getroot()
 ADDON_ID = ADDON.attrib["id"]
 VERSION = ADDON.attrib["version"]
@@ -227,12 +229,8 @@ def update_download_page(output):
     )
     html_content = re.sub(r"(ZIP-Datei · ).*?(</p>)", rf"\g<1>{size}\2", html_content)
     html_content = re.sub(r"<code>[A-F0-9]{64}</code>", f"<code>{digest}</code>", html_content)
-    html_content = re.sub(
-        r"https://mojomedia1812\.github\.io/xVAULT/zips/",
-        "https://mojomedia1812.github.io/xVAULT/",
-        html_content,
-    )
     html_content = _update_archive_links(html_content)
+    html_content = html_content.replace(LEGACY_SITE_URL, SITE_URL)
     html_content = re.sub(r"(<span>Version ).*?(</span>)", rf"\g<1>{VERSION}\2", html_content)
     html_content = _inject_kodi_listing(html_content)
     page.write_text(html_content, encoding="utf-8", newline="\n")
