@@ -1,10 +1,8 @@
-# edit 2026-06-14
-
 from resources.lib import control
 
 
 ACTION_PREFIX = 'vavoo_'
-LIVE_TV_ACTIONS = set([
+LIVE_TV_ACTIONS = {
     'live',
     'livePlay',
     'channels',
@@ -15,25 +13,11 @@ LIVE_TV_ACTIONS = set([
     'delTvFavorit',
     'delallTvFavorit',
     'makem3u',
-])
-
-
-def open_root():
-    dispatch({'action': 'root'})
-
-
-def open_favorites():
-    dispatch({'action': 'favchannels'})
+}
 
 
 def open_settings():
     control.openSettings()
-
-
-def make_m3u():
-    from resources.lib import m3u_live
-
-    m3u_live.export_all()
 
 
 def dispatch(params):
@@ -45,25 +29,11 @@ def dispatch(params):
     if _is_live_tv_action(action, tv):
         return _show_live_tv_disabled()
 
-    from resources.lib.vavoo import stalker, vavoo_tv, vjackson, vjlive
-    from resources.lib.vavoo.utils import clear, execute, log, setSetting
-
-    if tv and (action in (None, '', 'livePlay')):
-        return vjlive.livePlay(tv, params.get('type'), params.get('group'))
+    from resources.lib.vavoo import stalker, vavoo_tv, vjackson
+    from resources.lib.vavoo.utils import clear, log
 
     if action in (None, '', 'root'):
         return vjackson.menu(params)
-
-    if action == 'addTvFavorit' and tv:
-        return vjlive.change_favorit(tv)
-
-    if action == 'delTvFavorit' and tv:
-        return vjlive.change_favorit(tv, True)
-
-    if action == 'delallTvFavorit':
-        setSetting('favs', '[]')
-        execute('Container.Refresh')
-        return
 
     actions = {
         'choose': lambda: vavoo_tv.choose(),
@@ -72,10 +42,7 @@ def dispatch(params):
         'new_mac': lambda: stalker.new_mac(),
         'clear': lambda: clear(),
         'delete_search': lambda: clear_search(params),
-        'channels': lambda: vjlive.channels(params.get('items'), params.get('type'), params.get('group')),
         'settings': lambda: open_settings(),
-        'favchannels': lambda: vjlive.favchannels(),
-        'makem3u': lambda: make_m3u(),
     }
 
     if action in actions:

@@ -1,16 +1,12 @@
-
 import sys
-from  xbmcgui import NOTIFICATION_INFO, Dialog
+from xbmcgui import NOTIFICATION_INFO, Dialog
+
 from resources.lib import control
 from scrapers import getProviderModuleNames
 
 dialog = Dialog()
 name = control.addonInfo('name')
 
-_params = dict(control.parse_qsl(sys.argv[1].replace('?', '')))
-_action = _params.get('action')
-mode = None
-query = None
 
 def window(title='', content='', filename=''):
     import xbmc, xbmcgui, time, os
@@ -30,14 +26,11 @@ def window(title='', content='', filename=''):
         timeout = 1
         xbmc.executebuiltin("ActivateWindow({})".format(window_id))
         w = xbmcgui.Window(window_id)
-        # Wait for window to open
         start_time = time.time()
         while (not xbmc.getCondVisibility("Window.IsVisible({})".format(window_id)) and
                time.time() - start_time < timeout):
             xbmc.sleep(100)
-        # noinspection PyUnresolvedReferences
         w.getControl(control_label).setLabel(title)
-        # noinspection PyUnresolvedReferences
         w.getControl(control_textbox).setText(content)
 
 
@@ -45,7 +38,7 @@ def run(params):
     action = params.get('subaction')
 
     if action == "Defaults":
-        dialog.notification(name , 'Einstellungen wurden Ã¼bernommen', NOTIFICATION_INFO, 500, sound=False)
+        dialog.notification(name , 'Einstellungen wurden übernommen', NOTIFICATION_INFO, 500, sound=False)
         sourceList = getProviderModuleNames()
         for i in sourceList:
             source_setting = 'provider.' + i
@@ -53,7 +46,7 @@ def run(params):
             control.setSetting(source_setting, value)
 
     elif action == "toggleAll":
-        dialog.notification(name , 'Einstellungen wurden Ã¼bernommen', NOTIFICATION_INFO, 500, sound=False)
+        dialog.notification(name , 'Einstellungen wurden übernommen', NOTIFICATION_INFO, 500, sound=False)
         sourceList = getProviderModuleNames()
         for i in sourceList:
             source_setting = 'provider.' + i
@@ -72,19 +65,5 @@ def run(params):
             source_setting = 'provider.' + i
             control.setSetting(source_setting, params['setting'])
 
-    # elif action == "defaultsEnglish":
-    #     sourceList = scrapers_source.english_providers
-    #     for i in sourceList:
-    #         source_setting = 'provider.' + i
-    #         value = control.getSettingDefault(source_setting)
-    #         control.setSetting(source_setting, value)
-    #
-    # elif action == "toggleEnglish":
-    #     sourceList = scrapers_source.english_providers
-    #     for i in sourceList:
-    #         source_setting = 'provider.' + i
-    #         control.setSetting(source_setting, params['setting'])
-            
     elif action == "downloadInfo":
-        window('Hilfe zum Syntax fÃ¼r den Ordnerpfad', '', 'downloadinfo.txt')
-        
+        window('Hilfe zum Syntax für den Ordnerpfad', '', 'downloadinfo.txt')

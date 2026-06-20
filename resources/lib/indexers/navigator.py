@@ -1,11 +1,8 @@
-
-
-#2021-07-14
-# edit 2025-06-12
-
 import sys
 from os import path
-import xbmcvfs, xbmc
+
+import xbmcvfs
+
 from resources.lib import control
 from resources.lib.tools import cParser
 
@@ -13,9 +10,7 @@ sysaddon = sys.argv[0]
 syshandle = int(sys.argv[1]) if len(sys.argv) > 1 else ''
 artPath = control.artPath()
 addonFanart = control.addonFanart()
-addonPath = control.addonPath
 
-# TODO https://kodi.wiki/view/Default_Icons
 class navigator:
 	def root(self):
 		self.addDirectoryItem("Suche Filme", 'moviesSearch', '01_suche_filme.png', 'DefaultAddonsSearch.png')
@@ -26,9 +21,8 @@ class navigator:
 		self.addDirectoryItem("LiveTV", 'liveTVNavigator', 'DefaultAddonPVRClient.png', 'DefaultAddonPVRClient.png')
 		self.addDirectoryItem("Stream-URL abspielen", 'playURL', '07_stream_url_abspielen.png', 'DefaultAddonWebSkin.png', isFolder=False)
 		self.addDirectoryItem("Werkzeuge", 'toolNavigator', '06_werkzeuge.png', 'DefaultAddonProgram.png')
-		self._endDirectory(content='',cache=False)  # addons  videos  files
+		self._endDirectory(content='', cache=False)
 
-# TODO vote_count vote_average popularity revenue
 	def movies(self):
 		self.addDirectoryItem("[B]Filme[/B] - Neu", 'listings&media_type=movie&url=kino', '04_01_filme_neu.png', 'DefaultRecentlyAddedMovies.png')
 		self.addDirectoryItem("[B]Filme[/B] - Jahr", 'movieYears', '04_02_filme_jahr.png', 'DefaultMovies.png')
@@ -37,7 +31,6 @@ class navigator:
 		self.addDirectoryItem("[B]Filme[/B] - Am besten bewertet", 'listings&media_type=movie&url=production_status=released%26sort_by=vote_average.desc', '04_05_filme_am_besten_bewertet.png', 'DefaultMovies.png')
 		self.addDirectoryItem("[B]Filme[/B] - Meist bewertet", 'listings&media_type=movie&url=production_status=released%26sort_by=vote_count.desc', '04_06_filme_meist_bewertet.png', 'DefaultMovies.png')
 		self.addDirectoryItem("[B]Filme[/B] - Bestes Einspielergebnis", 'listings&media_type=movie&url=production_status=released%26sort_by=revenue.desc', '04_07_filme_bestes_einspielergebnis.png', 'DefaultMovies.png')
-		# self.addDirectoryItem("[B]Filme[/B] - Oskar-Gewinner", 'movies&url=oscars', 'oscar-winners.png', 'DefaultMovies.png')
 		self._endDirectory()
 
 	def tvshows(self):
@@ -45,19 +38,13 @@ class navigator:
 		self.addDirectoryItem("[B]Serien[/B] - Am populärsten", 'listings&media_type=tv&url=sort_by=popularity.desc', '05_02_serien_am_populaersten.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("[B]Serien[/B] - Am besten bewertet", 'listings&media_type=tv&url=sort_by=vote_average.desc', '05_03_serien_am_besten_bewertet.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("[B]Serien[/B] - Meist bewertet", 'listings&media_type=tv&url=sort_by=vote_count.desc', '05_04_serien_meist_bewertet.png', 'DefaultTVShows.png')
-		# self.addDirectoryItem("[B]Serien[/B] - Suche nach Darstellern/Crew", 'tvPerson', 'people-search.png', 'DefaultTVShows.png', isFolder=False)
 		self._endDirectory()
 
 	def tools(self):
 		self.addDirectoryItem("[B]Support[/B]: Information anzeigen", 'pluginInfo', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False)
 		self.addDirectoryItem(control.addonName +": EINSTELLUNGEN", 'addonSettings', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
-		# self.addDirectoryItem("[B]"+control.addonName.upper()+"[/B]: Reset Settings (außer Konten)", 'resetSettings', 'nightly_update.png', 'DefaultAddonProgram.png', isFolder=False)
 		self.addDirectoryItem("[B]Resolver[/B]: EINSTELLUNGEN", 'resolverSettings', '06_03_resolver_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
-		self._endDirectory()	# addons  videos  files
-
-	def live_tv(self):
-		control.infoDialog("LiveTV ist in dieser Version deaktiviert.", icon='WARNING', time=5000)
-		self._endDirectory(content='', cache=False)
+		self._endDirectory()
 
 	def downloads(self):
 		movie_downloads = control.getSetting('download.movie.path')
@@ -68,14 +55,12 @@ class navigator:
 			self.addDirectoryItem("TV-Serien", tv_downloads, 'tvshows.png', 'DefaultTVShows.png', isAction=False)
 		self._endDirectory()
 
-#TODO
 	def addDirectoryItem(self, name, query, thumb, icon, context=None, queue=False, isAction=True, isFolder=True):
-		url = '%s?action=%s' % (sysaddon, query) if isAction == True else query
+		url = '%s?action=%s' % (sysaddon, query) if isAction else query
 		thumb = self.getMedia(thumb, icon)
-		#laut kodi doku - ListItem([label, label2, path, offscreen])
-		listitem = control.item(name, offscreen=True) # Removed iconImage and thumbnailImage
+		listitem = control.item(name, offscreen=True)
 		listitem.setArt({'poster': thumb, 'icon': icon})
-		if not context == None:
+		if context is not None:
 			cm = []
 			cm.append((context[0], 'RunPlugin(%s?action=%s)' % (sysaddon, context[1])))
 			listitem.addContextMenuItems(cm)
@@ -90,13 +75,11 @@ class navigator:
 		self.addFanart(listitem, query)
 		control.addItem(syshandle, url, listitem, isFolder)
 
-	def _endDirectory(self, content='', cache=True ): # addons  videos  files
-		# https://romanvm.github.io/Kodistubs/_autosummary/xbmcplugin.html#xbmcplugin.setContent
+	def _endDirectory(self, content='', cache=True):
 		control.content(syshandle, content)
 		control.plugincategory(syshandle, control.addonName + ' / '+ control.addonVersion)
 		control.endofdirectory(syshandle, succeeded=True, cacheToDisc=cache)
 
-# ------- ergänzt für xStream V2 -----------
 	def addFanart(self, listitem, query):
 		if control.getSetting('fanart')=='true':
 			isMatch, sFanart = cParser.parseSingleResult(query, "fanart'.*?'([^']+)")

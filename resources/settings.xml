@@ -24,10 +24,8 @@
         <setting type="text" label="[COLOR blue]ACHTUNG:  Die folgenden Optionen werden sofort[/COLOR]" />
         <setting type="text" label="[COLOR blue]und für [B]alle[/B] Indexseiten ausgeführt![/COLOR]" />
         <setting type="sep"/>
-        <!--<setting label="Einstellung auf Defaults setzen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=defaultsGerman)"/> -->
         <setting label="Alle Quellen aktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=toggleGerman&amp;setting=true)" option=""/>
         <setting label="Alle Quellen deaktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=toggleGerman&amp;setting=false)" option=""/>
-        <!-- <setting type="lsep" label="Scrapers" /> -->
         <setting type="sep"/>
         <setting id="provider.einschalten" type="bool" label="EINSCHALTEN   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
         <setting id="provider.einschalten.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
@@ -41,10 +39,6 @@
         <setting id="provider.filmpro.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
         <setting id="provider.filmpro.check" label="Check" type="bool" default="true" visible="false"/>
         <setting type="sep"/>
-        <!--<setting id="provider.flimmerstube" type="bool" label="FLIMMERSTUBE   |  [B][COLOR blue] Filme &amp; Serien[/COLOR][/B]" default="false" />
-        <setting id="provider.flimmerstube.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
-        <setting id="provider.flimmerstube.check" label="Check" type="bool" default="true" visible="false"/>
-        <setting type="sep"/>-->
         <setting id="provider.hdfilme" type="bool" label="HDFILME   |  [B][COLOR blue] Filme &amp; Serien[/COLOR][/B]" default="true" />
         <setting id="provider.hdfilme.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
         <setting id="provider.hdfilme.check" label="Check" type="bool" default="true" visible="false"/>
@@ -78,10 +72,8 @@
         <setting type="text" label="[COLOR blue]ACHTUNG:  Die folgenden Optionen werden sofort[/COLOR]" />
         <setting type="text" label="[COLOR blue]und für [B]alle[/B] Indexseiten ausgeführt![/COLOR]" />
         <setting type="sep"/>
-        <!--<setting label="Einstellung auf Defaults setzen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=defaultsGerman)"/> -->
         <setting label="Alle Quellen aktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=toggleGerman&amp;setting=true)" option=""/>
         <setting label="Alle Quellen deaktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=toggleGerman&amp;setting=false)" option=""/>
-        <!-- <setting type="lsep" label="Scrapers" /> -->
         <setting type="sep"/>
         <setting id="provider.megakino" type="bool" label="MEGAKINO   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
         <setting id="provider.megakino.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
@@ -107,10 +99,6 @@
         <setting id="provider.serienstream" type="bool"  label="SERIENSTREAM   |   [B][COLOR green]Serien[/COLOR][/B]" default="true"/>
         <setting id="provider.serienstream.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
         <setting id="provider.serienstream.check" label="Check" type="bool" default="true" visible="false"/>
-        <!--<setting type="sep"/>
-        <setting id="provider.serien-stream" type="bool"  label="Serien-Stream   |   [B][COLOR green]Serien[/COLOR][/B]" default="true"/>
-        <setting id="provider.serien-stream.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
-        <setting id="provider.serien-stream.check" label="Check" type="bool" default="true" visible="false"/>-->
         <setting type="sep"/>
         <setting id="provider.streamcloud" type="bool" label="STREAMCLOUD   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
         <setting id="provider.streamcloud.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
@@ -127,7 +115,6 @@
     </category>
     <category label="Wiedergabe">
         <setting id="progress.dialog" type="enum" label="Fortschrittsdialog" values="Vordergrund|Hintergrund" default="1" />
-        <!--<setting id="prem.identify" type="enum" label="Textfarbe für Premium-Links" values="Blau|Rot|Gelb|Altrosa|Cyan|Grasgrün|Gold|Magenta|Gelbgrün|Ohne Farbe" default="0" /> -->
         <setting type="lsep" label="Dateinanbieter-Filter" />
         <setting id="hosts.quality" type="enum" label="Höchste Qualität" values="4K|1440p|1080p|720p|480p" default="0" />
         <setting id="hosts.sort.priority" type="bool" label="Indexseiten bei Serien nach Priorität sortieren" default="true" />
@@ -192,20 +179,14 @@
         <setting type="lsep" label="FANART.TV" />
         <setting id="api.fanart.tv" type="text" label="API-Key" option="hidden" default="e376e8591e1580089d93ab4135fcc082" />
         <setting type="lsep" label="Konto [B]opensubtitles.org[/B]"/>
-        <!-- <setting id="subtitles.os_user" type="text" label="UserName" default=""/>
-        <setting id="subtitles.os_pass" type="text" option="hidden" label="Password" default=""/> -->
     </category>
     <category label="Downloads / Untertitel">
         <setting id="downloads" type="bool" label="Herunterladen aktivieren" default="false" />
-        <!-- <setting type="sep" /> -->
         <setting type="lsep" label="Bitte Ordnerpfade eingeben" />
-        <!--<<setting type="text" label="oder [COLOR blue]smb://ServerIP/path_to_files/ | nfs://ServerIP/path_to_files/[/COLOR]" /> -->
         <setting label="[COLOR blue]Hier Hilfe zum Syntax für den Ordnerpfad[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=downloadInfo)" option=""/>
         <setting id="download.movie.path" type="text" label="Filme" enable="!eq(-3,false)" default="" />
-        <!--<setting id="download.tv.path" type="folder" label="TV-Serien" enable="!eq(-4,false)" default="" /> -->
         <setting id="download.tv.path" type="text" label="TV-Serien" enable="!eq(-4,false)" default="" />
-        <setting type="lsep" label="[CR]" />-->
-        <!--<setting type="text" label="Herunterladen ist standardmäßig deaktiviert." />-->
+        <setting type="lsep" label="[CR]" />
         <setting type="sep" />
         <setting id="subtitles" type="bool" label="Untertitel aktivieren" default="false" />
         <setting type="text" label="[COLOR blue]Konto auf [B]opensubtitles.org[/B] einrichten und[CR]die Zugandsdaten unter Einstellungen / Konten eintragen![CR][/COLOR]" visible="!eq(-1,false)"/>

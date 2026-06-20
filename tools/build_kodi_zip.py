@@ -45,10 +45,6 @@ EXCLUDED_FILES = {
     "README.md",
 }
 EXCLUDED_RELATIVE = {
-    Path("resources/lib/cleandate.py"),
-    Path("resources/lib/help.py"),
-    Path("resources/lib/trailer-v2-backup.py"),
-    Path("resources/lib/views.py"),
     Path("resources/media/_movies-search.png"),
     Path("resources/media/_series-search.png"),
     Path("resources/media/box-office.png"),
