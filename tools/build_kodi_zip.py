@@ -1,5 +1,6 @@
 from pathlib import Path
 import hashlib
+import html
 import re
 import xml.etree.ElementTree as ET
 import shutil
@@ -23,6 +24,10 @@ REPOSITORY_PLUGIN_OUTPUT = PROJECT_DIR / "docs" / "zips" / ADDON_ID / ZIP_NAME
 REPOSITORY_OUTPUT = PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID / REPOSITORY_ZIP_NAME
 REPOSITORY_DIRECT_OUTPUT = PROJECT_DIR / "docs" / REPOSITORY_DIRECT_ZIP_NAME
 REPOSITORY_VERSIONED_DIRECT_OUTPUT = PROJECT_DIR / "docs" / REPOSITORY_ZIP_NAME
+ADDON_INDEX_DIR = PROJECT_DIR / "docs" / ADDON_ID
+REPOSITORY_INDEX_DIR = PROJECT_DIR / "docs" / REPOSITORY_ID
+ADDON_INDEX_OUTPUT = ADDON_INDEX_DIR / ZIP_NAME
+REPOSITORY_INDEX_OUTPUT = REPOSITORY_INDEX_DIR / REPOSITORY_ZIP_NAME
 ADDONS_XML = PROJECT_DIR / "docs" / "addons.xml"
 M3U_DIR = PROJECT_DIR / "m3u"
 DOCS_M3U_DIR = PROJECT_DIR / "docs" / "m3u"
@@ -138,6 +143,50 @@ def sync_repository_zip_aliases():
         print(output)
 
 
+def sync_browsable_repository_layout():
+    ADDON_INDEX_DIR.mkdir(parents=True, exist_ok=True)
+    REPOSITORY_INDEX_DIR.mkdir(parents=True, exist_ok=True)
+
+    shutil.copy2(REPOSITORY_PLUGIN_OUTPUT, ADDON_INDEX_OUTPUT)
+    validate(ADDON_INDEX_OUTPUT)
+    shutil.copy2(PROJECT_DIR / "addon.xml", ADDON_INDEX_DIR / "addon.xml")
+    shutil.copy2(PROJECT_DIR / "resources" / "icon.png", ADDON_INDEX_DIR / "icon.png")
+
+    shutil.copy2(REPOSITORY_OUTPUT, REPOSITORY_INDEX_OUTPUT)
+    validate_repository_zip(REPOSITORY_INDEX_OUTPUT)
+    (REPOSITORY_INDEX_DIR / "addon.xml").write_text(_repository_addon_xml() + "\n", encoding="utf-8", newline="\n")
+    shutil.copy2(PROJECT_DIR / "resources" / "icon.png", REPOSITORY_INDEX_DIR / "icon.png")
+
+    _write_index(PROJECT_DIR / "docs", "/xVAULT/", [
+        _entry("plugin.video.xvault/", ADDON_INDEX_DIR),
+        _entry("repository.xvault/", REPOSITORY_INDEX_DIR),
+        _entry("addons.xml", ADDONS_XML),
+        _entry("addons.xml.md5", ADDONS_XML.with_suffix(ADDONS_XML.suffix + ".md5")),
+        _entry(REPOSITORY_DIRECT_ZIP_NAME, REPOSITORY_DIRECT_OUTPUT),
+        _entry(REPOSITORY_ZIP_NAME, REPOSITORY_VERSIONED_DIRECT_OUTPUT),
+    ])
+    _write_index(ADDON_INDEX_DIR, "/xVAULT/plugin.video.xvault/", [
+        _entry("addon.xml", ADDON_INDEX_DIR / "addon.xml"),
+        _entry("icon.png", ADDON_INDEX_DIR / "icon.png"),
+        _entry(ZIP_NAME, ADDON_INDEX_OUTPUT),
+    ])
+    _write_index(REPOSITORY_INDEX_DIR, "/xVAULT/repository.xvault/", [
+        _entry("addon.xml", REPOSITORY_INDEX_DIR / "addon.xml"),
+        _entry("icon.png", REPOSITORY_INDEX_DIR / "icon.png"),
+        _entry(REPOSITORY_ZIP_NAME, REPOSITORY_INDEX_OUTPUT),
+    ])
+    _write_index(PROJECT_DIR / "docs" / "zips", "/xVAULT/zips/", [
+        _entry("plugin.video.xvault/", PROJECT_DIR / "docs" / "zips" / ADDON_ID),
+        _entry("repository.xvault/", PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID),
+    ])
+    _write_index(PROJECT_DIR / "docs" / "zips" / ADDON_ID, "/xVAULT/zips/plugin.video.xvault/", [
+        _entry(ZIP_NAME, REPOSITORY_PLUGIN_OUTPUT),
+    ])
+    _write_index(PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID, "/xVAULT/zips/repository.xvault/", [
+        _entry(REPOSITORY_ZIP_NAME, REPOSITORY_OUTPUT),
+    ])
+
+
 def update_kodi_repository_metadata():
     content = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
@@ -163,31 +212,7 @@ def sync_repository_m3u():
 
 
 def update_download_page(output):
-    page = PROJECT_DIR / "docs" / "index.html"
-    digest = hashlib.sha256(output.read_bytes()).hexdigest().upper()
-    size = _format_size(output.stat().st_size)
-    html = page.read_text(encoding="utf-8")
-    html = re.sub(
-        r"(<span>Aktuelle Version</span>\s*<strong>).*?(</strong>)",
-        rf"\g<1>{VERSION}\2",
-        html,
-        flags=re.S,
-    )
-    html = re.sub(
-        r'href="downloads/plugin\.video\.xvault-[^"]+\.zip"',
-        f'href="downloads/{ZIP_NAME}"',
-        html,
-    )
-    html = re.sub(
-        r'href="(?:zips/repository\.xvault/)?repository\.xvault(?:-[^"]+)?\.zip"',
-        f'href="{REPOSITORY_DIRECT_ZIP_NAME}"',
-        html,
-    )
-    html = re.sub(r"(ZIP-Datei · ).*?(</p>)", rf"\g<1>{size}\2", html)
-    html = re.sub(r"<code>[A-F0-9]{64}</code>", f"<code>{digest}</code>", html)
-    html = _update_archive_links(html)
-    html = re.sub(r"(<span>Version ).*?(</span>)", rf"\g<1>{VERSION}\2", html)
-    page.write_text(html, encoding="utf-8", newline="\n")
+    sync_browsable_repository_layout()
 
 
 def _update_archive_links(html):
@@ -229,6 +254,67 @@ def _format_size(size):
     if size >= 1024 * 1024:
         return ("%.1f MB" % (size / 1024.0 / 1024.0)).replace(".", ",")
     return ("%.1f KB" % (size / 1024.0)).replace(".", ",")
+
+
+def _entry(name, path):
+    return {"name": name, "path": path}
+
+
+def _write_index(directory, title, entries):
+    directory.mkdir(parents=True, exist_ok=True)
+    rows = [
+        '<tr><td>[PARENTDIR]</td><td><a href="../">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>'
+    ]
+    for entry in entries:
+        path = entry["path"]
+        name = entry["name"]
+        href = html.escape(name, quote=True)
+        label = html.escape(name)
+        icon = "[DIR]" if name.endswith("/") else "[FILE]"
+        rows.append(
+            '<tr><td>%s</td><td><a href="%s">%s</a></td><td align="right">%s</td><td align="right">%s</td></tr>'
+            % (icon, href, label, _format_index_mtime(path), _format_index_size(path))
+        )
+
+    content = """<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>{title}</title>
+<meta name="description" content="{title}">
+</head>
+<body>
+<h2>Index of {title}</h2>
+<table>
+<tbody>
+<tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
+<tr><th colspan="4"><hr></th></tr>
+{rows}
+<tr><th colspan="4"><hr></th></tr>
+</tbody>
+</table>
+</body>
+</html>
+""".format(title=html.escape(title), rows="\n".join(rows))
+    (directory / "index.html").write_text(content, encoding="utf-8", newline="\n")
+
+
+def _format_index_mtime(path):
+    if not path.exists():
+        return "-"
+    from datetime import datetime
+    return datetime.fromtimestamp(path.stat().st_mtime).strftime("%d.%b.%Y %H:%M:%S")
+
+
+def _format_index_size(path):
+    if not path.exists() or path.is_dir():
+        return "-"
+    size = path.stat().st_size
+    if size >= 1024 * 1024:
+        return "%.2f MB" % (size / 1024.0 / 1024.0)
+    if size >= 1024:
+        return "%.2f KB" % (size / 1024.0)
+    return "%.2f B" % size
 
 
 def _repository_addon_xml():
