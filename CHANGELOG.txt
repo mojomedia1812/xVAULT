@@ -1,3 +1,8 @@
+xVAULT 2026.06.20.2
+Entwickler: mojomedia1812
+
+- Sprunghafte Auswahl in Episodenlisten korrigiert: Millisekunden-Wartezeiten in der Fokuslogik wurden faelschlich als Sekunden ausgefuehrt und konnten die Auswahl noch Minuten spaeter auf eine andere Folge setzen.
+
 xVAULT 2026.06.20.1
 Entwickler: mojomedia1812
 

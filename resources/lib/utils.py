@@ -441,7 +441,7 @@ def setPosition(pos, _name, content='movies'): # org.: episodes
     for count in range(1, 15):
         ccont = getInfoLabel("Container.Content")
         if ccont == content: break
-        sleep(100)
+        sleep(0.1)
 
     if isdebug:
         log_utils.log(_name + ' - Container.Content (1) - soll: %s ist: %s  count: %s' % (content, getInfoLabel("Container.Content"), count), log_utils.LOGINFO)
@@ -454,11 +454,11 @@ def setPosition(pos, _name, content='movies'): # org.: episodes
             cid = getInfoLabel("System.CurrentControlID")
             ctrl = win.getControl(int(cid))
         except:
-            sleep(200)
+            sleep(0.2)
             continue
 
         ctrl.selectItem(pos_sp)
-        sleep(100)
+        sleep(0.1)
         check = int(getInfoLabel("Container().CurrentItem"))  # % cid)) # Container().CurrentItem
         if pos == check: break
 

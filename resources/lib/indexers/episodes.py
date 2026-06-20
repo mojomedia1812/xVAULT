@@ -224,7 +224,7 @@ class episodes:
 
 		control.plugincategory(syshandle, control.addonVersion)
 		control.endofdirectory(syshandle, cacheToDisc=True)
-		control.sleep(200)
+		control.sleep(0.2)
 
 		# setzt Auswahl nach letzte als gesehen markierte Episode
 		if control.getSetting('status.position')== 'true':
