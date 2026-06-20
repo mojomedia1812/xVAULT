@@ -157,14 +157,6 @@ def sync_browsable_repository_layout():
     (REPOSITORY_INDEX_DIR / "addon.xml").write_text(_repository_addon_xml() + "\n", encoding="utf-8", newline="\n")
     shutil.copy2(PROJECT_DIR / "resources" / "icon.png", REPOSITORY_INDEX_DIR / "icon.png")
 
-    _write_index(PROJECT_DIR / "docs", "/xVAULT/", [
-        _entry("plugin.video.xvault/", ADDON_INDEX_DIR),
-        _entry("repository.xvault/", REPOSITORY_INDEX_DIR),
-        _entry("addons.xml", ADDONS_XML),
-        _entry("addons.xml.md5", ADDONS_XML.with_suffix(ADDONS_XML.suffix + ".md5")),
-        _entry(REPOSITORY_DIRECT_ZIP_NAME, REPOSITORY_DIRECT_OUTPUT),
-        _entry(REPOSITORY_ZIP_NAME, REPOSITORY_VERSIONED_DIRECT_OUTPUT),
-    ])
     _write_index(ADDON_INDEX_DIR, "/xVAULT/plugin.video.xvault/", [
         _entry("addon.xml", ADDON_INDEX_DIR / "addon.xml"),
         _entry("icon.png", ADDON_INDEX_DIR / "icon.png"),
@@ -213,6 +205,37 @@ def sync_repository_m3u():
 
 def update_download_page(output):
     sync_browsable_repository_layout()
+    page = PROJECT_DIR / "docs" / "index.html"
+    digest = hashlib.sha256(output.read_bytes()).hexdigest().upper()
+    size = _format_size(output.stat().st_size)
+    html_content = page.read_text(encoding="utf-8")
+    html_content = re.sub(
+        r"(<span>Aktuelle Version</span>\s*<strong>).*?(</strong>)",
+        rf"\g<1>{VERSION}\2",
+        html_content,
+        flags=re.S,
+    )
+    html_content = re.sub(
+        r'href="downloads/plugin\.video\.xvault-[^"]+\.zip"',
+        f'href="downloads/{ZIP_NAME}"',
+        html_content,
+    )
+    html_content = re.sub(
+        r'href="(?:zips/repository\.xvault/)?repository\.xvault(?:-[^"]+)?\.zip"',
+        f'href="{REPOSITORY_DIRECT_ZIP_NAME}"',
+        html_content,
+    )
+    html_content = re.sub(r"(ZIP-Datei · ).*?(</p>)", rf"\g<1>{size}\2", html_content)
+    html_content = re.sub(r"<code>[A-F0-9]{64}</code>", f"<code>{digest}</code>", html_content)
+    html_content = re.sub(
+        r"https://mojomedia1812\.github\.io/xVAULT/zips/",
+        "https://mojomedia1812.github.io/xVAULT/",
+        html_content,
+    )
+    html_content = _update_archive_links(html_content)
+    html_content = re.sub(r"(<span>Version ).*?(</span>)", rf"\g<1>{VERSION}\2", html_content)
+    html_content = _inject_kodi_listing(html_content)
+    page.write_text(html_content, encoding="utf-8", newline="\n")
 
 
 def _update_archive_links(html):
@@ -262,20 +285,6 @@ def _entry(name, path):
 
 def _write_index(directory, title, entries):
     directory.mkdir(parents=True, exist_ok=True)
-    rows = [
-        '<tr><td>[PARENTDIR]</td><td><a href="../">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>'
-    ]
-    for entry in entries:
-        path = entry["path"]
-        name = entry["name"]
-        href = html.escape(name, quote=True)
-        label = html.escape(name)
-        icon = "[DIR]" if name.endswith("/") else "[FILE]"
-        rows.append(
-            '<tr><td>%s</td><td><a href="%s">%s</a></td><td align="right">%s</td><td align="right">%s</td></tr>'
-            % (icon, href, label, _format_index_mtime(path), _format_index_size(path))
-        )
-
     content = """<!doctype html>
 <html>
 <head>
@@ -295,8 +304,86 @@ def _write_index(directory, title, entries):
 </table>
 </body>
 </html>
-""".format(title=html.escape(title), rows="\n".join(rows))
+""".format(title=html.escape(title), rows=_index_rows(entries, parent="../"))
     (directory / "index.html").write_text(content, encoding="utf-8", newline="\n")
+
+
+def _inject_kodi_listing(html_content):
+    style = """<!-- kodi-listing-style:start -->
+  <style>
+    .kodi-index { display: none; }
+    .kodi-client .page { display: none; }
+    .kodi-client .kodi-index { display: block; padding: 24px; font-family: Arial, sans-serif; color: #111; background: #fff; }
+    .kodi-index table { border-collapse: collapse; width: 100%; max-width: 900px; }
+    .kodi-index th, .kodi-index td { padding: 4px 10px; text-align: left; }
+  </style>
+  <script>
+    if (/Kodi/i.test(navigator.userAgent)) {
+      document.documentElement.classList.add('kodi-client');
+    }
+  </script>
+  <!-- kodi-listing-style:end -->"""
+    listing = _kodi_listing_fragment()
+    html_content = re.sub(
+        r"\s*<!-- kodi-listing-style:start -->.*?<!-- kodi-listing-style:end -->",
+        "",
+        html_content,
+        flags=re.S,
+    )
+    html_content = re.sub(
+        r"\s*<!-- kodi-listing:start -->.*?<!-- kodi-listing:end -->",
+        "",
+        html_content,
+        flags=re.S,
+    )
+    html_content = html_content.replace("</head>", f"{style}\n</head>")
+    return html_content.replace("<body>", f"<body>\n{listing}", 1)
+
+
+def _kodi_listing_fragment():
+    entries = [
+        _entry("plugin.video.xvault/", ADDON_INDEX_DIR),
+        _entry("repository.xvault/", REPOSITORY_INDEX_DIR),
+        _entry("addons.xml", ADDONS_XML),
+        _entry("addons.xml.md5", ADDONS_XML.with_suffix(ADDONS_XML.suffix + ".md5")),
+        _entry(REPOSITORY_DIRECT_ZIP_NAME, REPOSITORY_DIRECT_OUTPUT),
+        _entry(REPOSITORY_ZIP_NAME, REPOSITORY_VERSIONED_DIRECT_OUTPUT),
+    ]
+    return """<!-- kodi-listing:start -->
+  <section id="kodi-index" class="kodi-index">
+    <h2>Index of /xVAULT/</h2>
+    <table>
+      <tbody>
+        <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
+        <tr><th colspan="4"><hr></th></tr>
+{rows}
+        <tr><th colspan="4"><hr></th></tr>
+      </tbody>
+    </table>
+  </section>
+  <!-- kodi-listing:end -->""".format(rows=_indent(_index_rows(entries, parent="../"), 8))
+
+
+def _index_rows(entries, parent):
+    rows = [
+        '<tr><td>[PARENTDIR]</td><td><a href="%s">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>' % parent
+    ]
+    for entry in entries:
+        path = entry["path"]
+        name = entry["name"]
+        href = html.escape(name, quote=True)
+        label = html.escape(name)
+        icon = "[DIR]" if name.endswith("/") else "[FILE]"
+        rows.append(
+            '<tr><td>%s</td><td><a href="%s">%s</a></td><td align="right">%s</td><td align="right">%s</td></tr>'
+            % (icon, href, label, _format_index_mtime(path), _format_index_size(path))
+        )
+    return "\n".join(rows)
+
+
+def _indent(text, spaces):
+    prefix = " " * spaces
+    return "\n".join(prefix + line if line else line for line in text.splitlines())
 
 
 def _format_index_mtime(path):
