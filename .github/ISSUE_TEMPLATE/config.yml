@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Hinweise zum Melden von Fehlern und Vorschlaegen
+    url: https://github.com/mojomedia1812/xVAULT/blob/main/CONTRIBUTING.md
+    about: Bitte nutze die passende Vorlage. Diese Hinweise helfen dir bei guten Meldungen.

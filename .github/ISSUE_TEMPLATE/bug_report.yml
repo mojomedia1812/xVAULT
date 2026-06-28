@@ -1,0 +1,75 @@
+name: Fehler melden
+description: Melde einen Fehler, Absturz oder unerwartetes Verhalten.
+title: "[BUG] "
+labels:
+  - bug
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Welche Plugin-Version, welcher Stand oder welcher Commit wird verwendet?
+      placeholder: "Beispiel: 2026.06.28.8 oder aktueller main-Branch"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Was ist passiert?
+      description: Kurze und verstaendliche Beschreibung des Fehlers.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Schritte zum Nachstellen
+      description: Genaue Reihenfolge, wie der Fehler ausgeloest werden kann.
+      placeholder: |
+        1. Plugin oeffnen
+        2. Menuepunkt auswaehlen
+        3. Fehler erscheint
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Erwartetes Verhalten
+      description: Was haette stattdessen passieren sollen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Tatsaechliches Verhalten
+      description: Was passiert tatsaechlich?
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots-logs
+    attributes:
+      label: Screenshots oder Logs
+      description: Hier koennen Bilder, Konsolenausgaben oder Fehlermeldungen eingefuegt werden.
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: System / Umgebung
+      description: Betriebssystem, Kodi-Version, Browser, Geraet oder andere relevante Umgebung.
+      placeholder: "Beispiel: Windows 11, Kodi 21, Fire TV Stick"
+    validations:
+      required: false
+  - type: textarea
+    id: settings
+    attributes:
+      label: Plugin-Einstellungen
+      description: Welche Einstellungen sind aktiv oder wurden veraendert?
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: Zusaetzliche Hinweise
+      description: Alles, was sonst noch helfen koennte.
+    validations:
+      required: false
