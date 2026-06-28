@@ -1,0 +1,59 @@
+name: Verbesserung vorschlagen
+description: Schlage eine neue Funktion, Verbesserung oder Optimierung vor.
+title: "[FEATURE] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Dein Vorschlag
+      description: Was soll verbessert, erweitert oder neu eingebaut werden?
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Welches Problem loest das?
+      description: Warum waere diese Aenderung sinnvoll?
+    validations:
+      required: true
+  - type: textarea
+    id: desired-behavior
+    attributes:
+      label: Gewuenschtes Verhalten
+      description: Wie soll die Loesung aus Sicht des Nutzers funktionieren?
+    validations:
+      required: false
+  - type: textarea
+    id: affected-settings
+    attributes:
+      label: Betroffene Plugin-Einstellungen
+      description: Betrifft der Vorschlag bestimmte Einstellungen oder Konfigurationsoptionen?
+    validations:
+      required: false
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Loesungswege
+      description: Gibt es andere Moeglichkeiten, das Ziel zu erreichen?
+    validations:
+      required: false
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Prioritaet / Wichtigkeit
+      options:
+        - niedrig
+        - mittel
+        - hoch
+        - kritisch
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: Zusaetzliche Hinweise
+      description: Weitere Informationen, Beispiele, Screenshots oder Links.
+    validations:
+      required: false
