@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 import sys
 import xml.etree.ElementTree as ET
 
@@ -26,9 +25,6 @@ def main():
     install_zip = "plugin.video.xvault-%s.zip" % version
     if install_zip not in readme:
         fail("README.md enthaelt nicht den aktuellen Installations-ZIP-Namen %s." % install_zip)
-
-    if not re.search(r"resources/settings\.xml", readme):
-        fail("README.md verweist nicht auf resources/settings.xml.")
 
     print("README.md passt zur Add-on-Version %s." % version)
 

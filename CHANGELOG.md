@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Einstellungsuebersicht aus README.md entfernt; README-Versioncheck entsprechend angepasst.
+
 ## [2026.06.28.8] - 2026-06-28
 
 - GitHub Issue Forms fuer Fehler und Verbesserungsvorschlaege ergaenzt.
