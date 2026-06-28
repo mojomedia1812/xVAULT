@@ -72,6 +72,25 @@ def getPlaycount(mediatype, column_names, column_value, season=0, episode=0):
     playcount = match['playcount'] if match else None
     return playcount
 
+
+def getWatchedItems():
+    conn = _get_connection(playcountDB)
+    cursor = conn.cursor()
+    watched = {'movies': [], 'episodes': [], 'seasons': [], 'tvshows': []}
+    try:
+        cursor.execute('SELECT title, name, imdb_id, playcount FROM movie WHERE playcount > 0')
+        watched['movies'] = cursor.fetchall()
+        cursor.execute('SELECT title, name, season, episode, playcount FROM episode WHERE playcount > 0')
+        watched['episodes'] = cursor.fetchall()
+        cursor.execute('SELECT title, name, season, number_of_episodes, playcount FROM season WHERE playcount > 0')
+        watched['seasons'] = cursor.fetchall()
+        cursor.execute('SELECT title, name, imdb_id, number_of_seasons, playcount FROM tvshow WHERE playcount > 0')
+        watched['tvshows'] = cursor.fetchall()
+    finally:
+        cursor.close()
+        conn.close()
+    return watched
+
 def _get_connection(filename):
     conn = db.connect(filename)
     conn.row_factory = _dict_factory

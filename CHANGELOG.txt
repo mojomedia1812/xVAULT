@@ -1,3 +1,10 @@
+xVAULT 2026.06.28.6
+Entwickler: mojomedia1812
+
+- Lokale `playcountDB`-Eintraege werden vor jedem Wiedergabestand-Push in den Sync-Stand uebernommen.
+- Beim Pull werden lokale gesehene Filme/Folgen mit synchronisierten Eintraegen kombiniert; ein lokaler Gesehen-Status wird nicht durch einen unvollstaendigen Remote-Stand ueberschrieben.
+- Bereits vollstaendige Remote-Eintraege mit besseren IDs bleiben erhalten, lokale Playcount-Importe fuellen nur fehlende Gesehen-Staende auf.
+
 xVAULT 2026.06.28.5
 Entwickler: mojomedia1812
 

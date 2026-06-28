@@ -62,15 +62,162 @@ def load_items():
 
 
 def save_items(items):
-    merged = {item.get('item_key'): item for item in load_items() if item.get('item_key')}
-    for item in items:
-        key = item.get('item_key')
-        if not key:
+    merged = _merge_items(load_items(), items)
+    storage.write_json(FILENAME, {'schema_version': 1, 'items': list(merged.values())})
+
+
+def _merge_items(existing_items, incoming_items):
+    merged = {}
+    aliases = {}
+    for item in list(existing_items or []) + list(incoming_items or []):
+        if not isinstance(item, dict):
             continue
+        keys = _candidate_keys(item)
+        if not keys:
+            continue
+        key = next((aliases.get(candidate) for candidate in keys if aliases.get(candidate)), keys[0])
         current = merged.get(key)
         if current is None or is_newer(item, current):
             merged[key] = item
-    storage.write_json(FILENAME, {'schema_version': 1, 'items': list(merged.values())})
+        for candidate in keys:
+            aliases[candidate] = key
+    return merged
+
+
+def _merge_key(item):
+    keys = _candidate_keys(item)
+    return keys[0] if keys else item.get('item_key')
+
+
+def _candidate_keys(item):
+    extra = item.get('extra') or {}
+    mediatype = _item_mediatype(item)
+    keys = []
+    if mediatype == 'movie':
+        imdb_id = str(extra.get('imdb_id') or '')
+        if imdb_id:
+            keys.append('movie:imdb:%s' % imdb_id)
+        tmdb_id = str(extra.get('tmdb_id') or '')
+        if tmdb_id:
+            keys.append('movie:tmdb:%s' % tmdb_id)
+        keys.append('movie:name:%s:%s' % (_norm_title(item.get('title') or item.get('name')), str(item.get('year') or '')))
+    if mediatype == 'episode':
+        tmdb_id = str(extra.get('tmdb_id') or '')
+        season = _maybe_int(item.get('season'))
+        episode = _maybe_int(item.get('episode'))
+        if tmdb_id and season and episode:
+            keys.append('episode:tmdb:%s:%s:%s' % (tmdb_id, season, episode))
+        keys.append('episode:name:%s:%s:%s' % (_norm_title(item.get('title')), season or '', episode or ''))
+    if item.get('item_key'):
+        keys.append('item:%s' % item.get('item_key'))
+    return [key for key in keys if key and '::' not in key]
+
+
+def sync_local_playcounts():
+    local_items = collect_local_playcount_items()
+    if not local_items:
+        return False
+    before = _state_signature(load_items())
+    save_items(local_items)
+    return _state_signature(load_items()) != before
+
+
+def collect_local_playcount_items():
+    try:
+        watched = playcountDB.getWatchedItems()
+    except Exception as exc:
+        log_sync_warning('failed to collect local playcounts: %s' % exc)
+        return []
+    items = []
+    for row in watched.get('movies', []):
+        items.append(_movie_row_to_item(row))
+    for row in watched.get('episodes', []):
+        items.append(_episode_row_to_item(row))
+    return [item for item in items if item]
+
+
+def _movie_row_to_item(row):
+    title = row.get('title') or row.get('name') or ''
+    name = row.get('name') or title
+    if not title or not name:
+        return None
+    imdb_id = row.get('imdb_id') or ''
+    year = _year_from_name(name)
+    meta = {'mediatype': 'movie', 'imdb_id': imdb_id}
+    return {
+        'schema_version': 1,
+        'item_key': item_key(meta, name, year),
+        'title': title,
+        'name': name,
+        'year': str(year or '0'),
+        'season': None,
+        'episode': None,
+        'position_seconds': 0,
+        'duration_seconds': 0,
+        'watched_percent': 100.0,
+        'completed': True,
+        'provider': 'xvault-playcount',
+        'updated_at': iso_now(),
+        'extra': {
+            'mediatype': 'movie',
+            'imdb_id': imdb_id,
+            'tmdb_id': '',
+        },
+    }
+
+
+def _episode_row_to_item(row):
+    title = row.get('title') or ''
+    name = row.get('name') or title
+    season = _maybe_int(row.get('season'))
+    episode = _maybe_int(row.get('episode'))
+    if not title or not name or not season or not episode:
+        return None
+    meta = {'mediatype': 'episode', 'season': season, 'episode': episode}
+    return {
+        'schema_version': 1,
+        'item_key': item_key(meta, name, '0'),
+        'title': title,
+        'name': name,
+        'year': '0',
+        'season': season,
+        'episode': episode,
+        'position_seconds': 0,
+        'duration_seconds': 0,
+        'watched_percent': 100.0,
+        'completed': True,
+        'provider': 'xvault-playcount',
+        'updated_at': iso_now(),
+        'extra': {
+            'mediatype': 'episode',
+            'imdb_id': '',
+            'tmdb_id': '',
+        },
+    }
+
+
+def _year_from_name(name):
+    text = str(name or '').strip()
+    if len(text) >= 6 and text[-1:] == ')' and text[-6:-5] == '(':
+        year = text[-5:-1]
+        if year.isdigit():
+            return year
+    return '0'
+
+
+def _state_signature(items):
+    return sorted('%s:%s:%s:%s' % (
+        _merge_key(item),
+        item.get('completed'),
+        item.get('watched_percent'),
+        item.get('position_seconds'),
+    ) for item in items if isinstance(item, dict))
+
+
+def combined_items():
+    sync_local_playcounts()
+    merged = _merge_items([], load_items())
+    return list(merged.values())
 
 
 def push_local(silent=False, client=None, require_login=True):
@@ -79,10 +226,11 @@ def push_local(silent=False, client=None, require_login=True):
             control.infoDialog('Bitte zuerst anmelden.', icon='WARNING')
         return False
     try:
-        items = load_items()
+        client = client or Client()
+        items = combined_items()
         if not items:
             return False
-        (client or Client()).push_binge_state(items, device.get_device_id())
+        client.push_binge_state(items, device.get_device_id())
         storage.update_last_sync(iso_now())
         return True
     except ApiError as exc:
@@ -97,11 +245,16 @@ def pull_remote(apply_bookmarks=True, silent=False, client=None, require_login=T
             control.infoDialog('Bitte zuerst anmelden.', icon='WARNING')
         return False
     try:
-        data = (client or Client()).pull_binge_state()
+        client = client or Client()
+        data = client.pull_binge_state()
+        sync_local_playcounts()
         items = data.get('items', [])
         save_items(items)
+        merged_items = combined_items()
         if apply_bookmarks:
-            apply_to_bookmarks(items)
+            apply_to_bookmarks(merged_items)
+        if _state_signature(merged_items) != _state_signature(items):
+            client.push_binge_state(merged_items, device.get_device_id())
         storage.update_last_sync(iso_now())
         return True
     except ApiError as exc:
@@ -253,13 +406,24 @@ def _bookmark_id(name, year):
 
 
 def is_newer(candidate, current):
+    if current.get('completed') and not candidate.get('completed'):
+        return False
+    if candidate.get('completed') and not current.get('completed'):
+        return True
+    if candidate.get('completed') and current.get('completed'):
+        if _is_playcount_import(candidate) and not _is_playcount_import(current):
+            return False
+        if _is_playcount_import(current) and not _is_playcount_import(candidate):
+            return True
     c_time = candidate.get('updated_at') or ''
     old_time = current.get('updated_at') or ''
     if c_time != old_time:
         return c_time > old_time
-    if current.get('completed') and not candidate.get('completed'):
-        return False
     return int(candidate.get('position_seconds') or 0) >= int(current.get('position_seconds') or 0)
+
+
+def _is_playcount_import(item):
+    return item.get('provider') == 'xvault-playcount'
 
 
 def _maybe_int(value):
