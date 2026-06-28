@@ -1,4 +1,5 @@
 import json
+import re
 import ssl
 import urllib.error
 import urllib.request
@@ -10,6 +11,8 @@ from resources.lib.sync import storage
 HTTPS_BASE = 'https://xvault.xo.je/index.php?action='
 HTTP_BASE = 'http://xvault.xo.je/index.php?action='
 TIMEOUT = 15
+USER_AGENT = 'Mozilla/5.0 (Kodi; xVAULT Sync)'
+CHALLENGE_RE = re.compile(r'toNumbers\("([0-9a-f]+)"\)')
 
 
 class ApiError(Exception):
@@ -22,6 +25,7 @@ class ApiError(Exception):
 class Client(object):
     def __init__(self, api_key=None):
         self.api_key = api_key if api_key is not None else storage.api_key()
+        self._challenge_cookies = {}
 
     def register(self, email, password):
         return self._post('register', {'email': email, 'password': password}, auth=False)
@@ -63,7 +67,7 @@ class Client(object):
 
     def _request(self, action, method, payload=None, auth=True):
         body = None
-        headers = {'Accept': 'application/json'}
+        headers = {'Accept': 'application/json', 'User-Agent': USER_AGENT}
         if payload is not None:
             body = json.dumps(payload).encode('utf-8')
             headers['Content-Type'] = 'application/json; charset=utf-8'
@@ -74,10 +78,7 @@ class Client(object):
         last_error = None
         for base in (HTTPS_BASE, HTTP_BASE):
             try:
-                request = urllib.request.Request(base + action, data=body, headers=headers, method=method)
-                context = ssl.create_default_context()
-                with urllib.request.urlopen(request, timeout=TIMEOUT, context=context) as response:
-                    raw = response.read().decode('utf-8')
+                raw = self._open(base, action, method, body, headers)
                 data = json.loads(raw)
                 if not data.get('success'):
                     raise ApiError(data.get('message', 'Synchronisation fehlgeschlagen'), data.get('error_code', 'SYNC_FAILED'))
@@ -96,6 +97,48 @@ class Client(object):
                 log_utils.log('xVAULT sync: API call %s via %s failed: %s' % (action, base.split(':', 1)[0], _safe_error(exc)), log_utils.LOGWARNING)
                 continue
         raise ApiError('Synchronisation fehlgeschlagen. Bitte später erneut versuchen.', 'SYNC_FAILED')
+
+    def _open(self, base, action, method, body, headers):
+        url = base + action
+        context = ssl.create_default_context()
+        request_headers = dict(headers)
+        cookie = self._challenge_cookies.get(base)
+        if cookie:
+            request_headers['Cookie'] = '__test=%s' % cookie
+
+        for _attempt in range(3):
+            request = urllib.request.Request(url, data=body, headers=request_headers, method=method)
+            with urllib.request.urlopen(request, timeout=TIMEOUT, context=context) as response:
+                raw = response.read().decode('utf-8', 'ignore')
+            if not _is_hosting_challenge(raw):
+                return raw
+            cookie = _solve_hosting_challenge(raw)
+            self._challenge_cookies[base] = cookie
+            request_headers['Cookie'] = '__test=%s' % cookie
+        return raw
+
+
+def _is_hosting_challenge(raw):
+    return 'slowAES.decrypt' in raw and '__test=' in raw
+
+
+def _solve_hosting_challenge(raw):
+    values = CHALLENGE_RE.findall(raw)
+    if len(values) < 3:
+        raise ApiError('Synchronisation fehlgeschlagen: Hosting-Challenge konnte nicht gelesen werden.', 'SYNC_HOST_CHALLENGE')
+    try:
+        import pyaes
+        key = bytes(bytearray.fromhex(values[0]))
+        iv = bytes(bytearray.fromhex(values[1]))
+        encrypted = bytes(bytearray.fromhex(values[2]))
+        aes = pyaes.AESModeOfOperationCBC(key, iv=iv)
+        decrypted = b''.join(aes.decrypt(encrypted[index:index + 16]) for index in range(0, len(encrypted), 16))
+        return decrypted.hex()
+    except ApiError:
+        raise
+    except Exception as exc:
+        log_utils.log('xVAULT sync: hosting challenge failed: %s' % _safe_error(exc), log_utils.LOGWARNING)
+        raise ApiError('Synchronisation fehlgeschlagen: Hosting-Challenge konnte nicht geloest werden.', 'SYNC_HOST_CHALLENGE')
 
 
 def _safe_error(exc):

@@ -1,3 +1,8 @@
+xVAULT 2026.06.28.2
+Entwickler: mojomedia1812
+
+- Sync-Client fuer den vorgeschalteten Hosting-Check von xvault.xo.je angepasst, damit Kodi nach der Server-Challenge wieder JSON-Antworten der xVAULT-Sync-API erhaelt.
+
 xVAULT 2026.06.28.1
 Entwickler: mojomedia1812
 
