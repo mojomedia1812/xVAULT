@@ -1,3 +1,11 @@
+xVAULT 2026.06.28.1
+Entwickler: mojomedia1812
+
+- Kontenbereich um xVAULT-Synchronisation mit Registrierung, Anmeldung, manuellem Sync, Favoriten-Wiederherstellung, Status und Datenschutz-Hinweis erweitert.
+- Favoriten-Backup fuer Kodis `favourites.xml` mit Hash-Erkennung, Server-Upload und Wiederherstellung hinzugefuegt.
+- Binge-/Wiedergabestand wird lokal gesammelt und bei aktivierter Synchronisation an die xVAULT-Sync-API gesendet.
+- PHP-API fuer Registrierung, Login, Favoriten, Binge-Stand und Gesamtsync inklusive Beispielkonfiguration und Deployment-Dokumentation ergaenzt.
+
 xVAULT 2026.06.20.3
 Entwickler: mojomedia1812
 

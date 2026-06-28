@@ -9,3 +9,6 @@ __pycache__/
 !docs/zips/*/*.zip
 .DS_Store
 Thumbs.db
+.env
+api/config.php
+api/config.local.php

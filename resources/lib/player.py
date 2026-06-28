@@ -183,6 +183,11 @@ class player(xbmc.Player):
         self.runVideoDB()
         self.streamFinished = True
         bookmarks().reset(self.currentTime, self.totalTime, self.name, self.year)
+        try:
+            from resources.lib.sync import binge_sync
+            binge_sync.record_playback(self.meta, self.name, self.year, self.currentTime, self.totalTime, completed=self.watcher_control, push=True)
+        except:
+            pass
         if restore_navigation:
             if self.isdebug: log_utils.log('vor parentDir - onPlayBackStopped', log_utils.LOGINFO)
             try:

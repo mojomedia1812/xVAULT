@@ -207,3 +207,8 @@ if __name__ == "__main__":
 	check_domains()
 	delHtmlCache()
 	ensure_youtube_api_keys()
+	try:
+		from resources.lib.sync import favorites_sync
+		favorites_sync.check_and_push_if_changed(silent=True)
+	except Exception:
+		pass

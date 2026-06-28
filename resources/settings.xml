@@ -163,6 +163,23 @@
         <setting label="Cache löschen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=vavoo_clear)"/>
     </category>
     <category label="Konten">
+        <setting type="lsep" label="xVAULT Synchronisation"/>
+        <setting id="sync.enabled" type="bool" label="Synchronisation aktivieren" default="false" />
+        <setting id="sync.email" type="text" label="E-Mail-Adresse" default="" />
+        <setting id="sync.status" type="text" label="Status" default="Nicht angemeldet" enable="false"/>
+        <setting id="sync.last_sync_at" type="text" label="Letzte Synchronisation" default="" enable="false"/>
+        <setting label="Anmelden" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=syncLogin)"/>
+        <setting label="Registrieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=syncRegister)"/>
+        <setting label="Jetzt synchronisieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=syncNow)"/>
+        <setting label="Backup vom Server wiederherstellen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=syncRestoreFavorites)"/>
+        <setting label="Status anzeigen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=syncStatus)"/>
+        <setting label="Datenschutz-Hinweis anzeigen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=syncPrivacy)"/>
+        <setting label="Abmelden" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=syncLogout)"/>
+        <setting id="sync.api_key" type="text" option="hidden" label="API-Key" default="" visible="false"/>
+        <setting id="sync.logged_in" type="bool" label="Angemeldet" default="false" visible="false"/>
+        <setting id="sync.device_id" type="text" label="Geräte-ID" default="" visible="false"/>
+        <setting id="sync.last_favorites_hash" type="text" label="Favoriten-Hash" default="" visible="false"/>
+        <setting type="sep"/>
         <setting type="lsep" label="Konto [B]SerienStream.to[/B]"/>
         <setting id="serienstream.user" type="text" label="Email" default=""/>
         <setting id="serienstream.pass" type="text" option="hidden" label="Password" default=""/>

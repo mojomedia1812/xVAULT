@@ -1,0 +1,75 @@
+# xVAULT Synchronisation
+
+## Zweck
+
+Die xVAULT-Synchronisation sichert benutzerbezogen Kodi-Favoriten und Wiedergabestaende, damit diese nach Neuinstallation oder Geraetewechsel wiederhergestellt werden koennen.
+
+## API-Endpunkte
+
+Die API akzeptiert JSON und antwortet immer mit JSON.
+
+- `POST /index.php?action=register`
+- `POST /index.php?action=login`
+- `POST /index.php?action=favorites_push`
+- `GET /index.php?action=favorites_pull`
+- `POST /index.php?action=binge_push`
+- `GET /index.php?action=binge_pull`
+- `POST /index.php?action=sync_push`
+- `GET /index.php?action=sync_pull`
+- `GET /index.php?action=status`
+
+Wenn URL-Rewriting aktiv ist, funktionieren auch die entsprechenden `/api/...`-Pfade.
+
+## Datenbanktabellen
+
+- `users`: Benutzerkonto, Passwort-Hash, API-Key-Hash, Login-Metadaten.
+- `favorites_backups`: versionierte Favoriten-Backups pro Benutzer.
+- `binge_state`: aktueller Wiedergabe-/Binge-Stand pro stabilem `item_key`.
+- `sync_log`: technische Sync-Historie ohne sensible Inhalte.
+
+Die Tabellen werden beim ersten API-Aufruf automatisch angelegt.
+
+## Sicherheitskonzept
+
+- Kennwoerter werden serverseitig mit `password_hash()` gespeichert.
+- Logins geben einen kryptografisch zufaelligen API-Key zurueck.
+- In der Datenbank wird nur der SHA-256-Hash des API-Keys gespeichert.
+- Das Kodi-Plugin speichert lokal nur E-Mail-Adresse, API-Key, Geraete-ID, Sync-Status und Hash-/Zeitstempel.
+- Kennwoerter werden im Plugin nicht dauerhaft gespeichert.
+- `api/config.php` ist per `.gitignore` ausgeschlossen und darf nicht ins Repository.
+
+## Plugin-Einstellungen
+
+Unter `Einstellungen -> Konten` stehen bereit:
+
+- Synchronisation aktivieren
+- E-Mail-Adresse
+- Status
+- Letzte Synchronisation
+- Anmelden
+- Registrieren
+- Jetzt synchronisieren
+- Backup vom Server wiederherstellen
+- Status anzeigen
+- Datenschutz-Hinweis anzeigen
+- Abmelden
+
+## Wiederherstellung
+
+Nach Anmeldung prueft xVAULT, ob ein Favoriten-Backup vorhanden ist. Der Benutzer entscheidet, ob der Serverstand lokale Favoriten ersetzt oder mit ihnen zusammengefuehrt wird. Vor dem Schreiben wird die lokale `favourites.xml` als `.xvault-backup-YYYYMMDDHHMMSS` gesichert.
+
+## Deployment
+
+Serverdateien liegen im Repository unter `api/`.
+
+Auf dem Zielhost muss eine echte `config.php` mit Datenbankzugangsdaten neben `index.php` liegen. Im Repository liegt nur `config.example.php`.
+
+Typischer Upload:
+
+- `api/index.php` -> `/htdocs/index.php`
+- `api/.htaccess` -> `/htdocs/.htaccess`
+- lokale, nicht versionierte `api/config.php` -> `/htdocs/config.php`
+
+## Secrets
+
+Keine FTP-, Datenbank-, API- oder Kennwortdaten in Git committen. Fuer lokale Tests `api/config.php`, `.env` oder vergleichbare nicht versionierte Dateien verwenden.

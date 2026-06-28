@@ -39,6 +39,11 @@ if action is None or action == 'root':
         sys.exit()
     from resources.lib import startup_info
     startup_info.show_pending_startup_info()
+    try:
+        from resources.lib.sync import favorites_sync
+        favorites_sync.check_and_push_if_changed(silent=True)
+    except Exception:
+        pass
     from resources.lib.indexers import navigator
     navigator.navigator().root()
 
@@ -198,6 +203,10 @@ elif action == 'vavooSettings':
     from resources.lib import vavooto
     vavooto.open_settings()
 
+elif action and action.startswith('sync'):
+    from resources.lib.sync import account
+    account.dispatch(action)
+
 elif action == 'playTrailer':
     try:
         from resources.lib.trailer import playTrailer
@@ -214,6 +223,11 @@ elif action == 'playTrailer':
 elif action == 'UpdatePlayCount':
     from resources.lib import playcountDB
     playcountDB.UpdatePlaycount(params)
+    try:
+        from resources.lib.sync import binge_sync
+        binge_sync.push_local(silent=True)
+    except Exception:
+        pass
     control.execute('Container.Refresh')
 
 elif action == 'listings':

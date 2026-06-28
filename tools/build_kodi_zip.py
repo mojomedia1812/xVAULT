@@ -43,6 +43,7 @@ EXCLUDED_PARTS = {
     ".git",
     "__pycache__",
     "docs",
+    "api",
     "scrapers_source",
     "stream-link-auditor",
     "tools",
