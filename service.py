@@ -210,5 +210,6 @@ if __name__ == "__main__":
 	try:
 		from resources.lib.sync import favorites_sync
 		favorites_sync.check_and_push_if_changed(silent=True)
+		favorites_sync.monitor_changes(interval=5)
 	except Exception:
 		pass

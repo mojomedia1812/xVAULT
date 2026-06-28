@@ -10,6 +10,9 @@ from resources.lib.sync import device, storage
 from resources.lib.sync.api_client import ApiError, Client
 
 
+STATE_FILE = 'sync_favorites_state.json'
+
+
 def favourites_path():
     return control.translatePath('special://profile/favourites.xml')
 
@@ -28,18 +31,17 @@ def favorites_hash(raw_xml=None):
     return hashlib.sha256(normalized).hexdigest()
 
 
-def collect():
-    raw = read_favourites()
+def collect(raw_xml=None):
+    raw = read_favourites() if raw_xml is None else raw_xml
     items = []
     if raw.strip():
         try:
-            root = ET.fromstring(raw.encode('utf-8'))
-            for index, node in enumerate(root.findall('favourite'), 1):
-                path_text = (node.text or '').strip()
+            for index, item in enumerate(_parse_entries(raw), 1):
+                path_text = item['path']
                 items.append({
                     'order': index,
-                    'label': node.attrib.get('name', ''),
-                    'thumb': node.attrib.get('thumb', ''),
+                    'label': item['label'],
+                    'thumb': item['thumb'],
                     'path': path_text,
                     'type': 'video' if 'plugin.video.xvault' in path_text else 'unknown',
                 })
@@ -63,12 +65,43 @@ def check_and_push_if_changed(silent=True, client=None, require_enabled=True, fo
         return False
     if not require_enabled and client is None and not storage.is_logged_in():
         return False
-    data = collect()
-    if not force and data['favorites_hash'] == storage.get_setting(storage.LAST_FAVORITES_HASH):
-        return False
+    client = client or Client()
+    local_raw = read_favourites()
+    local_hash = favorites_hash(local_raw)
+
+    server_raw = ''
+    server_available = False
     try:
-        (client or Client()).push_favorites(data)
-        storage.set_setting(storage.LAST_FAVORITES_HASH, data['favorites_hash'])
+        data = client.pull_favorites()
+        favorites = data.get('favorites') or {}
+        server_raw = _payload_raw_xml(favorites)
+        server_available = True
+    except ApiError as exc:
+        if exc.code != 'NO_BACKUP_FOUND':
+            if not silent:
+                control.infoDialog(str(exc), icon='WARNING')
+            return False
+
+    merged_raw = merge_favorites(local_raw, server_raw, deletion_aware=True)
+    merged_hash = favorites_hash(merged_raw)
+    local_needs_update = merged_hash != local_hash
+
+    if local_needs_update:
+        write_favourites(merged_raw, backup=True)
+
+    server_hash = favorites_hash(server_raw) if server_available else ''
+    if not force and not local_needs_update and merged_hash == storage.get_setting(storage.LAST_FAVORITES_HASH) and (not server_available or merged_hash == server_hash):
+        return False
+
+    if server_available and merged_hash == server_hash:
+        mark_synced(merged_raw)
+        storage.update_last_sync(iso_now())
+        storage.set_status('Angemeldet als %s' % storage.email())
+        return local_needs_update
+
+    try:
+        client.push_favorites(collect(merged_raw))
+        mark_synced(merged_raw)
         storage.update_last_sync(iso_now())
         storage.set_status('Angemeldet als %s' % storage.email())
         if not silent:
@@ -103,44 +136,30 @@ def restore_from_server(mode='ask', client=None, require_login=True):
     if not control.yesnoDialog('Lokale Favoriten werden geändert.', 'Vorher wird automatisch eine Sicherung erstellt.', 'Fortfahren?', yeslabel='Ja', nolabel='Nein'):
         return False
 
-    raw_xml = favorites.get('raw_xml', '')
+    raw_xml = _payload_raw_xml(favorites)
     if mode == 'merge':
-        raw_xml = merge_favorites(read_favourites(), raw_xml)
+        raw_xml = merge_favorites(read_favourites(), raw_xml, deletion_aware=False)
     if not raw_xml.strip():
         raw_xml = '<favourites />\n'
 
-    backup_current()
-    path = favourites_path()
-    parent = os.path.dirname(path)
-    if parent and not os.path.exists(parent):
-        os.makedirs(parent)
-    with open(path, 'w', encoding='utf-8') as handle:
-        handle.write(raw_xml)
-    storage.set_setting(storage.LAST_FAVORITES_HASH, favorites_hash(raw_xml))
+    write_favourites(raw_xml, backup=True)
+    mark_synced(raw_xml)
     storage.update_last_sync(iso_now())
     control.infoDialog('Favoriten wurden wiederhergestellt. Bitte Kodi ggf. neu starten.', icon='INFO', time=6000)
     return True
 
 
-def merge_favorites(local_xml, server_xml):
-    entries = []
-    seen = set()
-    for raw in (server_xml, local_xml):
-        for item in _parse_entries(raw):
-            key = item['path'] or item['label']
-            if key in seen:
-                continue
-            seen.add(key)
-            entries.append(item)
-    root = ET.Element('favourites')
-    for item in entries:
-        node = ET.SubElement(root, 'favourite')
-        if item['label']:
-            node.set('name', item['label'])
-        if item['thumb']:
-            node.set('thumb', item['thumb'])
-        node.text = item['path']
-    return ET.tostring(root, encoding='unicode') + '\n'
+def merge_favorites(local_xml, server_xml, deletion_aware=False):
+    local_entries = _dedupe_entries(_parse_entries(local_xml))
+    server_entries = _dedupe_entries(_parse_entries(server_xml))
+    removed = set()
+    if deletion_aware:
+        last_keys = set(load_state().get('keys') or [])
+        if last_keys:
+            local_keys = set(_entry_key(item) for item in local_entries)
+            server_keys = set(_entry_key(item) for item in server_entries)
+            removed = (last_keys - local_keys) | (last_keys - server_keys)
+    return _build_xml(_combine_entries(local_entries, server_entries, removed))
 
 
 def _parse_entries(raw):
@@ -158,6 +177,115 @@ def _parse_entries(raw):
             'path': (node.text or '').strip(),
         })
     return result
+
+
+def _payload_raw_xml(payload):
+    raw = payload.get('raw_xml', '') if isinstance(payload, dict) else ''
+    if raw:
+        return raw
+    items = payload.get('items', []) if isinstance(payload, dict) else []
+    if not isinstance(items, list):
+        return ''
+    entries = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        entries.append({
+            'label': item.get('label', ''),
+            'thumb': item.get('thumb', ''),
+            'path': item.get('path', ''),
+        })
+    return _build_xml(_dedupe_entries(entries))
+
+
+def _entry_key(item):
+    return (item.get('path') or item.get('label') or '').strip()
+
+
+def _dedupe_entries(entries):
+    result = []
+    seen = set()
+    for item in entries:
+        key = _entry_key(item)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        result.append(item)
+    return result
+
+
+def _combine_entries(local_entries, server_entries, removed=None):
+    removed = removed or set()
+    entries = []
+    seen = set()
+    for item in list(local_entries) + list(server_entries):
+        key = _entry_key(item)
+        if not key or key in removed or key in seen:
+            continue
+        seen.add(key)
+        entries.append(item)
+    return entries
+
+
+def _build_xml(entries):
+    root = ET.Element('favourites')
+    for item in entries:
+        node = ET.SubElement(root, 'favourite')
+        if item.get('label'):
+            node.set('name', item['label'])
+        if item.get('thumb'):
+            node.set('thumb', item['thumb'])
+        node.text = item.get('path', '')
+    return ET.tostring(root, encoding='unicode') + '\n'
+
+
+def write_favourites(raw_xml, backup=False):
+    if not raw_xml.strip():
+        raw_xml = '<favourites />\n'
+    if backup:
+        backup_current()
+    path = favourites_path()
+    parent = os.path.dirname(path)
+    if parent and not os.path.exists(parent):
+        os.makedirs(parent)
+    with open(path, 'w', encoding='utf-8') as handle:
+        handle.write(raw_xml)
+
+
+def load_state():
+    data = storage.read_json(STATE_FILE, {})
+    return data if isinstance(data, dict) else {}
+
+
+def mark_synced(raw_xml):
+    entries = _dedupe_entries(_parse_entries(raw_xml))
+    keys = [_entry_key(item) for item in entries if _entry_key(item)]
+    digest = favorites_hash(raw_xml)
+    storage.write_json(STATE_FILE, {
+        'favorites_hash': digest,
+        'keys': keys,
+        'updated_at': iso_now(),
+    })
+    storage.set_setting(storage.LAST_FAVORITES_HASH, digest)
+
+
+def has_local_changes():
+    if not storage.is_enabled() or not storage.is_logged_in():
+        return False
+    return favorites_hash() != storage.get_setting(storage.LAST_FAVORITES_HASH)
+
+
+def monitor_changes(interval=5):
+    try:
+        import xbmc
+        monitor = xbmc.Monitor()
+        while not monitor.abortRequested():
+            if monitor.waitForAbort(interval):
+                break
+            if has_local_changes():
+                check_and_push_if_changed(silent=True)
+    except Exception as exc:
+        log_utils.log('xVAULT sync: favorites monitor stopped: %s' % exc, log_utils.LOGWARNING)
 
 
 def backup_current():

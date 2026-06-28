@@ -1,3 +1,10 @@
+xVAULT 2026.06.28.4
+Entwickler: mojomedia1812
+
+- Favoriten-Sync fuehrt lokale und Server-Favoriten jetzt automatisch ohne doppelte Eintraege zusammen.
+- Lokal oder remote entfernte Favoriten werden ueber den letzten gemeinsamen Sync-Stand erkannt und nicht wieder hinzugefuegt.
+- Der Kodi-Service ueberwacht Aenderungen an `favourites.xml` und synchronisiert entfernte oder geaenderte Favoriten zeitnah im Hintergrund.
+
 xVAULT 2026.06.28.3
 Entwickler: mojomedia1812
 

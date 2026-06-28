@@ -98,29 +98,17 @@ def finish_login(email, api_key, message):
 
 def initial_sync(client, email):
     changed = False
-    restored = after_login_restore_hint(client)
     changed = favorites_sync.check_and_push_if_changed(
         silent=True,
         client=client,
         require_enabled=False,
-        force=restored,
+        force=True,
     ) or changed
     changed = binge_sync.push_local(silent=True, client=client, require_login=False) or changed
     changed = binge_sync.pull_remote(apply_bookmarks=True, silent=True, client=client, require_login=False) or changed
     storage.update_last_sync(time.strftime('%Y-%m-%d %H:%M:%S'))
     storage.set_status('Angemeldet als %s' % email)
     return changed
-
-
-def after_login_restore_hint(client=None):
-    try:
-        client = client or Client()
-        data = client.pull_favorites()
-        if data.get('favorites') and control.yesnoDialog('Ein Favoriten-Backup wurde gefunden.', 'Möchtest du es jetzt wiederherstellen?', '', yeslabel='Ja', nolabel='Nein'):
-            return favorites_sync.restore_from_server(client=client, require_login=False)
-    except ApiError:
-        pass
-    return False
 
 
 def ask_email(default=''):
