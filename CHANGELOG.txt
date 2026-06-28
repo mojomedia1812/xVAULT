@@ -1,3 +1,9 @@
+xVAULT 2026.06.28.3
+Entwickler: mojomedia1812
+
+- Nach Anmeldung oder Registrierung startet xVAULT jetzt sofort die erste Synchronisierung mit dem frisch erhaltenen API-Key.
+- Der Login-Status wird zusaetzlich im Add-on-Profil gespiegelt, damit der manuelle Sync im noch offenen Kodi-Settingsfenster direkt funktioniert.
+
 xVAULT 2026.06.28.2
 Entwickler: mojomedia1812
 

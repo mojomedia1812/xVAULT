@@ -40,9 +40,7 @@ def register():
         return
     try:
         data = Client().register(email, password)
-        storage.save_login(data.get('email', email), data.get('api_key', ''))
-        control.infoDialog('Registrierung erfolgreich. Die Synchronisation ist nun aktiviert.', icon='INFO', time=6000)
-        after_login_restore_hint()
+        finish_login(data.get('email', email), data.get('api_key', ''), 'Registrierung erfolgreich.')
     except ApiError as exc:
         control.infoDialog(str(exc), icon='WARNING', time=6000)
 
@@ -56,9 +54,7 @@ def login():
         return
     try:
         data = Client().login(email, password)
-        storage.save_login(data.get('email', email), data.get('api_key', ''))
-        control.infoDialog('Anmeldung erfolgreich.', icon='INFO')
-        after_login_restore_hint()
+        finish_login(data.get('email', email), data.get('api_key', ''), 'Anmeldung erfolgreich.')
     except ApiError as exc:
         control.infoDialog(str(exc), icon='WARNING', time=6000)
 
@@ -72,7 +68,7 @@ def sync_now():
     if not storage.is_logged_in():
         control.infoDialog('Bitte zuerst anmelden.', icon='WARNING')
         return
-    ok_fav = favorites_sync.check_and_push_if_changed(silent=True)
+    ok_fav = favorites_sync.check_and_push_if_changed(silent=True, require_enabled=False)
     ok_binge = binge_sync.push_local(silent=True)
     binge_sync.pull_remote(apply_bookmarks=True, silent=True)
     storage.update_last_sync(time.strftime('%Y-%m-%d %H:%M:%S'))
@@ -91,14 +87,40 @@ def show_status():
     storage.set_status(status)
 
 
-def after_login_restore_hint():
+def finish_login(email, api_key, message):
+    storage.save_login(email, api_key)
+    client = Client(api_key=api_key)
+    if initial_sync(client, email):
+        control.infoDialog(message + ' Erste Synchronisation abgeschlossen.', icon='INFO', time=6000)
+    else:
+        control.infoDialog(message + ' Die Synchronisation ist nun aktiviert.', icon='INFO', time=6000)
+
+
+def initial_sync(client, email):
+    changed = False
+    restored = after_login_restore_hint(client)
+    changed = favorites_sync.check_and_push_if_changed(
+        silent=True,
+        client=client,
+        require_enabled=False,
+        force=restored,
+    ) or changed
+    changed = binge_sync.push_local(silent=True, client=client, require_login=False) or changed
+    changed = binge_sync.pull_remote(apply_bookmarks=True, silent=True, client=client, require_login=False) or changed
+    storage.update_last_sync(time.strftime('%Y-%m-%d %H:%M:%S'))
+    storage.set_status('Angemeldet als %s' % email)
+    return changed
+
+
+def after_login_restore_hint(client=None):
     try:
-        data = Client().pull_favorites()
+        client = client or Client()
+        data = client.pull_favorites()
         if data.get('favorites') and control.yesnoDialog('Ein Favoriten-Backup wurde gefunden.', 'Möchtest du es jetzt wiederherstellen?', '', yeslabel='Ja', nolabel='Nein'):
-            favorites_sync.restore_from_server()
+            return favorites_sync.restore_from_server(client=client, require_login=False)
     except ApiError:
         pass
-    binge_sync.pull_remote(apply_bookmarks=True, silent=True)
+    return False
 
 
 def ask_email(default=''):

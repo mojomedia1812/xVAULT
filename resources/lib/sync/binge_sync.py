@@ -73,14 +73,16 @@ def save_items(items):
     storage.write_json(FILENAME, {'schema_version': 1, 'items': list(merged.values())})
 
 
-def push_local(silent=False):
-    if not storage.is_logged_in():
+def push_local(silent=False, client=None, require_login=True):
+    if require_login and not storage.is_logged_in():
         if not silent:
             control.infoDialog('Bitte zuerst anmelden.', icon='WARNING')
         return False
     try:
         items = load_items()
-        Client().push_binge_state(items, device.get_device_id())
+        if not items:
+            return False
+        (client or Client()).push_binge_state(items, device.get_device_id())
         storage.update_last_sync(iso_now())
         return True
     except ApiError as exc:
@@ -89,13 +91,13 @@ def push_local(silent=False):
         return False
 
 
-def pull_remote(apply_bookmarks=True, silent=False):
-    if not storage.is_logged_in():
+def pull_remote(apply_bookmarks=True, silent=False, client=None, require_login=True):
+    if require_login and not storage.is_logged_in():
         if not silent:
             control.infoDialog('Bitte zuerst anmelden.', icon='WARNING')
         return False
     try:
-        data = Client().pull_binge_state()
+        data = (client or Client()).pull_binge_state()
         items = data.get('items', [])
         save_items(items)
         if apply_bookmarks:

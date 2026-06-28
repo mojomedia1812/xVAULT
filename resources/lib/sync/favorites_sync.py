@@ -58,14 +58,16 @@ def collect():
     }
 
 
-def check_and_push_if_changed(silent=True):
-    if not storage.is_enabled() or not storage.is_logged_in():
+def check_and_push_if_changed(silent=True, client=None, require_enabled=True, force=False):
+    if require_enabled and (not storage.is_enabled() or not storage.is_logged_in()):
+        return False
+    if not require_enabled and client is None and not storage.is_logged_in():
         return False
     data = collect()
-    if data['favorites_hash'] == storage.get_setting(storage.LAST_FAVORITES_HASH):
+    if not force and data['favorites_hash'] == storage.get_setting(storage.LAST_FAVORITES_HASH):
         return False
     try:
-        Client().push_favorites(data)
+        (client or Client()).push_favorites(data)
         storage.set_setting(storage.LAST_FAVORITES_HASH, data['favorites_hash'])
         storage.update_last_sync(iso_now())
         storage.set_status('Angemeldet als %s' % storage.email())
@@ -78,12 +80,12 @@ def check_and_push_if_changed(silent=True):
         return False
 
 
-def restore_from_server(mode='ask'):
-    if not storage.is_logged_in():
+def restore_from_server(mode='ask', client=None, require_login=True):
+    if require_login and not storage.is_logged_in():
         control.infoDialog('Bitte zuerst anmelden.', icon='WARNING')
         return False
     try:
-        data = Client().pull_favorites()
+        data = (client or Client()).pull_favorites()
     except ApiError as exc:
         control.infoDialog(str(exc), icon='WARNING')
         return False

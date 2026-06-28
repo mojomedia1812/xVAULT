@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 from resources.lib import control, log_utils
 
@@ -12,6 +13,8 @@ LAST_SYNC_AT = 'sync.last_sync_at'
 LAST_FAVORITES_HASH = 'sync.last_favorites_hash'
 STATUS_TEXT = 'sync.status'
 DEVICE_ID = 'sync.device_id'
+AUTH_FILE = 'sync_auth.json'
+_AUTH_CACHE = None
 
 
 def get_setting(key, default=''):
@@ -27,15 +30,15 @@ def is_enabled():
 
 
 def is_logged_in():
-    return bool(get_setting(API_KEY)) and get_setting(LOGGED_IN) == 'true'
+    return bool(api_key()) and (get_setting(LOGGED_IN) == 'true' or bool(_auth_data().get('logged_in')))
 
 
 def email():
-    return get_setting(ACCOUNT_EMAIL)
+    return get_setting(ACCOUNT_EMAIL) or _auth_data().get('email', '')
 
 
 def api_key():
-    return get_setting(API_KEY)
+    return get_setting(API_KEY) or _auth_data().get('api_key', '')
 
 
 def profile_path(*parts):
@@ -75,17 +78,43 @@ def write_json(filename, data):
         return False
 
 
+def _auth_data():
+    global _AUTH_CACHE
+    if _AUTH_CACHE is None:
+        data = read_json(AUTH_FILE, {})
+        _AUTH_CACHE = data if isinstance(data, dict) else {}
+    return _AUTH_CACHE
+
+
+def _write_auth(data):
+    global _AUTH_CACHE
+    _AUTH_CACHE = data
+    return write_json(AUTH_FILE, data)
+
+
 def save_login(user_email, token):
     set_setting(ACCOUNT_EMAIL, user_email)
     set_setting(API_KEY, token)
     set_setting(LOGGED_IN, 'true')
     set_setting(SYNC_ENABLED, 'true')
+    _write_auth({
+        'email': user_email,
+        'api_key': token,
+        'logged_in': True,
+        'updated_at': time.strftime('%Y-%m-%dT%H:%M:%S%z'),
+    })
     set_status('Angemeldet als %s' % user_email)
 
 
 def clear_login():
     set_setting(API_KEY, '')
     set_setting(LOGGED_IN, 'false')
+    _write_auth({
+        'email': email(),
+        'api_key': '',
+        'logged_in': False,
+        'updated_at': time.strftime('%Y-%m-%dT%H:%M:%S%z'),
+    })
     set_status('Nicht angemeldet')
 
 
