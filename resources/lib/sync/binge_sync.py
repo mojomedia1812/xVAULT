@@ -1,7 +1,7 @@
 import hashlib
 import time
 
-from resources.lib import bookmarkDB, control
+from resources.lib import bookmarkDB, control, playcountDB
 from resources.lib.sync import device, storage
 from resources.lib.sync.api_client import ApiError, Client
 
@@ -113,6 +113,7 @@ def pull_remote(apply_bookmarks=True, silent=False, client=None, require_login=T
 def apply_to_bookmarks(items):
     for item in items:
         if item.get('completed'):
+            apply_to_playcount(item)
             continue
         name = item.get('name') or item.get('title')
         year = str(item.get('year') or '0')
@@ -120,6 +121,127 @@ def apply_to_bookmarks(items):
         if not name or not position:
             continue
         bookmarkDB.save_query(_bookmark_id(name, year), str(position), 'bookmarks')
+
+
+def apply_to_playcount(item):
+    title = item.get('title') or item.get('name') or ''
+    name = item.get('name') or title
+    if not title or not name:
+        return False
+    extra = item.get('extra') or {}
+    mediatype = extra.get('mediatype') or ('episode' if item.get('season') and item.get('episode') else 'movie')
+    imdb_id = extra.get('imdb_id') or ''
+    season = _maybe_int(item.get('season'))
+    episode = _maybe_int(item.get('episode'))
+    try:
+        if mediatype == 'movie' and imdb_id:
+            playcountDB.createEntry('movie', title, name, imdb_id, None, None, None, None)
+            playcountDB.updatePlaycount('movie', title, name, imdb_id, None, None, None, None, 1)
+            return True
+        if season and episode:
+            playcountDB.createEntry('episode', title, name, imdb_id, None, season, None, episode)
+            playcountDB.updatePlaycount('episode', title, name, imdb_id, None, season, None, episode, 1)
+            return True
+    except Exception as exc:
+        log_sync_warning('failed to apply watched state: %s' % exc)
+    return False
+
+
+def is_movie_watched(meta):
+    for item in completed_items():
+        if _item_mediatype(item) != 'movie':
+            continue
+        if _same_id(meta, item):
+            return True
+        if _same_title_year(meta.get('title') or meta.get('originaltitle'), meta.get('year'), item):
+            return True
+    return False
+
+
+def is_episode_watched(title, season, episode, meta=None):
+    season = _maybe_int(season)
+    episode = _maybe_int(episode)
+    if not season or not episode:
+        return False
+    for item in completed_items():
+        if _item_mediatype(item) != 'episode':
+            continue
+        if _maybe_int(item.get('season')) != season or _maybe_int(item.get('episode')) != episode:
+            continue
+        if meta and _same_id(meta, item):
+            return True
+        if _norm_title(item.get('title')) == _norm_title(title):
+            return True
+        if _norm_title(item.get('name')).startswith(_norm_title(title) + ' s%02d' % season):
+            return True
+    return False
+
+
+def is_season_watched(title, season, number_of_episodes=None):
+    season = _maybe_int(season)
+    total = _maybe_int(number_of_episodes)
+    if not season or not total:
+        return False
+    watched = set()
+    for item in completed_items():
+        if _item_mediatype(item) != 'episode':
+            continue
+        if _maybe_int(item.get('season')) != season:
+            continue
+        if _norm_title(item.get('title')) != _norm_title(title):
+            continue
+        episode = _maybe_int(item.get('episode'))
+        if episode:
+            watched.add(episode)
+    return len(watched) >= total
+
+
+def completed_items():
+    result = []
+    for item in load_items():
+        if item.get('completed') or float(item.get('watched_percent') or 0) >= 92.0:
+            result.append(item)
+    return result
+
+
+def _item_mediatype(item):
+    extra = item.get('extra') or {}
+    mediatype = extra.get('mediatype')
+    if mediatype == 'movie':
+        return 'movie'
+    if item.get('season') and item.get('episode'):
+        return 'episode'
+    return mediatype or 'movie'
+
+
+def _same_id(meta, item):
+    extra = item.get('extra') or {}
+    meta_tmdb = str(meta.get('tmdb_id') or '')
+    item_tmdb = str(extra.get('tmdb_id') or '')
+    if meta_tmdb and item_tmdb and meta_tmdb == item_tmdb:
+        return True
+    meta_imdb = str(meta.get('imdb_id') or meta.get('imdbnumber') or meta.get('imdb') or '')
+    item_imdb = str(extra.get('imdb_id') or '')
+    return bool(meta_imdb and item_imdb and meta_imdb == item_imdb)
+
+
+def _same_title_year(title, year, item):
+    if _norm_title(title) != _norm_title(item.get('title')):
+        return False
+    item_year = str(item.get('year') or '')
+    return not year or not item_year or str(year) == item_year
+
+
+def _norm_title(value):
+    return str(value or '').strip().lower()
+
+
+def log_sync_warning(message):
+    try:
+        from resources.lib import log_utils
+        log_utils.log('xVAULT sync: %s' % message, log_utils.LOGWARNING)
+    except Exception:
+        pass
 
 
 def _bookmark_id(name, year):

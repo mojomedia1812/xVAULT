@@ -6,6 +6,7 @@
 import sys, re
 import datetime, json, time
 from resources.lib import control, playcountDB
+from resources.lib.sync import binge_sync
 from resources.lib.tmdb import cTMDB
 from concurrent.futures import ThreadPoolExecutor
 from resources.lib.control import getKodiVersion
@@ -71,13 +72,16 @@ class episodes:
 		try:
 			#meta = cTMDB().get_meta_episode('episode', '', self.list[i]['tmdb_id'] , self.list[i]['season'], self.list[i]['episode'], advanced='true')
 			meta = cTMDB()._format_episodes(i, self.title)
+			playcount = 0
 			try:
 				playcount = playcountDB.getPlaycount('episode', 'title', self.title, meta['season'], meta['episode']) # mediatype, column_names, column_value, season=0, episode=0
 				playcount = playcount if playcount else 0
-				overlay = 7 if playcount > 0 else 6
-				meta.update({'playcount': playcount, 'overlay': overlay})
 			except:
 				pass
+			if playcount == 0 and binge_sync.is_episode_watched(self.title, meta['season'], meta['episode'], meta):
+				playcount = 1
+			overlay = 7 if playcount > 0 else 6
+			meta.update({'playcount': playcount, 'overlay': overlay})
 			self.meta.append(meta)
 		except:
 			pass

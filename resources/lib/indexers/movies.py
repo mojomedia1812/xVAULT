@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from resources.lib.tmdb import cTMDB
 from resources.lib.indexers import navigator
 from resources.lib import searchDB, playcountDB, art, control, log_utils
+from resources.lib.sync import binge_sync
 from resources.lib.control import getKodiVersion, iteritems
 
 if int(getKodiVersion()) >= 20: from infotagger.listitem import ListItemInfoTag
@@ -128,12 +129,15 @@ class movies:
 		try:
 			# TODO different search providers
 			meta = cTMDB().get_meta('movie', '', '', id, advanced='true')
+			playcount = 0
 			try:
 				playcount = playcountDB.getPlaycount('movie', 'imdb_id', meta['imdb_id']) # mediatype, column_names, column_value, season=0, episode=0
 				playcount = playcount if playcount else 0
-				meta.update({'playcount': playcount})
 			except:
 				pass
+			if playcount == 0 and binge_sync.is_movie_watched(meta):
+				playcount = 1
+			meta.update({'playcount': playcount})
 			if not 'poster' in meta or meta['poster'] == '':
 				poster = art.getMovie_art(meta['tmdb_id'], meta['imdbnumber'])
 				meta.update({'poster': poster})

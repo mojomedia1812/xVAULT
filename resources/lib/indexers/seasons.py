@@ -8,6 +8,7 @@ import datetime, time, json
 from resources.lib.tmdb import cTMDB
 from concurrent.futures import ThreadPoolExecutor
 from resources.lib import control, playcountDB, log_utils
+from resources.lib.sync import binge_sync
 from resources.lib.control import getKodiVersion
 if int(getKodiVersion()) >= 20: from infotagger.listitem import ListItemInfoTag
 
@@ -65,13 +66,16 @@ class seasons:
 	def super_meta(self, i):
 		try:
 			meta = cTMDB().get_meta_seasons(i['tmdb_id'] , i['season'], advanced='true')
+			playcount = 0
 			try:
 				playcount = playcountDB.getPlaycount('season', 'title', self.title, meta['season'], None)
 				playcount = playcount if playcount else 0
-				overlay = 7 if playcount > 0 else 6
-				meta.update({'playcount': playcount, 'overlay': overlay})
 			except:
 				pass
+			if playcount == 0 and binge_sync.is_season_watched(self.title, meta['season'], meta.get('number_of_episodes')):
+				playcount = 1
+			overlay = 7 if playcount > 0 else 6
+			meta.update({'playcount': playcount, 'overlay': overlay})
 			self.meta.append(meta)
 		except:
 			pass

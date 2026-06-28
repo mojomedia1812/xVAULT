@@ -1,3 +1,9 @@
+xVAULT 2026.06.28.5
+Entwickler: mojomedia1812
+
+- Synchronisierte gesehene Filme und Serienfolgen werden beim Server-Pull in Kodis lokale Gesehen-Markierung uebernommen.
+- Film-, Staffel- und Folgenlisten nutzen den synchronisierten Wiedergabestand jetzt als Fallback, damit bereits gesehene Inhalte direkt als gesehen markiert werden.
+
 xVAULT 2026.06.28.4
 Entwickler: mojomedia1812
 

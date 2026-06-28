@@ -208,6 +208,11 @@ if __name__ == "__main__":
 	delHtmlCache()
 	ensure_youtube_api_keys()
 	try:
+		from resources.lib.sync import binge_sync
+		binge_sync.pull_remote(apply_bookmarks=True, silent=True)
+	except Exception:
+		pass
+	try:
 		from resources.lib.sync import favorites_sync
 		favorites_sync.check_and_push_if_changed(silent=True)
 		favorites_sync.monitor_changes(interval=5)
