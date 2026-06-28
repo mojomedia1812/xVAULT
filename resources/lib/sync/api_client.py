@@ -33,6 +33,9 @@ class Client(object):
     def login(self, email, password):
         return self._post('login', {'email': email, 'password': password}, auth=False)
 
+    def reset_password(self, email):
+        return self._post('password_reset', {'email': email}, auth=False)
+
     def status(self):
         return self._get('status', auth=False)
 

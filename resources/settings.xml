@@ -170,6 +170,7 @@
         <setting id="sync.last_sync_at" type="text" label="Letzte Synchronisation" default="" enable="false"/>
         <setting label="Anmelden" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=syncLogin)"/>
         <setting label="Registrieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=syncRegister)"/>
+        <setting label="Kennwort wiederherstellen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=syncResetPassword)"/>
         <setting label="Jetzt synchronisieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=syncNow)"/>
         <setting label="Backup vom Server wiederherstellen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=syncRestoreFavorites)"/>
         <setting label="Status anzeigen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=syncStatus)"/>

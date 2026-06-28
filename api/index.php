@@ -119,6 +119,10 @@ function dispatch(PDO $pdo): void
         require_method('POST');
         login_user($pdo, input_json());
     }
+    if ($action === 'password_reset') {
+        require_method('POST');
+        reset_password($pdo, input_json());
+    }
 
     $user = require_user($pdo);
     switch ($action) {
@@ -159,6 +163,8 @@ function action_name(): string
     $map = [
         'register' => 'register',
         'login' => 'login',
+        'password/reset' => 'password_reset',
+        'password-reset' => 'password_reset',
         'status' => 'status',
         'favorites/push' => 'favorites_push',
         'favorites/pull' => 'favorites_pull',
@@ -221,6 +227,40 @@ function login_user(PDO $pdo, array $data): void
     $stmt = $pdo->prepare('UPDATE users SET api_key_hash = ?, updated_at = ?, last_login_at = ? WHERE id = ?');
     $stmt->execute([hash('sha256', $apiKey), $now, $now, $user['id']]);
     respond(true, 'Anmeldung erfolgreich', ['email' => $email, 'api_key' => $apiKey]);
+}
+
+function reset_password(PDO $pdo, array $data): void
+{
+    $email = strtolower(trim((string)($data['email'] ?? '')));
+    if ($email === '') {
+        respond(false, 'E-Mail-Adresse ist erforderlich', null, 'MISSING_FIELDS', 400);
+    }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        respond(false, 'Ungueltige E-Mail-Adresse', null, 'INVALID_EMAIL', 400);
+    }
+    $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ? AND is_active = 1');
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
+    if (!$user) {
+        respond(false, 'Diese E-Mail-Adresse ist nicht registriert', null, 'EMAIL_NOT_FOUND', 404);
+    }
+
+    $password = generate_password(9);
+    $now = now();
+    $stmt = $pdo->prepare('UPDATE users SET password_hash = ?, api_key_hash = NULL, updated_at = ? WHERE id = ?');
+    $stmt->execute([password_hash($password, PASSWORD_DEFAULT), $now, $user['id']]);
+    respond(true, 'Neues Kennwort wurde erstellt', ['email' => $email, 'password' => $password]);
+}
+
+function generate_password(int $length): string
+{
+    $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    $password = '';
+    $max = strlen($chars) - 1;
+    for ($index = 0; $index < $length; $index++) {
+        $password .= $chars[random_int(0, $max)];
+    }
+    return $password;
 }
 
 function credentials(array $data): array

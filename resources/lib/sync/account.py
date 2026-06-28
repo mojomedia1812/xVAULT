@@ -19,6 +19,8 @@ def dispatch(action):
         register()
     elif action == 'syncLogin':
         login()
+    elif action == 'syncResetPassword':
+        reset_password()
     elif action == 'syncNow':
         sync_now()
     elif action == 'syncRestoreFavorites':
@@ -42,7 +44,10 @@ def register():
         data = Client().register(email, password)
         finish_login(data.get('email', email), data.get('api_key', ''), 'Registrierung erfolgreich.')
     except ApiError as exc:
-        control.infoDialog(str(exc), icon='WARNING', time=6000)
+        if exc.code == 'EMAIL_EXISTS':
+            control.dialog.ok(control.addonName, 'Diese E-Mail-Adresse ist bereits registriert.\nBitte melde dich an oder nutze die Passwort-Wiederherstellung.')
+        else:
+            control.infoDialog(str(exc), icon='WARNING', time=6000)
 
 
 def login():
@@ -57,6 +62,28 @@ def login():
         finish_login(data.get('email', email), data.get('api_key', ''), 'Anmeldung erfolgreich.')
     except ApiError as exc:
         control.infoDialog(str(exc), icon='WARNING', time=6000)
+
+
+def reset_password():
+    email = ask_email(storage.email())
+    if not email:
+        return
+    if not control.yesnoDialog('Kennwort wiederherstellen', 'Für diese E-Mail-Adresse wird ein neues Kennwort erstellt.', 'Alte Anmeldungen werden abgemeldet.', yeslabel='Erstellen', nolabel='Abbrechen'):
+        return
+    try:
+        data = Client().reset_password(email)
+        new_password = data.get('password', '')
+        if not new_password:
+            control.infoDialog('Kennwort konnte nicht erstellt werden.', icon='WARNING', time=6000)
+            return
+        storage.clear_login()
+        storage.set_setting(storage.ACCOUNT_EMAIL, data.get('email', email))
+        control.dialog.ok(control.addonName, 'Neues Kennwort:\n[B]%s[/B]\n\nBitte notiere es dir und melde dich damit an.' % new_password)
+    except ApiError as exc:
+        if exc.code == 'EMAIL_NOT_FOUND':
+            control.dialog.ok(control.addonName, 'Diese E-Mail-Adresse ist nicht registriert.')
+        else:
+            control.infoDialog(str(exc), icon='WARNING', time=6000)
 
 
 def logout():
