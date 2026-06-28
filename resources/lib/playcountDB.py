@@ -341,49 +341,117 @@ def updatePlaycount(mediatype, title='', name='', id='', number_of_seasons=None,
 def _updatePlaycount(mediatype, title, name, id, number_of_seasons, season, number_of_episodes, episode, playcount):
     conn = db.connect(playcountDB)
     cursor = conn.cursor()
-    sql  = _sql_update(mediatype, title, name, id, season, episode, playcount)
-    cursor.execute(sql)
-    conn.commit()
-    if mediatype == 'tvshow':  _check(cursor, conn, mediatype, title, name, id, number_of_seasons, season, number_of_episodes, episode, playcount)
-    cursor.close()
-    conn.close()
-
-def _check(cursor, conn, mediatype, title, name, id, number_of_seasons, season, number_of_episodes, episode, playcount):
-    if playcount == 1:
-        sql = _sql_check(title, season, episode)
-        if sql == '': return
+    try:
+        sql  = _sql_update(mediatype, title, name, id, season, episode, playcount)
         cursor.execute(sql)
-        matched = cursor.fetchall()
-        if not '0' in str(matched) and len(matched) == number_of_episodes or episode == '':
-            if episode != '':
-                sql = 'UPDATE season SET playcount = %s WHERE title = "%s" and season = %s' % (playcount, title, season)
-                cursor.execute(sql)
-                conn.commit()
-                sql = _sql_check(title, season, None)
-                cursor.execute(sql)
-                matched = cursor.fetchall()
-            if not '0' in str(matched) and len(matched) == number_of_seasons:
-                sql = 'UPDATE tvshow SET playcount = %s WHERE title = "%s"' % (playcount, title)
-                cursor.execute(sql)
-                conn.commit()
-    else:
-        sql = 'UPDATE tvshow SET playcount = %s WHERE title = "%s"' % (playcount, title)
-        cursor.execute(sql)
+        _refresh_parent_status(cursor, mediatype, title, name, id, number_of_seasons, season, number_of_episodes, episode, playcount)
         conn.commit()
-        if episode:
-            sql = 'UPDATE season SET playcount = %s WHERE title = "%s" and season = %s' % (playcount, title, season)
-            cursor.execute(sql)
-            conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
 
 
-def _sql_check(title, season, episode):
-    if season and episode:
-        sql_check = 'SELECT playcount FROM episode WHERE title = "%s" and season = %s' % (title, season)
-    elif season:
-        sql_check = 'SELECT playcount FROM season WHERE title = "%s"' % title
+def _refresh_parent_status(cursor, mediatype, title, name, id, number_of_seasons, season, number_of_episodes, episode, playcount):
+    if mediatype == 'movie' or not title:
+        return
+    season = _safe_int(season)
+    episode = _safe_int(episode)
+    playcount = 1 if _safe_int(playcount) else 0
+    if not season:
+        return
+
+    total_episodes = _safe_int(number_of_episodes) or _stored_season_total(cursor, title, season)
+    season_name = '%s S%02d' % (title, season)
+    season_playcount = playcount
+
+    if episode:
+        if not playcount:
+            season_playcount = 0
+        elif total_episodes:
+            watched_episodes = _count_watched_episodes(cursor, title, season)
+            season_playcount = 1 if watched_episodes >= total_episodes else 0
+        else:
+            return
+
+    if total_episodes:
+        _upsert_season_status(cursor, title, season_name, season, total_episodes, season_playcount)
     else:
-        sql_check = ''
-    return sql_check
+        cursor.execute('UPDATE season SET playcount = ? WHERE title = ? AND season = ?', (season_playcount, title, season))
+
+    if not season_playcount:
+        _set_tvshow_playcount(cursor, title, name, id, number_of_seasons, 0)
+        return
+
+    _refresh_tvshow_status(cursor, title, name, id, number_of_seasons)
+
+
+def _stored_season_total(cursor, title, season):
+    cursor.execute(
+        'SELECT number_of_episodes FROM season WHERE title = ? AND season = ? ORDER BY number_of_episodes DESC LIMIT 1',
+        (title, season),
+    )
+    row = cursor.fetchone()
+    return _safe_int(row[0]) if row else 0
+
+
+def _count_watched_episodes(cursor, title, season):
+    cursor.execute(
+        'SELECT COUNT(DISTINCT episode) FROM episode WHERE title = ? AND season = ? AND playcount > 0',
+        (title, season),
+    )
+    row = cursor.fetchone()
+    return _safe_int(row[0]) if row else 0
+
+
+def _upsert_season_status(cursor, title, name, season, number_of_episodes, playcount):
+    cursor.execute('SELECT rowid FROM season WHERE title = ? AND season = ? LIMIT 1', (title, season))
+    if cursor.fetchone():
+        cursor.execute(
+            'UPDATE season SET name = ?, number_of_episodes = ?, playcount = ? WHERE title = ? AND season = ?',
+            (name, number_of_episodes, playcount, title, season),
+        )
+    else:
+        cursor.execute(
+            'INSERT INTO season Values (?, ?, ?, ?, ?)',
+            (title, name, season, number_of_episodes, playcount),
+        )
+
+
+def _refresh_tvshow_status(cursor, title, name, id, number_of_seasons):
+    total_seasons = _safe_int(number_of_seasons) or _stored_tvshow_total(cursor, title)
+    if not total_seasons:
+        return
+    cursor.execute('SELECT COUNT(DISTINCT season) FROM season WHERE title = ? AND playcount > 0', (title,))
+    row = cursor.fetchone()
+    watched_seasons = _safe_int(row[0]) if row else 0
+    playcount = 1 if watched_seasons >= total_seasons else 0
+    _set_tvshow_playcount(cursor, title, name, id, total_seasons, playcount)
+
+
+def _stored_tvshow_total(cursor, title):
+    cursor.execute(
+        'SELECT number_of_seasons FROM tvshow WHERE title = ? ORDER BY number_of_seasons DESC LIMIT 1',
+        (title,),
+    )
+    row = cursor.fetchone()
+    return _safe_int(row[0]) if row else 0
+
+
+def _set_tvshow_playcount(cursor, title, name, id, number_of_seasons, playcount):
+    number_of_seasons = _safe_int(number_of_seasons) or _stored_tvshow_total(cursor, title) or 0
+    name = title
+    id = id or ''
+    cursor.execute('SELECT rowid FROM tvshow WHERE title = ? LIMIT 1', (title,))
+    if cursor.fetchone():
+        cursor.execute(
+            'UPDATE tvshow SET name = ?, imdb_id = ?, number_of_seasons = ?, playcount = ? WHERE title = ?',
+            (name, id, number_of_seasons, playcount, title),
+        )
+    else:
+        cursor.execute(
+            'INSERT INTO tvshow Values (?, ?, ?, ?, ?)',
+            (title, name, id, number_of_seasons, playcount),
+        )
 
 
 def _sql_update(table, title, name, id, season, episode, playcount):

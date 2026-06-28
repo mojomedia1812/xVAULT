@@ -1,3 +1,10 @@
+xVAULT 2026.06.28.9
+Entwickler: mojomedia1812
+
+- Gesehen-Status von Staffeln und Serien wird nach Episoden-Playback sofort aus den lokalen Episode-Eintraegen neu berechnet.
+- Staffel- und Folgenlisten werden nicht mehr auf Disk gecacht, damit Favoriten-Aufrufe keine alten Gesehen-Markierungen wiederverwenden.
+- Episodenlisten werden nach Wiedergabe auf allen Plattformen aktualisiert, wenn die Status-Aktualisierung aktiv ist.
+
 xVAULT 2026.06.28.8
 Entwickler: mojomedia1812
 

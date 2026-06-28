@@ -208,7 +208,7 @@ class seasons:
 
 		control.content(syshandle, 'tvshows')
 		control.plugincategory(syshandle, control.addonVersion)
-		control.endofdirectory(syshandle, cacheToDisc=True)
+		control.endofdirectory(syshandle, cacheToDisc=False)
 
 		# setzt Auswahl nach letzte als gesehen markierte Staffel -> Content: 'movies'
 		if control.getSetting('status.position') == 'true':

@@ -220,7 +220,7 @@ class episodes:
 			control.execute('Container.SetViewMode(%s)' % str(55))
 
 		control.plugincategory(syshandle, control.addonVersion)
-		control.endofdirectory(syshandle, cacheToDisc=True)
+		control.endofdirectory(syshandle, cacheToDisc=False)
 		control.sleep(0.2)
 
 		# setzt Auswahl nach letzte als gesehen markierte Episode

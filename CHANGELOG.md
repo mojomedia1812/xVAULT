@@ -2,7 +2,10 @@
 
 ## [Unreleased]
 
+## [2026.06.28.9] - 2026-06-28
+
 - Einstellungsuebersicht aus README.md entfernt; README-Versioncheck entsprechend angepasst.
+- Staffel-/Serien-Gesehenstatus wird nach Episoden-Playback sofort aktualisiert und Repository-ZIPs wurden neu gebaut.
 
 ## [2026.06.28.8] - 2026-06-28
 

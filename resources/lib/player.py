@@ -235,8 +235,7 @@ class player(xbmc.Player):
             if control.getSetting('status.refresh.movies') == 'true' and self.mediatype == 'movie': # immer!
                 refresh = True
             elif control.getSetting('status.refresh.episodes') == 'true' and self.mediatype != 'movie':
-                if xbmc.getCondVisibility('system.platform.linux') and xbmc.getCondVisibility('system.platform.android'): refresh = True  # Android
-                elif control.getSetting('hosts.mode') == '1': refresh = True
+                refresh = True
 
             if refresh:
                 if refreshtime != 0: control.sleep(refreshtime)
