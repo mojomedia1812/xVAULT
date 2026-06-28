@@ -91,6 +91,147 @@ def getWatchedItems():
         conn.close()
     return watched
 
+
+def getEpisodeStatus(title, season, episode):
+    conn = _get_connection(playcountDB)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            'SELECT playcount FROM episode WHERE title = ? AND season = ? AND episode = ? ORDER BY playcount DESC LIMIT 1',
+            (title, season, episode),
+        )
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def getSeasonStatus(title, season):
+    conn = _get_connection(playcountDB)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            'SELECT playcount, number_of_episodes FROM season WHERE title = ? AND season = ? ORDER BY playcount DESC, number_of_episodes DESC LIMIT 1',
+            (title, season),
+        )
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def getTvshowStatus(title):
+    conn = _get_connection(playcountDB)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            'SELECT playcount, number_of_seasons FROM tvshow WHERE title = ? ORDER BY playcount DESC, number_of_seasons DESC LIMIT 1',
+            (title,),
+        )
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def setSeasonStatus(title, name, season, number_of_episodes, playcount):
+    season = _safe_int(season) or 0
+    number_of_episodes = _safe_int(number_of_episodes) or 0
+    playcount = 1 if _safe_int(playcount) else 0
+    if not title or not season:
+        return
+    name = name or '%s S%02d' % (title, season)
+    conn = db.connect(playcountDB)
+    cursor = conn.cursor()
+    try:
+        cursor.execute('SELECT rowid, playcount, number_of_episodes FROM season WHERE title = ? AND season = ? LIMIT 1', (title, season))
+        match = cursor.fetchone()
+        if match and int(match[1] or 0) > 0 and playcount == 0:
+            previous_total = _safe_int(match[2]) or 0
+            if previous_total and number_of_episodes > previous_total:
+                _mark_previous_episodes(cursor, title, season, previous_total)
+        if match:
+            cursor.execute(
+                'UPDATE season SET name = ?, number_of_episodes = ?, playcount = ? WHERE title = ? AND season = ?',
+                (name, number_of_episodes, playcount, title, season),
+            )
+        else:
+            cursor.execute(
+                'INSERT INTO season Values (?, ?, ?, ?, ?)',
+                (title, name, season, number_of_episodes, playcount),
+            )
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def _mark_previous_episodes(cursor, title, season, previous_total):
+    for episode in range(1, previous_total + 1):
+        name = '%s S%02dE%02d' % (title, season, episode)
+        cursor.execute(
+            'SELECT rowid FROM episode WHERE title = ? AND season = ? AND episode = ? LIMIT 1',
+            (title, season, episode),
+        )
+        if cursor.fetchone():
+            cursor.execute(
+                'UPDATE episode SET name = ?, playcount = 1 WHERE title = ? AND season = ? AND episode = ?',
+                (name, title, season, episode),
+            )
+        else:
+            cursor.execute(
+                'INSERT INTO episode Values (?, ?, ?, ?, ?)',
+                (title, name, season, episode, 1),
+            )
+
+
+def setTvshowStatus(title, name, imdb, number_of_seasons, playcount):
+    number_of_seasons = _safe_int(number_of_seasons) or 0
+    playcount = 1 if _safe_int(playcount) else 0
+    if not title:
+        return
+    name = name or title
+    imdb = imdb or ''
+    conn = db.connect(playcountDB)
+    cursor = conn.cursor()
+    try:
+        cursor.execute('SELECT rowid FROM tvshow WHERE title = ? LIMIT 1', (title,))
+        match = cursor.fetchone()
+        if match:
+            cursor.execute(
+                'UPDATE tvshow SET name = ?, imdb_id = ?, number_of_seasons = ?, playcount = ? WHERE title = ?',
+                (name, imdb, number_of_seasons, playcount, title),
+            )
+        else:
+            cursor.execute(
+                'INSERT INTO tvshow Values (?, ?, ?, ?, ?)',
+                (title, name, imdb, number_of_seasons, playcount),
+            )
+        conn.commit()
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def countWatchedSeasons(title):
+    conn = _get_connection(playcountDB)
+    cursor = conn.cursor()
+    try:
+        cursor.execute('SELECT COUNT(DISTINCT season) AS total FROM season WHERE title = ? AND playcount > 0', (title,))
+        row = cursor.fetchone()
+        return row['total'] if row else 0
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def _safe_int(value):
+    try:
+        return int(value)
+    except Exception:
+        return None
+
+
 def _get_connection(filename):
     conn = db.connect(filename)
     conn.row_factory = _dict_factory

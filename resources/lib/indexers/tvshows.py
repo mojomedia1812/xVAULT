@@ -8,7 +8,7 @@ import datetime, time, json
 from resources.lib.tmdb import cTMDB
 from concurrent.futures import ThreadPoolExecutor
 from resources.lib.indexers import navigator
-from resources.lib import searchDB, playcountDB, art, control
+from resources.lib import searchDB, art, control, watched_status
 from resources.lib.control import getKodiVersion, iteritems
 if int(getKodiVersion()) >= 20: from infotagger.listitem import ListItemInfoTag
 
@@ -274,13 +274,9 @@ class tvshows:
 					poster = art.getTvShows_art(meta['tmdb_id'], meta['tvdb_id'])
 					meta.update({'poster': poster})
 
-			try:
-				playcount = playcountDB.getPlaycount('tvshow', 'title', meta['title'], None, None)
-				playcount = playcount if playcount else 0
-				overlay = 7 if playcount > 0 else 6
-				meta.update({'playcount': playcount, 'overlay': overlay})
-			except:
-				pass
+			playcount = watched_status.tvshow_playcount(meta['title'], number_of_seasons=meta.get('number_of_seasons'))
+			overlay = 7 if playcount > 0 else 6
+			meta.update({'playcount': playcount, 'overlay': overlay})
 			self.meta.append(meta)
 			return meta
 		except:

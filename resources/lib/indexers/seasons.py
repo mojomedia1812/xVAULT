@@ -3,12 +3,11 @@
 #2021-07-21
 # edit 2025-08-02 switch from treads to concurrent.futures 
 
-import sys, re
+import sys
 import datetime, time, json
 from resources.lib.tmdb import cTMDB
 from concurrent.futures import ThreadPoolExecutor
-from resources.lib import control, playcountDB, log_utils
-from resources.lib.sync import binge_sync
+from resources.lib import control, playcountDB, watched_status
 from resources.lib.control import getKodiVersion
 if int(getKodiVersion()) >= 20: from infotagger.listitem import ListItemInfoTag
 
@@ -35,15 +34,19 @@ class seasons:
 			imdb_id = data['imdb_id'] if 'imdb_id' in data else None
 			title = data['title']
 
-			playcount = playcountDB.getPlaycount('tvshow', 'title', title, None, None)
-			if playcount is None:
-				#playcountDB.createEntry('tvshow', title, title, imdb_id, number_of_seasons, None, None, None)
-				playcount = 0
-			self.sysmeta = re.sub(r'"playcount": \d', '"playcount": %s' % playcount, self.sysmeta)
+			self.imdb_id = imdb_id
+			self.number_of_seasons = number_of_seasons
+			self.tvshow_status = playcountDB.getTvshowStatus(title)
+			data['playcount'] = watched_status.tvshow_playcount(title, number_of_seasons=number_of_seasons, tvshow_status=self.tvshow_status)
+			self.sysmeta = json.dumps(data)
 
 			for i in range(1, number_of_seasons+1):
 				self.list.append({'tmdb_id': tmdb_id, 'tvdb_id': tvdb_id, 'season': i})
 			self.worker()
+			show_playcount = watched_status.tvshow_playcount(title, self.list, number_of_seasons, self.tvshow_status)
+			watched_status.store_tvshow_status(title, title, imdb_id, number_of_seasons, show_playcount)
+			data['playcount'] = show_playcount
+			self.sysmeta = json.dumps(data)
 			if self.list == None or len(self.list) == 0:	# nichts gefunden
 				control.infoDialog("Nichts gefunden", time=8000)
 			else:
@@ -66,14 +69,20 @@ class seasons:
 	def super_meta(self, i):
 		try:
 			meta = cTMDB().get_meta_seasons(i['tmdb_id'] , i['season'], advanced='true')
-			playcount = 0
-			try:
-				playcount = playcountDB.getPlaycount('season', 'title', self.title, meta['season'], None)
-				playcount = playcount if playcount else 0
-			except:
-				pass
-			if playcount == 0 and binge_sync.is_season_watched(self.title, meta['season'], meta.get('number_of_episodes')):
-				playcount = 1
+			playcount = watched_status.season_playcount(
+				self.title,
+				meta['season'],
+				meta.get('episodes'),
+				meta.get('number_of_episodes'),
+				tvshow_status=getattr(self, 'tvshow_status', None),
+			)
+			watched_status.store_season_status(
+				self.title,
+				self.title + ' S%02d' % int(meta['season']),
+				meta['season'],
+				meta.get('number_of_episodes'),
+				playcount,
+			)
 			overlay = 7 if playcount > 0 else 6
 			meta.update({'playcount': playcount, 'overlay': overlay})
 			self.meta.append(meta)

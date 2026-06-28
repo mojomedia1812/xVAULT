@@ -1,3 +1,10 @@
+xVAULT 2026.06.28.8
+Entwickler: mojomedia1812
+
+- Staffel-Gesehenstatus wird jetzt aus den aktuell vorhandenen Folgen abgeleitet: erst wenn alle Folgen gesehen sind, gilt die Staffel als gesehen.
+- Serien-Gesehenstatus wird aus den aktuellen Staffeln abgeleitet und bei neuen ungesehenen Staffeln/Folgen wieder aufgehoben.
+- Frueher komplett gesehene Staffeln behalten ihre alten Folgen als gesehen, wenn spaeter neue ungesehene Folgen hinzukommen.
+
 xVAULT 2026.06.28.7
 Entwickler: mojomedia1812
 
