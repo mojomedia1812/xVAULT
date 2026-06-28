@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Umami-Tracking-Script im Head der GitHub Page ergaenzt.
+
 ## [2026.06.28.9] - 2026-06-28
 
 - Einstellungsuebersicht aus README.md entfernt; README-Versioncheck entsprechend angepasst.
