@@ -33,6 +33,8 @@ REPOSITORY_INDEX_OUTPUT = REPOSITORY_INDEX_DIR / REPOSITORY_ZIP_NAME
 ADDONS_XML = PROJECT_DIR / "docs" / "addons.xml"
 M3U_DIR = PROJECT_DIR / "m3u"
 DOCS_M3U_DIR = PROJECT_DIR / "docs" / "m3u"
+CHANGELOG = PROJECT_DIR / "CHANGELOG.txt"
+RELEASE_NOTES_LIMIT = 5
 OUTPUTS = (
     REPO_DIR / ZIP_NAME,
     DOWNLOAD_OUTPUT,
@@ -231,6 +233,7 @@ def update_download_page(output):
     html_content = re.sub(r"(ZIP-Datei · ).*?(</p>)", rf"\g<1>{size}\2", html_content)
     html_content = re.sub(r"<code>[A-F0-9]{64}</code>", f"<code>{digest}</code>", html_content)
     html_content = _update_archive_links(html_content)
+    html_content = _update_release_notes(html_content)
     html_content = html_content.replace(LEGACY_SITE_URL, SITE_URL)
     html_content = re.sub(r"(<span>Version ).*?(</span>)", rf"\g<1>{VERSION}\2", html_content)
     html_content = _inject_kodi_listing(html_content)
@@ -241,6 +244,80 @@ def _update_archive_links(html):
     marker = r"(<!-- previous-downloads:start -->)(.*?)(<!-- previous-downloads:end -->)"
     archive = _archive_downloads_html()
     return re.sub(marker, rf"\1\n{archive}\n        \3", html, flags=re.S)
+
+
+def _update_release_notes(html_content):
+    notes = _release_notes_html()
+    marked = r"(<!-- release-notes:start -->)(.*?)(<!-- release-notes:end -->)"
+    if re.search(marked, html_content, flags=re.S):
+        return re.sub(
+            marked,
+            lambda match: "%s\n%s\n    %s" % (match.group(1), notes, match.group(3)),
+            html_content,
+            flags=re.S,
+        )
+    legacy = (
+        r"\s*<section class=\"panel update-panel\">.*?</section>"
+        r"(?:\s*<section class=\"panel update-panel\">.*?</section>)*"
+        r"(?=\s*<section class=\"panel tribute-panel\">)"
+    )
+    replacement = "\n    <!-- release-notes:start -->\n%s\n    <!-- release-notes:end -->" % notes
+    return re.sub(legacy, replacement, html_content, count=1, flags=re.S)
+
+
+def _release_notes_html():
+    releases = _read_changelog_releases()[:RELEASE_NOTES_LIMIT]
+    if not releases:
+        return (
+            '    <section class="panel update-panel">\n'
+            '      <p class="section-kicker">Neu in %s</p>\n'
+            '      <h2>Aktuelle Aenderungen</h2>\n'
+            '      <p>Details stehen in CHANGELOG.txt.</p>\n'
+            '    </section>'
+        ) % html.escape(VERSION)
+    blocks = []
+    for version, bullets in releases:
+        items = "\n".join("        <li>%s</li>" % html.escape(bullet) for bullet in bullets[:4])
+        blocks.append(
+            '    <section class="panel update-panel">\n'
+            '      <p class="section-kicker">Neu in %s</p>\n'
+            '      <h2>%s</h2>\n'
+            '      <ul class="update-list">\n'
+            '%s\n'
+            '      </ul>\n'
+            '    </section>' % (
+                html.escape(version),
+                html.escape(_release_title(bullets)),
+                items,
+            )
+        )
+    return "\n\n".join(blocks)
+
+
+def _read_changelog_releases():
+    if not CHANGELOG.exists():
+        return []
+    releases = []
+    current_version = None
+    current_bullets = []
+    for raw_line in CHANGELOG.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        match = re.match(r"^xVAULT\s+(.+)$", line)
+        if match:
+            if current_version and current_bullets:
+                releases.append((current_version, current_bullets))
+            current_version = match.group(1).strip()
+            current_bullets = []
+            continue
+        if line.startswith("- "):
+            current_bullets.append(line[2:].strip())
+    if current_version and current_bullets:
+        releases.append((current_version, current_bullets))
+    return releases
+
+
+def _release_title(bullets):
+    return "Aenderungen im Ueberblick"
 
 
 def _archive_downloads_html():

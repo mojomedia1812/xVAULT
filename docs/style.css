@@ -204,6 +204,19 @@ h1 {
   background: linear-gradient(145deg, rgba(24, 18, 18, .95), rgba(12, 12, 12, .95));
 }
 
+.update-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 1.2rem;
+  color: #d5d5d5;
+  line-height: 1.65;
+}
+
+.update-list li::marker {
+  color: #ff6672;
+}
+
 .tribute-panel {
   display: grid;
   gap: 14px;

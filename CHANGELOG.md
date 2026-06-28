@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- GitHub-Page-Bereich `Neu in` wird beim Build automatisch aus `CHANGELOG.txt` aktualisiert.
+
 ## [2026.06.28.10] - 2026-06-28
 
 - Umami-Tracking-Script im Head der GitHub Page ergaenzt.
