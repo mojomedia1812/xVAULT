@@ -318,6 +318,7 @@ elif action == 'play':
     try:
         params['_xvault_list_position'] = control.infoLabel('Container().CurrentItem')
         params['_xvault_list_content'] = control.infoLabel('Container.Content')
+        params['_xvault_container_path'] = control.infoLabel('Container.FolderPath')
     except:
         pass
     if not control.visible(): control.busy()

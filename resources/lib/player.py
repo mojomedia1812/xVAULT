@@ -58,6 +58,7 @@ class player(xbmc.Player):
             self.playcount = meta['playcount'] if 'playcount' in meta else 0
             self.list_position = int(meta.get('_xvault_list_position', 0) or 0)
             self.list_content = meta.get('_xvault_list_content', '')
+            self.container_path = meta.get('_xvault_container_path', '')
             self.queue_playback = bool(meta.get('_xvault_queue_playback', False))
             self.queue_last = bool(meta.get('_xvault_queue_last', False))
             self.offset = bookmarks().get(self.name, self.year)
@@ -170,22 +171,28 @@ class player(xbmc.Player):
 
 
     def onPlayBackStopped(self):
-        self._finishPlayback(True)
+        self._finishPlayback(True, playback_ended=False)
 
     def onPlayBackEnded(self):
-        self._finishPlayback(not self.queue_playback or self.queue_last)
+        self._finishPlayback(not self.queue_playback or self.queue_last, playback_ended=True)
         if self.isdebug: log_utils.log('Ende - onPlayBackEnded', log_utils.LOGINFO)
 
-    def _finishPlayback(self, restore_navigation):
+    def _finishPlayback(self, restore_navigation, playback_ended=False):
         if self.streamFinished:
             return
         if self.isdebug: log_utils.log('Start - onPlayBackStopped', log_utils.LOGINFO)
         self.runVideoDB()
         self.streamFinished = True
+        completed = self._completed(playback_ended)
+        if completed:
+            self.currentTime = self.totalTime if self.totalTime else self.currentTime
+            if not self.watcher_control:
+                self._markWatched()
+            self.watcher_control = True
         bookmarks().reset(self.currentTime, self.totalTime, self.name, self.year)
         try:
             from resources.lib.sync import binge_sync
-            binge_sync.record_playback(self.meta, self.name, self.year, self.currentTime, self.totalTime, completed=self.watcher_control, push=True)
+            binge_sync.record_playback(self.meta, self.name, self.year, self.currentTime, self.totalTime, completed=completed, push=True)
         except:
             pass
         if restore_navigation:
@@ -198,6 +205,25 @@ class player(xbmc.Player):
                     restoreListPosition(self.list_position, self.list_content, __name__)
         self.watcher_control = False
         if self.isdebug: log_utils.log('Ende - onPlayBackStopped', log_utils.LOGINFO)
+
+
+    def _completed(self, playback_ended=False):
+        if playback_ended:
+            return True
+        if self.watcher_control:
+            return True
+        try:
+            return bool(self.totalTime and self.currentTime and (float(self.currentTime) / float(self.totalTime) >= .9))
+        except:
+            return False
+
+
+    def _markWatched(self):
+        try:
+            playcountDB.createEntry(self.mediatype, self.title, self.name, self.imdb, self.number_of_seasons, self.season, self.number_of_episodes, self.episode)
+            playcountDB.updatePlaycount(self.mediatype, self.title, self.name, self.imdb, self.number_of_seasons, self.season, self.number_of_episodes, self.episode, 1)
+        except:
+            pass
 
 
     def parentDir(self):
@@ -239,7 +265,14 @@ class player(xbmc.Player):
 
             if refresh:
                 if refreshtime != 0: control.sleep(refreshtime)
-                control.execute('Container.Refresh')
+                self.refreshContainer()
+
+
+    def refreshContainer(self):
+        if self.mediatype != 'movie' and self.container_path:
+            control.execute('Container.Update(%s,replace)' % self.container_path)
+            control.sleep(0.5)
+        control.execute('Container.Refresh')
 
 # keine EintrÃ¤ge fÃ¼r bookmarks und files in die Kodi DB 'MyVideos116.db' anlegen bzw. sofort lÃ¶schen
     def runVideoDB(self):

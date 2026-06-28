@@ -51,6 +51,7 @@ class sources:
                 if list_position > 0:
                     meta_data['_xvault_list_position'] = list_position
                     meta_data['_xvault_list_content'] = params.get('_xvault_list_content') or control.infoLabel('Container.Content')
+                    meta_data['_xvault_container_path'] = params.get('_xvault_container_path') or control.infoLabel('Container.FolderPath')
                     meta = json.dumps(meta_data)
                     params['sysmeta'] = meta
             except:

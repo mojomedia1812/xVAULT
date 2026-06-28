@@ -1,3 +1,10 @@
+xVAULT 2026.06.28.10
+Entwickler: mojomedia1812
+
+- Episoden werden bei natuerlichem Playback-Ende sofort als gesehen in die lokale Playcount-Datenbank geschrieben.
+- Bei gestopptem Playback ab 90 Prozent Fortschritt wird der Gesehen-Status ebenfalls sofort gesetzt.
+- Nach dem Playback wird der gespeicherte Staffel-Container gezielt neu geladen, damit die Folgenliste ohne Verlassen der Staffel aktualisiert wird.
+
 xVAULT 2026.06.28.9
 Entwickler: mojomedia1812
 
