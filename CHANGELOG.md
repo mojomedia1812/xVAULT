@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.06.29.6] - 2026-06-29
+
+- LiveTV-Senderlisten zeigen im Infofeld des markierten Senders jetzt `Aktuell` und `Gleich` aus dem EPG.
+- Senderlogos werden als Poster/Thumb/Icon gesetzt, damit im Infofenster links oben das passende Senderlogo erscheint.
+- Fehlende Senderlogos werden ueber lokale Alias-Zuordnung und einen gecachten Logo-Fallback ergaenzt.
+
 ## [2026.06.29.5] - 2026-06-29
 
 - LiveTV zeigt vor dem Streamstart die aktuell laufende Sendung aus einem lokalen XMLTV-EPG-Cache an.

@@ -25,21 +25,25 @@ PING_URL = "https://www.vypn.net/api/app/ping"
 CATALOG_PATH = "/mediaurl-catalog.json"
 RESOLVE_PATH = "/mediaurl-resolve.json"
 EPG_URL = "https://epgshare01.online/epgshare01/epg_ripper_DE1.xml.gz"
+LOGOS_URL = "https://iptv-org.github.io/api/logos.json"
 MEDIA_USER_AGENT = "MediaUrl/2"
 CLIENT_VERSION = "3.1.0"
 CATALOG_GROUPS = ("Germany", "GERMANY")
 CATALOG_FILE = os.path.join(control.addonProfilePath, "linear-tv-catalog.json")
 FAVORITES_FILE = os.path.join(control.addonProfilePath, "linear-tv-favorites.json")
 EPG_FILE = os.path.join(control.addonProfilePath, "linear-tv-epg.json")
+LOGOS_FILE = os.path.join(control.addonProfilePath, "linear-tv-logos.json")
 SIGNATURE_TTL = 7 * 60
 DEFAULT_CACHE_HOURS = 1
 DEFAULT_EPG_CACHE_HOURS = 6
 EPG_LOOKAHEAD_HOURS = 24
 EPG_LOOKBEHIND_HOURS = 2
+LOGOS_TTL = 14 * 24 * 3600
 MAX_PAGES_PER_GROUP = 20
 
 _signature_cache = {"value": "", "timestamp": 0}
 _epg_memory_cache = {"data": None, "mtime": 0}
+_logo_memory_cache = {"data": None, "mtime": 0}
 _base_index = 0
 
 
@@ -217,8 +221,8 @@ def play(channel_id):
         control.resolveUrl(_handle(), False, control.item("LiveTV", offscreen=True))
         return
 
-    programme = _current_programme(channel, refresh=True)
-    _show_programme_before_play(channel, programme)
+    programmes = _programme_pair(channel, refresh=True)
+    _show_programme_before_play(channel, programmes[0])
 
     stream_url = _resolve(channel.get("url"))
     if not stream_url:
@@ -230,12 +234,11 @@ def play(channel_id):
     item.setProperty("IsPlayable", "true")
     item.setInfo("video", {
         "title": channel.get("name") or "LiveTV",
-        "plot": _plot(channel, programme),
+        "plot": _plot(channel, programmes),
+        "plotoutline": _plot(channel, programmes),
         "mediatype": "video",
     })
-    logo = channel.get("logo") or ""
-    if logo:
-        item.setArt({"thumb": logo, "icon": logo})
+    _set_channel_art(item, channel)
     _configure_stream(item, stream_url)
     item.setPath(stream_url)
     control.resolveUrl(_handle(), True, item)
@@ -243,13 +246,20 @@ def play(channel_id):
 
 def _show_channels(channels, title, favorites=False):
     handle = _handle()
+    epg = _epg_data(refresh=True) if _epg_enabled() else {}
+    channels = _enrich_channel_logos(channels, epg)
     for channel in sorted(channels, key=lambda item: _sort_key(item.get("name"))):
+        programmes = _programme_pair(channel, epg=epg)
+        plot = _plot(channel, programmes, include_empty_epg=_epg_enabled())
         item = control.item(channel.get("name") or "LiveTV", offscreen=True)
         item.setProperty("IsPlayable", "true")
-        item.setInfo("video", {"title": channel.get("name") or "LiveTV", "plot": _plot(channel)})
-        logo = channel.get("logo") or ""
-        if logo:
-            item.setArt({"thumb": logo, "icon": logo})
+        item.setInfo("video", {
+            "title": channel.get("name") or "LiveTV",
+            "plot": plot,
+            "plotoutline": plot,
+            "mediatype": "video",
+        })
+        _set_channel_art(item, channel, epg)
         item.addContextMenuItems(_context_menu(channel, favorites))
         url = _url({"action": "liveTVPlay", "id": channel.get("id")})
         try:
@@ -358,7 +368,7 @@ def _parse_catalog_items(items):
         if not channel_id or not stream_page:
             continue
         name = _clean_name(item.get("name") or item.get("title") or "LiveTV")
-        logo = item.get("logo") or item.get("artwork") or ""
+        logo = _logo_value(item.get("logo") or item.get("artwork"))
         channels.append({
             "id": str(channel_id),
             "name": name,
@@ -542,36 +552,74 @@ def _add_folder(handle, label, params, is_folder, plot=""):
     control.addItem(handle, _url(params), item, is_folder)
 
 
-def _plot(channel, programme=None):
+def _plot(channel, programmes=None, include_empty_epg=False):
     lines = []
-    if programme:
-        lines.append("Jetzt: %s" % _programme_title(programme))
-        lines.append(_programme_time_range(programme))
-        description = programme.get("desc") or ""
+    current, next_programme = _normalise_programme_pair(programmes)
+    if current:
+        lines.append("Aktuell: %s %s" % (_programme_time_range(current), _programme_title(current)))
+        description = current.get("desc") or ""
         if description:
             lines.append(description)
+    elif include_empty_epg:
+        lines.append("Aktuell: Keine EPG-Daten")
+    if next_programme:
+        lines.append("Gleich: %s %s" % (_programme_time_range(next_programme), _programme_title(next_programme)))
+    elif include_empty_epg:
+        lines.append("Gleich: Keine EPG-Daten")
     lines.append(channel.get("category") or "LiveTV")
     lines.append(channel.get("group") or "Germany")
     return "[CR]".join([line for line in lines if line])
 
 
 def _current_programme(channel, refresh=False):
-    if not _epg_enabled():
-        return None
+    return _programme_pair(channel, refresh=refresh)[0]
 
-    epg = _epg_data(refresh=refresh)
+
+def _programme_pair(channel, epg=None, refresh=False):
+    if not _epg_enabled():
+        return None, None
+
+    epg = epg if epg is not None else _epg_data(refresh=refresh)
     if not epg:
-        return None
+        return None, None
 
     channel_id = _epg_channel_id(channel, epg)
     if not channel_id:
-        return None
+        return None, None
 
     now = int(time.time())
+    current = None
+    next_programme = None
     for programme in epg.get("programmes", {}).get(channel_id, []):
-        if int(programme.get("start") or 0) <= now < int(programme.get("stop") or 0):
-            return programme
-    return None
+        start = int(programme.get("start") or 0)
+        stop = int(programme.get("stop") or 0)
+        if start <= now < stop:
+            current = programme
+            continue
+        if start > now and next_programme is None:
+            next_programme = programme
+            break
+    return current, next_programme
+
+
+def _normalise_programme_pair(programmes):
+    if isinstance(programmes, (list, tuple)):
+        current = programmes[0] if len(programmes) > 0 else None
+        next_programme = programmes[1] if len(programmes) > 1 else None
+        return current, next_programme
+    return programmes, None
+
+
+def _set_channel_art(item, channel, epg=None):
+    logo = _channel_logo(channel, epg)
+    if not logo:
+        return
+    item.setArt({
+        "icon": logo,
+        "thumb": logo,
+        "poster": logo,
+        "clearlogo": logo,
+    })
 
 
 def _show_programme_before_play(channel, programme):
@@ -724,6 +772,7 @@ def _parse_epg(raw):
                 channels[channel_id] = {
                     "names": names,
                     "aliases": sorted(_epg_aliases(channel_id, names)),
+                    "logos": _channel_icons(elem),
                 }
             elem.clear()
         elif tag == "programme":
@@ -782,6 +831,16 @@ def _display_names(elem):
     return names
 
 
+def _channel_icons(elem):
+    icons = []
+    for child in elem:
+        if _xml_tag(child.tag) == "icon":
+            logo = _logo_value(child.attrib.get("src") or "")
+            if logo and logo not in icons:
+                icons.append(logo)
+    return icons
+
+
 def _child_text(elem, tag_name):
     for child in elem:
         if _xml_tag(child.tag) == tag_name and child.text:
@@ -822,6 +881,188 @@ def _epg_channel_id(channel, epg):
         for known_alias, channel_id in alias_to_id.items():
             if len(known_alias) >= 6 and (alias in known_alias or known_alias in alias):
                 return channel_id
+    return ""
+
+
+def _enrich_channel_logos(channels, epg=None):
+    channels = list(channels or [])
+    alias_to_logo = {}
+
+    for channel in channels:
+        logo = _logo_value(channel.get("logo"))
+        if logo:
+            for alias in _live_channel_aliases(channel):
+                alias_to_logo.setdefault(alias, logo)
+
+    for channel_id, meta in (epg or {}).get("channels", {}).items():
+        for logo in meta.get("logos", []):
+            if not logo:
+                continue
+            for alias in meta.get("aliases") or _epg_aliases(channel_id, meta.get("names", [])):
+                alias_to_logo.setdefault(alias, logo)
+
+    needs_logo_fallback = any(_logo_should_replace(channel.get("logo")) for channel in channels)
+    fallback_logos = _logo_data().get("logos", {}) if needs_logo_fallback else {}
+    alias_to_logo.update(fallback_logos)
+
+    for channel in channels:
+        existing = _logo_value(channel.get("logo"))
+        if existing and not _logo_should_replace(existing):
+            continue
+        logo = _logo_for_aliases(_live_channel_aliases(channel), fallback_logos) or _logo_for_aliases(_live_channel_aliases(channel), alias_to_logo)
+        if logo and logo != existing:
+            channel["logo"] = logo
+    return channels
+
+
+def _channel_logo(channel, epg=None):
+    logo = _logo_value(channel.get("logo"))
+    aliases = _live_channel_aliases(channel)
+
+    if logo and _logo_should_replace(logo):
+        fallback = _logo_for_aliases(aliases, _logo_data().get("logos", {}))
+        if fallback:
+            channel["logo"] = fallback
+            return fallback
+
+    if logo:
+        return logo
+
+    alias_to_logo = {}
+    for channel_id, meta in (epg or {}).get("channels", {}).items():
+        for logo in meta.get("logos", []):
+            if not logo:
+                continue
+            for alias in meta.get("aliases") or _epg_aliases(channel_id, meta.get("names", [])):
+                alias_to_logo.setdefault(alias, logo)
+    if alias_to_logo:
+        logo = _logo_for_aliases(aliases, alias_to_logo)
+        if logo:
+            channel["logo"] = logo
+            return logo
+
+    logo = _logo_for_aliases(aliases, _logo_data().get("logos", {}))
+    if logo:
+        channel["logo"] = logo
+    return logo
+
+
+def _logo_should_replace(logo):
+    logo = _logo_value(logo).lower()
+    return not logo or "logo.huhu.to/" in logo
+
+
+def _logo_for_aliases(aliases, alias_to_logo):
+    for alias in aliases:
+        logo = alias_to_logo.get(alias)
+        if logo:
+            return logo
+    for alias in aliases:
+        if len(alias) < 6:
+            continue
+        for known_alias, logo in alias_to_logo.items():
+            if len(known_alias) >= 6 and (alias in known_alias or known_alias in alias):
+                return logo
+    return ""
+
+
+def _logo_data():
+    _ensure_profile()
+    cached = _read_logo_cache()
+    if _logo_cache_valid(cached):
+        return cached
+
+    logos = _download_logo_data()
+    if logos:
+        _write_json(LOGOS_FILE, logos)
+        _logo_memory_cache["data"] = logos
+        try:
+            _logo_memory_cache["mtime"] = os.path.getmtime(LOGOS_FILE)
+        except Exception:
+            _logo_memory_cache["mtime"] = time.time()
+        return logos
+    return cached if isinstance(cached, dict) else {}
+
+
+def _read_logo_cache():
+    try:
+        mtime = os.path.getmtime(LOGOS_FILE)
+    except Exception:
+        mtime = 0
+    if _logo_memory_cache["data"] is not None and _logo_memory_cache["mtime"] == mtime:
+        return _logo_memory_cache["data"]
+    data = _read_json(LOGOS_FILE, {})
+    _logo_memory_cache["data"] = data
+    _logo_memory_cache["mtime"] = mtime
+    return data
+
+
+def _logo_cache_valid(data):
+    if not isinstance(data, dict) or not data.get("logos"):
+        return False
+    return time.time() - int(data.get("updated_at") or 0) < LOGOS_TTL
+
+
+def _download_logo_data():
+    if requests is None:
+        log_utils.log("LiveTV logo catalog failed: requests module is not available", log_utils.LOGWARNING)
+        return {}
+
+    progress = control.progressDialog
+    progress.create(control.addonName, "LiveTV-Senderlogos werden geladen")
+    progress.update(10)
+    try:
+        response = requests.get(LOGOS_URL, headers=_epg_headers(), timeout=45)
+        response.raise_for_status()
+        progress.update(60, "LiveTV-Senderlogos werden zugeordnet")
+        return _parse_logo_data(response.json())
+    except Exception as exc:
+        log_utils.log("LiveTV logo catalog failed: %s" % str(exc), log_utils.LOGWARNING)
+        return {}
+    finally:
+        try:
+            progress.close()
+        except Exception:
+            pass
+
+
+def _parse_logo_data(items):
+    if not isinstance(items, list):
+        return {}
+
+    logos = {}
+    for item in items:
+        channel_id = item.get("channel") or ""
+        if not channel_id.lower().endswith(".de"):
+            continue
+        logo = _logo_value(item.get("url"))
+        if not logo:
+            continue
+        for alias in _epg_aliases(channel_id, []):
+            logos.setdefault(alias, logo)
+    return {
+        "updated_at": int(time.time()),
+        "source": LOGOS_URL,
+        "logos": logos,
+    } if logos else {}
+
+
+def _logo_value(value):
+    if not value:
+        return ""
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, dict):
+        for key in ("logo", "src", "url", "thumb", "poster", "icon"):
+            logo = _logo_value(value.get(key))
+            if logo:
+                return logo
+        return ""
+    if isinstance(value, (list, tuple)):
+        for item in value:
+            logo = _logo_value(item)
+            if logo:
+                return logo
     return ""
 
 

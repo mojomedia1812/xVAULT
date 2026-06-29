@@ -63,6 +63,7 @@ mitinstalliert.
 | TMDB-API-Schlüssel | Film-, Serien-, Personen- und Metadatensuche |
 | YouTube-API-Schlüssel | YouTube-Suche innerhalb der Trailer-Funktion |
 | XMLTV-EPG-Quelle `epgshare01.online` | Aktuelle Programminformationen fuer den LiveTV-Hinweis vor dem Streamstart |
+| Logo-Metadaten `iptv-org.github.io/api/logos.json` | Fallback-Zuordnung fuer fehlende LiveTV-Senderlogos; wird lokal zwischengespeichert |
 
 ## Empfohlene Manifestkorrekturen
 
