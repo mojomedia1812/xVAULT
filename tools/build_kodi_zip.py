@@ -35,6 +35,16 @@ M3U_DIR = PROJECT_DIR / "m3u"
 DOCS_M3U_DIR = PROJECT_DIR / "docs" / "m3u"
 CHANGELOG = PROJECT_DIR / "CHANGELOG.txt"
 RELEASE_NOTES_LIMIT = 5
+UMAMI_TRACKING = """  <script
+    defer
+    src="https://cloud.umami.is/script.js"
+    data-website-id="9a7c0b38-aea1-468a-bccc-e258aeeb365d"
+    data-domains="xvault.ddnss.de"
+    data-do-not-track="true"
+    data-exclude-search="true">
+  </script>"""
+UMAMI_SCRIPT_PATTERN = r"\s*<script\b(?=[^>]*cloud\.umami\.is/script\.js).*?</script>"
+UMAMI_PIXEL_PATTERN = r"\s*<img\b(?=[^>]*cloud\.umami\.is/p/)[^>]*>\s*"
 OUTPUTS = (
     REPO_DIR / ZIP_NAME,
     DOWNLOAD_OUTPUT,
@@ -237,7 +247,14 @@ def update_download_page(output):
     html_content = html_content.replace(LEGACY_SITE_URL, SITE_URL)
     html_content = re.sub(r"(<span>Version ).*?(</span>)", rf"\g<1>{VERSION}\2", html_content)
     html_content = _inject_kodi_listing(html_content)
+    html_content = _ensure_umami_tracking(html_content)
     page.write_text(html_content, encoding="utf-8", newline="\n")
+
+
+def _ensure_umami_tracking(html_content):
+    html_content = re.sub(UMAMI_SCRIPT_PATTERN, "", html_content, flags=re.S)
+    html_content = re.sub(UMAMI_PIXEL_PATTERN, "", html_content, flags=re.S)
+    return html_content.replace("</head>", f"{UMAMI_TRACKING}\n</head>", 1)
 
 
 def _update_archive_links(html):
@@ -339,7 +356,7 @@ def _archive_downloads_html():
     lines = []
     for version, path in versions:
         lines.append(
-            '        <li><a href="downloads/%s" download>Version %s herunterladen</a><span>%s</span></li>'
+            '        <li><a href="downloads/%s" download data-umami-event="Vorherige Version heruntergeladen">Version %s herunterladen</a><span>%s</span></li>'
             % (path.name, version, _format_size(path.stat().st_size))
         )
     return "\n".join(lines)
@@ -367,6 +384,7 @@ def _write_index(directory, title, entries):
 <meta charset="utf-8">
 <title>{title}</title>
 <meta name="description" content="{title}">
+{tracking}
 </head>
 <body>
 <h2>Index of {title}</h2>
@@ -380,7 +398,7 @@ def _write_index(directory, title, entries):
 </table>
 </body>
 </html>
-""".format(title=html.escape(title), rows=_index_rows(entries, parent="../"))
+""".format(title=html.escape(title), tracking=UMAMI_TRACKING, rows=_index_rows(entries, parent="../"))
     (directory / "index.html").write_text(content, encoding="utf-8", newline="\n")
 
 
@@ -442,7 +460,7 @@ def _kodi_listing_fragment():
 
 def _index_rows(entries, parent):
     rows = [
-        '<tr><td>[PARENTDIR]</td><td><a href="%s">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>' % parent
+        '<tr><td>[PARENTDIR]</td><td><a href="%s" data-umami-event="Verzeichnisnavigation geoeffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>' % parent
     ]
     for entry in entries:
         path = entry["path"]
@@ -451,10 +469,24 @@ def _index_rows(entries, parent):
         label = html.escape(name)
         icon = "[DIR]" if name.endswith("/") else "[FILE]"
         rows.append(
-            '<tr><td>%s</td><td><a href="%s">%s</a></td><td align="right">%s</td><td align="right">%s</td></tr>'
-            % (icon, href, label, _format_index_mtime(path), _format_index_size(path))
+            '<tr><td>%s</td><td><a href="%s"%s>%s</a></td><td align="right">%s</td><td align="right">%s</td></tr>'
+            % (icon, href, _index_link_attrs(name), label, _format_index_mtime(path), _format_index_size(path))
         )
     return "\n".join(rows)
+
+
+def _index_link_attrs(name):
+    if name.endswith("/"):
+        event = "Verzeichnis geoeffnet"
+    elif name.endswith(".zip"):
+        event = "Datei heruntergeladen"
+    elif name.endswith(".md5"):
+        event = "Checksum geoeffnet"
+    elif name.endswith(".xml"):
+        event = "Repository-Metadaten geoeffnet"
+    else:
+        event = "Repository-Datei geoeffnet"
+    return ' data-umami-event="%s"' % html.escape(event, quote=True)
 
 
 def _indent(text, spaces):

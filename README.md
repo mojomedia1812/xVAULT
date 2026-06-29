@@ -52,6 +52,16 @@ Gute Fehlermeldungen enthalten:
 - erwartetes und tatsaechliches Verhalten
 - Screenshots oder Logs, falls vorhanden
 
+## Umami Analytics
+
+Umami wird zur datenschutzfreundlichen Besuchsstatistik der GitHub Page genutzt. Die Website-ID kommt aus Umami und ist im Tracking-Code der HTML-Seiten unter `docs/` eingetragen.
+
+Der Tracking-Code befindet sich in der bestehenden GitHub-Page-Hauptdatei `docs/index.html` und wird fuer die generierten Repository-Listings ueber `tools/build_kodi_zip.py` ausgegeben. Umami ist damit auf allen relevanten GitHub-Pages-Seiten eingebunden.
+
+Do Not Track wird respektiert, URL-Suchparameter werden nicht gesammelt und Linkklicks auf Downloads, Repository-Dateien, GitHub-Links und wichtige interne Links werden als Umami-Events erfasst. Event-Namen enthalten keine privaten Nutzerdaten.
+
+Es werden keine Zugangsdaten, Secrets, API-Keys oder personenbezogenen Inhalte ins Repository geschrieben. Falls eine Datenschutzerklaerung fuer die oeffentliche Nutzung gepflegt wird, sollte dort die Nutzung von Umami fuer Seitenstatistik und Linkklicks sachlich ergaenzt werden.
+
 ## Mitwirken
 
 Hinweise fuer Beitraege stehen in [`CONTRIBUTING.md`](CONTRIBUTING.md).

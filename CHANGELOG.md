@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Umami Analytics auf allen GitHub-Pages-HTML-Seiten mit Do-Not-Track, ausgeschlossenen URL-Suchparametern und Link-Events ergaenzt.
 - GitHub-Page-Bereich `Neu in` wird beim Build automatisch aus `CHANGELOG.txt` aktualisiert.
 
 ## [2026.06.28.10] - 2026-06-28
