@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2026.06.29.4] - 2026-06-29
+
+- LiveTV-Refresh beendet den Kodi-Directory-Aufruf jetzt sauber, damit beim Aktualisieren der Senderliste kein `GetDirectory`-Fehler im Kodi-Log entsteht.
+- Live-Test in Kodi 21.3 mit lokaler Installation durchgefuehrt: Senderliste geladen und ein HLS-Sender erfolgreich gestartet.
+
 ## [2026.06.29.3] - 2026-06-29
 
 - LiveTV als eigenstaendiges xVAULT-Modul neu integriert.

@@ -126,6 +126,7 @@ def refresh():
     channels = _catalog(force=True)
     control.infoDialog("LiveTV-Senderliste aktualisiert: %d Sender" % len(channels), icon="INFO", time=4000)
     xbmc.executebuiltin("Container.Refresh")
+    _end("LiveTV", cache=False)
 
 
 def show_category(category):
