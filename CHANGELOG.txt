@@ -1,3 +1,10 @@
+xVAULT 2026.06.29.1
+Entwickler: mojomedia1812
+
+- LiveTV-/Livestream-Bereich vollstaendig aus Hauptmenue, Routing und Einstellungen entfernt.
+- Eingebettete VAVOO.TO-, Stalker- und M3U-LiveTV-Module samt Senderdaten und Playlists entfernt.
+- Add-on-Metadaten, README, Abhaengigkeitsdokumentation und GitHub Page auf Filme/Serien ohne LiveTV abgeglichen.
+
 xVAULT 2026.06.28.10
 Entwickler: mojomedia1812
 

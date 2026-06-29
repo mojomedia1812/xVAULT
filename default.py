@@ -16,20 +16,6 @@ table = params.get('table')
 title = params.get('title')
 source = params.get('source')
 
-DISABLED_LIVE_TV_ACTIONS = (
-    'm3uLiveNavigator',
-    'm3uLiveList',
-    'm3uLiveExportAll',
-    'm3uLiveExport',
-    'vavooTV',
-    'vavooFavorites',
-    'vavooMakeM3U',
-)
-
-
-def show_live_tv_disabled():
-    control.infoDialog("LiveTV ist in dieser Version deaktiviert.", icon='WARNING', time=5000)
-
 
 if action is None or action == 'root':
     from resources.lib import repository
@@ -66,29 +52,6 @@ elif action == 'toolNavigator':
 elif action == 'downloadNavigator':
     from resources.lib.indexers import navigator
     navigator.navigator().downloads()
-
-elif action in ('liveTVNavigator', 'liveTV'):
-    from resources.lib import live_tv
-    live_tv.list_categories()
-
-elif action == 'liveTVRefresh':
-    from resources.lib import live_tv
-    live_tv.refresh_catalog()
-
-elif action == 'liveTVCategory':
-    from resources.lib import live_tv
-    live_tv.list_channels(params.get('category'))
-
-elif action == 'liveTVPlay':
-    from resources.lib import live_tv
-    live_tv.play_channel(params.get('id'))
-
-elif action in DISABLED_LIVE_TV_ACTIONS:
-    show_live_tv_disabled()
-
-elif action and action.startswith('vavoo_'):
-    from resources.lib import vavooto
-    vavooto.dispatch(params)
 
 elif action == 'download':
     image = params.get('image')
@@ -198,10 +161,6 @@ elif action == 'playURL':
         xbmc.Player().play(url, item)
     except:
         control.infoDialog("Keinen Video Link gefunden", sound=True, icon='WARNING', time=1000)
-
-elif action == 'vavooSettings':
-    from resources.lib import vavooto
-    vavooto.open_settings()
 
 elif action and action.startswith('sync'):
     from resources.lib.sync import account

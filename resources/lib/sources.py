@@ -551,8 +551,6 @@ class sources:
                 log_utils.log('URL Test Error: Provider %s / %s / %s' % (item['provider'], item['source'], url), log_utils.LOGERROR)
                 raise Exception()
 
-            # url = utils.m3u8_check(url)
-
             if url:
                 self.url = url
                 return url

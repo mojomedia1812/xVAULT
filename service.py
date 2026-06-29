@@ -110,10 +110,6 @@ def _checkdomain(_domain, _provider):
         requests.packages.urllib3.disable_warnings()  # weil verify = False - ansonst Fehlermeldungen im kodi log
         check=None
         status_code=None
-        if _provider == 'vavoo':
-            with _settingsLock:
-                setSetting('provider.' + _provider + '.check', 'true')
-            return
         domain = getSetting('provider.'+ _provider +'.domain', _domain)
         base_link = 'https://' + domain
         try:

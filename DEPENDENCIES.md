@@ -1,6 +1,6 @@
 # xVAULT-Abhängigkeiten
 
-Geprüfter Stand: 2026-06-14
+Geprüfter Stand: 2026-06-29
 
 ## Kodi-Grundlage
 
@@ -19,8 +19,7 @@ werden.
 | `script.module.six` | nicht festgelegt | 1.16.0+matrix.1 | Python-Kompatibilitätsfunktionen | https://github.com/benjaminp/six |
 | `script.module.pyaes` | nicht festgelegt | 1.6.1+matrix.1 | AES-Ver- und Entschlüsselung, unter anderem MyJDownloader und Provider | https://github.com/ricmoo/pyaes |
 | `script.module.infotagger` | nicht festgelegt | 0.0.8 | Kodi-20+-Metadaten für Filme, Serien, Staffeln und Episoden | https://github.com/jurialmunkey/script.module.infotagger |
-| `script.module.dateutil` | nicht festgelegt | Kodi | Datumsauswertung in der eingebetteten VAVOO.TO-/Stalker-Integration | https://github.com/dateutil/dateutil |
-| `script.module.resolveurl` | 5.1.100 | Bootstrap | Auflösen unterstützter Video-Hoster, Resolver-Einstellungen und VAVOO.TO-Quellen | https://github.com/Gujal00/ResolveURL |
+| `script.module.resolveurl` | 5.1.100 | Bootstrap | Aufloesen unterstuetzter Video-Hoster und Resolver-Einstellungen | https://github.com/Gujal00/ResolveURL |
 
 Hinweis: `script.module.resolveurl` ist in `addon.xml` absichtlich als optional
 markiert, damit Kodi die direkte ZIP-Installation von xVAULT nicht wegen eines

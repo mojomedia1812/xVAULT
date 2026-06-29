@@ -23,8 +23,6 @@ Unser ausdrücklicher Dank gilt dem ursprünglichen **Team xShip**, insbesondere
 
 xShip war für viele Nutzer ein vertrautes und geschätztes Projekt. Die geleistete Arbeit verdient Anerkennung, Dank und Respekt — besonders für die Zeit, die Mühe und die technische Qualität bis zur Einstellung des Projekts.
 
-Für den Bereich **Live TV** gilt unser besonderer Dank **michaz1988**. Dieser Bereich basiert auf seiner Entwicklung und konnte nur durch seine Arbeit in **xVAULT** integriert werden.
-
 **Danke an das Team xShip.
 Danke an michaz1988.
 Danke für die Basis.

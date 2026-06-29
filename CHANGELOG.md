@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2026.06.29.1] - 2026-06-29
+
+- LiveTV-/Livestream-Bereich vollstaendig aus Menue, Routing, Einstellungen, Daten und Repository-Playlisten entfernt.
+- Eingebettete VAVOO.TO-/Stalker-/M3U-LiveTV-Module und zugehoerige Senderdaten entfernt.
+- README, DEPENDENCIES.md, Add-on-Metadaten und GitHub Page auf Filme/Serien ohne LiveTV abgeglichen.
 - Umami Analytics auf allen GitHub-Pages-HTML-Seiten mit Do-Not-Track, ausgeschlossenen URL-Suchparametern und Link-Events ergaenzt.
 - GitHub-Page-Bereich `Neu in` wird beim Build automatisch aus `CHANGELOG.txt` aktualisiert.
 

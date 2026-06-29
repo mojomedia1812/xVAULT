@@ -31,8 +31,6 @@ REPOSITORY_INDEX_DIR = PROJECT_DIR / "docs" / REPOSITORY_ID
 ADDON_INDEX_OUTPUT = ADDON_INDEX_DIR / ZIP_NAME
 REPOSITORY_INDEX_OUTPUT = REPOSITORY_INDEX_DIR / REPOSITORY_ZIP_NAME
 ADDONS_XML = PROJECT_DIR / "docs" / "addons.xml"
-M3U_DIR = PROJECT_DIR / "m3u"
-DOCS_M3U_DIR = PROJECT_DIR / "docs" / "m3u"
 CHANGELOG = PROJECT_DIR / "CHANGELOG.txt"
 RELEASE_NOTES_LIMIT = 5
 UMAMI_TRACKING = """  <script
@@ -208,14 +206,6 @@ def update_kodi_repository_metadata():
         encoding="utf-8",
         newline="\n",
     )
-
-
-def sync_repository_m3u():
-    if not M3U_DIR.exists():
-        return
-    DOCS_M3U_DIR.mkdir(parents=True, exist_ok=True)
-    for source in M3U_DIR.glob("*.m3u"):
-        shutil.copy2(source, DOCS_M3U_DIR / source.name)
 
 
 def update_download_page(output):
@@ -521,7 +511,6 @@ def _xml_body(content):
 
 
 if __name__ == "__main__":
-    sync_repository_m3u()
     for destination in OUTPUTS:
         build(destination)
         validate(destination)
