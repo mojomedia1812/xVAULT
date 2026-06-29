@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.06.29.2] - 2026-06-29
+
+- Einstellung `Automatische Updates aktivieren` im Bereich Allgemein ergaenzt; Standard ist aktiviert.
+- Interner Update-Check und automatisches Repository-Bootstrap respektieren die neue Einstellung.
+- README, Changelog, Add-on-Metadaten und GitHub Page auf Version `2026.06.29.2` aktualisiert.
+
 ## [2026.06.29.1] - 2026-06-29
 
 - LiveTV-/Livestream-Bereich vollstaendig aus Menue, Routing, Einstellungen, Daten und Repository-Playlisten entfernt.

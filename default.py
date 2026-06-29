@@ -18,11 +18,12 @@ source = params.get('source')
 
 
 if action is None or action == 'root':
-    from resources.lib import repository
-    repository.ensure_xvault_repository()
     from resources.lib import updater
-    if not updater.check_for_update():
-        sys.exit()
+    if updater.automatic_updates_enabled():
+        from resources.lib import repository
+        repository.ensure_xvault_repository()
+        if not updater.check_for_update():
+            sys.exit()
     from resources.lib import startup_info
     startup_info.show_pending_startup_info()
     try:

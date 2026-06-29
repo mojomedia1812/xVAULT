@@ -198,8 +198,10 @@ def ensure_youtube_api_keys():
 if __name__ == "__main__":
 	from resources.lib import dependencies
 	dependencies.ensure_all_dependencies()
-	from resources.lib import repository
-	repository.ensure_xvault_repository()
+	from resources.lib import updater
+	if updater.automatic_updates_enabled():
+		from resources.lib import repository
+		repository.ensure_xvault_repository()
 	check_domains()
 	delHtmlCache()
 	ensure_youtube_api_keys()

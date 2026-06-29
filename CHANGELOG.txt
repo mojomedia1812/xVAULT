@@ -1,3 +1,10 @@
+xVAULT 2026.06.29.2
+Entwickler: mojomedia1812
+
+- Neue Einstellung "Automatische Updates aktivieren" im Bereich Allgemein ergaenzt; Standard ist aktiviert.
+- Wenn die Einstellung deaktiviert ist, ueberspringt xVAULT den internen Update-Check und das automatische Repository-Bootstrap.
+- README, Add-on-Metadaten und GitHub Page auf die neue Version abgeglichen.
+
 xVAULT 2026.06.29.1
 Entwickler: mojomedia1812
 

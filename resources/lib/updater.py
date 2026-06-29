@@ -29,6 +29,9 @@ class UpdateError(Exception):
 
 def check_for_update():
     """Return False when an update was installed and the current plugin run should stop."""
+    if not automatic_updates_enabled():
+        return True
+
     try:
         release = get_latest_release()
         if not release:
@@ -55,6 +58,10 @@ def check_for_update():
         log_utils.log('Update check failed: %s' % str(e), log_utils.LOGWARNING)
 
     return True
+
+
+def automatic_updates_enabled():
+    return control.getSetting('updates.auto', 'true').lower() != 'false'
 
 
 def get_latest_release():
