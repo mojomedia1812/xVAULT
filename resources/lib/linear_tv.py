@@ -8,7 +8,7 @@ import sys
 import time
 import uuid
 import xml.etree.ElementTree as ET
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urljoin
 
 import xbmc
 
@@ -42,6 +42,10 @@ LOGOS_TTL = 14 * 24 * 3600
 MAX_PAGES_PER_GROUP = 20
 DEFAULT_BUFFER_MB = 0
 MAX_BUFFER_MB = 200
+PLAYBACK_ENGINE_AUTO = 0
+PLAYBACK_ENGINE_NATIVE = 1
+PLAYBACK_ENGINE_FFMPEG_DIRECT = 2
+PLAYBACK_ENGINE_ADAPTIVE = 3
 
 _signature_cache = {"value": "", "timestamp": 0}
 _epg_memory_cache = {"data": None, "mtime": 0}
@@ -232,6 +236,15 @@ def play(channel_id):
         control.resolveUrl(_handle(), False, control.item(channel.get("name") or "LiveTV", offscreen=True))
         return
 
+    if not _stream_preflight_ok(stream_url, channel):
+        fresh_stream_url = _resolve(channel.get("url"), force_signature=True)
+        if fresh_stream_url and _stream_preflight_ok(fresh_stream_url, channel):
+            stream_url = fresh_stream_url
+        else:
+            control.infoDialog("Stream liefert aktuell defekte Videosegmente", icon="WARNING", time=5000)
+            control.resolveUrl(_handle(), False, control.item(channel.get("name") or "LiveTV", offscreen=True))
+            return
+
     item = control.item(channel.get("name") or "LiveTV", offscreen=True)
     item.setProperty("IsPlayable", "true")
     item.setInfo("video", {
@@ -382,11 +395,11 @@ def _parse_catalog_items(items):
     return channels
 
 
-def _resolve(channel_url):
+def _resolve(channel_url, force_signature=False):
     if not channel_url or requests is None:
         return ""
 
-    signature = _signature()
+    signature = _signature(force=force_signature)
     if not signature:
         return ""
 
@@ -492,13 +505,149 @@ def _media_headers(signature=""):
 
 def _configure_stream(item, stream_url):
     _apply_live_buffer()
-    if ".m3u8" not in stream_url.lower() or control.getSetting("livetv.inputstream", "true") == "false":
+    if ".m3u8" not in stream_url.lower():
+        try:
+            item.setContentLookup(False)
+        except Exception:
+            pass
         return
+
+    engine = _setting_int("livetv.playback.engine", PLAYBACK_ENGINE_AUTO, PLAYBACK_ENGINE_AUTO, PLAYBACK_ENGINE_ADAPTIVE)
+    item.setMimeType("application/x-mpegURL")
+    item.setContentLookup(False)
+
+    if engine == PLAYBACK_ENGINE_ADAPTIVE:
+        if _configure_adaptive_stream(item):
+            return
+        control.infoDialog("InputStream Adaptive ist nicht verfuegbar. Kodi intern wird genutzt.", icon="WARNING", time=4000)
+        return
+
+    if engine == PLAYBACK_ENGINE_FFMPEG_DIRECT:
+        if _configure_ffmpeg_direct_stream(item):
+            return
+        control.infoDialog("FFmpeg Direct ist nicht verfuegbar. Kodi intern wird genutzt.", icon="WARNING", time=4000)
+        return
+
+    if engine == PLAYBACK_ENGINE_AUTO and _configure_ffmpeg_direct_stream(item):
+        return
+
+    log_utils.log("LiveTV uses Kodi internal HLS playback", log_utils.LOGINFO)
+
+
+def _configure_ffmpeg_direct_stream(item):
+    if not _addon_enabled("inputstream.ffmpegdirect"):
+        return False
+    item.setProperty("inputstream", "inputstream.ffmpegdirect")
+    item.setProperty("inputstream.ffmpegdirect.manifest_type", "hls")
+    item.setProperty("inputstream.ffmpegdirect.open_mode", "ffmpeg")
+    item.setProperty("inputstream.ffmpegdirect.is_realtime_stream", "true")
+    item.setProperty("inputstream.ffmpegdirect.playback_as_live", "true")
+    item.setProperty("inputstream.ffmpegdirect.stream_mode", "timeshift")
+    log_utils.log("LiveTV uses InputStream FFmpeg Direct for HLS playback", log_utils.LOGINFO)
+    return True
+
+
+def _configure_adaptive_stream(item):
+    if not _addon_enabled("inputstream.adaptive"):
+        return False
     item.setProperty("inputstream", "inputstream.adaptive")
     if int(control.getKodiVersion()) < 21:
         item.setProperty("inputstream.adaptive.manifest_type", "hls")
-    item.setMimeType("application/vnd.apple.mpegurl")
-    item.setContentLookup(False)
+    log_utils.log("LiveTV uses InputStream Adaptive for HLS playback", log_utils.LOGINFO)
+    return True
+
+
+def _addon_enabled(addon_id):
+    try:
+        payload = json.dumps({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "Addons.GetAddonDetails",
+            "params": {"addonid": addon_id, "properties": ["enabled"]},
+        })
+        response = json.loads(xbmc.executeJSONRPC(payload))
+        if response.get("error"):
+            return False
+        return bool(response.get("result", {}).get("addon", {}).get("enabled"))
+    except Exception:
+        try:
+            return bool(xbmc.getCondVisibility("System.HasAddon(%s)" % addon_id))
+        except Exception:
+            return False
+
+
+def _stream_preflight_ok(stream_url, channel):
+    if requests is None or ".m3u8" not in (stream_url or "").lower():
+        return True
+    if control.getSetting("livetv.preflight", "true") == "false":
+        return True
+
+    try:
+        segment_url = _hls_probe_segment(stream_url)
+        if not segment_url:
+            return True
+        status = _probe_segment_status(segment_url)
+        if status is None or 200 <= status < 400 or status == 416:
+            return True
+        log_utils.log(
+            "LiveTV preflight blocked %s: segment HTTP %s" % (channel.get("name") or channel.get("id") or "unknown", status),
+            log_utils.LOGWARNING,
+        )
+        return False
+    except Exception as exc:
+        log_utils.log(
+            "LiveTV preflight blocked %s: %s" % (channel.get("name") or channel.get("id") or "unknown", str(exc)),
+            log_utils.LOGWARNING,
+        )
+        return False
+
+
+def _hls_probe_segment(manifest_url, depth=0):
+    if depth > 2:
+        return ""
+
+    response = requests.get(manifest_url, headers=_hls_probe_headers(), timeout=10)
+    if response.status_code >= 400:
+        return manifest_url
+    text = response.text or ""
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+
+    for index, line in enumerate(lines):
+        if not line.startswith("#EXT-X-STREAM-INF"):
+            continue
+        for next_line in lines[index + 1:]:
+            if next_line.startswith("#"):
+                continue
+            return _hls_probe_segment(urljoin(manifest_url, next_line), depth + 1)
+
+    for line in reversed(lines):
+        if not line or line.startswith("#"):
+            continue
+        return urljoin(manifest_url, line)
+    return ""
+
+
+def _probe_segment_status(segment_url):
+    response = requests.get(segment_url, headers=_hls_probe_headers(range_request=True), timeout=10, stream=True)
+    try:
+        return int(response.status_code)
+    finally:
+        try:
+            response.close()
+        except Exception:
+            pass
+
+
+def _hls_probe_headers(range_request=False):
+    headers = {
+        "User-Agent": _browser_user_agent(),
+        "Accept": "*/*",
+        "Accept-Encoding": "identity",
+        "Connection": "close",
+    }
+    if range_request:
+        headers["Range"] = "bytes=0-0"
+    return headers
 
 
 def _apply_live_buffer():

@@ -32,7 +32,8 @@ offiziellem ResolveURL-Repository nach.
 | Kodi-ID / Komponente | Lokal installiert | Wann benötigt | Installation / Original-Repository |
 |---|---:|---|---|
 | `script.module.download-m3u8` | Bootstrap | Nur für direkte HLS-/M3U8-Downloads | Kodi-Paket: https://github.com/chrisklietsch/repository.kc-kodi/tree/main/repo/script.module.download-m3u8 — Upstream: https://github.com/hwaves/m3u8_To_MP4 (Weiterleitung zu https://github.com/tysoong/m3u8_To_MP4) |
-| `inputstream.adaptive` | 21.5.18 | HLS-/DASH-Wiedergabe, insbesondere LiveTV; wird durch `service.py` bei Bedarf über Kodi installiert | https://github.com/xbmc/inputstream.adaptive |
+| `inputstream.ffmpegdirect` | 21.3.8 | Bevorzugte optionale HLS-LiveTV-Wiedergabe im automatischen Modus, wenn auf der Kodi-Plattform verfuegbar; sonst faellt xVAULT auf Kodis interne HLS-Wiedergabe zurueck | https://github.com/xbmc/inputstream.ffmpegdirect |
+| `inputstream.adaptive` | 21.5.21 | Optionale HLS-/DASH-Wiedergabe; fuer LiveTV nur noch bei manueller Auswahl der Wiedergabe-Engine | https://github.com/xbmc/inputstream.adaptive |
 | `plugin.video.youtube` | Nein | Trailer-Wiedergabe; ohne Add-on wird die Trailer-Funktion ausgeblendet | https://github.com/anxdpanic/plugin.video.youtube |
 | `script.module.pydevd` | Nein | Nur Entwickler-Debugging; aktive Nutzung wurde nicht gefunden | Kodi-Modul: https://github.com/powlo/script.module.pydevd — Upstream: https://github.com/fabioz/PyDev.Debugger |
 

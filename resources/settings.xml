@@ -132,7 +132,8 @@
         <setting id="livetv.enabled" type="bool" label="LiveTV aktivieren" default="true" />
         <setting id="livetv.cache.hours" type="slider" label="Senderliste zwischenspeichern (Stunden)" default="1" range="1,1,24" option="int" enable="!eq(-1,false)" />
         <setting id="livetv.show.special" type="bool" label="Backup- und Event-Sender anzeigen" default="true" enable="!eq(-2,false)" />
-        <setting id="livetv.inputstream" type="bool" label="HLS ueber InputStream Adaptive abspielen" default="true" enable="!eq(-3,false)" />
+        <setting id="livetv.playback.engine" type="enum" label="LiveTV-Wiedergabe-Engine" values="Automatisch|Kodi intern|FFmpeg Direct|InputStream Adaptive" default="0" enable="!eq(-3,false)" />
+        <setting id="livetv.preflight" type="bool" label="Streamsegmente vor dem Start pruefen" default="true" enable="!eq(-4,false)" />
         <setting type="lsep" label="Stream-Puffer" />
         <setting id="livetv.buffer.mb" type="slider" label="LiveTV-Puffergroesse (MB, 0 = Kodi-Standard)" default="0" range="0,5,200" option="int" />
         <setting type="lsep" label="Elektronischer Programmfuehrer" />

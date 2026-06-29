@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
-<addon id="plugin.video.xvault" version="2026.06.29.7" name="[B]xVAULT[/B]" provider-name="xVAULT">
+<addon id="plugin.video.xvault" version="2026.06.29.8" name="[B]xVAULT[/B]" provider-name="xVAULT">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
         <import addon="script.module.requests"/>
@@ -11,6 +11,7 @@
         <import addon="script.module.infotagger"/>
         <import addon="script.module.resolveurl" version="5.1.100" optional="true"/>
         <import addon="inputstream.adaptive" optional="true"/>
+        <import addon="inputstream.ffmpegdirect" optional="true"/>
         <import addon="plugin.video.youtube" optional="true"/>
         <!-- for remote debug -->
         <import addon="script.module.pydevd" optional="true"/>
