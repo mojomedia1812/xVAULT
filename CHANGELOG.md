@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.06.29.3] - 2026-06-29
+
+- LiveTV als eigenstaendiges xVAULT-Modul neu integriert.
+- Deutsche Sender werden ueber `huhu.to` geladen, lokal gecacht, kategorisiert und erst beim Abspielen aufgeloest.
+- LiveTV-Menue mit Kategorien, Suche, Favoriten, Refresh-Aktion und eigenen Einstellungen ergaenzt.
+- Historische Texte und GitHub-Page-Hinweise neutralisiert, damit keine alten Quellnamen mehr in den veroeffentlichten Dateien auftauchen.
+
 ## [2026.06.29.2] - 2026-06-29
 
 - Einstellung `Automatische Updates aktivieren` im Bereich Allgemein ergaenzt; Standard ist aktiviert.
@@ -10,9 +17,9 @@
 
 ## [2026.06.29.1] - 2026-06-29
 
-- LiveTV-/Livestream-Bereich vollstaendig aus Menue, Routing, Einstellungen, Daten und Repository-Playlisten entfernt.
-- Eingebettete VAVOO.TO-/Stalker-/M3U-LiveTV-Module und zugehoerige Senderdaten entfernt.
-- README, DEPENDENCIES.md, Add-on-Metadaten und GitHub Page auf Filme/Serien ohne LiveTV abgeglichen.
+- Alter LiveTV-/Livestream-Bereich vollstaendig aus Menue, Routing, Einstellungen, Daten und Repository-Playlisten entfernt.
+- Eingebettete Altmodule und zugehoerige Senderdaten entfernt.
+- README, DEPENDENCIES.md, Add-on-Metadaten und GitHub Page auf Filme/Serien abgeglichen.
 - Umami Analytics auf allen GitHub-Pages-HTML-Seiten mit Do-Not-Track, ausgeschlossenen URL-Suchparametern und Link-Events ergaenzt.
 - GitHub-Page-Bereich `Neu in` wird beim Build automatisch aus `CHANGELOG.txt` aktualisiert.
 

@@ -1,3 +1,11 @@
+xVAULT 2026.06.29.3
+Entwickler: mojomedia1812
+
+- LiveTV als eigenstaendiges xVAULT-Modul neu integriert.
+- Deutsche Sender werden ueber huhu.to geladen, lokal gecacht, kategorisiert und erst beim Abspielen aufgeloest.
+- LiveTV-Menue mit Kategorien, Suche, Favoriten, Refresh-Aktion und eigenen Einstellungen ergaenzt.
+- Historische Texte und GitHub-Page-Hinweise neutralisiert, damit keine alten Quellnamen mehr in den veroeffentlichten Dateien auftauchen.
+
 xVAULT 2026.06.29.2
 Entwickler: mojomedia1812
 
@@ -8,9 +16,9 @@ Entwickler: mojomedia1812
 xVAULT 2026.06.29.1
 Entwickler: mojomedia1812
 
-- LiveTV-/Livestream-Bereich vollstaendig aus Hauptmenue, Routing und Einstellungen entfernt.
-- Eingebettete VAVOO.TO-, Stalker- und M3U-LiveTV-Module samt Senderdaten und Playlists entfernt.
-- Add-on-Metadaten, README, Abhaengigkeitsdokumentation und GitHub Page auf Filme/Serien ohne LiveTV abgeglichen.
+- Alter LiveTV-/Livestream-Bereich vollstaendig aus Hauptmenue, Routing und Einstellungen entfernt.
+- Eingebettete Altmodule samt Senderdaten und Playlists entfernt.
+- Add-on-Metadaten, README, Abhaengigkeitsdokumentation und GitHub Page auf Filme/Serien abgeglichen.
 
 xVAULT 2026.06.28.10
 Entwickler: mojomedia1812
@@ -101,24 +109,24 @@ xVAULT 2026.06.19.1
 Entwickler: mojomedia1812
 
 - LiveTV wieder aktiviert: Der Hauptmenuepunkt ist im xVAULT-Startmenue zurueck.
-- Beim Oeffnen von LiveTV werden `https://vavoo.to/channels` und `https://huhu.to/channels` parallel geladen und als `v-channels.json` sowie `h-channels.json` im Add-on-Profil gespeichert.
-- xVAULT migriert die deutsche VAVOO-Liste ID-basiert mit fehlenden HUHU-Eintraegen und speichert das Ergebnis als `channels.json`.
-- Das LiveTV-Menue zeigt nur Sender mit `channel_country: Germany` aus `stream-link-auditor.json` und gruppiert sie anhand von `vavoo_channels_categorized.json`.
+- Beim Oeffnen von LiveTV werden zwei damalige Senderlisten parallel geladen und im Add-on-Profil gespeichert.
+- xVAULT migriert die deutsche Senderliste ID-basiert mit fehlenden Eintraegen und speichert das Ergebnis als `channels.json`.
+- Das LiveTV-Menue zeigt nur deutsche Sender aus den damals bereitgestellten Pruefdaten und gruppiert sie anhand der damaligen Kategoriedaten.
 - Sender werden ueber die zur ID passende Stream-URL aus `stream-link-auditor.json` aufgeloest und als HLS-Stream wiedergegeben.
 
 xVAULT 2026.06.14.10
 Entwickler: mojomedia1812
 
 - LiveTV im Add-on deaktiviert: Der Hauptmenuepunkt wurde entfernt.
-- Direkte alte LiveTV-, M3U- und VAVOO-Live-Plugin-URLs zeigen nun eine kurze Deaktiviert-Meldung statt Streams zu starten.
+- Direkte alte LiveTV- und M3U-Plugin-URLs zeigen nun eine kurze Deaktiviert-Meldung statt Streams zu starten.
 - Joyn und Joyn-AT werden nicht mehr automatisch installiert, weil die M3U-LiveTV-Funktion deaktiviert ist.
 
 xVAULT 2026.06.14.9
 Entwickler: mojomedia1812
 
-- Live-TV-Resolver faengt VAVOO-Timeouts und andere Verbindungsfehler ab, damit Kodi nicht mehr mit einem Python-Fehler abbricht.
+- Live-TV-Resolver faengt Timeouts und andere Verbindungsfehler ab, damit Kodi nicht mehr mit einem Python-Fehler abbricht.
 - Wenn alle Live-TV-Streamkandidaten ausfallen, zeigt xVAULT jetzt eine klare Fehlermeldung statt kommentarlos zurueckzukehren.
-- VAVOO-Einstellungen fuer Cache-Kompression, Stalker-Zugangsdaten und Kanalfilter werden nun korrekt aus dem xVAULT-Namespace gelesen.
+- LiveTV-Einstellungen fuer Cache-Kompression, Portal-Zugangsdaten und Kanalfilter werden nun korrekt aus dem xVAULT-Namespace gelesen.
 - Joyn und Joyn-AT werden fuer die gebuendelten M3U-Live-TV-Eintraege nun automatisch ueber Kodi installiert, falls sie fehlen.
 
 xVAULT 2026.06.14.8
@@ -126,16 +134,16 @@ Entwickler: mojomedia1812
 
 - Die bereitgestellten Playlists `tv-at.m3u`, `tv.m3u` und `tv2.m3u` im Repository-Unterordner `m3u` eingebunden.
 - LIVE-TV-Menue um `M3U Live-TV` erweitert: die drei Playlists koennen direkt in xVAULT durchsucht und abgespielt werden.
-- Alte `plugin.video.vavooto`-M3U-URLs werden beim Anzeigen und Exportieren automatisch auf `plugin.video.xvault` / `action=vavoo_livePlay` umgeschrieben.
+- Alte M3U-Plugin-URLs werden beim Anzeigen und Exportieren automatisch auf `plugin.video.xvault` umgeschrieben.
 - M3U-Export schreibt normalisierte xVAULT-M3U-Dateien ins Addon-Profil.
 - Joyn und Joyn-AT als optionale Addons deklariert, weil einige M3U-Eintraege direkt ueber diese Plugins laufen.
 
 xVAULT 2026.06.14.7
 Entwickler: mojomedia1812
 
-- VAVOO.TO aus dem externen Add-on in xVAULT eingebettet: Live-TV, Filme, Serien, Favoriten, Suche, Gruppenwahl, Stalker-Funktionen und M3U-Erstellung laufen nun ueber `plugin.video.xvault`.
-- VAVOO.TO-Einstellungen in xVAULT uebernommen und mit `vavoo.`-Praefix im xVAULT-Profil gespeichert.
-- VAVOO.TO-M3U-URLs zeigen jetzt auf `plugin://plugin.video.xvault/?action=vavoo_livePlay&name=...`.
+- Eine damalige externe Live-Erweiterung in xVAULT eingebettet: Live-TV, Filme, Serien, Favoriten, Suche, Gruppenwahl, Portal-Funktionen und M3U-Erstellung laufen nun ueber `plugin.video.xvault`.
+- LiveTV-Einstellungen in xVAULT uebernommen und in einem eigenen xVAULT-Profilbereich gespeichert.
+- LiveTV-M3U-URLs zeigen jetzt auf xVAULT-Plugin-Routen.
 - HLS-Wiedergabe faellt auf `inputstream.adaptive` zurueck, wenn `inputstream.ffmpegdirect` nicht installiert ist.
 
 xVAULT 2026.06.14.6
@@ -155,8 +163,8 @@ xVAULT 2026.06.14.4
 Entwickler: mojomedia1812
 
 - LIVE-TV in ein Untermenue erweitert.
-- Optionale VAVOO.TO-Anbindung ergaenzt: xVAULT kann das externe Add-on aus dem Michaz-Repository installieren und oeffnen.
-- VAVOO.TO-Favoriten, Einstellungen und M3U-Erstellung sind direkt aus xVAULT erreichbar.
+- Optionale externe LiveTV-Anbindung ergaenzt: xVAULT kann das damalige externe Add-on aus dem Michaz-Repository installieren und oeffnen.
+- LiveTV-Favoriten, Einstellungen und M3U-Erstellung sind direkt aus xVAULT erreichbar.
 
 xVAULT 2026.06.14.3
 Entwickler: mojomedia1812

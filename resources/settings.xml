@@ -128,6 +128,12 @@
         <setting id="bookmarks" type="bool" label="Fortsetzen" default="true" />
         <setting id="bookmarks.auto" type="bool" label="Automatisch Fortsetzen" default="true" enable="!eq(-1,false)" />
     </category>
+    <category label="LiveTV">
+        <setting id="livetv.enabled" type="bool" label="LiveTV aktivieren" default="true" />
+        <setting id="livetv.cache.hours" type="slider" label="Senderliste zwischenspeichern (Stunden)" default="1" range="1,1,24" option="int" enable="!eq(-1,false)" />
+        <setting id="livetv.show.special" type="bool" label="Backup- und Event-Sender anzeigen" default="true" enable="!eq(-2,false)" />
+        <setting id="livetv.inputstream" type="bool" label="HLS ueber InputStream Adaptive abspielen" default="true" enable="!eq(-3,false)" />
+    </category>
     <category label="Konten">
         <setting type="lsep" label="xVAULT Synchronisation"/>
         <setting id="sync.enabled" type="bool" label="Synchronisation aktivieren" default="false" />

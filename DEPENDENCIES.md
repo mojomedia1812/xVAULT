@@ -15,7 +15,7 @@ werden.
 
 | Kodi-ID | Mindestversion | Lokal installiert | Verwendung | Original-Repository |
 |---|---:|---:|---|---|
-| `script.module.requests` | nicht festgelegt | 2.31.0 | HTTP-Anfragen, Provider, Metadaten und Medienanalyse | https://github.com/psf/requests |
+| `script.module.requests` | nicht festgelegt | 2.31.0 | HTTP-Anfragen, Provider, LiveTV, Metadaten und Medienanalyse | https://github.com/psf/requests |
 | `script.module.six` | nicht festgelegt | 1.16.0+matrix.1 | Python-Kompatibilitätsfunktionen | https://github.com/benjaminp/six |
 | `script.module.pyaes` | nicht festgelegt | 1.6.1+matrix.1 | AES-Ver- und Entschlüsselung, unter anderem MyJDownloader und Provider | https://github.com/ricmoo/pyaes |
 | `script.module.infotagger` | nicht festgelegt | 0.0.8 | Kodi-20+-Metadaten für Filme, Serien, Staffeln und Episoden | https://github.com/jurialmunkey/script.module.infotagger |
@@ -32,7 +32,7 @@ offiziellem ResolveURL-Repository nach.
 | Kodi-ID / Komponente | Lokal installiert | Wann benötigt | Installation / Original-Repository |
 |---|---:|---|---|
 | `script.module.download-m3u8` | Bootstrap | Nur für direkte HLS-/M3U8-Downloads | Kodi-Paket: https://github.com/chrisklietsch/repository.kc-kodi/tree/main/repo/script.module.download-m3u8 — Upstream: https://github.com/hwaves/m3u8_To_MP4 (Weiterleitung zu https://github.com/tysoong/m3u8_To_MP4) |
-| `inputstream.adaptive` | 21.5.18 | HLS-/DASH-Wiedergabe; wird durch `service.py` bei Bedarf über Kodi installiert | https://github.com/xbmc/inputstream.adaptive |
+| `inputstream.adaptive` | 21.5.18 | HLS-/DASH-Wiedergabe, insbesondere LiveTV; wird durch `service.py` bei Bedarf über Kodi installiert | https://github.com/xbmc/inputstream.adaptive |
 | `plugin.video.youtube` | Nein | Trailer-Wiedergabe; ohne Add-on wird die Trailer-Funktion ausgeblendet | https://github.com/anxdpanic/plugin.video.youtube |
 | `script.module.pydevd` | Nein | Nur Entwickler-Debugging; aktive Nutzung wurde nicht gefunden | Kodi-Modul: https://github.com/powlo/script.module.pydevd — Upstream: https://github.com/fabioz/PyDev.Debugger |
 

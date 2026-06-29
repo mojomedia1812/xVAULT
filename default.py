@@ -46,6 +46,38 @@ elif action == 'tvNavigator':
     from resources.lib.indexers import navigator
     navigator.navigator().tvshows()
 
+elif action == 'liveTVNavigator':
+    from resources.lib import linear_tv
+    linear_tv.show_home()
+
+elif action == 'liveTVRefresh':
+    from resources.lib import linear_tv
+    linear_tv.refresh()
+
+elif action == 'liveTVCategory':
+    from resources.lib import linear_tv
+    linear_tv.show_category(params.get('category'))
+
+elif action == 'liveTVSearch':
+    from resources.lib import linear_tv
+    linear_tv.show_search(params.get('query'))
+
+elif action == 'liveTVFavorites':
+    from resources.lib import linear_tv
+    linear_tv.show_favorites()
+
+elif action == 'liveTVFavoriteAdd':
+    from resources.lib import linear_tv
+    linear_tv.add_favorite(params.get('id'))
+
+elif action == 'liveTVFavoriteRemove':
+    from resources.lib import linear_tv
+    linear_tv.remove_favorite(params.get('id'))
+
+elif action == 'liveTVPlay':
+    from resources.lib import linear_tv
+    linear_tv.play(params.get('id'))
+
 elif action == 'toolNavigator':
     from resources.lib.indexers import navigator
     navigator.navigator().tools()

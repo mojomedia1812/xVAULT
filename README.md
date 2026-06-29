@@ -1,10 +1,10 @@
 # xVAULT
 
-xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen und TV-Serien.
+xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-Serien und LiveTV.
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.06.29.2`
+Aktueller Stand: `2026.06.29.3`
 
 Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geaendert wird, muss diese README geprueft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** oeffnen.
-3. Die Datei `plugin.video.xvault-2026.06.29.2.zip` auswaehlen.
+3. Die Datei `plugin.video.xvault-2026.06.29.3.zip` auswaehlen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen ueber das Repository.
@@ -24,17 +24,19 @@ Weitere Hinweise zu Abhaengigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 ## Nutzung
 
 - Filme und Serien ueber die xVAULT-Menues suchen.
+- LiveTV ueber deutsche Senderkategorien, Suche oder Favoriten starten.
 - Eine Quelle auswaehlen oder Autoplay verwenden.
 - Favoriten und Wiedergabestaende optional ueber den Kontenbereich synchronisieren.
 - Gesehene Folgen, Staffeln und Serien werden aus den aktuellen Wiedergabestaenden abgeleitet.
 
 ## Funktionen
 
-- Suche und Wiedergabe von Filmen und TV-Serien.
+- Suche und Wiedergabe von Filmen, TV-Serien und LiveTV.
 - Fortsetzen von Wiedergaben und automatische Lesezeichen.
 - Gesehen/Ungesehen-Status fuer Filme, Folgen, Staffeln und Serien.
 - xVAULT-Synchronisation fuer Favoriten und Wiedergabestaende.
 - Automatische Updatepruefung kann in den allgemeinen Einstellungen aktiviert oder deaktiviert werden.
+- LiveTV-Senderliste mit lokalem Cache, Kategorien, Suche und Favoriten.
 - Download-, Untertitel- und externe Download-Manager-Optionen.
 
 ## Fehler und Vorschlaege melden
