@@ -15,7 +15,7 @@ werden.
 
 | Kodi-ID | Mindestversion | Lokal installiert | Verwendung | Original-Repository |
 |---|---:|---:|---|---|
-| `script.module.requests` | nicht festgelegt | 2.31.0 | HTTP-Anfragen, Provider, LiveTV, Metadaten und Medienanalyse | https://github.com/psf/requests |
+| `script.module.requests` | nicht festgelegt | 2.31.0 | HTTP-Anfragen, Provider, LiveTV, EPG, Metadaten und Medienanalyse | https://github.com/psf/requests |
 | `script.module.six` | nicht festgelegt | 1.16.0+matrix.1 | Python-Kompatibilitätsfunktionen | https://github.com/benjaminp/six |
 | `script.module.pyaes` | nicht festgelegt | 1.6.1+matrix.1 | AES-Ver- und Entschlüsselung, unter anderem MyJDownloader und Provider | https://github.com/ricmoo/pyaes |
 | `script.module.infotagger` | nicht festgelegt | 0.0.8 | Kodi-20+-Metadaten für Filme, Serien, Staffeln und Episoden | https://github.com/jurialmunkey/script.module.infotagger |
@@ -62,6 +62,7 @@ mitinstalliert.
 | FFmpeg | Empfohlen für das Zusammenführen beziehungsweise Konvertieren von M3U8-Downloads durch `m3u8_To_MP4` |
 | TMDB-API-Schlüssel | Film-, Serien-, Personen- und Metadatensuche |
 | YouTube-API-Schlüssel | YouTube-Suche innerhalb der Trailer-Funktion |
+| XMLTV-EPG-Quelle `epgshare01.online` | Aktuelle Programminformationen fuer den LiveTV-Hinweis vor dem Streamstart |
 
 ## Empfohlene Manifestkorrekturen
 

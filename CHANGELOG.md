@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.06.29.5] - 2026-06-29
+
+- LiveTV zeigt vor dem Streamstart die aktuell laufende Sendung aus einem lokalen XMLTV-EPG-Cache an.
+- EPG-Daten werden mit deutschem Kanal-Mapping lokal zwischengespeichert und auf LiveTV-Sendernamen wie RTL 2, 3sat, 13th Street oder Das Erste abgeglichen.
+- LiveTV-Einstellungen um EPG an/aus, EPG-Dialog und EPG-Cachezeit ergaenzt.
+
 ## [2026.06.29.4] - 2026-06-29
 
 - LiveTV-Refresh beendet den Kodi-Directory-Aufruf jetzt sauber, damit beim Aktualisieren der Senderliste kein `GetDirectory`-Fehler im Kodi-Log entsteht.

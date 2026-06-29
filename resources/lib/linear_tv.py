@@ -1,9 +1,13 @@
+import calendar
+import gzip
+import io
 import json
 import os
 import re
 import sys
 import time
 import uuid
+import xml.etree.ElementTree as ET
 from urllib.parse import urlencode
 
 import xbmc
@@ -20,16 +24,22 @@ BASE_URLS = ("https://huhu.to", "https://www.huhu.to")
 PING_URL = "https://www.vypn.net/api/app/ping"
 CATALOG_PATH = "/mediaurl-catalog.json"
 RESOLVE_PATH = "/mediaurl-resolve.json"
+EPG_URL = "https://epgshare01.online/epgshare01/epg_ripper_DE1.xml.gz"
 MEDIA_USER_AGENT = "MediaUrl/2"
 CLIENT_VERSION = "3.1.0"
 CATALOG_GROUPS = ("Germany", "GERMANY")
 CATALOG_FILE = os.path.join(control.addonProfilePath, "linear-tv-catalog.json")
 FAVORITES_FILE = os.path.join(control.addonProfilePath, "linear-tv-favorites.json")
+EPG_FILE = os.path.join(control.addonProfilePath, "linear-tv-epg.json")
 SIGNATURE_TTL = 7 * 60
 DEFAULT_CACHE_HOURS = 1
+DEFAULT_EPG_CACHE_HOURS = 6
+EPG_LOOKAHEAD_HOURS = 24
+EPG_LOOKBEHIND_HOURS = 2
 MAX_PAGES_PER_GROUP = 20
 
 _signature_cache = {"value": "", "timestamp": 0}
+_epg_memory_cache = {"data": None, "mtime": 0}
 _base_index = 0
 
 
@@ -95,6 +105,24 @@ CATEGORY_RULES = (
 )
 
 _HIDDEN_TOKENS = ("BACKUP", "EVENT", "RAW", "LIVE DURING EVENTS", "TEST")
+
+_XMLTV_TIME_RE = re.compile(r"^(\d{14})(?:\s*([+-])(\d{2})(\d{2}))?")
+_EPG_DROP_RE = re.compile(
+    r"\b(HD|FHD|UHD|SD|RAW|BACKUP|EVENT|EVENTS|OPTION|SELECT|NUR|STREAMING|STREAM)\b",
+    re.IGNORECASE,
+)
+_EPG_ALIAS_REPLACEMENTS = (
+    ("rtl2", "rtlzwei"),
+    ("rtlzwei", "rtl2"),
+    ("pro7", "prosieben"),
+    ("prosieben", "pro7"),
+    ("kabel1", "kabeleins"),
+    ("kabeleins", "kabel1"),
+    ("13thstreetuniversal", "13thstreet"),
+    ("13thstreet", "13thstreetuniversal"),
+    ("rtlsuper", "superrtl"),
+    ("superrtl", "rtlsuper"),
+)
 
 
 def show_home():
@@ -189,6 +217,9 @@ def play(channel_id):
         control.resolveUrl(_handle(), False, control.item("LiveTV", offscreen=True))
         return
 
+    programme = _current_programme(channel, refresh=True)
+    _show_programme_before_play(channel, programme)
+
     stream_url = _resolve(channel.get("url"))
     if not stream_url:
         control.infoDialog("Stream konnte nicht aufgeloest werden", icon="WARNING", time=4000)
@@ -199,7 +230,7 @@ def play(channel_id):
     item.setProperty("IsPlayable", "true")
     item.setInfo("video", {
         "title": channel.get("name") or "LiveTV",
-        "plot": _plot(channel),
+        "plot": _plot(channel, programme),
         "mediatype": "video",
     })
     logo = channel.get("logo") or ""
@@ -511,8 +542,351 @@ def _add_folder(handle, label, params, is_folder, plot=""):
     control.addItem(handle, _url(params), item, is_folder)
 
 
-def _plot(channel):
-    return "%s[CR]%s" % (channel.get("category") or "LiveTV", channel.get("group") or "Germany")
+def _plot(channel, programme=None):
+    lines = []
+    if programme:
+        lines.append("Jetzt: %s" % _programme_title(programme))
+        lines.append(_programme_time_range(programme))
+        description = programme.get("desc") or ""
+        if description:
+            lines.append(description)
+    lines.append(channel.get("category") or "LiveTV")
+    lines.append(channel.get("group") or "Germany")
+    return "[CR]".join([line for line in lines if line])
+
+
+def _current_programme(channel, refresh=False):
+    if not _epg_enabled():
+        return None
+
+    epg = _epg_data(refresh=refresh)
+    if not epg:
+        return None
+
+    channel_id = _epg_channel_id(channel, epg)
+    if not channel_id:
+        return None
+
+    now = int(time.time())
+    for programme in epg.get("programmes", {}).get(channel_id, []):
+        if int(programme.get("start") or 0) <= now < int(programme.get("stop") or 0):
+            return programme
+    return None
+
+
+def _show_programme_before_play(channel, programme):
+    if not programme or not _epg_enabled():
+        return
+
+    heading = channel.get("name") or "LiveTV"
+    if control.getSetting("livetv.epg.dialog", "false") == "true":
+        control.dialog.ok("LiveTV EPG", _programme_dialog_text(heading, programme))
+        return
+
+    control.infoDialog(
+        _truncate("Jetzt %s: %s" % (_programme_time_range(programme), _programme_title(programme)), 110),
+        heading=heading,
+        icon=channel.get("logo") or "INFO",
+        time=7000,
+    )
+    xbmc.sleep(1800)
+
+
+def _programme_dialog_text(channel_name, programme):
+    lines = [
+        channel_name,
+        "",
+        "Jetzt: %s" % _programme_time_range(programme),
+        "[B]%s[/B]" % _programme_title(programme),
+    ]
+    description = programme.get("desc") or ""
+    if description:
+        lines.extend(["", _truncate(description, 900)])
+    return "\n".join(lines)
+
+
+def _programme_title(programme):
+    title = programme.get("title") or "Unbekannte Sendung"
+    subtitle = programme.get("subtitle") or ""
+    if subtitle and subtitle not in title:
+        return "%s - %s" % (title, subtitle)
+    return title
+
+
+def _programme_time_range(programme):
+    start = _local_hm(programme.get("start"))
+    stop = _local_hm(programme.get("stop"))
+    if start and stop:
+        return "%s-%s" % (start, stop)
+    return ""
+
+
+def _local_hm(timestamp):
+    try:
+        return time.strftime("%H:%M", time.localtime(int(timestamp)))
+    except Exception:
+        return ""
+
+
+def _epg_data(refresh=False):
+    _ensure_profile()
+    cached = _read_epg_cache()
+    if not refresh:
+        return cached if _epg_cache_usable(cached, strict=True) else {}
+    if _epg_cache_usable(cached, strict=True):
+        return cached
+
+    epg = _download_epg()
+    if epg:
+        _write_json(EPG_FILE, epg)
+        _epg_memory_cache["data"] = epg
+        try:
+            _epg_memory_cache["mtime"] = os.path.getmtime(EPG_FILE)
+        except Exception:
+            _epg_memory_cache["mtime"] = time.time()
+        return epg
+
+    if _epg_cache_usable(cached, strict=False):
+        control.infoDialog("LiveTV nutzt gespeicherte EPG-Daten.", icon="WARNING", time=3500)
+        return cached
+    return {}
+
+
+def _read_epg_cache():
+    try:
+        mtime = os.path.getmtime(EPG_FILE)
+    except Exception:
+        mtime = 0
+    if _epg_memory_cache["data"] is not None and _epg_memory_cache["mtime"] == mtime:
+        return _epg_memory_cache["data"]
+    data = _read_json(EPG_FILE, {})
+    _epg_memory_cache["data"] = data
+    _epg_memory_cache["mtime"] = mtime
+    return data
+
+
+def _epg_cache_usable(data, strict=True):
+    if not isinstance(data, dict) or not data.get("programmes") or not data.get("alias_to_id"):
+        return False
+
+    try:
+        hours = int(control.getSetting("livetv.epg.cache.hours", str(DEFAULT_EPG_CACHE_HOURS)))
+    except Exception:
+        hours = DEFAULT_EPG_CACHE_HOURS
+    ttl = max(1, hours) * 3600
+    now = time.time()
+    if strict and now - int(data.get("updated_at") or 0) >= ttl:
+        return False
+    return int(data.get("valid_until") or 0) > int(now)
+
+
+def _download_epg():
+    if requests is None:
+        log_utils.log("LiveTV EPG failed: requests module is not available", log_utils.LOGWARNING)
+        return {}
+
+    progress = control.progressDialog
+    progress.create(control.addonName, "LiveTV-EPG wird geladen")
+    progress.update(5)
+    try:
+        response = requests.get(EPG_URL, headers=_epg_headers(), timeout=45)
+        response.raise_for_status()
+        progress.update(30, "LiveTV-EPG wird ausgewertet")
+        return _parse_epg(response.content)
+    except Exception as exc:
+        log_utils.log("LiveTV EPG failed: %s" % str(exc), log_utils.LOGWARNING)
+        return {}
+    finally:
+        try:
+            progress.close()
+        except Exception:
+            pass
+
+
+def _parse_epg(raw):
+    try:
+        xml_data = gzip.decompress(raw)
+    except Exception:
+        xml_data = raw
+
+    now = int(time.time())
+    window_start = now - (EPG_LOOKBEHIND_HOURS * 3600)
+    window_end = now + (EPG_LOOKAHEAD_HOURS * 3600)
+    channels = {}
+    programmes = {}
+
+    for event, elem in _iter_xmltv(xml_data):
+        tag = _xml_tag(elem.tag)
+        if tag == "channel":
+            channel_id = elem.attrib.get("id") or ""
+            if channel_id:
+                names = _display_names(elem)
+                channels[channel_id] = {
+                    "names": names,
+                    "aliases": sorted(_epg_aliases(channel_id, names)),
+                }
+            elem.clear()
+        elif tag == "programme":
+            channel_id = elem.attrib.get("channel") or ""
+            start = _xmltv_timestamp(elem.attrib.get("start"))
+            stop = _xmltv_timestamp(elem.attrib.get("stop"))
+            if channel_id and start and stop and stop > window_start and start < window_end:
+                title = _child_text(elem, "title")
+                if title:
+                    programmes.setdefault(channel_id, []).append({
+                        "title": title,
+                        "subtitle": _child_text(elem, "sub-title"),
+                        "desc": _child_text(elem, "desc"),
+                        "start": start,
+                        "stop": stop,
+                    })
+            elem.clear()
+
+    alias_to_id = {}
+    for channel_id, meta in channels.items():
+        if channel_id not in programmes:
+            continue
+        programmes[channel_id].sort(key=lambda item: int(item.get("start") or 0))
+        for alias in meta.get("aliases", []):
+            alias_to_id.setdefault(alias, channel_id)
+
+    if not alias_to_id:
+        return {}
+
+    return {
+        "updated_at": now,
+        "valid_until": window_end,
+        "source": EPG_URL,
+        "channels": channels,
+        "programmes": programmes,
+        "alias_to_id": alias_to_id,
+        "stats": {
+            "channels": len(channels),
+            "matched_channels": len(programmes),
+            "aliases": len(alias_to_id),
+        },
+    }
+
+
+def _iter_xmltv(xml_data):
+    return ET.iterparse(io.BytesIO(xml_data), events=("end",))
+
+
+def _display_names(elem):
+    names = []
+    for child in elem:
+        if _xml_tag(child.tag) == "display-name" and child.text:
+            text = _clean_text(child.text)
+            if text and text not in names:
+                names.append(text)
+    return names
+
+
+def _child_text(elem, tag_name):
+    for child in elem:
+        if _xml_tag(child.tag) == tag_name and child.text:
+            return _clean_text(child.text)
+    return ""
+
+
+def _xml_tag(tag):
+    return tag.rsplit("}", 1)[-1]
+
+
+def _xmltv_timestamp(value):
+    match = _XMLTV_TIME_RE.match(value or "")
+    if not match:
+        return 0
+    try:
+        stamp = time.strptime(match.group(1), "%Y%m%d%H%M%S")
+        if not match.group(2):
+            return int(time.mktime(stamp))
+        timestamp = calendar.timegm(stamp)
+        offset = (int(match.group(3)) * 3600) + (int(match.group(4)) * 60)
+        return int(timestamp - offset if match.group(2) == "+" else timestamp + offset)
+    except Exception:
+        return 0
+
+
+def _epg_channel_id(channel, epg):
+    aliases = _live_channel_aliases(channel)
+    alias_to_id = epg.get("alias_to_id", {})
+    for alias in aliases:
+        channel_id = alias_to_id.get(alias)
+        if channel_id:
+            return channel_id
+
+    for alias in aliases:
+        if len(alias) < 6:
+            continue
+        for known_alias, channel_id in alias_to_id.items():
+            if len(known_alias) >= 6 and (alias in known_alias or known_alias in alias):
+                return channel_id
+    return ""
+
+
+def _epg_aliases(channel_id, names):
+    aliases = set()
+    parts = [channel_id.rsplit(".", 1)[0] if channel_id.lower().endswith(".de") else channel_id]
+    parts.extend(names or [])
+    for value in parts:
+        aliases.update(_alias_variants(_normalise_channel_name(value)))
+    return set([alias for alias in aliases if alias])
+
+
+def _live_channel_aliases(channel):
+    name = channel.get("name") or ""
+    aliases = set()
+    aliases.update(_alias_variants(_normalise_channel_name(name)))
+    aliases.update(_alias_variants(_normalise_channel_name(_strip_live_suffixes(name))))
+    return sorted([alias for alias in aliases if alias], key=len, reverse=True)
+
+
+def _strip_live_suffixes(value):
+    text = re.sub(r"\[[^\]]*\]", " ", value or "")
+    text = re.sub(r"\([^)]*\)", " ", text)
+    text = re.sub(r"\bHD\+", " ", text, flags=re.IGNORECASE)
+    text = _EPG_DROP_RE.sub(" ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _normalise_channel_name(value):
+    value = _strip_live_suffixes(value)
+    value = value.replace("&", " und ")
+    value = value.replace("+", " plus ")
+    return re.sub(r"[^a-z0-9]+", "", value.lower())
+
+
+def _alias_variants(alias):
+    aliases = set([alias])
+    if alias.endswith("plus"):
+        aliases.add(alias[:-4] + "up")
+    if alias.endswith("up"):
+        aliases.add(alias[:-2] + "plus")
+    for old, new in _EPG_ALIAS_REPLACEMENTS:
+        if old in alias:
+            aliases.add(alias.replace(old, new))
+    return aliases
+
+
+def _clean_text(value):
+    return re.sub(r"\s+", " ", value or "").strip()
+
+
+def _truncate(value, length):
+    value = value or ""
+    if len(value) <= length:
+        return value
+    return value[:max(0, length - 3)].rstrip() + "..."
+
+
+def _epg_headers():
+    return {
+        "User-Agent": _browser_user_agent(),
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate",
+        "Connection": "close",
+    }
 
 
 def _favorite_record(channel):
@@ -617,3 +991,7 @@ def _end(title, cache=False):
 
 def _enabled():
     return control.getSetting("livetv.enabled", "true") != "false"
+
+
+def _epg_enabled():
+    return control.getSetting("livetv.epg.enabled", "true") != "false"

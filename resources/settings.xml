@@ -133,6 +133,10 @@
         <setting id="livetv.cache.hours" type="slider" label="Senderliste zwischenspeichern (Stunden)" default="1" range="1,1,24" option="int" enable="!eq(-1,false)" />
         <setting id="livetv.show.special" type="bool" label="Backup- und Event-Sender anzeigen" default="true" enable="!eq(-2,false)" />
         <setting id="livetv.inputstream" type="bool" label="HLS ueber InputStream Adaptive abspielen" default="true" enable="!eq(-3,false)" />
+        <setting type="lsep" label="Elektronischer Programmfuehrer" />
+        <setting id="livetv.epg.enabled" type="bool" label="EPG vor Wiedergabe anzeigen" default="true" />
+        <setting id="livetv.epg.dialog" type="bool" label="EPG als bestaetigten Dialog anzeigen" default="false" />
+        <setting id="livetv.epg.cache.hours" type="slider" label="EPG zwischenspeichern (Stunden)" default="6" range="1,1,24" option="int" />
     </category>
     <category label="Konten">
         <setting type="lsep" label="xVAULT Synchronisation"/>
