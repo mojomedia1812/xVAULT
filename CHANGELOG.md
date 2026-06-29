@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2026.06.29.7] - 2026-06-29
+
+- LiveTV-Einstellungen um eine Puffergroesse in MB ergaenzt; 0 MB laesst den Kodi-Standard unveraendert.
+- Beim Start eines LiveTV-Streams setzt xVAULT die Kodi-Dateicachegroesse auf den gewaehlten Wert und aktiviert Netzwerkstream-Pufferung.
+
 ## [2026.06.29.6] - 2026-06-29
 
 - LiveTV-Senderlisten zeigen im Infofeld des markierten Senders jetzt `Aktuell` und `Gleich` aus dem EPG.

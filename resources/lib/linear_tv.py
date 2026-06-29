@@ -40,6 +40,8 @@ EPG_LOOKAHEAD_HOURS = 24
 EPG_LOOKBEHIND_HOURS = 2
 LOGOS_TTL = 14 * 24 * 3600
 MAX_PAGES_PER_GROUP = 20
+DEFAULT_BUFFER_MB = 0
+MAX_BUFFER_MB = 200
 
 _signature_cache = {"value": "", "timestamp": 0}
 _epg_memory_cache = {"data": None, "mtime": 0}
@@ -489,6 +491,7 @@ def _media_headers(signature=""):
 
 
 def _configure_stream(item, stream_url):
+    _apply_live_buffer()
     if ".m3u8" not in stream_url.lower() or control.getSetting("livetv.inputstream", "true") == "false":
         return
     item.setProperty("inputstream", "inputstream.adaptive")
@@ -496,6 +499,49 @@ def _configure_stream(item, stream_url):
         item.setProperty("inputstream.adaptive.manifest_type", "hls")
     item.setMimeType("application/vnd.apple.mpegurl")
     item.setContentLookup(False)
+
+
+def _apply_live_buffer():
+    buffer_mb = _setting_int("livetv.buffer.mb", DEFAULT_BUFFER_MB, 0, MAX_BUFFER_MB)
+    if buffer_mb <= 0:
+        return
+
+    _set_kodi_setting("filecache.buffermode", 4)
+    _set_kodi_setting("filecache.memorysize", buffer_mb)
+
+
+def _set_kodi_setting(setting, value):
+    try:
+        current = _get_kodi_setting(setting)
+        if current == value:
+            return True
+        payload = json.dumps({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "Settings.SetSettingValue",
+            "params": {"setting": setting, "value": value},
+        })
+        response = json.loads(xbmc.executeJSONRPC(payload))
+        if response.get("error"):
+            log_utils.log("LiveTV buffer setting failed for %s: %s" % (setting, response.get("error")), log_utils.LOGWARNING)
+            return False
+        return True
+    except Exception as exc:
+        log_utils.log("LiveTV buffer setting failed for %s: %s" % (setting, str(exc)), log_utils.LOGWARNING)
+        return False
+
+
+def _get_kodi_setting(setting):
+    payload = json.dumps({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "Settings.GetSettingValue",
+        "params": {"setting": setting},
+    })
+    response = json.loads(xbmc.executeJSONRPC(payload))
+    if response.get("error"):
+        return None
+    return response.get("result", {}).get("value")
 
 
 def _group_channels(channels):
@@ -1163,11 +1209,23 @@ def _cache_valid(data):
     if not isinstance(data, dict) or not data.get("channels"):
         return False
     try:
-        hours = int(control.getSetting("livetv.cache.hours", str(DEFAULT_CACHE_HOURS)))
+        hours = _setting_int("livetv.cache.hours", DEFAULT_CACHE_HOURS, 1, 24)
     except Exception:
         hours = DEFAULT_CACHE_HOURS
     ttl = max(1, hours) * 3600
     return time.time() - int(data.get("updated_at") or 0) < ttl
+
+
+def _setting_int(name, default, minimum=None, maximum=None):
+    try:
+        value = int(float(control.getSetting(name, str(default))))
+    except Exception:
+        value = int(default)
+    if minimum is not None:
+        value = max(int(minimum), value)
+    if maximum is not None:
+        value = min(int(maximum), value)
+    return value
 
 
 def _read_json(path, default):

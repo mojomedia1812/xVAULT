@@ -1,3 +1,9 @@
+xVAULT 2026.06.29.7
+Entwickler: mojomedia1812
+
+- LiveTV-Einstellungen um eine Puffergroesse in MB ergaenzt; 0 MB laesst den Kodi-Standard unveraendert.
+- Beim Start eines LiveTV-Streams setzt xVAULT die Kodi-Dateicachegroesse auf den gewaehlten Wert und aktiviert Netzwerkstream-Pufferung.
+
 xVAULT 2026.06.29.6
 Entwickler: mojomedia1812
 
