@@ -124,6 +124,11 @@
         <setting id="hosts.limit" type="bool" label="Limit Hosteranzahl" default="False" />
         <setting id="hosts.limit.num" type="slider" label="Liste begrenzen auf:" default="15" range="5,50" option="int" visible="eq(-1,true)"/>
         <setting id="hosts.filter" type="text" label="Hoster ausschließen (Liste)" default=""/>
+        <setting type="lsep" label="Stream-Sprache fuer Filme &amp; Serien" />
+        <setting id="hosts.language" type="enum" label="Bevorzugte Stream-Sprache" values="Alle|Deutsch|Englisch|Mehrsprachig" default="0" />
+        <setting id="hosts.language.mode" type="enum" label="Sprachfilter-Modus" values="Sprache bevorzugen|Nur passende Sprache anzeigen" default="0" />
+        <setting id="hosts.language.unknown" type="bool" label="Streams mit unbekannter Sprache anzeigen" default="true" />
+        <setting id="hosts.language.multi" type="bool" label="Mehrsprachige Streams bei Deutsch/Englisch erlauben" default="true" />
         <setting type="lsep" label="Bei Wiedergabe-Start..." />
         <setting id="bookmarks" type="bool" label="Fortsetzen" default="true" />
         <setting id="bookmarks.auto" type="bool" label="Automatisch Fortsetzen" default="true" enable="!eq(-1,false)" />

@@ -447,6 +447,110 @@ class sources:
         except:
             pass
 
+    def _normalizeStreamLanguage(self, item):
+        values = [
+            item.get('language', ''),
+            item.get('info', ''),
+        ]
+        codes = set()
+        for value in values:
+            codes.update(self._languageCodesFromText(value))
+
+        if 'multi' in codes or ('de' in codes and 'en' in codes):
+            return 'multi'
+        if 'de' in codes:
+            return 'de'
+        if 'en' in codes:
+            return 'en'
+        return 'unknown'
+
+    def _languageCodesFromText(self, value):
+        if value == None:
+            return set()
+        if isinstance(value, (list, tuple, set)):
+            value = ' '.join([str(i) for i in value])
+        text = str(value).lower()
+        text = re.sub(r'[^a-z0-9]+', ' ', text)
+        tokens = set([token for token in text.split() if token])
+        codes = set()
+
+        if tokens.intersection(set(['multi', 'multilang', 'multilanguage', 'multilingual', 'dual', 'dl'])):
+            codes.add('multi')
+        if re.search(r'\bdual\s+audio\b', text):
+            codes.add('multi')
+        if re.search(r'\b(?:ger|deu|german|deutsch|de)\s+(?:eng|english|englisch|en)\b', text):
+            codes.add('multi')
+        if re.search(r'\b(?:eng|english|englisch|en)\s+(?:ger|deu|german|deutsch|de)\b', text):
+            codes.add('multi')
+
+        if tokens.intersection(set(['de', 'deu', 'ger', 'german', 'deutsch'])):
+            codes.add('de')
+        if tokens.intersection(set(['en', 'eng', 'english', 'englisch'])):
+            codes.add('en')
+        return codes
+
+    def _applyLanguagePreference(self):
+        if getattr(self, 'mediatype', None) not in ['movie', 'tvshow']:
+            return
+        if len(self.sources) == 0:
+            return
+
+        language_setting = control.getSetting('hosts.language')
+        if language_setting == '':
+            language_setting = '0'
+
+        for item in self.sources:
+            item['_xvault_language'] = self._normalizeStreamLanguage(item)
+
+        if language_setting == '0':
+            return
+
+        target = {'1': 'de', '2': 'en', '3': 'multi'}.get(language_setting)
+        if target == None:
+            return
+
+        strict = control.getSetting('hosts.language.mode') == '1'
+        keep_unknown = control.getSetting('hosts.language.unknown') == 'true'
+        allow_multi = control.getSetting('hosts.language.multi') == 'true'
+
+        def matches(item):
+            language = item.get('_xvault_language', 'unknown')
+            if language == target:
+                return True
+            if target in ['de', 'en'] and language == 'multi' and allow_multi:
+                return True
+            if language == 'unknown' and keep_unknown:
+                return True
+            return False
+
+        if strict:
+            self.sources = [item for item in self.sources if matches(item)]
+            return
+
+        def language_rank(item):
+            language = item.get('_xvault_language', 'unknown')
+            if language == target:
+                return 0
+            if target in ['de', 'en'] and language == 'multi' and allow_multi:
+                return 1
+            if language == 'unknown' and keep_unknown:
+                return 2
+            return 3
+
+        self.sources = sorted(self.sources, key=language_rank)
+
+    def _languageLabel(self, item):
+        language = item.get('_xvault_language')
+        if language == None:
+            language = self._normalizeStreamLanguage(item)
+            item['_xvault_language'] = language
+        return {
+            'de': 'DE',
+            'en': 'EN',
+            'multi': 'MULTI',
+            'unknown': '?'
+        }.get(language, '?')
+
 
     def sourcesFilter(self):
         # hostblockDict = utils.getHostDict()
@@ -477,6 +581,8 @@ class sources:
 
         if control.getSetting('hosts.sort.priority') == 'true' and self.mediatype == 'tvshow': self.sources = sorted(self.sources, key=lambda k: (k.get('prioHoster', 0) >= 999, k['priority']), reverse=False)
 
+        self._applyLanguagePreference()
+
         if str(control.getSetting('hosts.limit')) == 'true':
             self.sources = self.sources[:int(control.getSetting('hosts.limit.num'))]
         else:
@@ -487,10 +593,12 @@ class sources:
             q = self.sources[i]['quality']
             s = self.sources[i]['source']
             ## s = s.rsplit('.', 1)[0]
-            l = self.sources[i]['language']
+            l = self._languageLabel(self.sources[i])
 
             try: f = (' | '.join(['[I]%s [/I]' % info.strip() for info in self.sources[i]['info'].split('|')]))
             except: f = ''
+            if l:
+                f = ('[B]%s[/B] | %s' % (l, f)) if f else '[B]%s[/B]' % l
 
             label = '%02d | [B]%s[/B] | ' % (int(i + 1), p)
             if q in ['4K', '1440p', '1080p', '720p']: label += '%s | [B][I]%s [/I][/B] | %s' % (s, q, f)

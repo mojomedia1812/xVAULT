@@ -1,3 +1,10 @@
+xVAULT 2026.06.30.1
+Entwickler: mojomedia1812
+
+- Film- und Serienquellen koennen jetzt nach bevorzugter Stream-Sprache sortiert oder strikt gefiltert werden.
+- Die Wiedergabe-Einstellungen wurden um Deutsch, Englisch, Mehrsprachig, unbekannte Sprache und Mehrsprachig-erlauben Optionen ergaenzt.
+- Streamlisten zeigen die erkannte Sprache mit DE, EN, MULTI oder ? direkt in der Quellenzeile an; LiveTV bleibt unveraendert deutsch.
+
 xVAULT 2026.06.29.8
 Entwickler: mojomedia1812
 

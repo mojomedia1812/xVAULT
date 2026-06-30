@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.06.30.1] - 2026-06-30
+
+- Film- und Serienquellen koennen jetzt nach bevorzugter Stream-Sprache sortiert oder strikt gefiltert werden.
+- Wiedergabe-Einstellungen um bevorzugte Stream-Sprache, Sprachfilter-Modus, unbekannte Sprache und Mehrsprachig-erlauben Optionen ergaenzt.
+- Streamlisten zeigen die erkannte Sprache mit `DE`, `EN`, `MULTI` oder `?` direkt in der Quellenzeile an; LiveTV bleibt unveraendert deutsch.
+
 ## [2026.06.29.8] - 2026-06-29
 
 - LiveTV-HLS startet jetzt plattformneutral ueber eine neue Wiedergabe-Engine-Auswahl: automatisch, Kodi intern, FFmpeg Direct oder InputStream Adaptive.
