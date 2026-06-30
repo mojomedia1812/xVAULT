@@ -1,3 +1,13 @@
+xVAULT 2026.06.30.4
+Entwickler: mojomedia1812
+
+- Kinox erkennt die neue Suchseiten-Struktur und uebernimmt Deutsch, Englisch sowie Deutsch/Englisch als echte Stream-Sprachen.
+- Kinokiste, KKiste und Movie2k verwenden browsernahe API-Header, robuste Watch-URL-Fallbacks und uebernehmen die Sprache aus der Watch-Antwort.
+- VixStream reicht die bevorzugte Sprache bis in Embed- und Playlist-URL weiter; Huhu ist als mehrsprachiger Scraper markiert.
+- Movie2k2 verhindert breite Fallback-Falschtreffer wie Resident Alien zu Resident Evil.
+- Ignorierte RequestHandler-Fehler erzeugen keine Kodi-Error-Logs mehr; SerienStream wertet Fehler-Sentinel beim Login nicht mehr als erfolgreichen Login.
+- Die neue Projektregel verlangt nach Plugin-Aenderungen einen Kodi-Test per JSON-RPC.
+
 xVAULT 2026.06.30.3
 Entwickler: mojomedia1812
 

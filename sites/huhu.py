@@ -108,7 +108,7 @@ def parse_hoster(name):
 class source:
     def __init__(self):
         self.priority = 1
-        self.language = ['de']
+        self.language = ['de', 'en']
         self.domains = ['huhu.to']
     
     def run(self, titles, year, season=0, episode=0, imdb='', hostDict=None):

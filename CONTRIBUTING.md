@@ -29,9 +29,15 @@ Beschreibe moeglichst konkret:
 
 Wenn du die Plugin-Version in `addon.xml` aenderst, musst du auch `README.md` pruefen und bei Bedarf aktualisieren.
 
-Wenn du Plugin-Einstellungen in `resources/settings.xml` aenderst, hinzufuegst oder entfernst, musst du die Einstellungsuebersicht in `README.md` aktualisieren.
+Wenn du Plugin-Einstellungen in `resources/settings.xml` aenderst, hinzufuegst oder entfernst, musst du `README.md` pruefen und bei Bedarf aktualisieren.
 
 Wenn du Funktionen aenderst, musst du die Funktionsuebersicht in `README.md` pruefen und bei Bedarf aktualisieren.
+
+## Kodi-RPC-Testpflicht
+
+Nach jeder Plugin-Aenderung muss die installierte lokale Kodi-Version per JSON-RPC getestet werden.
+
+Der Test muss mindestens pruefen, dass das Add-on startet, die betroffene Funktion ohne Python-Fehler erreichbar ist und Kodi keine neuen xVAULT-Fehler in das Log schreibt. Wenn dabei Fehler auftreten, muessen sie vor der Veroeffentlichung behoben werden.
 
 ## GitHub Page
 

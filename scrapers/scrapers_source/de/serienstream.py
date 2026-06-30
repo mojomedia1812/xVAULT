@@ -312,6 +312,9 @@ class source:
             oRequest.addParameters('password', password)
 
             login_response = oRequest.request()
+            if not login_response or login_response in ['SEITE NICHT ERREICHBAR', 'CLOUDFLARE-SCHUTZ AKTIV', 'URL FEHLER', 'TIMEOUT', 'DDOS GUARD SCHUTZ']:
+                self.logged_in = False
+                return False
 
             if len(login_response) != len(login_page):
                 if log_utils:

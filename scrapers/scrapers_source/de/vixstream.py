@@ -16,7 +16,7 @@ _K = base64.b64decode('ZWRkZTZiNWU0MTI0NmFiNzlhMjY5N2NkMTI1ZTE3ODE=').decode()
 class source:
     def __init__(self):
         self.priority = 1
-        self.language = ['de']
+        self.language = ['de', 'en']
         self.domain = getSetting('provider.' + SITE_IDENTIFIER + '.domain', SITE_DOMAIN)
         self.base_link = 'https://' + self.domain
         self.tak = getSetting('api.tmdb') or _K
@@ -50,6 +50,20 @@ class source:
         except Exception as e:
             logger.error('[%s] TMDB Fehler: %s' % (SITE_NAME, str(e)))
         return None
+
+    def _stream_languages(self):
+        setting = getSetting('hosts.language') or '0'
+        if setting == '1':
+            return [('de', 'Deutsch')]
+        if setting == '2':
+            return [('en', 'Englisch')]
+        return [('de', 'Deutsch'), ('en', 'Englisch')]
+
+    def _src_with_language(self, src, language):
+        if re.search(r'([?&])lang=[a-z]+', src):
+            return re.sub(r'([?&])lang=[a-z]+', r'\1lang=%s' % language, src)
+        separator = '&' if '?' in src else '?'
+        return '%s%slang=%s' % (src, separator, language)
 
     def _visit_page_for_cookies(self, page_url):
         
@@ -113,18 +127,23 @@ class source:
                 logger.warning('[%s] Kein src in API-Response gefunden' % SITE_NAME)
                 return self.sources
 
-            
-            src = re.sub(r'lang=[a-z]+', 'lang=de', src)
-            embed_url = 'https://%s%s' % (VIXCLOUD, src)
+            seen_urls = set()
+            for language, language_label in self._stream_languages():
+                lang_src = self._src_with_language(src, language)
+                embed_url = 'https://%s%s' % (VIXCLOUD, lang_src)
+                if embed_url in seen_urls:
+                    continue
+                seen_urls.add(embed_url)
 
-            self.sources.append({
-                'source': 'VixCloud',
-                'quality': '1080p',
-                'language': 'de',
-                'url': embed_url + '|' + page_url,
-                'direct': False
-            })
-            logger.info('[%s] Quelle gefunden: tmdb=%s, url=%s' % (SITE_NAME, tmdb_id, embed_url))
+                self.sources.append({
+                    'source': 'VixCloud',
+                    'quality': '1080p',
+                    'language': language,
+                    'url': embed_url + '|' + page_url,
+                    'direct': False,
+                    'info': language_label
+                })
+                logger.info('[%s] Quelle gefunden: tmdb=%s, lang=%s, url=%s' % (SITE_NAME, tmdb_id, language, embed_url))
 
         except Exception as e:
             logger.error('[%s] run() Fehler: %s' % (SITE_NAME, str(e)))
@@ -151,10 +170,15 @@ class source:
         video_id = video_id_match.group(1)
         logger.info('[%s] Video-ID: %s' % (SITE_NAME, video_id))
 
+        parsed_embed = urllib.parse.urlparse(embed_url)
+        stream_language = urllib.parse.parse_qs(parsed_embed.query).get('lang', ['de'])[0]
+        if stream_language not in ['de', 'en']:
+            stream_language = 'de'
+
         headers = {
             'Referer': referer,
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8',
+            'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8' if stream_language == 'de' else 'en-US,en;q=0.9,de;q=0.7',
         }
         
         logger.info('[%s] Lade embed-Seite: %s' % (SITE_NAME, embed_url))
@@ -186,7 +210,7 @@ class source:
             
             logger.info('[%s] Extrahiert - Token: %s..., Expires: %s' % (SITE_NAME, token[:16], expires))
             
-            playlist_url = '%s?token=%s&expires=%s&h=1&lang=de' % (base_url, token, expires)
+            playlist_url = '%s?token=%s&expires=%s&h=1&lang=%s' % (base_url, token, expires, stream_language)
             logger.info('[%s] Playlist aus masterPlaylist: %s' % (SITE_NAME, playlist_url))
             
             headers_dict = {

@@ -274,33 +274,34 @@ class cRequestHandler:
                     opener.addheaders = [('User-agent', self._USER_AGENT), ('Referer', self._sUrl)]
                     oResponse = opener.open(self._sUrl, sParameters if len(sParameters) > 0 else None)
                     if not oResponse:
-                        logger.error(' -> [requestHandler]: Failed DDOS-GUARD active: ' + self._sUrl)
+                        if not self.ignoreErrors:
+                            logger.error(' -> [requestHandler]: Failed DDOS-GUARD active: ' + self._sUrl)
                         return 'DDOS GUARD SCHUTZ'
                 elif 'cloudflare' in str(e.headers):
                     if not self.ignoreErrors:
                         value = ('!!! CLOUDFLARE-SCHUTZ AKTIV !!! Weitere Informationen: ' + str(e.__class__.__name__) + ' : ' + str(e), str(traceback.format_exc().splitlines()[-3].split('addons')[-1]))
                         xbmcgui.Dialog().ok('xVAULT', str(value))  # Error
-                    logger.error(' -> [requestHandler]: Failed Cloudflare active: ' + self._sUrl)
+                        logger.error(' -> [requestHandler]: Failed Cloudflare active: ' + self._sUrl)
                     return 'CLOUDFLARE-SCHUTZ AKTIV' # Meldung geht als "e.doc" in die exception nach default.py
                 else:
                     if not self.ignoreErrors:
                         xbmcgui.Dialog().ok('xVAULT', "Fehler beim Abrufen der Url:" + ' {0} {1}'.format(self._sUrl, str(e)))
-                    logger.error(' -> [requestHandler]: HTTPError ' + str(e) + ' Url: ' + self._sUrl)
+                        logger.error(' -> [requestHandler]: HTTPError ' + str(e) + ' Url: ' + self._sUrl)
                     return 'SEITE NICHT ERREICHBAR'
             else:
                 if not self.ignoreErrors:
                     xbmcgui.Dialog().ok('xVAULT', "Fehler beim Abrufen der Url:" + ' {0} {1}'.format(self._sUrl, str(e)))
-                logger.error(' -> [requestHandler]: HTTPError ' + str(e) + ' Url: ' + self._sUrl)
+                    logger.error(' -> [requestHandler]: HTTPError ' + str(e) + ' Url: ' + self._sUrl)
                 return 'SEITE NICHT ERREICHBAR'
         except URLError as e:
             if not self.ignoreErrors:
                 xbmcgui.Dialog().ok('xVAULT', str(e.reason))
-            logger.error(' -> [requestHandler]: URLError ' + str(e.reason) + ' Url: ' + self._sUrl)
+                logger.error(' -> [requestHandler]: URLError ' + str(e.reason) + ' Url: ' + self._sUrl)
             return 'URL FEHLER'
         except HTTPException as e:
             if not self.ignoreErrors:
                 xbmcgui.Dialog().ok('xVAULT', str(e))
-            logger.error(' -> [requestHandler]: HTTPException ' + str(e) + ' Url: ' + self._sUrl)
+                logger.error(' -> [requestHandler]: HTTPException ' + str(e) + ' Url: ' + self._sUrl)
             return 'TIMEOUT'
 
         self._sResponseHeader = oResponse.info()

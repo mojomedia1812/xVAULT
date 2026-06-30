@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 import re
 import json
-from resources.lib.requestHandler import cRequestHandler
+import urllib.request
 from resources.lib.tools import logger
-from resources.lib.control import getSetting, urlparse
+from resources.lib.control import getSetting, urlparse, quote_plus
 
 SITE_IDENTIFIER = 'kinokiste'
 SITE_DOMAIN = 'kinokiste.eu'
@@ -47,29 +47,67 @@ def _isDirect(url):
 class source:
     def __init__(self):
         self.priority = 1
-        self.language = ['de']
+        self.language = ['de', 'en']
         self.domain = getSetting('provider.' + SITE_IDENTIFIER + '.domain', SITE_DOMAIN)
         self.base_link = 'https://' + self.domain
-        self.imdb_link = self.base_link + '/data/browse/?lang=2&order_by=new&page=1&imdb=%s'
-        self.search_link = self.base_link + '/data/browse/?lang=2&order_by=new&page=1&limit=0'
-        self.watch_link = self.base_link + '/data/watch/?_id=%s'
+        self.imdb_link = self.base_link + '/data/browse/?lang=%s&order_by=new&page=1&imdb=%s'
+        self.search_link = self.base_link + '/data/browse/?lang=%s&keyword=%s&year=%s&type=%s&page=1'
+        self.watch_links = [
+            self.base_link + '/data/watch/?_id=%s',
+            self.base_link + '/data/watch?_id=%s'
+        ]
         self.sources = []
 
-    def _request(self, url, cache=0):
+    def _request(self, url, cache=0, log_errors=True):
         try:
-            oRequest = cRequestHandler(url)
-            oRequest.addHeaderEntry('User-Agent', UA)
-            oRequest.addHeaderEntry('Referer', self.base_link + '/')
-            oRequest.addHeaderEntry('Origin', self.base_link)
-            oRequest.cacheTime = cache
-            sResponse = oRequest.request()
+            headers = {
+                'User-Agent': UA,
+                'Referer': self.base_link + '/',
+                'Origin': self.base_link,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json, text/plain, */*'
+            }
+            request = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(request, timeout=15) as response:
+                sResponse = response.read().decode('utf-8', 'replace')
             if not sResponse:
-                logger.error('[%s] Leere Antwort von %s' % (SITE_NAME, url))
+                if log_errors:
+                    logger.error('[%s] Leere Antwort von %s' % (SITE_NAME, url))
                 return None
             return json.loads(sResponse)
         except Exception as e:
-            logger.error('[%s] Request-Fehler: %s' % (SITE_NAME, str(e)))
+            if log_errors:
+                logger.error('[%s] Request-Fehler: %s' % (SITE_NAME, str(e)))
             return None
+
+    def _watchRequest(self, media_id):
+        for watch_link in self.watch_links:
+            data = self._request(watch_link % media_id, cache=60 * 10, log_errors=False)
+            if data and isinstance(data.get('streams'), list):
+                return data
+        return None
+
+    def _languageQueries(self):
+        setting = getSetting('hosts.language') or '0'
+        if setting == '2':
+            return ['3']
+        return ['4']
+
+    def _languageFromWatch(self, data, title=''):
+        value = str(data.get('lang', '')).strip()
+        if value == '2':
+            return 'de', 'Deutsch'
+        if value == '3':
+            return 'en', 'Englisch'
+        if value == '4':
+            return 'multi', 'Mehrsprachig'
+
+        title = str(title)
+        if re.search(r'\bStaffel\b', title, re.IGNORECASE):
+            return 'de', 'Deutsch'
+        if re.search(r'\bSeason\b', title, re.IGNORECASE):
+            return 'en', 'Englisch'
+        return 'de', 'Deutsch'
 
     def run(self, titles, year, season=0, episode=0, imdb='', hostDict=None):
         search_terms = []
@@ -88,21 +126,36 @@ class source:
 
         logger.info('[%s] Suche: "%s" imdb=%s year=%s season=%s episode=%s' % (SITE_NAME, sMainTitle, imdb, year, season, episode))
 
-        movies = None
+        movies = []
+        seen_ids = set()
 
-        if imdb:
-            aJson = self._request(self.imdb_link % imdb, cache=60 * 60 * 24)
-            if aJson and isinstance(aJson.get('movies'), list) and len(aJson['movies']) > 0:
-                logger.info('[%s] IMDB-Treffer: %d Eintraege' % (SITE_NAME, len(aJson['movies'])))
-                movies = aJson['movies']
+        for lang in self._languageQueries():
+            if imdb:
+                aJson = self._request(self.imdb_link % (lang, imdb), cache=60 * 60 * 24, log_errors=False)
+                if aJson and isinstance(aJson.get('movies'), list) and len(aJson['movies']) > 0:
+                    logger.info('[%s] IMDB-Treffer lang=%s: %d Eintraege' % (SITE_NAME, lang, len(aJson['movies'])))
+                    for movie in aJson['movies']:
+                        media_id = str(movie.get('_id', ''))
+                        if media_id and media_id not in seen_ids:
+                            seen_ids.add(media_id)
+                            movies.append(movie)
 
-        if movies is None:
-            aJson = self._request(self.search_link, cache=60 * 60 * 6)
-            if not aJson or not isinstance(aJson.get('movies'), list):
-                logger.error('[%s] Keine oder ungueltige API-Antwort' % SITE_NAME)
-                return self.sources
-            movies = aJson['movies']
-            logger.info('[%s] Fallback: %d Eintraege geladen' % (SITE_NAME, len(movies)))
+            if len(movies) == 0:
+                mediaType = 'tvseries' if season else 'movies'
+                for title in titles:
+                    aJson = self._request(self.search_link % (lang, quote_plus(title), '' if season else year, mediaType), cache=60 * 60 * 6)
+                    if not aJson or not isinstance(aJson.get('movies'), list):
+                        continue
+                    logger.info('[%s] Suchtreffer lang=%s: %d Eintraege' % (SITE_NAME, lang, len(aJson['movies'])))
+                    for movie in aJson['movies']:
+                        media_id = str(movie.get('_id', ''))
+                        if media_id and media_id not in seen_ids:
+                            seen_ids.add(media_id)
+                            movies.append(movie)
+
+        if len(movies) == 0:
+            logger.error('[%s] Keine oder ungueltige API-Antwort' % SITE_NAME)
+            return self.sources
 
         matches = []
         for movie in movies:
@@ -122,8 +175,11 @@ class source:
                 sApiNsp = sApiBase.replace(' ', '').lower()
                 sApiLower = sApiBase.lower()
                 if any(st in sApiNsp or st in sApiLower for st in search_terms):
-                    if sYear and len(sYear) == 4 and abs(int(sYear) - int(year)) > 1:
-                        continue
+                    try:
+                        if sYear and len(sYear) == 4 and abs(int(sYear) - int(year)) > 1:
+                            continue
+                    except:
+                        pass
                     logger.info('[%s] Treffer: "%s"' % (SITE_NAME, sTitle))
                     matches.append((str(movie['_id']), sQuality))
             else:
@@ -144,13 +200,14 @@ class source:
         return self.sources
 
     def _getStreams(self, data, episode, hostDict):
-        aJson = self._request(self.watch_link % data[0], cache=60 * 10)
+        aJson = self._watchRequest(data[0])
         if not aJson or not isinstance(aJson.get('streams'), list):
             logger.error('[%s] Keine Streams fuer ID %s' % (SITE_NAME, data[0]))
             return
 
         sQuality = _parseQuality(data[1])
         isTvshow = len(data) > 2
+        language, language_label = self._languageFromWatch(aJson, aJson.get('title', ''))
         logger.info('[%s] %d Streams fuer ID %s' % (SITE_NAME, len(aJson['streams']), data[0]))
 
         best_per_domain = {}
@@ -188,10 +245,11 @@ class source:
             self.sources.append({
                 'source': sDomain,
                 'quality': quality,
-                'language': 'de',
+                'language': language,
                 'url': sUrl,
                 'direct': bDirect,
-                'prioHoster': 0
+                'prioHoster': 0,
+                'info': language_label
             })
 
         logger.info('[%s] %d Quellen' % (SITE_NAME, len(self.sources)))

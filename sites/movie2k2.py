@@ -73,6 +73,12 @@ class source:
     def search(self, titles, year, season, episode):
         results = []
         search_term = titles[0]
+        target_tokens = [cleantitle.get(token) for token in re.split(r'\W+', search_term) if len(cleantitle.get(token)) > 2]
+
+        def token_match(value):
+            clean_value = cleantitle.get(value)
+            return target_tokens and all(token in clean_value for token in target_tokens)
+
         try:
             query_url = self.search_link % urllib_parse.quote(search_term)
             logger.info('Load %s - Sending search request: %s' % (SITE_NAME, query_url))
@@ -112,13 +118,15 @@ class source:
                     oRequest = cRequestHandler(query_url)
                     html = oRequest.request()
                     
-                    if 'loadMirror' in html: 
-                        return [oRequest.getRealUrl()]
+                    if 'loadMirror' in html:
+                        real_url = oRequest.getRealUrl()
+                        if token_match(real_url):
+                            return [real_url]
                     
                     isMatch, aResult = cParser().parse(html, pattern)
                     if isMatch:
                         for sPath, sName in aResult:
-                            if cleantitle.get(short_term) in cleantitle.get(sName):
+                            if token_match(sName):
                                 if sPath.startswith('http'):
                                     full_url = sPath
                                 else:

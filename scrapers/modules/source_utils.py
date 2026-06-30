@@ -296,6 +296,8 @@ def _replaceHTMLCodes(txt):
 
 def is_host_valid(url, domains):
     try:
+        if not url or not domains:
+            return False, ''
         if any(x in url.lower() for x in ['.rar.', '.zip.', '.iso.']) or any(
                 url.lower().endswith(x) for x in ['.rar', '.zip', '.iso']):
             return False, ''
