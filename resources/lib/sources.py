@@ -479,14 +479,17 @@ class sources:
             pass
 
     def _normalizeStreamLanguage(self, item):
-        values = [
-            item.get('language', ''),
-            item.get('info', ''),
-        ]
+        language_codes = self._languageCodesFromText(item.get('language', ''))
+        if language_codes:
+            return self._languageFromCodes(language_codes)
+
+        values = [item.get('info', '')]
         codes = set()
         for value in values:
             codes.update(self._languageCodesFromText(value))
+        return self._languageFromCodes(codes)
 
+    def _languageFromCodes(self, codes):
         if 'multi' in codes or ('de' in codes and 'en' in codes):
             return 'multi'
         if 'de' in codes:

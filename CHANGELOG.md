@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.06.30.3] - 2026-06-30
+
+- SerienStream liest jetzt alle Sprachvarianten einer Episode ein, statt nur deutsche Links zu uebernehmen.
+- Bei Resident Alien S01E01 werden bei Sprache `Alle` nun deutsche, englische und Ger-Sub-Quellen angezeigt.
+- Die zentrale Sprachzuordnung priorisiert explizite Scraper-Sprachangaben vor Zusatzinfos, damit `Ger-Sub` nicht faelschlich als `MULTI` markiert wird.
+- Fix lokal in Kodi 21.3 per JSON-RPC gegen Resident Alien S01E01 getestet.
+
 ## [2026.06.30.2] - 2026-06-30
 
 - Autoplay wird fuer Filme und Serien automatisch verhindert, wenn die bevorzugte Stream-Sprache auf `Alle` steht.

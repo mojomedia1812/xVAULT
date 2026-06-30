@@ -112,7 +112,7 @@ def _titles_match(search_variants, scraped_title):
 class source:
     def __init__(self):
         self.priority = 4
-        self.language = ['de']
+        self.language = ['de', 'en']
         self.domain = getSetting('provider.' + SITE_IDENTIFIER + '.domain', SITE_DOMAIN)
 
         if getSetting('bypassDNSlock') != 'true':
@@ -416,7 +416,7 @@ class source:
                     if foundImdb and not foundImdb == imdb:
                         return
 
-            pattern = r'data-link-id="([^"]+)"[^>]*data-play-url="([^"]+)"[^>]*data-provider-name="([^"]+)"[^>]*data-language-id="([^"]+)"'
+            pattern = r'<[^>]+data-link-id="[^"]+"[^>]*>'
             matches = re.findall(pattern, sHtmlContent, re.DOTALL | re.IGNORECASE)
 
             if not matches:
@@ -427,9 +427,16 @@ class source:
 
             self.episode_referer = full_url
 
-            for link_id, play_url, provider_name, language_id in matches:
+            for link_html in matches:
                 try:
-                    if language_id != '1':
+                    link_id = self._attr(link_html, 'data-link-id')
+                    play_url = self._attr(link_html, 'data-play-url')
+                    provider_name = self._attr(link_html, 'data-provider-name')
+                    language_id = self._attr(link_html, 'data-language-id')
+                    language_label = self._attr(link_html, 'data-language-label')
+                    language, language_info = self._language_from_id(language_id, language_label)
+
+                    if not link_id or not play_url or not provider_name or not language:
                         continue
 
                     redirect_url = urljoin(self.base_link, play_url)
@@ -446,9 +453,9 @@ class source:
                     self.sources.append({
                         'source': provider_name,
                         'quality': quality,
-                        'language': 'de',
+                        'language': language,
                         'url': redirect_url,
-                        'info': '',
+                        'info': language_info,
                         'direct': False,
                         'debridonly': False,
                         'priority': self.priority,
@@ -456,7 +463,7 @@ class source:
                     })
 
                     if log_utils:
-                        logger.info('SerienStream - Added: %s' % provider_name)
+                        logger.info('SerienStream - Added: %s | %s' % (provider_name, language_info))
 
                 except Exception as e:
                     if log_utils:
@@ -472,6 +479,23 @@ class source:
             if log_utils:
                 logger.info('SerienStream - Fatal: %s' % str(e))
             return self.sources
+
+    @staticmethod
+    def _attr(html, name):
+        match = re.search(r'%s="([^"]*)"' % re.escape(name), html, re.IGNORECASE)
+        return html_unescape(match.group(1)).strip() if match else ''
+
+    @staticmethod
+    def _language_from_id(language_id, label=''):
+        language_label = (label or '').strip()
+        normalized_label = language_label.lower()
+        if language_id == '1' or 'deutsch' in normalized_label:
+            return 'de', language_label or 'Deutsch'
+        if language_id == '2' or 'englisch' in normalized_label or 'english' in normalized_label:
+            return 'en', language_label or 'Englisch'
+        if language_id == '3' or 'ger-sub' in normalized_label or 'sub' in normalized_label:
+            return 'en', language_label or 'Ger-Sub'
+        return '', language_label
 
     def resolve(self, url):
         try:
