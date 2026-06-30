@@ -20,6 +20,7 @@
         <setting id="status.refresh.episodes" type="bool" label="Episoden - Status aktualisieren (refresh)" default="true" />
         <setting id="status.position" type="bool" label="Status - Bei Serien die erste ungesehene Folge auswählen" default="true" />
         <setting id="status.debug" type="bool" label="Debug" default="false" />
+        <setting id="first_install.playback_defaults.applied" type="bool" label="Erstinstallations-Wiedergabevorgaben gesetzt" default="false" visible="false" />
     </category>
     <category label="Indexseiten (DE)">
         <setting type="text" label="[COLOR blue]ACHTUNG:  Die folgenden Optionen werden sofort[/COLOR]" />
@@ -97,6 +98,10 @@
         <setting id="provider.netzkino.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
         <setting id="provider.netzkino.check" label="Check" type="bool" default="true" visible="false"/>
         <setting type="sep"/>
+        <setting id="provider.bsto" type="bool" label="BS.TO   |   [B][COLOR green]Serien[/COLOR][/B]" default="true"/>
+        <setting id="provider.bsto.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
+        <setting id="provider.bsto.check" label="Check" type="bool" default="true" visible="false"/>
+        <setting type="sep"/>
         <setting id="provider.serienstream" type="bool"  label="SERIENSTREAM   |   [B][COLOR green]Serien[/COLOR][/B]" default="true"/>
         <setting id="provider.serienstream.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
         <setting id="provider.serienstream.check" label="Check" type="bool" default="true" visible="false"/>
@@ -164,6 +169,10 @@
         <setting id="sync.logged_in" type="bool" label="Angemeldet" default="false" visible="false"/>
         <setting id="sync.device_id" type="text" label="Geräte-ID" default="" visible="false"/>
         <setting id="sync.last_favorites_hash" type="text" label="Favoriten-Hash" default="" visible="false"/>
+        <setting type="sep"/>
+        <setting type="lsep" label="Konto [B]BS.to[/B]"/>
+        <setting id="bsto.user" type="text" label="Username" default=""/>
+        <setting id="bsto.pass" type="text" option="hidden" label="Password" default=""/>
         <setting type="sep"/>
         <setting type="lsep" label="Konto [B]SerienStream.to[/B]"/>
         <setting id="serienstream.user" type="text" label="Email" default=""/>

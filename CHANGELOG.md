@@ -2,6 +2,41 @@
 
 ## [Unreleased]
 
+## [2026.06.30.8] - 2026-06-30
+
+- Frische Erstinstallationen setzen einmalig die Streamsprache auf Deutsch und die Standard-Aktion auf Autoplay.
+- Bestehende Profile und spaetere Updates behalten ihre gewaehlten Wiedergabe-Einstellungen; die Erstinstallationsvorgabe wird dort nicht erneut erzwungen.
+- Lokale Testversion, noch nicht veroeffentlicht.
+
+## [2026.06.30.7] - 2026-06-30
+
+- LiveTV ordnet FC-Bayern-Sender jetzt der Kategorie Sport statt Regional zu.
+- LiveTV berechnet Kategorien auch beim Laden eines vorhandenen Senderlisten-Caches neu, damit Korrekturen ohne manuellen Refresh greifen.
+- Lokale Testversion, noch nicht veroeffentlicht.
+
+## [2026.06.30.6] - 2026-06-30
+
+- BS.to zeigt nur noch Quellen an, die ohne reCAPTCHA-Anforderung erkannt werden.
+- CAPTCHA-geschuetzte BS.to-Quellen werden vor der Quellenliste ausgefiltert und nicht automatisiert umgangen.
+- Der optionale BS.to-Login bleibt freiwillig; ohne Zugangsdaten wird weiterhin nach frei verfuegbaren Quellen gesucht.
+- Lokale Testversion, noch nicht veroeffentlicht.
+
+## [2026.06.30.5] - 2026-06-30
+
+- Optionaler Serien-Scraper fuer BS.to im xVAULT-Provider-System ergaenzt.
+- Serienliste, Staffel-/Episodenlinks, Deutsch/Englisch/Deutsch-Sub-Sprachen und Hoster werden aus der aktuellen BS.to-Seitenstruktur gelesen.
+- Optionaler BS.to-Login in den Konten-Einstellungen ergaenzt; CAPTCHA-geschuetzte Hoster werden markiert und nicht automatisiert umgangen.
+- Lokale Testversion, noch nicht veroeffentlicht.
+
+## [2026.06.30.4] - 2026-06-30
+
+- Kinox erkennt die neue Suchseiten-Struktur und uebernimmt Deutsch, Englisch sowie Deutsch/Englisch als echte Stream-Sprachen.
+- Kinokiste, KKiste und Movie2k verwenden browsernahe API-Header, robuste Watch-URL-Fallbacks und uebernehmen die Sprache aus der Watch-Antwort.
+- VixStream reicht die bevorzugte Sprache bis in Embed- und Playlist-URL weiter; Huhu ist als mehrsprachiger Scraper markiert.
+- Movie2k2 verhindert breite Fallback-Falschtreffer wie Resident Alien zu Resident Evil.
+- Ignorierte RequestHandler-Fehler erzeugen keine Kodi-Error-Logs mehr; SerienStream wertet Fehler-Sentinel beim Login nicht mehr als erfolgreichen Login.
+- Die neue Projektregel verlangt nach Plugin-Aenderungen einen Kodi-Test per JSON-RPC.
+
 ## [2026.06.30.3] - 2026-06-30
 
 - SerienStream liest jetzt alle Sprachvarianten einer Episode ein, statt nur deutsche Links zu uebernehmen.

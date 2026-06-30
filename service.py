@@ -198,6 +198,11 @@ def ensure_youtube_api_keys():
 if __name__ == "__main__":
 	from resources.lib import dependencies
 	dependencies.ensure_all_dependencies()
+	try:
+		from resources.lib import first_install
+		first_install.apply_playback_defaults_once()
+	except Exception:
+		pass
 	from resources.lib import updater
 	if updater.automatic_updates_enabled():
 		from resources.lib import repository

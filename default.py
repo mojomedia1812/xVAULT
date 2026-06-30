@@ -24,6 +24,11 @@ if action is None or action == 'root':
         repository.ensure_xvault_repository()
         if not updater.check_for_update():
             sys.exit()
+    try:
+        from resources.lib import first_install
+        first_install.apply_playback_defaults_once()
+    except Exception:
+        pass
     from resources.lib import startup_info
     startup_info.show_pending_startup_info()
     try:

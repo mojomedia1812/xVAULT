@@ -114,6 +114,13 @@ CATEGORY_RULES = (
     )),
 )
 
+SPORT_CATEGORY_OVERRIDES = (
+    "FC BAYERN",
+    "BAYERN MUENCHEN",
+    "BAYERN MÜNCHEN",
+    "BAYERN MUNICH",
+)
+
 _HIDDEN_TOKENS = ("BACKUP", "EVENT", "RAW", "LIVE DURING EVENTS", "TEST")
 
 _XMLTV_TIME_RE = re.compile(r"^(\d{14})(?:\s*([+-])(\d{2})(\d{2}))?")
@@ -291,15 +298,16 @@ def _catalog(force=False):
     if not force:
         cached = _read_json(CATALOG_FILE, {})
         if _cache_valid(cached):
-            return _visible_channels(cached.get("channels", []))
+            return _visible_channels(_apply_current_categories(cached.get("channels", [])))
 
     channels = _download_catalog()
     if channels:
+        channels = _apply_current_categories(channels)
         _write_json(CATALOG_FILE, {"updated_at": int(time.time()), "channels": channels})
         return _visible_channels(channels)
 
     cached = _read_json(CATALOG_FILE, {})
-    fallback = cached.get("channels", [])
+    fallback = _apply_current_categories(cached.get("channels", []))
     if fallback:
         control.infoDialog("LiveTV nutzt die gespeicherte Senderliste.", icon="WARNING", time=4000)
         return _visible_channels(fallback)
@@ -708,10 +716,23 @@ def _sorted_categories(grouped):
 
 def _category_for(name):
     upper = " %s " % (name or "").upper()
+    if any(pattern in upper for pattern in SPORT_CATEGORY_OVERRIDES):
+        return "Sport"
     for category, patterns in CATEGORY_RULES:
         if any(pattern in upper for pattern in patterns):
             return category
     return "Sonstige"
+
+
+def _apply_current_categories(channels):
+    result = []
+    for channel in channels or []:
+        if not isinstance(channel, dict):
+            continue
+        current = dict(channel)
+        current["category"] = _category_for(current.get("name"))
+        result.append(current)
+    return result
 
 
 def _visible_channels(channels):

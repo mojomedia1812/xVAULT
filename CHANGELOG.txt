@@ -1,3 +1,33 @@
+xVAULT 2026.06.30.8
+Entwickler: mojomedia1812
+
+- Frische Erstinstallationen setzen einmalig die Streamsprache auf Deutsch und die Standard-Aktion auf Autoplay.
+- Bestehende Profile und spaetere Updates behalten ihre gewaehlten Wiedergabe-Einstellungen; die Erstinstallationsvorgabe wird dort nicht erneut erzwungen.
+- Lokale Testversion, noch nicht veroeffentlicht.
+
+xVAULT 2026.06.30.7
+Entwickler: mojomedia1812
+
+- LiveTV ordnet FC-Bayern-Sender jetzt der Kategorie Sport statt Regional zu.
+- LiveTV berechnet Kategorien auch beim Laden eines vorhandenen Senderlisten-Caches neu, damit Korrekturen ohne manuellen Refresh greifen.
+- Lokale Testversion, noch nicht veroeffentlicht.
+
+xVAULT 2026.06.30.6
+Entwickler: mojomedia1812
+
+- BS.to zeigt nur noch Quellen an, die ohne reCAPTCHA-Anforderung erkannt werden.
+- CAPTCHA-geschuetzte BS.to-Quellen werden vor der Quellenliste ausgefiltert und nicht automatisiert umgangen.
+- Der optionale BS.to-Login bleibt freiwillig; ohne Zugangsdaten wird weiterhin nach frei verfuegbaren Quellen gesucht.
+- Lokale Testversion, noch nicht veroeffentlicht.
+
+xVAULT 2026.06.30.5
+Entwickler: mojomedia1812
+
+- Neuer optionaler Serien-Scraper fuer BS.to im xVAULT-Provider-System ergaenzt.
+- BS.to liest Serienliste, Staffel-/Episodenlinks, Deutsch/Englisch/Deutsch-Sub-Sprachen und Hoster aus der aktuellen Seitenstruktur.
+- Optionaler BS.to-Login in den Konten-Einstellungen ergaenzt; CAPTCHA-geschuetzte Hoster werden markiert und nicht automatisiert umgangen.
+- Lokale Testversion, noch nicht veroeffentlicht.
+
 xVAULT 2026.06.30.4
 Entwickler: mojomedia1812
 
