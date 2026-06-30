@@ -58,9 +58,13 @@ class sources:
                 pass
 
             url = None
+            select = control.getSetting('hosts.mode') if select == None else str(select)
+            if select == '': select = '2'
+            select = self._enforceStreamLanguageSelectionMode(select)
+            if select == None: return
+
             #Liste der gefundenen Streams
             items = self.getSources(title, year, imdb, season, episode, originaltitle, premiered)
-            select = control.getSetting('hosts.mode') if select == None else select
             ## unnötig
             #select = '1' if control.getSetting('downloads') == 'true' and not (control.getSetting('download.movie.path') == '' or control.getSetting('download.tv.path') == '') else select
 
@@ -95,6 +99,33 @@ class sources:
             player().run(title, url, meta)
         except Exception as e:
             log_utils.log('Error %s' % str(e), log_utils.LOGERROR)
+
+    def _enforceStreamLanguageSelectionMode(self, select):
+        if getattr(self, 'mediatype', None) not in ['movie', 'tvshow']:
+            return select
+        if control.getSetting('hosts.language') != '0':
+            return select
+        if select == '':
+            select = '2'
+        if str(select) != '2':
+            return select
+
+        current_mode = control.getSetting('hosts.mode')
+        if current_mode in ['0', '1']:
+            return current_mode
+
+        choice = control.selectDialog(
+            ['Dialog', 'Verzeichnis'],
+            'Stream-Sprache: Alle'
+        )
+        if choice < 0:
+            control.infoDialog('Autoplay ist bei Sprache Alle nicht moeglich.', icon='WARNING')
+            return None
+
+        select = str(choice)
+        control.setSetting(id='hosts.mode', value=select)
+        control.infoDialog('Standard-Aktion wurde auf %s gesetzt.' % (['Dialog', 'Verzeichnis'][choice]), icon='INFO')
+        return select
 
 
 # Liste gefundene Streams Indexseite|Hoster

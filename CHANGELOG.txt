@@ -1,3 +1,10 @@
+xVAULT 2026.06.30.2
+Entwickler: mojomedia1812
+
+- Autoplay wird fuer Filme und Serien automatisch verhindert, wenn die bevorzugte Stream-Sprache auf Alle steht.
+- Bei Sprache Alle fragt xVAULT einmal nach Dialog oder Verzeichnis und speichert diese Auswahl als neue Standard-Aktion.
+- Autoplay bleibt fuer Deutsch, Englisch und Mehrsprachig weiterhin nutzbar.
+
 xVAULT 2026.06.30.1
 Entwickler: mojomedia1812
 

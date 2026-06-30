@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.06.30.2] - 2026-06-30
+
+- Autoplay wird fuer Filme und Serien automatisch verhindert, wenn die bevorzugte Stream-Sprache auf `Alle` steht.
+- Bei Sprache `Alle` fragt xVAULT einmal nach `Dialog` oder `Verzeichnis` und speichert diese Auswahl als neue Standard-Aktion.
+- Autoplay bleibt fuer `Deutsch`, `Englisch` und `Mehrsprachig` weiterhin nutzbar.
+
 ## [2026.06.30.1] - 2026-06-30
 
 - Film- und Serienquellen koennen jetzt nach bevorzugter Stream-Sprache sortiert oder strikt gefiltert werden.
