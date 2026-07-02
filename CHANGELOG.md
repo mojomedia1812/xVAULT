@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- GitHub-Pages-Unterseite `handbuch/` als umfassende xVAULT-Wissensdatenbank ergaenzt.
+- Startseite der GitHub Page verlinkt das neue Handbuch mit Umami-Event.
+- README-Hinweise zu Handbuch und Umami-Einbindung aktualisiert.
+
 ## [2026.07.02.4] - 2026-07-02
 
 - Neuer Hauptmenuepunkt `LiveTV lite` direkt nach `LiveTV` ergaenzt.

@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080808">
+  <meta name="description" content="xVAULT Handbuch und Wissensdatenbank fuer Installation, Funktionen, Einstellungen, LiveTV, Synchronisation und Fehlerhilfe.">
+  <title>xVAULT Handbuch</title>
+  <link rel="icon" href="../assets/icon.png">
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
+    .manual-page {
+      width: min(1120px, calc(100% - 32px));
+      padding-top: 36px;
+    }
+
+    .manual-hero {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      gap: 28px;
+      align-items: center;
+      padding: clamp(24px, 4vw, 42px);
+      border: 1px solid #3a3a3a;
+      border-radius: 24px;
+      background: linear-gradient(145deg, rgba(28, 28, 28, .96), rgba(6, 6, 6, .98));
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .52), inset 0 1px rgba(255, 255, 255, .08);
+    }
+
+    .manual-hero .logo {
+      border-radius: 24%;
+    }
+
+    .manual-hero h1 {
+      font-size: 4.8rem;
+      letter-spacing: 0;
+    }
+
+    .manual-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .manual-nav {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      margin-top: 20px;
+      padding: 14px;
+      border: 1px solid #2d2d2d;
+      border-radius: 18px;
+      background: rgba(10, 10, 10, .94);
+      backdrop-filter: blur(12px);
+    }
+
+    .manual-nav ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .manual-nav a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 10px;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #f2f2f2;
+      font-size: .9rem;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .manual-nav a:hover {
+      border-color: #ff6672;
+      color: #fff;
+    }
+
+    .manual-section {
+      scroll-margin-top: 96px;
+    }
+
+    .manual-section h2 {
+      margin-bottom: 12px;
+    }
+
+    .manual-section h3 {
+      margin: 24px 0 10px;
+      color: #fff;
+      font-size: 1.08rem;
+    }
+
+    .manual-section p + p {
+      margin-top: 12px;
+    }
+
+    .manual-list,
+    .manual-section ul {
+      margin: 0;
+      padding-left: 1.2rem;
+      color: #d5d5d5;
+      line-height: 1.7;
+    }
+
+    .manual-list li + li,
+    .manual-section ul li + li {
+      margin-top: 7px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .quick-grid article {
+      min-height: 100%;
+      padding: 12px 0 0;
+      border-top: 1px solid #2d2d2d;
+    }
+
+    .quick-grid h3 {
+      margin-top: 0;
+    }
+
+    .quick-grid p {
+      color: #cfcfcf;
+      font-size: .95rem;
+    }
+
+    .manual-table {
+      width: 100%;
+      margin-top: 16px;
+      border-collapse: collapse;
+      color: #d5d5d5;
+      line-height: 1.55;
+    }
+
+    .manual-table th,
+    .manual-table td {
+      padding: 12px 10px;
+      border-top: 1px solid #292929;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .manual-table th {
+      color: #fff;
+      font-size: .82rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .manual-table td:first-child {
+      width: 28%;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .callout {
+      margin-top: 16px;
+      padding: 16px;
+      border-left: 4px solid #ff3344;
+      border-radius: 8px;
+      background: rgba(255, 51, 68, .08);
+      color: #d5d5d5;
+      line-height: 1.7;
+    }
+
+    .setting-group {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid #292929;
+    }
+
+    .setting-group:first-of-type {
+      margin-top: 6px;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .setting-group h3 {
+      margin-top: 0;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .tag-list li {
+      margin: 0;
+      padding: 6px 9px;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #f2f2f2;
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    .manual-footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 26px;
+      padding-top: 24px;
+      border-top: 1px solid #292929;
+      color: #999;
+    }
+
+    @media (max-width: 720px) {
+      .manual-page {
+        width: min(100% - 24px, 1120px);
+        padding-top: 24px;
+      }
+
+      .manual-hero {
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 18px;
+      }
+
+      .manual-hero h1 {
+        font-size: 3rem;
+      }
+
+      .manual-nav {
+        position: static;
+      }
+
+      .manual-table,
+      .manual-table tbody,
+      .manual-table tr,
+      .manual-table th,
+      .manual-table td {
+        display: block;
+      }
+
+      .manual-table th {
+        display: none;
+      }
+
+      .manual-table td {
+        padding: 10px 0;
+      }
+
+      .manual-table td:first-child {
+        width: auto;
+        padding-bottom: 2px;
+      }
+    }
+  </style>
+  <script
+    defer
+    src="https://cloud.umami.is/script.js"
+    data-website-id="9a7c0b38-aea1-468a-bccc-e258aeeb365d"
+    data-domains="xvault.ddnss.de"
+    data-do-not-track="true"
+    data-exclude-search="true">
+  </script>
+</head>
+<body>
+  <main class="page manual-page">
+    <section class="manual-hero">
+      <img class="logo" src="../assets/icon.png" alt="xVAULT">
+      <div>
+        <p class="eyebrow">Wissensdatenbank</p>
+        <h1>xVAULT Handbuch</h1>
+        <p class="lead">Das Handbuch beschreibt Installation, Menüs, Wiedergabe, LiveTV, Synchronisation, Downloads, Untertitel und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
+        <div class="manual-actions">
+          <a class="download" href="../downloads/plugin.video.xvault-2026.07.02.4.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
+          <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">Zur Startseite</a>
+        </div>
+      </div>
+    </section>
+
+    <nav class="manual-nav" aria-label="Handbuch Navigation">
+      <ul>
+        <li><a href="#ueberblick" data-umami-event="Handbuch Kapitel geoeffnet">Überblick</a></li>
+        <li><a href="#installation" data-umami-event="Handbuch Kapitel geoeffnet">Installation</a></li>
+        <li><a href="#hauptmenue" data-umami-event="Handbuch Kapitel geoeffnet">Hauptmenü</a></li>
+        <li><a href="#suche" data-umami-event="Handbuch Kapitel geoeffnet">Suche</a></li>
+        <li><a href="#wiedergabe" data-umami-event="Handbuch Kapitel geoeffnet">Wiedergabe</a></li>
+        <li><a href="#favoriten-sync" data-umami-event="Handbuch Kapitel geoeffnet">Favoriten & Sync</a></li>
+        <li><a href="#livetv" data-umami-event="Handbuch Kapitel geoeffnet">LiveTV</a></li>
+        <li><a href="#downloads" data-umami-event="Handbuch Kapitel geoeffnet">Downloads</a></li>
+        <li><a href="#einstellungen" data-umami-event="Handbuch Kapitel geoeffnet">Einstellungen</a></li>
+        <li><a href="#fehlerhilfe" data-umami-event="Handbuch Kapitel geoeffnet">Fehlerhilfe</a></li>
+      </ul>
+    </nav>
+
+    <section id="ueberblick" class="panel manual-section">
+      <p class="section-kicker">Überblick</p>
+      <h2>Was xVAULT macht</h2>
+      <p>xVAULT ist ein Kodi-Video-Add-on zum Suchen, Anzeigen und Wiedergeben von Filmen, Serien, Episoden und LiveTV. Das Add-on bündelt mehrere Indexseiten, bereitet Treffer in Kodi-Menüs auf, übergibt abspielbare Links an die Wiedergabe und verwaltet Favoriten sowie Wiedergabestände.</p>
+      <p>Die Bedienung folgt Kodis normalem Add-on-Prinzip: Inhalte werden über Menüs geöffnet, Quellen werden gesammelt, ein Hoster oder Stream wird ausgewählt und Kodi übernimmt die Wiedergabe. Wo sinnvoll, kann xVAULT automatisch auswählen, zwischenspeichern, gesehen markieren oder über mehrere Geräte synchronisieren.</p>
+      <div class="quick-grid">
+        <article>
+          <h3>Medien finden</h3>
+          <p>Filme, Serien und Personen können gesucht werden. Zusätzlich gibt es kuratierte Film- und Serienrubriken wie Genres, populäre Inhalte und Bewertungslisten.</p>
+        </article>
+        <article>
+          <h3>Quellen steuern</h3>
+          <p>Quellen lassen sich nach Qualität, Sprache, Hoster-Reihenfolge und Menge filtern. Autoplay ist möglich, solange die Sprachwahl eindeutig bleibt.</p>
+        </article>
+        <article>
+          <h3>Status behalten</h3>
+          <p>Fortsetzen, Playcount, Gesehen/Ungesehen, Favoriten und Synchronisation helfen dabei, Serien- und Filmstände übersichtlich zu halten.</p>
+        </article>
+        <article>
+          <h3>LiveTV nutzen</h3>
+          <p>LiveTV bietet deutsche Sender mit Kategorien, Logos, EPG-Vorschau und Puffereinstellung. LiveTV lite ergänzt schlanke HLS-Streams aus drei Ländergruppen.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="installation" class="panel manual-section">
+      <p class="section-kicker">Start</p>
+      <h2>Installation und Updates</h2>
+      <h3>Installation per Add-on-ZIP</h3>
+      <ol>
+        <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">xVAULT-Startseite</a> herunterladen.</li>
+        <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
+        <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.07.02.4.zip</strong> auswählen.</li>
+        <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
+      </ol>
+      <h3>Installation per Repository-ZIP</h3>
+      <p>Das Repository-ZIP ist der bequemere Weg für Updates. Nach der Installation erkennt Kodi neue Versionen über das xVAULT-Repository.</p>
+      <ol>
+        <li><a class="plain-link" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">repository.xvault.zip</a> herunterladen oder in Kodi aus einer Quelle auswählen.</li>
+        <li>In Kodi <strong>Add-ons > Aus ZIP-Datei installieren</strong> öffnen.</li>
+        <li>Das Repository-ZIP installieren.</li>
+        <li>Danach xVAULT über das Repository installieren oder aktualisieren.</li>
+      </ol>
+      <div class="callout">Beim ersten Start legt xVAULT das Repository zusätzlich automatisch in Kodi an. Die automatische Updateprüfung ist standardmäßig aktiv und kann in den allgemeinen Einstellungen deaktiviert werden.</div>
+    </section>
+
+    <section id="hauptmenue" class="panel manual-section">
+      <p class="section-kicker">Navigation</p>
+      <h2>Hauptmenü</h2>
+      <p>Das Hauptmenü ist der zentrale Einstiegspunkt. Die Einträge sind auf die häufigsten Arbeitsabläufe ausgelegt: suchen, stöbern, LiveTV starten, Direktlinks abspielen und Werkzeuge öffnen.</p>
+      <table class="manual-table">
+        <thead>
+          <tr><th>Menüpunkt</th><th>Funktion</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Suche Filme</td><td>Startet eine Filmsuche über die aktivierten Film-Indexseiten. Gesuchte Begriffe werden für spätere Wiederholung gespeichert.</td></tr>
+          <tr><td>Suche TV-Serien</td><td>Sucht Serien und führt anschließend zu Staffeln, Episoden und Quellen.</td></tr>
+          <tr><td>Suche nach Person / Darsteller</td><td>Sucht nach Personen und zeigt passende Film- oder Serienbezüge an, wenn Metadaten verfügbar sind.</td></tr>
+          <tr><td>Filme</td><td>Öffnet Filmrubriken wie Neu, Jahr, Genres, populär, bestbewertet, meistbewertet und bestes Einspielergebnis.</td></tr>
+          <tr><td>TV-Serien</td><td>Öffnet Serienrubriken wie Genres, populär, bestbewertet und meistbewertet.</td></tr>
+          <tr><td>LiveTV</td><td>Öffnet den deutschen LiveTV-Bereich mit Kategorien, Logos, EPG-Vorschau, Favoriten und stabilisierter HLS-Wiedergabe.</td></tr>
+          <tr><td>LiveTV lite</td><td>Öffnet eine schlanke Senderliste für Deutsche TV, Österreichische TV und Schweizer TV auf Basis der 2ix2-Quelle.</td></tr>
+          <tr><td>Stream-URL abspielen</td><td>Spielt eine direkt eingegebene oder übergebene Stream-Adresse ab.</td></tr>
+          <tr><td>Werkzeuge</td><td>Öffnet Support-Informationen, xVAULT-Einstellungen und Resolver-Einstellungen.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="suche" class="panel manual-section">
+      <p class="section-kicker">Inhalte finden</p>
+      <h2>Suche, Filme und Serien</h2>
+      <h3>Filmsuche</h3>
+      <p>Die Filmsuche fragt die aktivierten Film-Indexseiten ab und zeigt passende Treffer in Kodi an. Bei Filmen mit mehreren Schreibweisen lohnt sich die Suche nach dem deutschen Titel, dem Originaltitel oder einer gekürzten Titelvariante.</p>
+      <h3>Seriensuche</h3>
+      <p>Die Seriensuche führt von der Serie zur Staffel und von dort zur Episode. xVAULT merkt sich Suchbegriffe und kann einzelne Suchbegriffe wieder entfernen oder die Suchhistorie leeren.</p>
+      <h3>Personensuche</h3>
+      <p>Die Personensuche ist für Darsteller, Regie und ähnliche Metadaten gedacht. Je nach Datenlage führt sie zu zugeordneten Titeln oder weiterführenden Übersichten.</p>
+      <h3>Rubriken statt Suche</h3>
+      <p>Wer nicht nach einem konkreten Titel sucht, kann über Filme und TV-Serien stöbern. Die Rubriken nutzen Metadatenlisten und führen danach wieder in den normalen Quellenablauf.</p>
+      <div class="callout">Wenn bei einem Titel keine Quellen angezeigt werden, zuerst die bevorzugte Streamsprache und die aktivierten Indexseiten prüfen. Bei Sprache <strong>Alle</strong> zeigt xVAULT mehr Sprachvarianten, verhindert aber Autoplay, damit die Auswahl sichtbar bleibt.</div>
+    </section>
+
+    <section id="quellen" class="panel manual-section">
+      <p class="section-kicker">Quellen</p>
+      <h2>Scraper, Sprache und Hoster</h2>
+      <p>xVAULT sammelt Quellen über aktivierte Indexseiten und bereitet sie als Kodi-Quellenliste auf. Danach wird der passende Hoster oder Stream an Kodi beziehungsweise an die Resolver-Schicht übergeben.</p>
+      <h3>Aktivierbare Indexseiten</h3>
+      <ul class="tag-list" aria-label="Indexseiten">
+        <li>Einschalten</li>
+        <li>Filmpalast</li>
+        <li>Filmpro</li>
+        <li>HDFilme</li>
+        <li>FHDFilme</li>
+        <li>Huhu</li>
+        <li>KinoGer</li>
+        <li>KinoKiste</li>
+        <li>Kinox</li>
+        <li>KKiste</li>
+        <li>Megakino</li>
+        <li>Movie2k</li>
+        <li>Movie2k2</li>
+        <li>Movie4k</li>
+        <li>Netzkino</li>
+        <li>BS.to</li>
+        <li>SerienStream</li>
+        <li>StreamCloud</li>
+        <li>TopStreamFilm</li>
+        <li>VixStream</li>
+      </ul>
+      <h3>Bevorzugte Streamsprache</h3>
+      <table class="manual-table">
+        <thead>
+          <tr><th>Option</th><th>Wirkung</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Deutsch</td><td>Deutschsprachige Quellen werden bevorzugt oder gefiltert. Autoplay darf verwendet werden.</td></tr>
+          <tr><td>Englisch</td><td>Englischsprachige Quellen werden bevorzugt oder gefiltert. Autoplay darf verwendet werden.</td></tr>
+          <tr><td>Mehrsprachig</td><td>Mehrsprachige Quellen werden bevorzugt. Autoplay darf verwendet werden, weil die Auswahl eindeutig genug bleibt.</td></tr>
+          <tr><td>Alle</td><td>Alle erkannten Sprachvarianten bleiben sichtbar. xVAULT stellt die Standard-Aktion automatisch auf Dialog oder Verzeichnis um, damit keine Sprache unbeabsichtigt per Autoplay gestartet wird.</td></tr>
+        </tbody>
+      </table>
+      <h3>Qualität, Sortierung und Limits</h3>
+      <p>In den Wiedergabeeinstellungen kann xVAULT Quellen sortieren, nach Qualität filtern und die Anzahl der angezeigten Hoster begrenzen. Das hilft, lange Listen übersichtlich zu halten und schlechte Quellen auszusortieren.</p>
+      <h3>Resolver</h3>
+      <p>Hosterlinks werden bei Bedarf über die Resolver-Ebene aufgelöst. Die Resolver-Einstellungen sind im Werkzeugmenü erreichbar. Sie betreffen die Hosterauswahl, aber nicht die Suchlogik der einzelnen Indexseiten.</p>
+    </section>
+
+    <section id="wiedergabe" class="panel manual-section">
+      <p class="section-kicker">Player</p>
+      <h2>Wiedergabe, Fortsetzen und Gesehen-Status</h2>
+      <h3>Standard-Aktion</h3>
+      <table class="manual-table">
+        <thead>
+          <tr><th>Aktion</th><th>Beschreibung</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Dialog</td><td>Zeigt eine Auswahlliste über der aktuellen Ansicht. Gut geeignet, wenn man nur schnell eine Quelle auswählen möchte.</td></tr>
+          <tr><td>Verzeichnis</td><td>Öffnet Quellen als Kodi-Verzeichnis. Gut geeignet, wenn Quellen geprüft, sortiert oder erneut geöffnet werden sollen.</td></tr>
+          <tr><td>Autoplay</td><td>Startet automatisch die beste passende Quelle. Diese Option wird bei Streamsprache <strong>Alle</strong> automatisch verhindert.</td></tr>
+        </tbody>
+      </table>
+      <h3>Fortsetzen</h3>
+      <p>xVAULT kann Wiedergabepositionen speichern und beim nächsten Start einer Quelle anbieten, an der letzten Position weiterzuschauen. Das Verhalten lässt sich in den Wiedergabeeinstellungen steuern.</p>
+      <h3>Gesehen markieren</h3>
+      <p>Filme und Episoden werden anhand des Wiedergabefortschritts als gesehen markiert. Staffeln gelten als gesehen, sobald alle bekannten Episoden der Staffel gesehen sind. Eine Serie gilt als gesehen, sobald alle bekannten Staffeln und Episoden gesehen sind.</p>
+      <p>Wenn später eine neue Episode oder Staffel auftaucht, wird der übergeordnete Status wieder geöffnet. Dadurch bleibt die Übersicht ehrlich: Eine komplett gesehene Serie kann wieder ungesehen erscheinen, sobald neuer Inhalt verfügbar wird.</p>
+      <h3>Wiedergabe ab hier</h3>
+      <p>Bei Episodenlisten kann xVAULT aufeinanderfolgende Episoden ab einer gewählten Stelle starten. Das ist besonders praktisch für Serienabende und Staffel-Fortsetzungen.</p>
+    </section>
+
+    <section id="favoriten-sync" class="panel manual-section">
+      <p class="section-kicker">Konto</p>
+      <h2>Favoriten und Synchronisation</h2>
+      <h3>Favoriten</h3>
+      <p>Favoriten speichern Filme, Serien oder LiveTV-Sender für den schnellen Zugriff. Bereits vorhandene Favoriten bleiben erhalten, wenn die Synchronisation später aktiviert wird.</p>
+      <h3>Synchronisation anmelden</h3>
+      <p>Im Bereich Konten kann ein xVAULT-Konto registriert, angemeldet, abgemeldet oder das Passwort zurückgesetzt werden. Nach erfolgreicher Anmeldung ist die erste Synchronisierung sofort verfügbar, ohne die Einstellungen verlassen und erneut öffnen zu müssen.</p>
+      <h3>Favoriten zusammenführen</h3>
+      <p>Beim Synchronisieren werden lokale Favoriten und Server-Favoriten zusammengeführt. Doppelte Einträge werden vermieden. Wenn auf einem Gerät Favoriten vorhanden sind und auf einem anderen ebenfalls, entsteht daraus eine gemeinsame Liste.</p>
+      <h3>Entfernen und sofort synchronisieren</h3>
+      <p>Wird ein Favorit entfernt, stößt xVAULT direkt eine Synchronisation an. So wird der entfernte Zustand nicht unnötig lange lokal gehalten.</p>
+      <h3>Playcount sicher kombinieren</h3>
+      <p>Lokale und synchronisierte Wiedergabestände werden kombiniert. Bereits lokal gesehene Filme oder Episoden werden nicht durch ältere Serverdaten überschrieben. Ziel ist immer, keinen gesehenen Stand zu verlieren.</p>
+      <div class="callout">In das Repository gehören keine Passwörter, API-Schlüssel oder privaten Kontodaten. Das Handbuch beschreibt nur die Funktionen, nicht die persönlichen Werte eines Nutzers.</div>
+    </section>
+
+    <section id="livetv" class="panel manual-section">
+      <p class="section-kicker">Live</p>
+      <h2>LiveTV und LiveTV lite</h2>
+      <h3>LiveTV</h3>
+      <p>Der LiveTV-Bereich lädt deutsche Sender, speichert die Senderliste lokal im Cache und sortiert Sender in Kategorien. In der Senderliste zeigt xVAULT Senderlogos dort an, wo Kodi normalerweise Poster oder Vorschaubilder darstellt.</p>
+      <p>Bei ausgewähltem Sender nutzt xVAULT die EPG-Daten für eine Vorschau im Informationsfeld: <strong>Aktuell</strong> zeigt die laufende Sendung, <strong>Gleich</strong> zeigt die folgende Sendung. So lässt sich vor dem Start erkennen, was gerade läuft.</p>
+      <h3>Stabilität vor dem Start</h3>
+      <p>Vor dem Start prüft xVAULT HLS-Streams mehrfach. Tote, leere oder instabile Manifeste werden abgefangen, bevor Kodi sie als Wiedergabefehler meldet. Wenn ein eng passender Ersatzstream verfügbar ist, kann xVAULT auf diesen ausweichen.</p>
+      <h3>Puffer und Wiedergabe-Engine</h3>
+      <p>Die Puffergröße für LiveTV-Streams ist einstellbar. Zusätzlich kann die Wiedergabe-Engine auf Automatisch, Kodi intern, FFmpeg Direct oder InputStream Adaptive gesetzt werden. Die automatische Auswahl ist für Windows, Linux und Android gedacht.</p>
+      <h3>LiveTV lite</h3>
+      <p>LiveTV lite ist ein zusätzlicher, schlanker Bereich direkt nach LiveTV. Er liest die Gruppen <strong>Deutsche TV</strong>, <strong>Österreichische TV</strong> und <strong>Schweizer TV</strong> aus der 2ix2-Quelle und startet die dort hinterlegten HLS-Streams ohne EPG- und Favoriten-Schicht.</p>
+      <table class="manual-table">
+        <thead>
+          <tr><th>Bereich</th><th>Geeignet für</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>LiveTV</td><td>Deutsche Sender mit Kategorien, EPG, Logos, Favoriten, Cache, Puffer und stabilisierter Wiedergabe.</td></tr>
+          <tr><td>LiveTV lite</td><td>Schneller Zugriff auf einfache HLS-Senderlisten aus Deutschland, Österreich und der Schweiz.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="downloads" class="panel manual-section">
+      <p class="section-kicker">Offline</p>
+      <h2>Downloads und Untertitel</h2>
+      <h3>Direkte Downloads</h3>
+      <p>Download-Menüs werden nur sinnvoll sichtbar, wenn lokale Downloadpfade eingerichtet sind. Filme und Serien können getrennte Zielordner verwenden.</p>
+      <h3>Download-Manager</h3>
+      <p>xVAULT bietet Einstellungen für JDownloader, JDownloader 2, My.JDownloader und PyLoad. Diese Optionen sind für Nutzer gedacht, die Links an einen externen Download-Manager übergeben möchten.</p>
+      <h3>Untertitel</h3>
+      <p>Untertitel können aktiviert und über OpenSubtitles-Zugangsdaten sowie Sprachoptionen gesteuert werden. Eine UTF-8-Konvertierung kann helfen, Zeichensatzprobleme bei Untertiteln zu vermeiden.</p>
+    </section>
+
+    <section id="einstellungen" class="panel manual-section">
+      <p class="section-kicker">Referenz</p>
+      <h2>Einstellungen</h2>
+      <div class="setting-group">
+        <h3>Allgemein</h3>
+        <ul>
+          <li><strong>Standard-Aktion:</strong> Dialog, Verzeichnis oder Autoplay. Bei Streamsprache Alle wird Autoplay automatisch verhindert.</li>
+          <li><strong>Automatische Updates:</strong> Standardmäßig aktiv. Kann deaktiviert werden, wenn Updates manuell kontrolliert werden sollen.</li>
+          <li><strong>Scraper-Timeout:</strong> Begrenzt, wie lange xVAULT auf Indexseiten wartet.</li>
+          <li><strong>Fanart und Doku-Suche:</strong> Steuern zusätzliche Darstellung und Suchoptionen.</li>
+          <li><strong>RequestHandler-Cache:</strong> Timeout, Cachezeit, volatiler HTML-Cache, Tagesdelta und Cache-Löschung für Seitenabrufe.</li>
+          <li><strong>Status:</strong> Aktualisierung von Gesehen/Ungesehen für Filme, Episoden, Staffeln und Serien.</li>
+        </ul>
+      </div>
+      <div class="setting-group">
+        <h3>Indexseiten</h3>
+        <p>Hier werden einzelne Anbieter für Filme und Serien aktiviert oder deaktiviert. Einige Anbieter besitzen zusätzliche Hoster-Prüfungen. Weniger aktivierte Indexseiten können schneller sein, mehr aktivierte Indexseiten erhöhen die Chance auf Treffer.</p>
+      </div>
+      <div class="setting-group">
+        <h3>Wiedergabe</h3>
+        <ul>
+          <li><strong>Fortschrittsdialog:</strong> Zeigt Sammel- oder Auflösungsfortschritt an.</li>
+          <li><strong>Hosterqualität:</strong> Sortiert und filtert Quellen nach Qualität.</li>
+          <li><strong>Hosterlimit:</strong> Begrenzung der angezeigten Quellen.</li>
+          <li><strong>Streamsprache:</strong> Alle, Deutsch, Englisch oder Mehrsprachig.</li>
+          <li><strong>Unbekannte Sprache:</strong> Legt fest, wie Quellen ohne klare Sprachangabe behandelt werden.</li>
+          <li><strong>Lesezeichen:</strong> Speichert und nutzt Fortsetzen-Positionen.</li>
+        </ul>
+      </div>
+      <div class="setting-group">
+        <h3>LiveTV</h3>
+        <ul>
+          <li><strong>LiveTV aktivieren:</strong> Schaltet den Hauptbereich für LiveTV ein oder aus.</li>
+          <li><strong>Cache-Dauer:</strong> Steuert, wie lange Sender- und EPG-Daten wiederverwendet werden.</li>
+          <li><strong>Spezielle Sender anzeigen:</strong> Blendet Sonderkanäle je nach Einstellung ein.</li>
+          <li><strong>Wiedergabe-Engine:</strong> Automatisch, Kodi intern, FFmpeg Direct oder InputStream Adaptive.</li>
+          <li><strong>Preflight:</strong> Prüft Streams vor dem Start.</li>
+          <li><strong>Puffergröße:</strong> Setzt die LiveTV-Puffergröße in Megabyte.</li>
+          <li><strong>EPG:</strong> Aktiviert Programmdaten und die Anzeige für aktuell und gleich.</li>
+        </ul>
+      </div>
+      <div class="setting-group">
+        <h3>Konten</h3>
+        <p>Der Kontenbereich enthält xVAULT-Synchronisation, optionale Anbieterzugänge und optionale API-Schlüssel für Metadaten. Zugangsdaten werden in Kodi-Einstellungen gepflegt und gehören nicht in Dokumentation, Commits oder öffentliche Dateien.</p>
+      </div>
+      <div class="setting-group">
+        <h3>Downloads / Untertitel</h3>
+        <p>Dieser Bereich steuert Downloadpfade, Untertitel, OpenSubtitles-Optionen und die Verbindung zu externen Download-Managern.</p>
+      </div>
+    </section>
+
+    <section id="werkzeuge" class="panel manual-section">
+      <p class="section-kicker">Werkzeuge</p>
+      <h2>Support, Resolver und Direktwiedergabe</h2>
+      <h3>Support-Informationen</h3>
+      <p>Die Support-Informationen helfen beim Nachvollziehen von Version, Plattform und relevanten Add-on-Einstellungen. Sie sind nützlich, wenn ein Fehler reproduzierbar gemeldet werden soll.</p>
+      <h3>Resolver-Einstellungen</h3>
+      <p>Die Resolver-Einstellungen betreffen Hosterauflösung und Wiedergabevorbereitung. Wenn einzelne Hoster nicht funktionieren, sollte dort geprüft werden, ob der Resolver aktiv und aktuell ist.</p>
+      <h3>Stream-URL abspielen</h3>
+      <p>Dieser Menüpunkt ist für direkte Streamadressen gedacht. xVAULT übergibt die Adresse an Kodi und nutzt dabei die vorhandene Wiedergabelogik.</p>
+    </section>
+
+    <section id="fehlerhilfe" class="panel manual-section">
+      <p class="section-kicker">Hilfe</p>
+      <h2>Fehlerbehebung</h2>
+      <table class="manual-table">
+        <thead>
+          <tr><th>Problem</th><th>Prüfen</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Kodi zeigt keine Dateien im Repository</td><td>Repository-ZIP direkt installieren, URL <strong>http://xvault.ddnss.de/repository.xvault.zip</strong> prüfen und sicherstellen, dass Kodi die Seite als Dateilisting erkennt.</td></tr>
+          <tr><td>Keine Film- oder Serienquellen</td><td>Indexseiten aktivieren, Scraper-Timeout erhöhen, alternative Schreibweise suchen und die bevorzugte Streamsprache auf Alle stellen.</td></tr>
+          <tr><td>Autoplay startet falsche Sprache</td><td>Streamsprache nicht auf Alle verwenden, wenn Autoplay gewünscht ist. Bei Alle bewusst Dialog oder Verzeichnis auswählen.</td></tr>
+          <tr><td>LiveTV startet nicht</td><td>Senderliste aktualisieren, Preflight aktiv lassen, Puffergröße erhöhen und eine andere Wiedergabe-Engine testen.</td></tr>
+          <tr><td>LiveTV ruckelt</td><td>Puffergröße erhöhen, Netzwerk prüfen, FFmpeg Direct oder Kodi intern testen und instabile Sender später erneut laden.</td></tr>
+          <tr><td>EPG fehlt</td><td>EPG aktivieren, Cache aktualisieren und prüfen, ob für den Sender Programmdaten verfügbar sind.</td></tr>
+          <tr><td>Gesehen-Status wirkt verzögert</td><td>Zur Liste zurückkehren und Status-Aktualisierung aktiv lassen. Der Status wird aus Playcount und bekannten Episoden abgeleitet.</td></tr>
+          <tr><td>Synchronisation wirkt unvollständig</td><td>Anmeldung prüfen, manuell synchronisieren, danach Favoriten und Wiedergabestände erneut öffnen.</td></tr>
+        </tbody>
+      </table>
+      <h3>Gute Fehlermeldungen</h3>
+      <ul>
+        <li>xVAULT-Version, Kodi-Version und Betriebssystem nennen.</li>
+        <li>Genaue Schritte zum Nachstellen beschreiben.</li>
+        <li>Erwartetes und tatsächliches Verhalten trennen.</li>
+        <li>Logauszüge nur ohne Passwörter, Tokens, API-Schlüssel oder private Eingaben weitergeben.</li>
+      </ul>
+      <p>Fehler können über <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT/issues" data-umami-event="Handbuch Issues geoeffnet">GitHub Issues</a> gemeldet werden.</p>
+    </section>
+
+    <section id="datenschutz" class="panel manual-section">
+      <p class="section-kicker">Datenschutz</p>
+      <h2>GitHub Page und Umami</h2>
+      <p>Die GitHub Page nutzt Umami zur statistischen Auswertung von Seitenaufrufen und Linkklicks. Do Not Track wird respektiert und URL-Suchparameter werden ausgeschlossen.</p>
+      <p>Event-Namen sind allgemein gehalten und enthalten keine Zugangsdaten, API-Schlüssel, Formularinhalte oder privaten Nutzereingaben. Die xVAULT-Dokumentation speichert keine persönlichen Kontodaten.</p>
+    </section>
+
+    <section id="pflege" class="panel manual-section">
+      <p class="section-kicker">Projektpflege</p>
+      <h2>Dokumentation aktuell halten</h2>
+      <p>Wenn Funktionen, Einstellungen oder Versionen geändert werden, müssen README, Changelog und die GitHub Page mitgeprüft werden. Plugin-Änderungen werden lokal getestet, bevor sie veröffentlicht werden.</p>
+      <p>Die führende Versionsquelle ist <strong>addon.xml</strong>. Die GitHub Page zeigt die aktuelle Version, Downloadlinks und die neuesten Änderungen an. Diese Handbuchseite ergänzt die Startseite als dauerhafte Wissensdatenbank.</p>
+    </section>
+
+    <footer class="manual-footer">
+      <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">Zur xVAULT-Startseite</a>
+      <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geoeffnet">Quellcode auf GitHub</a>
+      <span>Handbuch zu xVAULT 2026.07.02.4</span>
+    </footer>
+  </main>
+</body>
+</html>
