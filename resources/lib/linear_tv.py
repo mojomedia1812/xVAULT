@@ -44,6 +44,8 @@ DEFAULT_BUFFER_MB = 0
 MAX_BUFFER_MB = 200
 HLS_PREFLIGHT_SEGMENTS = 6
 HLS_PREFLIGHT_MIN_GOOD = 2
+HLS_PREFLIGHT_RECHECK_DELAY = 2.5
+HLS_PREFLIGHT_CONFIRM_ROUNDS = 2
 HLS_FALLBACK_LIMIT = 6
 PLAYBACK_ENGINE_AUTO = 0
 PLAYBACK_ENGINE_NATIVE = 1
@@ -583,7 +585,7 @@ def _addon_enabled(addon_id):
 
 
 def _select_live_stream(channel, catalog):
-    best_unstable = None
+    playable = []
     for candidate, force_signature in _stream_candidates(channel, catalog):
         stream_url = _resolve(candidate.get("url"), force_signature=force_signature)
         if not stream_url:
@@ -591,12 +593,17 @@ def _select_live_stream(channel, catalog):
 
         report = _stream_preflight_report(stream_url, candidate)
         if report.get("ok") and not report.get("unstable"):
-            return stream_url, candidate
-        if report.get("ok") and best_unstable is None:
-            best_unstable = (stream_url, candidate)
+            if _confirm_preflight(stream_url, candidate, report):
+                return stream_url, candidate
+            continue
 
-    if best_unstable:
-        return best_unstable
+        if report.get("ok"):
+            playable.append((stream_url, candidate, report))
+
+    for stream_url, candidate, report in sorted(playable, key=lambda item: _preflight_score(item[2]), reverse=True):
+        if _confirm_preflight(stream_url, candidate, report):
+            return stream_url, candidate
+
     return "", channel
 
 
@@ -667,8 +674,37 @@ def _fallback_score(original, candidate):
     return score
 
 
-def _stream_preflight_ok(stream_url, channel):
-    return _stream_preflight_report(stream_url, channel).get("ok", True)
+def _confirm_preflight(stream_url, candidate, report):
+    if not report.get("ok"):
+        return False
+    if requests is None or ".m3u8" not in (stream_url or "").lower():
+        return True
+    if control.getSetting("livetv.preflight", "true") == "false":
+        return True
+
+    confirm = report
+    for _ in range(HLS_PREFLIGHT_CONFIRM_ROUNDS):
+        time.sleep(HLS_PREFLIGHT_RECHECK_DELAY)
+        confirm = _stream_preflight_report(stream_url, candidate)
+        if not confirm.get("ok") or confirm.get("unstable"):
+            return False
+    return True
+
+
+def _preflight_score(report):
+    tested = int(report.get("tested") or 0)
+    good = int(report.get("good") or 0)
+    latest = report.get("latest")
+    score = good * 10
+    if tested and good == tested:
+        score += 40
+    if report.get("ok"):
+        score += 20
+    if _hls_status_ok(latest):
+        score += 10
+    if report.get("unstable"):
+        score -= max(0, tested - good) * 8
+    return score
 
 
 def _stream_preflight_report(stream_url, channel):
@@ -681,7 +717,13 @@ def _stream_preflight_report(stream_url, channel):
     try:
         segment_urls = _hls_probe_segments(stream_url)
         if not segment_urls:
-            return report
+            log_utils.log(
+                "LiveTV preflight blocked %s: HLS manifest has no playable segments" % (
+                    channel.get("name") or channel.get("id") or "unknown"
+                ),
+                log_utils.LOGWARNING,
+            )
+            return {"ok": False, "unstable": True, "good": 0, "tested": 0, "latest": None}
 
         recent = segment_urls[-HLS_PREFLIGHT_SEGMENTS:]
         statuses = [_probe_segment_status(segment_url) for segment_url in recent]

@@ -1,3 +1,9 @@
+xVAULT 2026.07.02.3
+Entwickler: mojomedia1812
+
+- LiveTV bestaetigt HLS-Kandidaten vor der Kodi-Uebergabe in zwei weiteren kurzen Pruefrunden, damit flappende Sender mit wechselnden HTTP-500-Segmenten nicht in einem haengenden Player landen.
+- Leere oder nicht auswertbare HLS-Manifeste werden jetzt explizit blockiert, statt als scheinbar brauchbarer Stream durchzurutschen.
+
 xVAULT 2026.07.02.2
 Entwickler: mojomedia1812
 
