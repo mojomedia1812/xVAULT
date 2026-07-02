@@ -1,3 +1,9 @@
+xVAULT 2026.07.02.2
+Entwickler: mojomedia1812
+
+- LiveTV startet HLS-Sender nur noch, wenn das neueste Segment erreichbar ist; defekte Live-Rand-Segmente fuehren nun zum Ersatzstream statt zum Kodi-Playback-Fehler.
+- Signierte HLS-Manifest-URLs werden ohne Kodi-MIME-Query gestartet, damit Anbieter die URL nicht wegen zusaetzlicher Parameter ablehnen.
+
 xVAULT 2026.07.02.1
 Entwickler: mojomedia1812
 

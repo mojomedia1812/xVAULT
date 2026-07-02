@@ -519,7 +519,7 @@ def _configure_stream(item, stream_url):
         return
 
     engine = _setting_int("livetv.playback.engine", PLAYBACK_ENGINE_AUTO, PLAYBACK_ENGINE_AUTO, PLAYBACK_ENGINE_ADAPTIVE)
-    item.setMimeType("application/x-mpegURL")
+    # Some signed HLS manifests reject Kodi's extra mimetype query parameter.
     item.setContentLookup(False)
 
     if engine == PLAYBACK_ENGINE_ADAPTIVE:
@@ -690,8 +690,8 @@ def _stream_preflight_report(stream_url, channel):
         latest_ok = _hls_status_ok(statuses[-1] if statuses else None)
 
         report.update({
-            "ok": len(good) >= needed,
-            "unstable": len(good) < len(recent) or not latest_ok,
+            "ok": latest_ok and len(good) >= needed,
+            "unstable": len(good) < len(recent),
             "good": len(good),
             "tested": len(recent),
             "latest": statuses[-1] if statuses else None,
