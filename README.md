@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.06.30.9`
+Aktueller Stand: `2026.07.02.1`
 
 Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geaendert wird, muss diese README geprueft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** oeffnen.
-3. Die Datei `plugin.video.xvault-2026.06.30.9.zip` auswaehlen.
+3. Die Datei `plugin.video.xvault-2026.07.02.1.zip` auswaehlen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen ueber das Repository.
@@ -40,7 +40,7 @@ Weitere Hinweise zu Abhaengigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Gesehen/Ungesehen-Status fuer Filme, Folgen, Staffeln und Serien.
 - xVAULT-Synchronisation fuer Favoriten und Wiedergabestaende.
 - Automatische Updatepruefung kann in den allgemeinen Einstellungen aktiviert oder deaktiviert werden.
-- LiveTV-Senderliste mit lokalem Cache, Kategorien, Suche, Favoriten, Senderlogos, einstellbarer Stream-Puffergroesse, plattformneutraler HLS-Wiedergabe-Engine, Streampruefung vor dem Start und EPG-Vorschau fuer aktuell laufende und folgende Sendungen.
+- LiveTV-Senderliste mit lokalem Cache, Kategorien, Suche, Favoriten, Senderlogos, einstellbarer Stream-Puffergroesse, plattformneutraler HLS-Wiedergabe-Engine, mehrstufiger HLS-Streampruefung, passendem Ersatzstream-Fallback und EPG-Vorschau fuer aktuell laufende und folgende Sendungen.
 - Download-, Untertitel- und externe Download-Manager-Optionen.
 
 ## Fehler und Vorschlaege melden

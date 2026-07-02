@@ -40,12 +40,12 @@
         <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
         <tr><th colspan="4"><hr></th></tr>
         <tr><td>[PARENTDIR]</td><td><a href="../" data-umami-event="Verzeichnisnavigation geoeffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geoeffnet">plugin.video.xvault/</a></td><td align="right">30.Jun.2026 20:51:11</td><td align="right">-</td></tr>
+        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geoeffnet">plugin.video.xvault/</a></td><td align="right">02.Jul.2026 06:23:04</td><td align="right">-</td></tr>
         <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geoeffnet">repository.xvault/</a></td><td align="right">20.Jun.2026 14:10:39</td><td align="right">-</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geoeffnet">addons.xml</a></td><td align="right">30.Jun.2026 21:15:24</td><td align="right">2.44 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geoeffnet">addons.xml.md5</a></td><td align="right">30.Jun.2026 21:15:24</td><td align="right">32.00 B</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">30.Jun.2026 21:15:24</td><td align="right">1.96 MB</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">30.Jun.2026 21:15:24</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geoeffnet">addons.xml</a></td><td align="right">02.Jul.2026 06:23:04</td><td align="right">2.44 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geoeffnet">addons.xml.md5</a></td><td align="right">02.Jul.2026 06:23:04</td><td align="right">32.00 B</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">02.Jul.2026 06:23:04</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">02.Jul.2026 06:23:04</td><td align="right">1.96 MB</td></tr>
         <tr><th colspan="4"><hr></th></tr>
       </tbody>
     </table>
@@ -61,10 +61,10 @@
 
         <div class="release">
           <span>Aktuelle Version</span>
-          <strong>2026.06.30.9</strong>
+          <strong>2026.07.02.1</strong>
         </div>
 
-        <a class="download" href="downloads/plugin.video.xvault-2026.06.30.9.zip" download data-umami-event="Add-on ZIP heruntergeladen">
+        <a class="download" href="downloads/plugin.video.xvault-2026.07.02.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
           Installations-ZIP herunterladen
         </a>
 
@@ -118,6 +118,16 @@
     </section>
     <!-- release-notes:start -->
     <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.07.02.1</p>
+      <h2>Aenderungen im Ueberblick</h2>
+      <ul class="update-list">
+        <li>LiveTV prueft vor dem Start mehrere aktuelle HLS-Segmente statt nur das letzte Segment der Playlist.</li>
+        <li>Fehlerhafte Range-Requests werden mit einem normalen Segmentabruf gegengeprueft, damit brauchbare Streams nicht faelschlich blockiert werden.</li>
+        <li>Bei instabilen Sendern nutzt xVAULT automatisch eng passende Ersatzstreams wie HD+ oder Backup-Varianten, ohne auf fremde Sender zu wechseln.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
       <p class="section-kicker">Neu in 2026.06.30.9</p>
       <h2>Aenderungen im Ueberblick</h2>
       <ul class="update-list">
@@ -153,16 +163,6 @@
         <li>BS.to zeigt nur noch Quellen an, die ohne reCAPTCHA-Anforderung erkannt werden.</li>
         <li>CAPTCHA-geschuetzte BS.to-Quellen werden vor der Quellenliste ausgefiltert und nicht automatisiert umgangen.</li>
         <li>Der optionale BS.to-Login bleibt freiwillig; ohne Zugangsdaten wird weiterhin nach frei verfuegbaren Quellen gesucht.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.06.30.5</p>
-      <h2>Aenderungen im Ueberblick</h2>
-      <ul class="update-list">
-        <li>Neuer optionaler Serien-Scraper fuer BS.to im xVAULT-Provider-System ergaenzt.</li>
-        <li>BS.to liest Serienliste, Staffel-/Episodenlinks, Deutsch/Englisch/Deutsch-Sub-Sprachen und Hoster aus der aktuellen Seitenstruktur.</li>
-        <li>Optionaler BS.to-Login in den Konten-Einstellungen ergaenzt; CAPTCHA-geschuetzte Hoster werden markiert und nicht automatisiert umgangen.</li>
       </ul>
     </section>
     <!-- release-notes:end -->
@@ -209,13 +209,14 @@
     <section class="panel checksum">
       <h2>Dateiprüfung</h2>
       <p>SHA-256</p>
-      <code>738DB2283C77E7907F633C2B6C00BB3BF3834066F2D8C116DBBA5C21E661AFD6</code>
+      <code>D08443337430EC25E989F113F2A9BD8183DD3C487B008D31C80E159BA38F4087</code>
     </section>
 
     <section class="panel archive">
       <h2>Vorherige Versionen</h2>
       <ul class="archive-list">
         <!-- previous-downloads:start -->
+        <li><a href="downloads/plugin.video.xvault-2026.06.30.9.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.06.30.9 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.06.30.8.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.06.30.8 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.06.30.4.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.06.30.4 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.06.30.3.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.06.30.3 herunterladen</a><span>33,8 MB</span></li>
@@ -232,7 +233,7 @@
 
     <footer>
       <a href="https://github.com/mojomedia1812/xVAULT" data-umami-event="GitHub Repo geoeffnet">Quellcode auf GitHub</a>
-      <span>Version 2026.06.30.9</span>
+      <span>Version 2026.07.02.1</span>
     </footer>
   </main>
 </body>

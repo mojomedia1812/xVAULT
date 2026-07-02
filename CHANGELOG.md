@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.07.02.1] - 2026-07-02
+
+- LiveTV prueft vor dem Start mehrere aktuelle HLS-Segmente statt nur das letzte Segment der Playlist.
+- Fehlerhafte Range-Requests werden mit einem normalen Segmentabruf gegengeprueft, damit brauchbare Streams nicht faelschlich blockiert werden.
+- Bei instabilen Sendern nutzt xVAULT automatisch eng passende Ersatzstreams wie HD+ oder Backup-Varianten, ohne auf fremde Sender zu wechseln.
+
 ## [2026.06.30.9] - 2026-06-30
 
 - Filmpalast erkennt die aktuelle Suchergebnis- und Streamlink-Struktur wieder.

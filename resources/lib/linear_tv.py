@@ -42,6 +42,9 @@ LOGOS_TTL = 14 * 24 * 3600
 MAX_PAGES_PER_GROUP = 20
 DEFAULT_BUFFER_MB = 0
 MAX_BUFFER_MB = 200
+HLS_PREFLIGHT_SEGMENTS = 6
+HLS_PREFLIGHT_MIN_GOOD = 2
+HLS_FALLBACK_LIMIT = 6
 PLAYBACK_ENGINE_AUTO = 0
 PLAYBACK_ENGINE_NATIVE = 1
 PLAYBACK_ENGINE_FFMPEG_DIRECT = 2
@@ -228,7 +231,8 @@ def remove_favorite(channel_id):
 
 
 def play(channel_id):
-    channel = _channel_by_id(_catalog(), channel_id) or _channel_by_id(_load_favorites(), channel_id)
+    catalog = _catalog()
+    channel = _channel_by_id(catalog, channel_id) or _channel_by_id(_load_favorites(), channel_id)
     if not channel:
         control.infoDialog("Sender nicht gefunden", icon="WARNING", time=4000)
         control.resolveUrl(_handle(), False, control.item("LiveTV", offscreen=True))
@@ -237,30 +241,24 @@ def play(channel_id):
     programmes = _programme_pair(channel, refresh=True)
     _show_programme_before_play(channel, programmes[0])
 
-    stream_url = _resolve(channel.get("url"))
+    stream_url, playback_channel = _select_live_stream(channel, catalog)
     if not stream_url:
         control.infoDialog("Stream konnte nicht aufgeloest werden", icon="WARNING", time=4000)
         control.resolveUrl(_handle(), False, control.item(channel.get("name") or "LiveTV", offscreen=True))
         return
 
-    if not _stream_preflight_ok(stream_url, channel):
-        fresh_stream_url = _resolve(channel.get("url"), force_signature=True)
-        if fresh_stream_url and _stream_preflight_ok(fresh_stream_url, channel):
-            stream_url = fresh_stream_url
-        else:
-            control.infoDialog("Stream liefert aktuell defekte Videosegmente", icon="WARNING", time=5000)
-            control.resolveUrl(_handle(), False, control.item(channel.get("name") or "LiveTV", offscreen=True))
-            return
+    if playback_channel.get("id") != channel.get("id"):
+        control.infoDialog("Nutze Ersatzstream: %s" % (playback_channel.get("name") or "LiveTV"), icon="INFO", time=3500)
 
-    item = control.item(channel.get("name") or "LiveTV", offscreen=True)
+    item = control.item(playback_channel.get("name") or "LiveTV", offscreen=True)
     item.setProperty("IsPlayable", "true")
     item.setInfo("video", {
-        "title": channel.get("name") or "LiveTV",
-        "plot": _plot(channel, programmes),
-        "plotoutline": _plot(channel, programmes),
+        "title": playback_channel.get("name") or "LiveTV",
+        "plot": _plot(playback_channel, programmes),
+        "plotoutline": _plot(playback_channel, programmes),
         "mediatype": "video",
     })
-    _set_channel_art(item, channel)
+    _set_channel_art(item, playback_channel)
     _configure_stream(item, stream_url)
     item.setPath(stream_url)
     control.resolveUrl(_handle(), True, item)
@@ -584,39 +582,163 @@ def _addon_enabled(addon_id):
             return False
 
 
+def _select_live_stream(channel, catalog):
+    best_unstable = None
+    for candidate, force_signature in _stream_candidates(channel, catalog):
+        stream_url = _resolve(candidate.get("url"), force_signature=force_signature)
+        if not stream_url:
+            continue
+
+        report = _stream_preflight_report(stream_url, candidate)
+        if report.get("ok") and not report.get("unstable"):
+            return stream_url, candidate
+        if report.get("ok") and best_unstable is None:
+            best_unstable = (stream_url, candidate)
+
+    if best_unstable:
+        return best_unstable
+    return "", channel
+
+
+def _stream_candidates(channel, catalog):
+    seen = set()
+
+    def add(candidate, force_signature=False):
+        if not candidate:
+            return None
+        key = "%s:%s" % (candidate.get("id") or candidate.get("url"), force_signature)
+        if key in seen:
+            return None
+        seen.add(key)
+        return candidate, force_signature
+
+    for force_signature in (False, True):
+        candidate = add(channel, force_signature)
+        if candidate:
+            yield candidate
+
+    for fallback in _fallback_channels(channel, catalog):
+        for force_signature in (False, True):
+            candidate = add(fallback, force_signature)
+            if candidate:
+                yield candidate
+
+
+def _fallback_channels(channel, catalog):
+    key = _fallback_key(channel.get("name"))
+    if not key:
+        return []
+
+    candidates = []
+    for candidate in list(catalog or []) + _load_favorites():
+        if not isinstance(candidate, dict):
+            continue
+        if candidate.get("id") == channel.get("id"):
+            continue
+        if _fallback_key(candidate.get("name")) != key:
+            continue
+        candidates.append(candidate)
+
+    candidates.sort(key=lambda item: _fallback_score(channel, item))
+    return candidates[:HLS_FALLBACK_LIMIT]
+
+
+def _fallback_key(name):
+    text = re.sub(r"\[[A-Z]\]|\|[A-Z]\b", " ", name or "", flags=re.I)
+    text = re.sub(r"\([^)]*\bBACKUP\b[^)]*\)", " ", text, flags=re.I)
+    text = re.sub(r"\b(BACKUP|RAW|EVENT|EVENTS|TEST|UHD|FHD|HD|SD)\b", " ", text, flags=re.I)
+    text = text.replace("+", " ")
+    return _normalize(text)
+
+
+def _fallback_score(original, candidate):
+    name = (candidate.get("name") or "").upper()
+    original_name = (original.get("name") or "").upper()
+    score = 0
+    if "BACKUP" in name:
+        score += 30
+    if "BACKUP" in original_name and "BACKUP" in name:
+        score -= 10
+    if "HD+" in name:
+        score -= 8
+    if "FHD" in name or "UHD" in name:
+        score -= 4
+    score += abs(len(candidate.get("name") or "") - len(original.get("name") or ""))
+    return score
+
+
 def _stream_preflight_ok(stream_url, channel):
+    return _stream_preflight_report(stream_url, channel).get("ok", True)
+
+
+def _stream_preflight_report(stream_url, channel):
+    report = {"ok": True, "unstable": False}
     if requests is None or ".m3u8" not in (stream_url or "").lower():
-        return True
+        return report
     if control.getSetting("livetv.preflight", "true") == "false":
-        return True
+        return report
 
     try:
-        segment_url = _hls_probe_segment(stream_url)
-        if not segment_url:
-            return True
-        status = _probe_segment_status(segment_url)
-        if status is None or 200 <= status < 400 or status == 416:
-            return True
+        segment_urls = _hls_probe_segments(stream_url)
+        if not segment_urls:
+            return report
+
+        recent = segment_urls[-HLS_PREFLIGHT_SEGMENTS:]
+        statuses = [_probe_segment_status(segment_url) for segment_url in recent]
+        good = [status for status in statuses if _hls_status_ok(status)]
+        needed = min(HLS_PREFLIGHT_MIN_GOOD, len(recent))
+        latest_ok = _hls_status_ok(statuses[-1] if statuses else None)
+
+        report.update({
+            "ok": len(good) >= needed,
+            "unstable": len(good) < len(recent) or not latest_ok,
+            "good": len(good),
+            "tested": len(recent),
+            "latest": statuses[-1] if statuses else None,
+        })
+        if report["ok"]:
+            if report["unstable"]:
+                log_utils.log(
+                    "LiveTV preflight tolerated %s: %d/%d segments usable, latest HTTP %s" % (
+                        channel.get("name") or channel.get("id") or "unknown",
+                        report["good"],
+                        report["tested"],
+                        report["latest"],
+                    ),
+                    log_utils.LOGWARNING,
+                )
+            return report
+
         log_utils.log(
-            "LiveTV preflight blocked %s: segment HTTP %s" % (channel.get("name") or channel.get("id") or "unknown", status),
+            "LiveTV preflight blocked %s: %d/%d segments usable, latest HTTP %s" % (
+                channel.get("name") or channel.get("id") or "unknown",
+                report["good"],
+                report["tested"],
+                report["latest"],
+            ),
             log_utils.LOGWARNING,
         )
-        return False
+        return report
     except Exception as exc:
         log_utils.log(
             "LiveTV preflight blocked %s: %s" % (channel.get("name") or channel.get("id") or "unknown", str(exc)),
             log_utils.LOGWARNING,
         )
-        return False
+        return {"ok": False, "unstable": True}
 
 
 def _hls_probe_segment(manifest_url, depth=0):
+    segments = _hls_probe_segments(manifest_url, depth=depth)
+    return segments[-1] if segments else ""
+
+
+def _hls_probe_segments(manifest_url, depth=0):
     if depth > 2:
-        return ""
+        return []
 
     response = requests.get(manifest_url, headers=_hls_probe_headers(), timeout=10)
     if response.status_code >= 400:
-        return manifest_url
+        return [manifest_url]
     text = response.text or ""
     lines = [line.strip() for line in text.splitlines() if line.strip()]
 
@@ -626,17 +748,25 @@ def _hls_probe_segment(manifest_url, depth=0):
         for next_line in lines[index + 1:]:
             if next_line.startswith("#"):
                 continue
-            return _hls_probe_segment(urljoin(manifest_url, next_line), depth + 1)
+            return _hls_probe_segments(urljoin(manifest_url, next_line), depth + 1)
 
-    for line in reversed(lines):
-        if not line or line.startswith("#"):
-            continue
-        return urljoin(manifest_url, line)
-    return ""
+    return [urljoin(manifest_url, line) for line in lines if line and not line.startswith("#")]
 
 
 def _probe_segment_status(segment_url):
     response = requests.get(segment_url, headers=_hls_probe_headers(range_request=True), timeout=10, stream=True)
+    try:
+        status = int(response.status_code)
+    finally:
+        try:
+            response.close()
+        except Exception:
+            pass
+
+    if _hls_status_ok(status):
+        return status
+
+    response = requests.get(segment_url, headers=_hls_probe_headers(range_request=False), timeout=10, stream=True)
     try:
         return int(response.status_code)
     finally:
@@ -644,6 +774,16 @@ def _probe_segment_status(segment_url):
             response.close()
         except Exception:
             pass
+
+
+def _hls_status_ok(status):
+    if status is None:
+        return True
+    try:
+        status = int(status)
+    except Exception:
+        return False
+    return 200 <= status < 400 or status == 416
 
 
 def _hls_probe_headers(range_request=False):
