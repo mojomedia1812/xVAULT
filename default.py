@@ -83,6 +83,22 @@ elif action == 'liveTVPlay':
     from resources.lib import linear_tv
     linear_tv.play(params.get('id'))
 
+elif action == 'liveTVLiteNavigator':
+    from resources.lib import linear_tv_lite
+    linear_tv_lite.show_home()
+
+elif action == 'liveTVLiteRefresh':
+    from resources.lib import linear_tv_lite
+    linear_tv_lite.refresh()
+
+elif action == 'liveTVLiteCategory':
+    from resources.lib import linear_tv_lite
+    linear_tv_lite.show_category(params.get('category'))
+
+elif action == 'liveTVLitePlay':
+    from resources.lib import linear_tv_lite
+    linear_tv_lite.play(params.get('id'))
+
 elif action == 'toolNavigator':
     from resources.lib.indexers import navigator
     navigator.navigator().tools()

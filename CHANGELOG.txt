@@ -1,3 +1,10 @@
+xVAULT 2026.07.02.4
+Entwickler: mojomedia1812
+
+- Neuer Hauptmenuepunkt LiveTV lite direkt nach LiveTV ergaenzt.
+- LiveTV lite liest Deutsche TV, Österreichische TV und Schweizer TV aus der 2ix2-WordPress-API, extrahiert die JWPlayer-HLS-Streams und spielt sie mit der bestehenden xVAULT-HLS-Konfiguration ab.
+- Nicht erreichbare 2ix2-HLS-Manifeste werden vor dem Kodi-Start abgefangen, damit tote Quellen keinen Playback-Fehler ausloesen.
+
 xVAULT 2026.07.02.3
 Entwickler: mojomedia1812
 

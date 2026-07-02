@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.07.02.4] - 2026-07-02
+
+- Neuer Hauptmenuepunkt `LiveTV lite` direkt nach `LiveTV` ergaenzt.
+- LiveTV lite liest Deutsche TV, Österreichische TV und Schweizer TV aus der 2ix2-WordPress-API, extrahiert die JWPlayer-HLS-Streams und spielt sie mit der bestehenden xVAULT-HLS-Konfiguration ab.
+- Nicht erreichbare 2ix2-HLS-Manifeste werden vor dem Kodi-Start abgefangen, damit tote Quellen keinen Playback-Fehler ausloesen.
+
 ## [2026.07.02.3] - 2026-07-02
 
 - LiveTV bestaetigt HLS-Kandidaten vor der Kodi-Uebergabe in zwei weiteren kurzen Pruefrunden, damit flappende Sender mit wechselnden HTTP-500-Segmenten nicht in einem haengenden Player landen.
