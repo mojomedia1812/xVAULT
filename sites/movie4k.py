@@ -5,6 +5,7 @@
 
 from resources.lib.utils import isBlockedHoster
 import re
+import requests
 from scrapers.modules.tools import cParser  # re - alternative
 from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import cleantitle, dom_parser

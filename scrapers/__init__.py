@@ -16,6 +16,7 @@ _SCRAPERS_ROOT = os.path.dirname(__file__)
 _ADDON_ROOT = os.path.dirname(_SCRAPERS_ROOT)
 _SITES_FOLDER = os.path.join(_ADDON_ROOT, 'sites')
 _LEGACY_FOLDER = os.path.join(_SCRAPERS_ROOT, 'scrapers_source', 'de')
+_MODULE_CACHE = {}
 
 
 def _folder_has_providers(folder):
@@ -40,13 +41,34 @@ def getProviderModuleNames():
     )
 
 
+def _module_cache_key(spec, module_name):
+    origin = getattr(spec, 'origin', None)
+    if origin and os.path.isfile(origin):
+        try:
+            return origin, os.path.getmtime(origin)
+        except OSError:
+            pass
+    return module_name, None
+
+
 def _load_module(loader, module_name):
+    if hasattr(loader, 'find_spec'):
+        spec = loader.find_spec(module_name, None)
+        if spec is None or spec.loader is None:
+            raise ImportError('Unable to load scraper module: %s' % module_name)
+        cache_key = _module_cache_key(spec, module_name)
+        module = _MODULE_CACHE.get(cache_key)
+        if module is not None:
+            return module
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        _MODULE_CACHE[cache_key] = module
+        return module
+
     if hasattr(loader, 'find_module'):
         return loader.find_module(module_name).load_module(module_name)
-    spec = loader.find_spec(module_name, None)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+
+    raise ImportError('Unable to load scraper module: %s' % module_name)
 
 
 def sources(specified_folders=None):
