@@ -159,6 +159,7 @@ def sync_repository_zip_aliases():
 def sync_browsable_repository_layout():
     ADDON_INDEX_DIR.mkdir(parents=True, exist_ok=True)
     REPOSITORY_INDEX_DIR.mkdir(parents=True, exist_ok=True)
+    _prune_browsable_archives()
 
     shutil.copy2(REPOSITORY_PLUGIN_OUTPUT, ADDON_INDEX_OUTPUT)
     validate(ADDON_INDEX_OUTPUT)
@@ -190,6 +191,21 @@ def sync_browsable_repository_layout():
     _write_index(PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID, "/xVAULT/zips/repository.xvault/", [
         _entry(REPOSITORY_ZIP_NAME, REPOSITORY_OUTPUT),
     ])
+
+
+def _prune_browsable_archives():
+    keep = {
+        ADDON_INDEX_DIR: {ZIP_NAME},
+        PROJECT_DIR / "docs" / "zips" / ADDON_ID: {ZIP_NAME},
+        REPOSITORY_INDEX_DIR: {REPOSITORY_ZIP_NAME},
+        PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID: {REPOSITORY_ZIP_NAME},
+    }
+    for directory, keep_names in keep.items():
+        if not directory.exists():
+            continue
+        for archive in directory.glob("*.zip"):
+            if archive.name not in keep_names:
+                archive.unlink()
 
 
 def update_kodi_repository_metadata():
