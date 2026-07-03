@@ -112,6 +112,10 @@ class episodes:
 				sysname = systitle + ' S%02dE%02d' % (season, episode)
 				sysmeta.update({'episode': episode})
 				sysmeta.update({'sysname': sysname})
+				if i.get('title'):
+					sysmeta.update({'episode_title': i['title']})
+				if i.get('premiered'):
+					sysmeta.update({'episode_premiered': i['premiered']})
 
 				_sysmeta = control.quote_plus(json.dumps(sysmeta))
 

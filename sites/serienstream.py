@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import sys
+import datetime
 from resources.lib.control import getSetting, urljoin, setSetting
 from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import cleantitle, dom_parser
@@ -405,9 +406,18 @@ class source:
             if log_utils:
                 logger.info('SerienStream - Episode: %s' % full_url)
 
-            oRequest = cRequestHandler(full_url)
-            oRequest.addHeaderEntry('User-Agent', 'Mozilla/5.0')
-            sHtmlContent = oRequest.request()
+            sHtmlContent = self._request_page(full_url)
+
+            if not self._has_stream_links(sHtmlContent) and int(season) != 0:
+                special = self._find_special_episode_page(
+                    url,
+                    getattr(self, 'episode_title', None),
+                    getattr(self, 'episode_premiered', None)
+                )
+                if special:
+                    full_url, sHtmlContent = special
+                    if log_utils:
+                        logger.info('SerienStream - Special fallback: %s' % full_url)
 
             if len(sHtmlContent) == 0:
                 return self.sources
@@ -419,8 +429,7 @@ class source:
                     if foundImdb and not foundImdb == imdb:
                         return
 
-            pattern = r'<[^>]+data-link-id="[^"]+"[^>]*>'
-            matches = re.findall(pattern, sHtmlContent, re.DOTALL | re.IGNORECASE)
+            matches = self._parse_stream_link_buttons(sHtmlContent)
 
             if not matches:
                 return self.sources
@@ -482,6 +491,217 @@ class source:
             if log_utils:
                 logger.info('SerienStream - Fatal: %s' % str(e))
             return self.sources
+
+    def _request_page(self, full_url):
+        try:
+            oRequest = cRequestHandler(full_url)
+            oRequest.addHeaderEntry('User-Agent', 'Mozilla/5.0')
+            return oRequest.request() or ''
+        except Exception as e:
+            if log_utils:
+                logger.info('SerienStream - Request error: %s' % str(e))
+            return ''
+
+    @staticmethod
+    def _parse_stream_link_buttons(html):
+        pattern = r'<[^>]+data-link-id="[^"]+"[^>]*>'
+        return re.findall(pattern, html or '', re.DOTALL | re.IGNORECASE)
+
+    def _has_stream_links(self, html):
+        return bool(self._parse_stream_link_buttons(html))
+
+    def _find_special_episode_page(self, series_url, episode_title=None, episode_premiered=None):
+        if not episode_title and not episode_premiered:
+            return None
+
+        season_url = '%s/staffel-0' % series_url.rstrip('/')
+        season_full_url = urljoin(self.base_link, season_url)
+
+        if log_utils:
+            logger.info('SerienStream - Special fallback check: %s | title=%s | premiered=%s' % (
+                season_full_url,
+                episode_title,
+                episode_premiered
+            ))
+
+        season_html = self._request_page(season_full_url)
+        if not season_html:
+            return None
+
+        episode_links = self._parse_episode_links(season_html, season_url)
+        if not episode_links:
+            return None
+
+        for episode_url in episode_links:
+            full_url = urljoin(self.base_link, episode_url)
+            html = self._request_page(full_url)
+            if not html or not self._has_stream_links(html):
+                continue
+
+            page_title = self._extract_episode_title(html)
+            if episode_title and self._episode_titles_match(episode_title, page_title):
+                return full_url, html
+
+            page_date = self._extract_publish_date(html)
+            if episode_premiered and self._dates_match(episode_premiered, page_date):
+                return full_url, html
+
+        return None
+
+    def _parse_episode_links(self, html, season_url):
+        links = []
+        seen = set()
+        season_prefix = season_url.rstrip('/')
+
+        patterns = [
+            r'href="([^"]*/staffel-0/episode-\d+)"',
+            r"href='([^']*/staffel-0/episode-\d+)'",
+        ]
+        for pattern in patterns:
+            for href in re.findall(pattern, html or '', re.IGNORECASE):
+                href = html_unescape(href).strip()
+                if href.startswith('http'):
+                    href = re.sub(r'^https?://[^/]+', '', href)
+                if not href.startswith('/'):
+                    href = '/' + href
+                if season_prefix not in href:
+                    continue
+                if href in seen:
+                    continue
+                seen.add(href)
+                links.append(href)
+
+        def episode_number(value):
+            match = re.search(r'/episode-(\d+)', value)
+            return int(match.group(1)) if match else 0
+
+        return sorted(links, key=episode_number)
+
+    def _extract_episode_title(self, html):
+        patterns = [
+            r'<h2[^>]*>\s*S\d+E\d+\s*:\s*(.*?)</h2>',
+            r'<title>[^<]*S\d+E\d+\s*:\s*(.*?)\s*\|',
+            r'<meta[^>]+property=["\']og:title["\'][^>]+content=["\'][^"\']*S\d+E\d+\s*:\s*([^"\']+)',
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, html or '', re.IGNORECASE | re.DOTALL)
+            if match:
+                title = re.sub(r'<[^>]+>', ' ', match.group(1))
+                title = html_unescape(title)
+                title = re.sub(r'\s+', ' ', title).strip()
+                if title:
+                    return title
+        return ''
+
+    def _episode_titles_match(self, requested, candidate):
+        requested_variants = self._episode_title_variants(requested)
+        candidate_variants = self._episode_title_variants(candidate)
+
+        if log_utils:
+            logger.info('SerienStream - Special title match: request=%s | candidate=%s' % (
+                requested_variants,
+                candidate_variants
+            ))
+
+        for req in requested_variants:
+            for cand in candidate_variants:
+                if len(req) >= 6 and len(cand) >= 6 and (req in cand or cand in req):
+                    return True
+        return False
+
+    @staticmethod
+    def _episode_title_variants(title):
+        if not title:
+            return []
+
+        value = html_unescape(title)
+        value = value.replace(u'\u2018', "'").replace(u'\u2019', "'").replace(u'\u201c', '"').replace(u'\u201d', '"')
+        parts = [value]
+        parts.extend(re.findall(r'\(([^)]+)\)', value))
+        parts.append(re.sub(r'\([^)]*\)', ' ', value))
+
+        variants = []
+        for part in parts:
+            part = part.strip()
+            if not part:
+                continue
+            try:
+                clean = cleantitle.get(part)
+                if clean:
+                    variants.append(clean)
+            except:
+                pass
+
+            ascii_part = part.lower()
+            replacements = [
+                (u'\xe4', 'ae'), (u'\xf6', 'oe'), (u'\xfc', 'ue'),
+                (u'\xdf', 'ss'), (u'\xe9', 'e'), (u'\xe8', 'e'),
+            ]
+            for source, target in replacements:
+                ascii_part = ascii_part.replace(source, target)
+            ascii_part = re.sub(r'[^a-z0-9]+', '', ascii_part)
+            if ascii_part:
+                variants.append(ascii_part)
+
+        return list(set([variant for variant in variants if variant]))
+
+    @staticmethod
+    def _extract_publish_date(html):
+        month_chars = r'A-Za-z\xc4\xd6\xdc\xe4\xf6\xfc\xdf'
+        match = re.search(
+            r'Ver(?:&ouml;|\xf6)ffentlicht\s+am\s+([' + month_chars + r']+\s+\d{1,2},\s+\d{4}|\d{1,2}\.\s*[' + month_chars + r']+\.?\s+\d{4}|\d{4}-\d{2}-\d{2})',
+            html or '',
+            re.IGNORECASE
+        )
+        if not match:
+            return None
+
+        value = html_unescape(match.group(1)).strip()
+        months = {
+            'january': 1, 'jan': 1, 'januar': 1,
+            'february': 2, 'feb': 2, 'februar': 2,
+            'march': 3, 'mar': 3, 'maerz': 3, u'm\xe4rz': 3,
+            'april': 4, 'apr': 4,
+            'may': 5, 'mai': 5,
+            'june': 6, 'jun': 6, 'juni': 6,
+            'july': 7, 'jul': 7, 'juli': 7,
+            'august': 8, 'aug': 8,
+            'september': 9, 'sep': 9,
+            'october': 10, 'oct': 10, 'oktober': 10, 'okt': 10,
+            'november': 11, 'nov': 11,
+            'december': 12, 'dec': 12, 'dezember': 12, 'dez': 12,
+        }
+
+        iso_match = re.match(r'(\d{4})-(\d{2})-(\d{2})', value)
+        if iso_match:
+            return datetime.date(int(iso_match.group(1)), int(iso_match.group(2)), int(iso_match.group(3)))
+
+        english_match = re.match(r'([' + month_chars + r']+)\s+(\d{1,2}),\s+(\d{4})', value)
+        if english_match:
+            month = months.get(english_match.group(1).lower().rstrip('.'))
+            if month:
+                return datetime.date(int(english_match.group(3)), month, int(english_match.group(2)))
+
+        german_match = re.match(r'(\d{1,2})\.\s*([' + month_chars + r']+)\.?\s+(\d{4})', value)
+        if german_match:
+            month = months.get(german_match.group(2).lower().rstrip('.'))
+            if month:
+                return datetime.date(int(german_match.group(3)), month, int(german_match.group(1)))
+
+        return None
+
+    @staticmethod
+    def _dates_match(requested, candidate):
+        if not requested or not candidate:
+            return False
+        try:
+            requested_date = datetime.datetime.strptime(str(requested)[:10], '%Y-%m-%d').date()
+        except:
+            return False
+        try:
+            return abs((requested_date - candidate).days) <= 2
+        except:
+            return False
 
     @staticmethod
     def _attr(html, name):

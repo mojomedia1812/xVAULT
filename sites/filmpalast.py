@@ -75,6 +75,9 @@ class source:
                 clean_search = self._clean_title(title, year)
 
                 for m_url, m_title in matches:
+                    if season and episode and not self._episode_matches(m_title, m_url, season, episode):
+                        continue
+
                     clean_match = self._clean_title(m_title, year)
                     if clean_search not in clean_match and clean_match not in clean_search:
                         continue
@@ -209,5 +212,13 @@ class source:
         if year:
             title = re.sub(r'\(?\b%s\b\)?' % re.escape(str(year)), ' ', title)
         return cleantitle.get(title)
+
+    def _episode_matches(self, title, url, season, episode):
+        haystack = '%s %s' % (title or '', url or '')
+        if re.search(r'\bs0*%de0*%d\b' % (int(season), int(episode)), haystack, re.I):
+            return True
+
+        pattern = r'\b(?:staffel|season)\s*0*%d\b.*\b(?:episode|folge)\s*0*%d\b' % (int(season), int(episode))
+        return bool(re.search(pattern, haystack, re.I))
 
 

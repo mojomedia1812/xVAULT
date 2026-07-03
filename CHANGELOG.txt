@@ -1,3 +1,11 @@
+xVAULT 2026.07.03.4
+Entwickler: mojomedia1812
+
+- SerienStream findet Sonderfolgen nun ueber Staffel 0, wenn die normale Serienfolge auf s.to nicht vorhanden ist und der Episodentitel zur Special-Folge passt.
+- Episodentitel und Episoden-Erstausstrahlung werden an die Quellen-Scraper weitergereicht, damit Anbieter-Sonderfaelle gezielter erkannt werden koennen.
+- Vixstream speichert keine kurzlebigen Embed-Links mehr in der Quellenliste, sondern loest sie frisch beim Abspielen auf.
+- Filmpalast akzeptiert bei Serien nur noch Treffer mit passender SxxEyy-Kennung und nimmt S01E10 nicht mehr als Ersatz fuer S01E11.
+
 xVAULT 2026.07.03.3
 Entwickler: mojomedia1812
 

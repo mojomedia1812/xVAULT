@@ -38,12 +38,14 @@ class sources:
         season = data.get('season') if 'season' in data else 0
         episode = data.get('episode') if 'episode' in data else 0
         premiered = data.get('premiered') if 'premiered' in data else None
+        episode_title = data.get('episode_title') if 'episode_title' in data else None
+        episode_premiered = data.get('episode_premiered') if 'episode_premiered' in data else None
         meta = params['sysmeta']
         select = data.get('select') if 'select' in data else None
-        return title, year, imdb, season, episode, originaltitle, premiered, meta, select
+        return title, year, imdb, season, episode, originaltitle, premiered, meta, select, episode_title, episode_premiered
 
     def play(self, params):
-        title, year, imdb, season, episode, originaltitle, premiered, meta, select = self.get(params)
+        title, year, imdb, season, episode, originaltitle, premiered, meta, select, episode_title, episode_premiered = self.get(params)
         try:
             try:
                 meta_data = json.loads(meta)
@@ -64,7 +66,7 @@ class sources:
             if select == None: return
 
             #Liste der gefundenen Streams
-            items = self.getSources(title, year, imdb, season, episode, originaltitle, premiered)
+            items = self.getSources(title, year, imdb, season, episode, originaltitle, premiered, episode_title=episode_title, episode_premiered=episode_premiered)
             ## unnötig
             #select = '1' if control.getSetting('downloads') == 'true' and not (control.getSetting('download.movie.path') == '' or control.getSetting('download.tv.path') == '') else select
 
@@ -343,7 +345,7 @@ class sources:
             log_utils.log('Error %s' % str(e), log_utils.LOGERROR)
 
 
-    def getSources(self, title, year, imdb, season, episode, originaltitle, premiered, quality='HD', timeout=30):
+    def getSources(self, title, year, imdb, season, episode, originaltitle, premiered, quality='HD', timeout=30, episode_title=None, episode_premiered=None):
 #TODO
         # self._getHostDict()
         control.idle() #ok
@@ -366,7 +368,7 @@ class sources:
                 aliases.append(i)
         titles = utils.get_titles_for_search(title, originaltitle, aliases)
 
-        futures = {self.executor.submit(self._getSource, titles, year, season, episode, imdb, provider[0], provider[1]): provider[0] for provider in sourceDict}
+        futures = {self.executor.submit(self._getSource, titles, year, season, episode, imdb, provider[0], provider[1], episode_title, episode_premiered): provider[0] for provider in sourceDict}
         provider_names = {provider[0].upper() for provider in sourceDict}
 
         string4 = "Total"
@@ -465,8 +467,13 @@ class sources:
         return self.sources
 
 
-    def _getSource(self, titles, year, season, episode, imdb, source, call):
+    def _getSource(self, titles, year, season, episode, imdb, source, call, episode_title=None, episode_premiered=None):
         try:
+            try:
+                call.episode_title = episode_title
+                call.episode_premiered = episode_premiered
+            except:
+                pass
             sources = call.run(titles, year, season, episode, imdb)  # kasi self.hostDict
             if sources == None or sources == []: raise Exception()
             sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
