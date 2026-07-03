@@ -36,6 +36,11 @@ if action is None or action == 'root':
         favorites_sync.check_and_push_if_changed(silent=True)
     except Exception:
         pass
+    try:
+        from resources.lib import linear_tv
+        linear_tv.clear_session_health()
+    except Exception:
+        pass
     from resources.lib.indexers import navigator
     navigator.navigator().root()
 
@@ -58,6 +63,10 @@ elif action == 'liveTVNavigator':
 elif action == 'liveTVRefresh':
     from resources.lib import linear_tv
     linear_tv.refresh()
+
+elif action == 'liveTVHealthCheck':
+    from resources.lib import linear_tv
+    linear_tv.check_channel_health()
 
 elif action == 'liveTVCategory':
     from resources.lib import linear_tv

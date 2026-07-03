@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.07.02.4`
+Aktueller Stand: `2026.07.03.3`
 
 Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geaendert wird, muss diese README geprueft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** oeffnen.
-3. Die Datei `plugin.video.xvault-2026.07.02.4.zip` auswaehlen.
+3. Die Datei `plugin.video.xvault-2026.07.03.3.zip` auswaehlen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen ueber das Repository.
@@ -39,9 +39,10 @@ Weitere Hinweise zu Abhaengigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - BS.to ist als optionaler Serien-Scraper eingebunden. Serien, Sprachvarianten und Hoster werden aus der aktuellen Seitenstruktur gelesen; CAPTCHA-geschuetzte Quellen werden ausgeblendet und nicht automatisiert umgangen.
 - Fortsetzen von Wiedergaben und automatische Lesezeichen.
 - Gesehen/Ungesehen-Status fuer Filme, Folgen, Staffeln und Serien.
+- Nach beendeter Wiedergabe wird der Gesehen-Status aktualisiert, ohne dass die Auswahl mehrfach zwischen alter Position und naechster ungesehener Folge springt.
 - xVAULT-Synchronisation fuer Favoriten und Wiedergabestaende.
 - Automatische Updatepruefung kann in den allgemeinen Einstellungen aktiviert oder deaktiviert werden.
-- LiveTV-Senderliste mit lokalem Cache, Kategorien, Suche, Favoriten, Senderlogos, einstellbarer Stream-Puffergroesse, plattformneutraler HLS-Wiedergabe-Engine, wiederholter HLS-Stabilitaetspruefung, passendem Ersatzstream-Fallback und EPG-Vorschau fuer aktuell laufende und folgende Sendungen.
+- LiveTV-Senderliste mit lokalem Cache, Kategorien, Suche, Favoriten, Senderlogos, einstellbarer Stream-Puffergroesse, plattformneutraler HLS-Wiedergabe-Engine, wiederholter HLS-Stabilitaetspruefung, passendem Ersatzstream-Fallback, EPG-Vorschau fuer aktuell laufende und folgende Sendungen sowie einer Senderlisten-Pruefung, die vor dem Start warnt, am Ende per Ergebnisdialog gepruefte, funktionierende und temporaer gesperrte Sender zaehlt und nicht erreichbare Sender temporaer bis zum naechsten xVAULT-Hauptstart ausblendet.
 - LiveTV lite liest Deutsche TV-, Österreichische TV- und Schweizer TV-Sender direkt aus der 2ix2-WordPress-API und startet die dort hinterlegten HLS-Streams schlank ohne EPG- oder Favoriten-Schicht.
 - Download-, Untertitel- und externe Download-Manager-Optionen.
 

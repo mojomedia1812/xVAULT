@@ -1,4 +1,5 @@
 import calendar
+import concurrent.futures
 import gzip
 import io
 import json
@@ -33,6 +34,7 @@ CATALOG_FILE = os.path.join(control.addonProfilePath, "linear-tv-catalog.json")
 FAVORITES_FILE = os.path.join(control.addonProfilePath, "linear-tv-favorites.json")
 EPG_FILE = os.path.join(control.addonProfilePath, "linear-tv-epg.json")
 LOGOS_FILE = os.path.join(control.addonProfilePath, "linear-tv-logos.json")
+HEALTH_FILE = os.path.join(control.addonProfilePath, "linear-tv-health-session.json")
 SIGNATURE_TTL = 7 * 60
 DEFAULT_CACHE_HOURS = 1
 DEFAULT_EPG_CACHE_HOURS = 6
@@ -47,6 +49,9 @@ HLS_PREFLIGHT_MIN_GOOD = 2
 HLS_PREFLIGHT_RECHECK_DELAY = 2.5
 HLS_PREFLIGHT_CONFIRM_ROUNDS = 2
 HLS_FALLBACK_LIMIT = 6
+HEALTH_CHECK_TIMEOUT = 8
+HEALTH_SEGMENT_LIMIT = 2
+HEALTH_CHECK_WORKERS = 8
 PLAYBACK_ENGINE_AUTO = 0
 PLAYBACK_ENGINE_NATIVE = 1
 PLAYBACK_ENGINE_FFMPEG_DIRECT = 2
@@ -160,6 +165,7 @@ def show_home():
 
     handle = _handle()
     _add_folder(handle, "Senderliste aktualisieren", {"action": "liveTVRefresh"}, False)
+    _add_folder(handle, "Senderliste auf Funktion pruefen", {"action": "liveTVHealthCheck"}, True, "Prueft alle aktuell sichtbaren Sender und blendet nicht erreichbare Sender bis zum naechsten xVAULT-Hauptstart aus.")
     _add_folder(handle, "Favoriten", {"action": "liveTVFavorites"}, True, "Favoriten")
     _add_folder(handle, "Suche", {"action": "liveTVSearch"}, True, "Suche")
     _add_folder(handle, "Alle Sender", {"action": "liveTVCategory", "category": "Alle Sender"}, True, "Alle Sender")
@@ -173,10 +179,129 @@ def show_home():
 
 
 def refresh():
+    clear_session_health()
     channels = _catalog(force=True)
     control.infoDialog("LiveTV-Senderliste aktualisiert: %d Sender" % len(channels), icon="INFO", time=4000)
     xbmc.executebuiltin("Container.Refresh")
     _end("LiveTV", cache=False)
+
+
+def check_channel_health():
+    if requests is None:
+        control.infoDialog("Streampruefung nicht moeglich: requests fehlt.", icon="ERROR", time=5000)
+        _end("LiveTV", cache=False)
+        return
+
+    if not _confirm_health_check():
+        control.infoDialog("LiveTV-Senderpruefung abgebrochen.", icon="INFO", time=3000)
+        _end("LiveTV", cache=False)
+        return
+
+    clear_session_health()
+    channels = _catalog()
+    if not channels:
+        control.infoDialog("Keine LiveTV-Sender zum Pruefen gefunden.", icon="WARNING", time=4000)
+        _end("LiveTV", cache=False)
+        return
+
+    total = len(channels)
+    blocked = {}
+    reachable = 0
+    checked = 0
+    cancelled = False
+    progress = control.progressDialog
+    progress.create(control.addonName, "LiveTV-Sender werden geprueft")
+    progress.update(0, "Vorbereitung")
+
+    try:
+        _signature(force=True)
+        executor = concurrent.futures.ThreadPoolExecutor(max_workers=HEALTH_CHECK_WORKERS)
+        futures = {}
+        try:
+            for channel in channels:
+                futures[executor.submit(_check_channel_reachable, channel)] = channel
+
+            for future in concurrent.futures.as_completed(futures):
+                if progress.iscanceled():
+                    cancelled = True
+                    break
+                channel = futures[future]
+                name = channel.get("name") or "LiveTV"
+                checked += 1
+                percent = min(99, int(checked * 100 / total))
+                progress.update(
+                    percent,
+                    "Geprueft %d/%d: %s" % (checked, total, _truncate(name, 60)),
+                )
+                try:
+                    result = future.result()
+                except Exception as exc:
+                    result = {"ok": False, "reason": _truncate(str(exc), 120)}
+                if result.get("ok"):
+                    reachable += 1
+                else:
+                    blocked[str(channel.get("id") or channel.get("url") or name)] = {
+                        "name": name,
+                        "reason": result.get("reason") or "nicht erreichbar",
+                        "checked_at": int(time.time()),
+                    }
+        finally:
+            for future in futures:
+                if not future.done():
+                    future.cancel()
+            try:
+                executor.shutdown(wait=not cancelled, cancel_futures=True)
+            except TypeError:
+                executor.shutdown(wait=not cancelled)
+
+        _save_health_state(blocked, checked, reachable, cancelled)
+    finally:
+        try:
+            progress.close()
+        except Exception:
+            pass
+
+    hidden = len(blocked)
+    if cancelled:
+        message = "Pruefung abgebrochen: %d geprueft, %d funktionieren, %d temporaer gesperrt." % (
+            checked,
+            reachable,
+            hidden,
+        )
+        icon = "WARNING"
+    else:
+        message = "Pruefung abgeschlossen: %d geprueft, %d funktionieren, %d temporaer gesperrt." % (
+            checked,
+            reachable,
+            hidden,
+        )
+        icon = "INFO"
+    try:
+        control.dialog.ok("LiveTV-Senderpruefung", message)
+    except Exception:
+        control.infoDialog(message, icon=icon, time=6000)
+    xbmc.executebuiltin("Container.Refresh")
+    _end("LiveTV", cache=False)
+
+
+def clear_session_health():
+    try:
+        if os.path.exists(HEALTH_FILE):
+            os.remove(HEALTH_FILE)
+    except Exception as exc:
+        log_utils.log("LiveTV health state reset failed: %s" % str(exc), log_utils.LOGWARNING)
+
+
+def _confirm_health_check():
+    message = (
+        "Die Pruefung der kompletten LiveTV-Senderliste kann je nach System bis zu 30 Minuten dauern. "
+        "Fuer schwache Systeme wird der Vorgang nicht empfohlen. Jetzt trotzdem starten?"
+    )
+    try:
+        return bool(control.dialog.yesno("LiveTV-Senderliste pruefen", message))
+    except Exception as exc:
+        log_utils.log("LiveTV health confirmation failed: %s" % str(exc), log_utils.LOGWARNING)
+        return True
 
 
 def show_category(category):
@@ -270,6 +395,7 @@ def _show_channels(channels, title, favorites=False):
     handle = _handle()
     epg = _epg_data(refresh=True) if _epg_enabled() else {}
     channels = _enrich_channel_logos(channels, epg)
+    _add_folder(handle, "Senderliste auf Funktion pruefen", {"action": "liveTVHealthCheck"}, True, "Prueft alle aktuell sichtbaren Sender und blendet nicht erreichbare Sender bis zum naechsten xVAULT-Hauptstart aus.")
     for channel in sorted(channels, key=lambda item: _sort_key(item.get("name"))):
         programmes = _programme_pair(channel, epg=epg)
         plot = _plot(channel, programmes, include_empty_epg=_epg_enabled())
@@ -438,6 +564,47 @@ def _resolve(channel_url, force_signature=False):
             if attempt == 0:
                 signature = _signature(force=True)
     return ""
+
+
+def _check_channel_reachable(channel):
+    stream_url = _resolve(channel.get("url"))
+    if not stream_url:
+        stream_url = _resolve(channel.get("url"), force_signature=True)
+    if not stream_url:
+        return {"ok": False, "reason": "Resolve fehlgeschlagen"}
+    return _health_stream_reachable(stream_url)
+
+
+def _health_stream_reachable(stream_url):
+    if ".m3u8" not in (stream_url or "").lower():
+        try:
+            response = requests.get(
+                stream_url,
+                headers=_hls_probe_headers(range_request=True),
+                timeout=HEALTH_CHECK_TIMEOUT,
+                stream=True,
+            )
+            try:
+                status = int(response.status_code)
+            finally:
+                response.close()
+            return {"ok": _hls_status_ok(status), "reason": "HTTP %s" % status}
+        except Exception as exc:
+            return {"ok": False, "reason": _truncate(str(exc), 120)}
+
+    try:
+        segment_urls = _hls_probe_segments(stream_url, timeout=HEALTH_CHECK_TIMEOUT)
+        if not segment_urls:
+            return {"ok": False, "reason": "HLS ohne Segmente"}
+        sample = segment_urls[-HEALTH_SEGMENT_LIMIT:]
+        statuses = [_probe_segment_status(segment_url, timeout=HEALTH_CHECK_TIMEOUT) for segment_url in sample]
+        good = [status for status in statuses if _hls_status_ok(status)]
+        latest = statuses[-1] if statuses else None
+        if good and _hls_status_ok(latest):
+            return {"ok": True, "reason": "HTTP %s" % latest}
+        return {"ok": False, "reason": "HLS Segment HTTP %s" % latest}
+    except Exception as exc:
+        return {"ok": False, "reason": _truncate(str(exc), 120)}
 
 
 def _signature(force=False):
@@ -774,11 +941,11 @@ def _hls_probe_segment(manifest_url, depth=0):
     return segments[-1] if segments else ""
 
 
-def _hls_probe_segments(manifest_url, depth=0):
+def _hls_probe_segments(manifest_url, depth=0, timeout=10):
     if depth > 2:
         return []
 
-    response = requests.get(manifest_url, headers=_hls_probe_headers(), timeout=10)
+    response = requests.get(manifest_url, headers=_hls_probe_headers(), timeout=timeout)
     if response.status_code >= 400:
         return [manifest_url]
     text = response.text or ""
@@ -790,13 +957,13 @@ def _hls_probe_segments(manifest_url, depth=0):
         for next_line in lines[index + 1:]:
             if next_line.startswith("#"):
                 continue
-            return _hls_probe_segments(urljoin(manifest_url, next_line), depth + 1)
+            return _hls_probe_segments(urljoin(manifest_url, next_line), depth + 1, timeout=timeout)
 
     return [urljoin(manifest_url, line) for line in lines if line and not line.startswith("#")]
 
 
-def _probe_segment_status(segment_url):
-    response = requests.get(segment_url, headers=_hls_probe_headers(range_request=True), timeout=10, stream=True)
+def _probe_segment_status(segment_url, timeout=10):
+    response = requests.get(segment_url, headers=_hls_probe_headers(range_request=True), timeout=timeout, stream=True)
     try:
         status = int(response.status_code)
     finally:
@@ -808,7 +975,7 @@ def _probe_segment_status(segment_url):
     if _hls_status_ok(status):
         return status
 
-    response = requests.get(segment_url, headers=_hls_probe_headers(range_request=False), timeout=10, stream=True)
+    response = requests.get(segment_url, headers=_hls_probe_headers(range_request=False), timeout=timeout, stream=True)
     try:
         return int(response.status_code)
     finally:
@@ -919,17 +1086,24 @@ def _apply_current_categories(channels):
 
 def _visible_channels(channels):
     show_special = control.getSetting("livetv.show.special", "true") != "false"
+    blocked = _health_blocked_ids()
     result = []
     for channel in channels:
         if not show_special and any(token in (channel.get("name") or "").upper() for token in _HIDDEN_TOKENS):
+            continue
+        if str(channel.get("id") or "") in blocked:
             continue
         result.append(channel)
     return result
 
 
 def _context_menu(channel, favorite_context=False):
+    check_entry = ("Senderliste auf Funktion pruefen", "RunPlugin(%s)" % _url({"action": "liveTVHealthCheck"}))
     if favorite_context:
-        return [("Aus Favoriten entfernen", "RunPlugin(%s)" % _url({"action": "liveTVFavoriteRemove", "id": channel.get("id")}))]
+        return [
+            ("Aus Favoriten entfernen", "RunPlugin(%s)" % _url({"action": "liveTVFavoriteRemove", "id": channel.get("id")})),
+            check_entry,
+        ]
     favorites = _load_favorites()
     if _channel_by_id(favorites, channel.get("id")):
         label = "Aus Favoriten entfernen"
@@ -937,7 +1111,33 @@ def _context_menu(channel, favorite_context=False):
     else:
         label = "Zu Favoriten hinzufuegen"
         action = "liveTVFavoriteAdd"
-    return [(label, "RunPlugin(%s)" % _url({"action": action, "id": channel.get("id")}))]
+    return [
+        (label, "RunPlugin(%s)" % _url({"action": action, "id": channel.get("id")})),
+        check_entry,
+    ]
+
+
+def _health_blocked_ids():
+    state = _read_json(HEALTH_FILE, {})
+    if not isinstance(state, dict):
+        return set()
+    blocked = state.get("blocked") or {}
+    if not isinstance(blocked, dict):
+        return set()
+    return set(str(channel_id) for channel_id in blocked.keys())
+
+
+def _save_health_state(blocked, checked, reachable, cancelled):
+    _ensure_profile()
+    state = {
+        "checked_at": int(time.time()),
+        "checked": int(checked),
+        "reachable": int(reachable),
+        "hidden": len(blocked),
+        "cancelled": bool(cancelled),
+        "blocked": blocked,
+    }
+    _write_json(HEALTH_FILE, state)
 
 
 def _add_folder(handle, label, params, is_folder, plot=""):

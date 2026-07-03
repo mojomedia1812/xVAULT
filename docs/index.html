@@ -40,12 +40,12 @@
         <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
         <tr><th colspan="4"><hr></th></tr>
         <tr><td>[PARENTDIR]</td><td><a href="../" data-umami-event="Verzeichnisnavigation geoeffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geoeffnet">plugin.video.xvault/</a></td><td align="right">02.Jul.2026 07:56:44</td><td align="right">-</td></tr>
+        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geoeffnet">plugin.video.xvault/</a></td><td align="right">03.Jul.2026 10:02:24</td><td align="right">-</td></tr>
         <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geoeffnet">repository.xvault/</a></td><td align="right">20.Jun.2026 14:10:39</td><td align="right">-</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geoeffnet">addons.xml</a></td><td align="right">02.Jul.2026 07:56:44</td><td align="right">2.44 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geoeffnet">addons.xml.md5</a></td><td align="right">02.Jul.2026 07:56:44</td><td align="right">32.00 B</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">02.Jul.2026 07:56:44</td><td align="right">1.96 MB</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">02.Jul.2026 07:56:44</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geoeffnet">addons.xml</a></td><td align="right">03.Jul.2026 10:06:10</td><td align="right">2.44 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geoeffnet">addons.xml.md5</a></td><td align="right">03.Jul.2026 10:06:10</td><td align="right">32.00 B</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">03.Jul.2026 10:06:10</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">03.Jul.2026 10:06:10</td><td align="right">1.96 MB</td></tr>
         <tr><th colspan="4"><hr></th></tr>
       </tbody>
     </table>
@@ -61,10 +61,10 @@
 
         <div class="release">
           <span>Aktuelle Version</span>
-          <strong>2026.07.02.4</strong>
+          <strong>2026.07.03.3</strong>
         </div>
 
-        <a class="download" href="downloads/plugin.video.xvault-2026.07.02.4.zip" download data-umami-event="Add-on ZIP heruntergeladen">
+        <a class="download" href="downloads/plugin.video.xvault-2026.07.03.3.zip" download data-umami-event="Add-on ZIP heruntergeladen">
           Installations-ZIP herunterladen
         </a>
 
@@ -128,6 +128,36 @@
     </section>
     <!-- release-notes:start -->
     <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.07.03.3</p>
+      <h2>Aenderungen im Ueberblick</h2>
+      <ul class="update-list">
+        <li>Nach Film- oder Episodenende konkurrieren automatischer Listenrefresh, Serien-Positionslogik und Positionswiederherstellung nicht mehr miteinander.</li>
+        <li>Serienlisten mit aktivierter Option &quot;erste ungesehene Folge auswaehlen&quot; setzen die Auswahl nun selbst; der Player stellt in diesem Fall nicht zusaetzlich die alte Episode wieder her.</li>
+        <li>Der doppelte Listenreload bei Serien wurde entfernt, damit Kodi nach Playback-Ende nicht zweimal hintereinander die Folgenliste neu aufbaut.</li>
+        <li>Handbuch um BS.to-Hinweise, Erstinstallationsvorgaben, Filmpalast-Verhalten sowie Konto-, Kennwort- und Synchronisationsaktionen ergaenzt.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.07.03.2</p>
+      <h2>Aenderungen im Ueberblick</h2>
+      <ul class="update-list">
+        <li>LiveTV-Senderlisten bieten eine Funktion, mit der alle aktuell sichtbaren Sender auf erreichbare Streams geprueft werden koennen.</li>
+        <li>Vor Start der LiveTV-Senderpruefung warnt xVAULT vor einer moeglichen Laufzeit von bis zu 30 Minuten und weist darauf hin, dass der Vorgang fuer schwache Systeme nicht empfohlen wird.</li>
+        <li>Nach Abschluss der LiveTV-Senderpruefung zeigt xVAULT in einem Ergebnisdialog an, wie viele Sender geprueft wurden, wie viele funktionieren und wie viele temporaer gesperrt wurden.</li>
+        <li>Nicht erreichbare LiveTV-Sender werden nach der Pruefung temporaer bis zum naechsten xVAULT-Hauptstart ausgeblendet.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.07.03.1</p>
+      <h2>Aenderungen im Ueberblick</h2>
+      <ul class="update-list">
+        <li>Vorbereitete LiveTV-Senderlisten-Pruefung mit Fortschrittsdialog, Warnhinweis und temporaerer Ausblendung nicht erreichbarer Sender.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
       <p class="section-kicker">Neu in 2026.07.02.4</p>
       <h2>Aenderungen im Ueberblick</h2>
       <ul class="update-list">
@@ -143,36 +173,6 @@
       <ul class="update-list">
         <li>LiveTV bestaetigt HLS-Kandidaten vor der Kodi-Uebergabe in zwei weiteren kurzen Pruefrunden, damit flappende Sender mit wechselnden HTTP-500-Segmenten nicht in einem haengenden Player landen.</li>
         <li>Leere oder nicht auswertbare HLS-Manifeste werden jetzt explizit blockiert, statt als scheinbar brauchbarer Stream durchzurutschen.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.07.02.2</p>
-      <h2>Aenderungen im Ueberblick</h2>
-      <ul class="update-list">
-        <li>LiveTV startet HLS-Sender nur noch, wenn das neueste Segment erreichbar ist; defekte Live-Rand-Segmente fuehren nun zum Ersatzstream statt zum Kodi-Playback-Fehler.</li>
-        <li>Signierte HLS-Manifest-URLs werden ohne Kodi-MIME-Query gestartet, damit Anbieter die URL nicht wegen zusaetzlicher Parameter ablehnen.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.07.02.1</p>
-      <h2>Aenderungen im Ueberblick</h2>
-      <ul class="update-list">
-        <li>LiveTV prueft vor dem Start mehrere aktuelle HLS-Segmente statt nur das letzte Segment der Playlist.</li>
-        <li>Fehlerhafte Range-Requests werden mit einem normalen Segmentabruf gegengeprueft, damit brauchbare Streams nicht faelschlich blockiert werden.</li>
-        <li>Bei instabilen Sendern nutzt xVAULT automatisch eng passende Ersatzstreams wie HD+ oder Backup-Varianten, ohne auf fremde Sender zu wechseln.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.06.30.9</p>
-      <h2>Aenderungen im Ueberblick</h2>
-      <ul class="update-list">
-        <li>Filmpalast erkennt die aktuelle Suchergebnis- und Streamlink-Struktur wieder.</li>
-        <li>Filmpalast nutzt fuer Such- und Detailseiten eine eigene HTTPS-Anfrage, damit %20-Suchpfade in Kodi nicht doppelt kodiert werden.</li>
-        <li>Filmpalast-Quellen werden nicht mehr vorzeitig durch ResolveURL gefiltert, damit gueltige Hoster in der Quellenliste sichtbar bleiben.</li>
-        <li>Parser- und Kodi-RPC-Test gegen Over Your Dead Body (2026), The Greatest Showman und Shrek 2 - Der tollkuehne Held kehrt zurueck erfolgreich durchgefuehrt.</li>
       </ul>
     </section>
     <!-- release-notes:end -->
@@ -219,13 +219,14 @@
     <section class="panel checksum">
       <h2>Dateiprüfung</h2>
       <p>SHA-256</p>
-      <code>EE53B89EFF24EA5ACFF9355DB444EB8DC6186BF63A41958CBFFD4AA09F2615F5</code>
+      <code>9DD936774804192E78C83A54F1E11727A645B8A17B731CA2B2DA371423332398</code>
     </section>
 
     <section class="panel archive">
       <h2>Vorherige Versionen</h2>
       <ul class="archive-list">
         <!-- previous-downloads:start -->
+        <li><a href="downloads/plugin.video.xvault-2026.07.02.4.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.02.4 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.07.02.3.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.02.3 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.07.02.2.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.02.2 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.07.02.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.02.1 herunterladen</a><span>33,8 MB</span></li>
@@ -247,7 +248,7 @@
     <footer>
       <a href="handbuch/" data-umami-event="Handbuch geoeffnet">Handbuch</a>
       <a href="https://github.com/mojomedia1812/xVAULT" data-umami-event="GitHub Repo geoeffnet">Quellcode auf GitHub</a>
-      <span>Version 2026.07.02.4</span>
+      <span>Version 2026.07.03.3</span>
     </footer>
   </main>
 </body>

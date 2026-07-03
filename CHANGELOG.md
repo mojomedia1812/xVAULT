@@ -2,9 +2,27 @@
 
 ## [Unreleased]
 
+## [2026.07.03.3] - 2026-07-03
+
+- Nach Film- oder Episodenende konkurrieren automatischer Listenrefresh, Serien-Positionslogik und Positionswiederherstellung nicht mehr miteinander.
+- Serienlisten mit aktivierter Option `Status - Bei Serien die erste ungesehene Folge auswählen` setzen die Auswahl nun selbst; der Player stellt in diesem Fall nicht zusaetzlich die alte Episode wieder her.
+- Der doppelte Listenreload bei Serien wurde entfernt, damit Kodi nach Playback-Ende nicht zweimal hintereinander die Folgenliste neu aufbaut.
+- Handbuch um BS.to-Hinweise, Erstinstallationsvorgaben, Filmpalast-Verhalten sowie Konto-, Kennwort- und Synchronisationsaktionen ergaenzt.
+
+## [2026.07.03.2] - 2026-07-03
+
+- LiveTV-Senderlisten bieten eine Funktion, mit der alle aktuell sichtbaren Sender auf erreichbare Streams geprueft werden koennen.
+- Vor Start der LiveTV-Senderpruefung warnt xVAULT vor einer moeglichen Laufzeit von bis zu 30 Minuten und weist darauf hin, dass der Vorgang fuer schwache Systeme nicht empfohlen wird.
+- Nach Abschluss der LiveTV-Senderpruefung zeigt xVAULT in einem Ergebnisdialog an, wie viele Sender geprueft wurden, wie viele funktionieren und wie viele temporaer gesperrt wurden.
+- Nicht erreichbare LiveTV-Sender werden nach der Pruefung temporaer bis zum naechsten xVAULT-Hauptstart ausgeblendet.
+- Die LiveTV-Senderpruefung zeigt waehrend des Laufs Status und Fortschritt an und kann ueber den Kodi-Fortschrittsdialog abgebrochen werden.
 - GitHub-Pages-Unterseite `handbuch/` als umfassende xVAULT-Wissensdatenbank ergaenzt.
 - Startseite der GitHub Page verlinkt das neue Handbuch mit Umami-Event.
 - README-Hinweise zu Handbuch und Umami-Einbindung aktualisiert.
+
+## [2026.07.03.1] - 2026-07-03
+
+- Vorbereitete LiveTV-Senderlisten-Pruefung mit Fortschrittsdialog, Warnhinweis und temporaerer Ausblendung nicht erreichbarer Sender.
 
 ## [2026.07.02.4] - 2026-07-02
 

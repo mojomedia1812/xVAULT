@@ -197,14 +197,22 @@ class player(xbmc.Player):
             pass
         if restore_navigation:
             if self.isdebug: log_utils.log('vor parentDir - onPlayBackStopped', log_utils.LOGINFO)
+            restore_position = self._shouldRestoreListPosition()
             try:
                 self.parentDir()
             finally:
-                if self.list_position > 0:
+                if restore_position:
                     from resources.lib.utils import restoreListPosition
                     restoreListPosition(self.list_position, self.list_content, __name__)
         self.watcher_control = False
         if self.isdebug: log_utils.log('Ende - onPlayBackStopped', log_utils.LOGINFO)
+
+    def _shouldRestoreListPosition(self):
+        if self.list_position <= 0:
+            return False
+        if self.mediatype != 'movie' and control.getSetting('status.position') == 'true':
+            return False
+        return True
 
 
     def _completed(self, playback_ended=False):
@@ -271,7 +279,7 @@ class player(xbmc.Player):
     def refreshContainer(self):
         if self.mediatype != 'movie' and self.container_path:
             control.execute('Container.Update(%s,replace)' % self.container_path)
-            control.sleep(0.5)
+            return
         control.execute('Container.Refresh')
 
 # keine EintrÃ¤ge fÃ¼r bookmarks und files in die Kodi DB 'MyVideos116.db' anlegen bzw. sofort lÃ¶schen

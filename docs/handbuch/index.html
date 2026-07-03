@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Wiedergabe, LiveTV, Synchronisation, Downloads, Untertitel und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.07.02.4.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.07.03.3.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">Zur Startseite</a>
         </div>
@@ -337,7 +337,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.07.02.4.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.07.03.3.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -349,6 +349,8 @@
         <li>Danach xVAULT über das Repository installieren oder aktualisieren.</li>
       </ol>
       <div class="callout">Beim ersten Start legt xVAULT das Repository zusätzlich automatisch in Kodi an. Die automatische Updateprüfung ist standardmäßig aktiv und kann in den allgemeinen Einstellungen deaktiviert werden.</div>
+      <h3>Frische Erstinstallation</h3>
+      <p>Bei einer wirklich frischen Installation setzt xVAULT die bevorzugte Streamsprache einmalig auf <strong>Deutsch</strong> und die Standard-Aktion auf <strong>Autoplay</strong>. Bestehende Profile und spätere Updates behalten ihre gewählten Wiedergabeeinstellungen, damit persönliche Einstellungen nicht überschrieben werden.</p>
     </section>
 
     <section id="hauptmenue" class="panel manual-section">
@@ -414,6 +416,11 @@
         <li>TopStreamFilm</li>
         <li>VixStream</li>
       </ul>
+      <h3>Filmpalast</h3>
+      <p>Filmpalast wird für Filme und Serien als normale Indexseite geführt. xVAULT berücksichtigt die aktuelle Such- und Quellenstruktur der Seite und übernimmt erkannte Hoster in die Quellenliste, bevor die Resolver-Schicht den eigentlichen Abspiellink vorbereitet.</p>
+      <h3>BS.to</h3>
+      <p>BS.to ist als optionaler Serien-Scraper eingebunden. Der Anbieter kann Serien, Staffeln, Episoden, Sprachvarianten und Hoster liefern. Erkannte Sprachen wie Deutsch, Englisch und deutsch untertitelte Varianten werden an die zentrale Sprachsteuerung weitergegeben.</p>
+      <p>Der BS.to-Login in den Konten-Einstellungen ist freiwillig. Ohne Zugangsdaten sucht xVAULT weiter nach Quellen, die ohne Anmeldung und ohne CAPTCHA erreichbar sind. Quellen, die eine CAPTCHA-Prüfung benötigen, werden nicht angezeigt und nicht automatisiert umgangen.</p>
       <h3>Bevorzugte Streamsprache</h3>
       <table class="manual-table">
         <thead>
@@ -451,6 +458,7 @@
       <h3>Gesehen markieren</h3>
       <p>Filme und Episoden werden anhand des Wiedergabefortschritts als gesehen markiert. Staffeln gelten als gesehen, sobald alle bekannten Episoden der Staffel gesehen sind. Eine Serie gilt als gesehen, sobald alle bekannten Staffeln und Episoden gesehen sind.</p>
       <p>Wenn später eine neue Episode oder Staffel auftaucht, wird der übergeordnete Status wieder geöffnet. Dadurch bleibt die Übersicht ehrlich: Eine komplett gesehene Serie kann wieder ungesehen erscheinen, sobald neuer Inhalt verfügbar wird.</p>
+      <p>Nach dem Ende einer Wiedergabe aktualisiert xVAULT die aktuelle Liste nur einmal und lässt entweder die Serienlogik die erste ungesehene Folge auswählen oder stellt die vorherige Position wieder her. Dadurch springt die Auswahl nicht mehrfach zwischen alter und neuer Position.</p>
       <h3>Wiedergabe ab hier</h3>
       <p>Bei Episodenlisten kann xVAULT aufeinanderfolgende Episoden ab einer gewählten Stelle starten. Das ist besonders praktisch für Serienabende und Staffel-Fortsetzungen.</p>
     </section>
@@ -462,13 +470,17 @@
       <p>Favoriten speichern Filme, Serien oder LiveTV-Sender für den schnellen Zugriff. Bereits vorhandene Favoriten bleiben erhalten, wenn die Synchronisation später aktiviert wird.</p>
       <h3>Synchronisation anmelden</h3>
       <p>Im Bereich Konten kann ein xVAULT-Konto registriert, angemeldet, abgemeldet oder das Passwort zurückgesetzt werden. Nach erfolgreicher Anmeldung ist die erste Synchronisierung sofort verfügbar, ohne die Einstellungen verlassen und erneut öffnen zu müssen.</p>
+      <h3>Registrierung und Kennwort</h3>
+      <p>Bei der Registrierung prüft xVAULT, ob die eingegebene E-Mail-Adresse bereits registriert ist. In diesem Fall weist xVAULT darauf hin und schlägt Anmeldung oder Kennwort-Wiederherstellung vor.</p>
+      <p>Über <strong>Kennwort wiederherstellen</strong> kann für eine registrierte E-Mail-Adresse ein neues Kennwort erstellt werden. Das neue Kennwort ist 9 Zeichen lang, wird direkt im Plugin angezeigt und ersetzt die bisherige Anmeldung.</p>
       <h3>Favoriten zusammenführen</h3>
       <p>Beim Synchronisieren werden lokale Favoriten und Server-Favoriten zusammengeführt. Doppelte Einträge werden vermieden. Wenn auf einem Gerät Favoriten vorhanden sind und auf einem anderen ebenfalls, entsteht daraus eine gemeinsame Liste.</p>
       <h3>Entfernen und sofort synchronisieren</h3>
       <p>Wird ein Favorit entfernt, stößt xVAULT direkt eine Synchronisation an. So wird der entfernte Zustand nicht unnötig lange lokal gehalten.</p>
       <h3>Playcount sicher kombinieren</h3>
       <p>Lokale und synchronisierte Wiedergabestände werden kombiniert. Bereits lokal gesehene Filme oder Episoden werden nicht durch ältere Serverdaten überschrieben. Ziel ist immer, keinen gesehenen Stand zu verlieren.</p>
-      <div class="callout">In das Repository gehören keine Passwörter, API-Schlüssel oder privaten Kontodaten. Das Handbuch beschreibt nur die Funktionen, nicht die persönlichen Werte eines Nutzers.</div>
+      <h3>Weitere Konto-Aktionen</h3>
+      <p>Die Konten-Einstellungen bieten zusätzlich <strong>Jetzt synchronisieren</strong>, <strong>Backup vom Server wiederherstellen</strong>, <strong>Status anzeigen</strong>, <strong>Datenschutz-Hinweis anzeigen</strong> und <strong>Abmelden</strong>. Damit lassen sich Synchronisation, Serverstand, Kontostatus und Abmeldung direkt aus den Einstellungen steuern.</p>
     </section>
 
     <section id="livetv" class="panel manual-section">
@@ -477,6 +489,9 @@
       <h3>LiveTV</h3>
       <p>Der LiveTV-Bereich lädt deutsche Sender, speichert die Senderliste lokal im Cache und sortiert Sender in Kategorien. In der Senderliste zeigt xVAULT Senderlogos dort an, wo Kodi normalerweise Poster oder Vorschaubilder darstellt.</p>
       <p>Bei ausgewähltem Sender nutzt xVAULT die EPG-Daten für eine Vorschau im Informationsfeld: <strong>Aktuell</strong> zeigt die laufende Sendung, <strong>Gleich</strong> zeigt die folgende Sendung. So lässt sich vor dem Start erkennen, was gerade läuft.</p>
+      <h3>Senderliste prüfen</h3>
+      <p>In den LiveTV-Senderlisten steht eine Prüfung der Senderliste bereit. Vor dem Start weist xVAULT darauf hin, dass der Vorgang je nach System bis zu 30 Minuten dauern kann und für schwache Systeme nicht empfohlen wird. xVAULT löst dabei die Streams der aktuell sichtbaren Sender auf, prüft HLS-Manifeste und aktuelle Segmente und zeigt währenddessen einen Fortschrittsdialog mit Status an. Nach Abschluss meldet xVAULT in einem Ergebnisdialog, wie viele Sender geprüft wurden, wie viele funktionieren und wie viele temporär gesperrt wurden.</p>
+      <p>Nicht erreichbare Sender werden danach temporär ausgeblendet. Diese Ausblendung bleibt nur bis zum nächsten xVAULT-Hauptstart bestehen oder bis die Senderliste neu aktualisiert wird.</p>
       <h3>Stabilität vor dem Start</h3>
       <p>Vor dem Start prüft xVAULT HLS-Streams mehrfach. Tote, leere oder instabile Manifeste werden abgefangen, bevor Kodi sie als Wiedergabefehler meldet. Wenn ein eng passender Ersatzstream verfügbar ist, kann xVAULT auf diesen ausweichen.</p>
       <h3>Puffer und Wiedergabe-Engine</h3>
@@ -488,7 +503,7 @@
           <tr><th>Bereich</th><th>Geeignet für</th></tr>
         </thead>
         <tbody>
-          <tr><td>LiveTV</td><td>Deutsche Sender mit Kategorien, EPG, Logos, Favoriten, Cache, Puffer und stabilisierter Wiedergabe.</td></tr>
+          <tr><td>LiveTV</td><td>Deutsche Sender mit Kategorien, EPG, Logos, Favoriten, Cache, Puffer, Senderlisten-Prüfung und stabilisierter Wiedergabe.</td></tr>
           <tr><td>LiveTV lite</td><td>Schneller Zugriff auf einfache HLS-Senderlisten aus Deutschland, Österreich und der Schweiz.</td></tr>
         </tbody>
       </table>
@@ -521,7 +536,7 @@
       </div>
       <div class="setting-group">
         <h3>Indexseiten</h3>
-        <p>Hier werden einzelne Anbieter für Filme und Serien aktiviert oder deaktiviert. Einige Anbieter besitzen zusätzliche Hoster-Prüfungen. Weniger aktivierte Indexseiten können schneller sein, mehr aktivierte Indexseiten erhöhen die Chance auf Treffer.</p>
+        <p>Hier werden einzelne Anbieter für Filme und Serien aktiviert oder deaktiviert. Einige Anbieter besitzen zusätzliche Hoster-Prüfungen. Weniger aktivierte Indexseiten können schneller sein, mehr aktivierte Indexseiten erhöhen die Chance auf Treffer. BS.to besitzt zusätzlich optionale Zugangsdaten im Kontenbereich; CAPTCHA-pflichtige Quellen werden ausgeblendet.</p>
       </div>
       <div class="setting-group">
         <h3>Wiedergabe</h3>
@@ -548,7 +563,7 @@
       </div>
       <div class="setting-group">
         <h3>Konten</h3>
-        <p>Der Kontenbereich enthält xVAULT-Synchronisation, optionale Anbieterzugänge und optionale API-Schlüssel für Metadaten. Zugangsdaten werden in Kodi-Einstellungen gepflegt und gehören nicht in Dokumentation, Commits oder öffentliche Dateien.</p>
+        <p>Der Kontenbereich enthält xVAULT-Synchronisation, optionale Anbieterzugänge, optionale API-Schlüssel für Metadaten und Aktionen für Anmeldung, Registrierung, Kennwort-Wiederherstellung, manuelle Synchronisation, Server-Backup, Statusanzeige, Datenschutz-Hinweis und Abmeldung. Zugangsdaten werden in Kodi-Einstellungen gepflegt und gehören nicht in Dokumentation, Commits oder öffentliche Dateien.</p>
       </div>
       <div class="setting-group">
         <h3>Downloads / Untertitel</h3>
@@ -602,17 +617,10 @@
       <p>Event-Namen sind allgemein gehalten und enthalten keine Zugangsdaten, API-Schlüssel, Formularinhalte oder privaten Nutzereingaben. Die xVAULT-Dokumentation speichert keine persönlichen Kontodaten.</p>
     </section>
 
-    <section id="pflege" class="panel manual-section">
-      <p class="section-kicker">Projektpflege</p>
-      <h2>Dokumentation aktuell halten</h2>
-      <p>Wenn Funktionen, Einstellungen oder Versionen geändert werden, müssen README, Changelog und die GitHub Page mitgeprüft werden. Plugin-Änderungen werden lokal getestet, bevor sie veröffentlicht werden.</p>
-      <p>Die führende Versionsquelle ist <strong>addon.xml</strong>. Die GitHub Page zeigt die aktuelle Version, Downloadlinks und die neuesten Änderungen an. Diese Handbuchseite ergänzt die Startseite als dauerhafte Wissensdatenbank.</p>
-    </section>
-
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geoeffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.07.02.4</span>
+      <span>Handbuch zu xVAULT 2026.07.03.3</span>
     </footer>
   </main>
 </body>
