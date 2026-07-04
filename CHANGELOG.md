@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.07.04.4] - 2026-07-04
+
+- Die xVAULT-Synchronisation verwendet die lokale Auth-Datei jetzt als fuehrende Login-Quelle, wenn Kodi-Settings und Auth-Datei auseinanderlaufen.
+- Veraltete Sync-API-Keys in den Kodi-Settings werden automatisch mit der Auth-Datei abgeglichen.
+- Server-Backups von Favoriten koennen dadurch wiederhergestellt werden, ohne faelschlich mit `Nicht angemeldet` abgewiesen zu werden.
+- Der Sync-API-Client versucht bei `UNAUTHORIZED` einen weiteren gespeicherten Key, falls Kodi noch einen abweichenden Key in den Settings haelt.
+
 ## [2026.07.04.3] - 2026-07-04
 
 - Neuer Einstellungsbereich `Indexseiten 3 (DE)` fuer CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM.
