@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Wiedergabe, LiveTV, Synchronisation, Downloads, Untertitel und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.07.03.3.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.07.04.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">Zur Startseite</a>
         </div>
@@ -337,7 +337,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.07.03.3.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.07.04.1.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -382,6 +382,9 @@
       <p>Die Filmsuche fragt die aktivierten Film-Indexseiten ab und zeigt passende Treffer in Kodi an. Bei Filmen mit mehreren Schreibweisen lohnt sich die Suche nach dem deutschen Titel, dem Originaltitel oder einer gekürzten Titelvariante.</p>
       <h3>Seriensuche</h3>
       <p>Die Seriensuche führt von der Serie zur Staffel und von dort zur Episode. xVAULT merkt sich Suchbegriffe und kann einzelne Suchbegriffe wieder entfernen oder die Suchhistorie leeren.</p>
+      <h3>Specials und Staffel 0</h3>
+      <p>Wenn TMDB zu einer Serie Inhalte in Staffel 0 liefert, zeigt xVAULT diese Specials oder Pilotfilme als eigenen Eintrag in der Staffelliste an. In der Episodenliste erscheinen sie lesbar als <strong>Special 01</strong>, <strong>Special 02</strong> und so weiter.</p>
+      <p>Staffel-0-Folgen bleiben beim Abspielen echte Serienfolgen. Dadurch werden sie nicht versehentlich als Filme an die Quellen-Scraper übergeben und Anbieter wie SerienStream, BS.to und Vixstream können Sonderfolgen gezielt behandeln.</p>
       <h3>Personensuche</h3>
       <p>Die Personensuche ist für Darsteller, Regie und ähnliche Metadaten gedacht. Je nach Datenlage führt sie zu zugeordneten Titeln oder weiterführenden Übersichten.</p>
       <h3>Rubriken statt Suche</h3>
@@ -421,6 +424,8 @@
       <h3>BS.to</h3>
       <p>BS.to ist als optionaler Serien-Scraper eingebunden. Der Anbieter kann Serien, Staffeln, Episoden, Sprachvarianten und Hoster liefern. Erkannte Sprachen wie Deutsch, Englisch und deutsch untertitelte Varianten werden an die zentrale Sprachsteuerung weitergegeben.</p>
       <p>Der BS.to-Login in den Konten-Einstellungen ist freiwillig. Ohne Zugangsdaten sucht xVAULT weiter nach Quellen, die ohne Anmeldung und ohne CAPTCHA erreichbar sind. Quellen, die eine CAPTCHA-Prüfung benötigen, werden nicht angezeigt und nicht automatisiert umgangen.</p>
+      <h3>Serien-Specials in Quellen</h3>
+      <p>Bei Sonderfolgen reicht xVAULT Episodentitel, Erstausstrahlung und Staffel-0-Informationen an die Quellen-Scraper weiter. Das hilft, Specials zu finden, wenn Anbieter sie nicht als normale Staffel-Episode führen oder wenn ein Titelvergleich nötig ist.</p>
       <h3>Bevorzugte Streamsprache</h3>
       <table class="manual-table">
         <thead>
@@ -620,7 +625,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geoeffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.07.03.3</span>
+      <span>Handbuch zu xVAULT 2026.07.04.1</span>
     </footer>
   </main>
 </body>

@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## [2026.07.04.1] - 2026-07-04
+
+- Serien pruefen nun auch TMDB-Staffel 0 und zeigen vorhandene Specials oder Pilotfilme als eigenen Eintrag in der Staffelliste an.
+- Specials werden in der Episodenliste als `Special 01` statt als `0x01` dargestellt.
+- Staffel-0-Folgen bleiben beim Abspielen echte Serienfolgen und werden nicht mehr als Filme an die Scraper uebergeben.
+- SerienStream, BS.to und Vixstream koennen Staffel-0-Folgen jetzt gezielt als Serien-Specials behandeln.
+- Fehlende Ausstrahlungsdaten bei Staffeln oder Folgen blenden Eintraege nicht mehr versehentlich aus.
+
+## [2026.07.03.4] - 2026-07-03
+
+- SerienStream findet Sonderfolgen nun ueber Staffel 0, wenn die normale Serienfolge auf s.to nicht vorhanden ist und der Episodentitel zur Special-Folge passt.
+- Episodentitel und Episoden-Erstausstrahlung werden an die Quellen-Scraper weitergereicht, damit Anbieter-Sonderfaelle gezielter erkannt werden koennen.
+- Vixstream speichert keine kurzlebigen Embed-Links mehr in der Quellenliste, sondern loest sie frisch beim Abspielen auf.
+- Filmpalast akzeptiert bei Serien nur noch Treffer mit passender SxxEyy-Kennung und nimmt S01E10 nicht mehr als Ersatz fuer S01E11.
+
 ## [2026.07.03.3] - 2026-07-03
 
 - Nach Film- oder Episodenende konkurrieren automatischer Listenrefresh, Serien-Positionslogik und Positionswiederherstellung nicht mehr miteinander.
