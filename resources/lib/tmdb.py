@@ -193,12 +193,15 @@ class cTMDB:
 
     def get_meta_episode(self, media_type, name, tmdb_id='', season='', episode='', advanced='false'):
         meta = {}
-        if media_type == 'episode' and tmdb_id and season and episode:
+        if media_type == 'episode' and tmdb_id and str(season) != '' and str(episode) != '':
             url = '%stv/%s/season/%s/episode/%s?api_key=%s&language=de&include_adult=false' % (self.URL, tmdb_id, season, episode, self.api_key)
             if advanced == 'true': url = url + '&append_to_response=external_ids,videos,credits'
             Data = cRequestHandler(url, ignoreErrors=True).request()
             if Data:
-                meta = json.loads(Data)
+                try:
+                    meta = json.loads(Data)
+                except (TypeError, ValueError):
+                    return {}
                 #meta.update({'episode': episode})
                 meta = self._format_episodes(meta, name)
                 return meta
@@ -208,11 +211,14 @@ class cTMDB:
 
     def get_meta_seasons(self, tmdb_id='', season='', advanced='false'):
         meta = {}
-        if tmdb_id and season:
+        if tmdb_id and str(season) != '':
             url = '%stv/%s/season/%s?api_key=%s&language=de&include_adult=false' % (self.URL, tmdb_id, season, self.api_key)
             Data = cRequestHandler(url, ignoreErrors=True).request()
             if Data:
-                meta = json.loads(Data)
+                try:
+                    meta = json.loads(Data)
+                except (TypeError, ValueError):
+                    return {}
         if 'id' in meta:
             _meta = {}
             if 'name' in meta and meta['name']:
@@ -224,7 +230,7 @@ class cTMDB:
             if 'episodes' in meta and meta['episodes']:
                 _meta['number_of_episodes'] = len(meta['episodes'])
                 _meta['episodes'] = meta['episodes']
-            if 'season_number' in meta and meta['season_number']:
+            if 'season_number' in meta:
                 _meta['season'] = meta['season_number']
             if 'overview' in meta:
                 _meta['plot'] = meta['overview']

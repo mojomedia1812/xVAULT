@@ -5,7 +5,7 @@ from resources.lib.sync import binge_sync
 def episode_playcount(title, season, episode, meta=None, season_status=None):
     season = _maybe_int(season)
     episode = _maybe_int(episode)
-    if not title or not season or not episode:
+    if not title or season is None or not episode:
         return 0
     local_status = _safe_call(playcountDB.getEpisodeStatus, title, season, episode) or {}
     if _row_playcount(local_status):
@@ -22,7 +22,7 @@ def episode_playcount(title, season, episode, meta=None, season_status=None):
 
 def season_playcount(title, season, episodes=None, number_of_episodes=None, season_status=None, tvshow_status=None):
     season = _maybe_int(season)
-    if not title or not season:
+    if not title or season is None:
         return 0
     season_status = season_status if season_status is not None else _safe_call(playcountDB.getSeasonStatus, title, season)
     episode_numbers = _episode_numbers(episodes)
@@ -33,7 +33,7 @@ def season_playcount(title, season, episodes=None, number_of_episodes=None, seas
         if _row_playcount(season_status) and stored_total and stored_total >= current_total:
             return 1
         tvshow_status = tvshow_status if tvshow_status is not None else _safe_call(playcountDB.getTvshowStatus, title)
-        if season_status is None and _row_playcount(tvshow_status):
+        if season > 0 and season_status is None and _row_playcount(tvshow_status):
             stored_seasons = _maybe_int(tvshow_status.get('number_of_seasons'))
             if stored_seasons and season <= stored_seasons:
                 return 1
@@ -50,7 +50,7 @@ def season_playcount(title, season, episodes=None, number_of_episodes=None, seas
     if _row_playcount(season_status):
         return 1
     tvshow_status = tvshow_status if tvshow_status is not None else _safe_call(playcountDB.getTvshowStatus, title)
-    if _row_playcount(tvshow_status):
+    if season > 0 and _row_playcount(tvshow_status):
         stored_seasons = _maybe_int(tvshow_status.get('number_of_seasons'))
         if stored_seasons and season <= stored_seasons:
             return 1

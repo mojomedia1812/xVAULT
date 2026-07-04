@@ -1,3 +1,12 @@
+xVAULT 2026.07.04.1
+Entwickler: mojomedia1812
+
+- Serien pruefen nun auch TMDB-Staffel 0 und zeigen vorhandene Specials oder Pilotfilme als eigenen Eintrag in der Staffelliste an.
+- Specials werden in der Episodenliste als "Special 01" statt als "0x01" dargestellt.
+- Staffel-0-Folgen bleiben beim Abspielen echte Serienfolgen und werden nicht mehr als Filme an die Scraper uebergeben.
+- SerienStream, BS.to und Vixstream koennen Staffel-0-Folgen jetzt gezielt als Serien-Specials behandeln.
+- Fehlende Ausstrahlungsdaten bei Staffeln oder Folgen blenden Eintraege nicht mehr versehentlich aus.
+
 xVAULT 2026.07.03.4
 Entwickler: mojomedia1812
 

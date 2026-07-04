@@ -26,8 +26,11 @@ class seasons:
 		try:
 			data = json.loads(params['sysmeta'])
 			self.title = data['title']
-			if not 'number_of_seasons' in data or not data['number_of_seasons']: return
-			number_of_seasons = data['number_of_seasons']
+			number_of_seasons = data.get('number_of_seasons') or 0
+			try:
+				number_of_seasons = int(number_of_seasons)
+			except:
+				number_of_seasons = 0
 
 			tmdb_id = data['tmdb_id']
 			tvdb_id = data['tvdb_id'] if 'tvdb_id' in data else None
@@ -40,6 +43,7 @@ class seasons:
 			data['playcount'] = watched_status.tvshow_playcount(title, number_of_seasons=number_of_seasons, tvshow_status=self.tvshow_status)
 			self.sysmeta = json.dumps(data)
 
+			self.list.append({'tmdb_id': tmdb_id, 'tvdb_id': tvdb_id, 'season': 0, 'is_special': True})
 			for i in range(1, number_of_seasons+1):
 				self.list.append({'tmdb_id': tmdb_id, 'tvdb_id': tvdb_id, 'season': i})
 			self.worker()
@@ -69,6 +73,10 @@ class seasons:
 	def super_meta(self, i):
 		try:
 			meta = cTMDB().get_meta_seasons(i['tmdb_id'] , i['season'], advanced='true')
+			if not meta or not meta.get('number_of_episodes'):
+				return
+			if i.get('is_special'):
+				meta.update({'is_special': True})
 			playcount = watched_status.season_playcount(
 				self.title,
 				meta['season'],
@@ -102,6 +110,7 @@ class seasons:
 
 		watchedMenu = "In %s [I]Gesehen[/I]" % control.addonName
 		unwatchedMenu = "In %s [I]Ungesehen[/I]" % control.addonName
+		normal_season_count = len([item for item in items if int(item.get('season') or 0) > 0])
 		pos = 0
 		for i in items:
 			try:
@@ -119,8 +128,11 @@ class seasons:
 				_sysmeta.pop('cast', None)
 				_sysmeta = control.quote_plus(json.dumps(_sysmeta))
 
-				label = 'Staffel %s - %s' % (season, sysmeta['title'])
-				if datetime.datetime(*(time.strptime(i['premiered'], "%Y-%m-%d")[0:6])) > datetime.datetime.now():
+				if i.get('is_special') or int(season) == 0:
+					label = 'Specials / Pilotfilme - %s' % sysmeta['title']
+				else:
+					label = 'Staffel %s - %s' % (season, sysmeta['title'])
+				if i.get('premiered') and datetime.datetime(*(time.strptime(i['premiered'], "%Y-%m-%d")[0:6])) > datetime.datetime.now():
 					label = '[COLOR=red][I]{}[/I][/COLOR]'.format(label) # ffcc0000
 
 				poster = i['poster'] if 'poster' in i and 'http' in i['poster'] else sysmeta['poster']
@@ -146,8 +158,11 @@ class seasons:
 						cm.append((unwatchedMenu, 'RunPlugin(%s?action=UpdatePlayCount&meta=%s&playCount=0)' % (sysaddon, _sysmeta)))
 						meta.update({'playcount': 1, 'overlay': 7})
 						sysmeta.update({'playcount': 1, 'overlay': 7})
-						pos = season +1
-						if len(items) == season: pos = season
+						pos = season + 1
+						if season == 0:
+							pos = 1
+						elif normal_season_count == season:
+							pos = season
 					else:
 						cm.append((watchedMenu, 'RunPlugin(%s?action=UpdatePlayCount&meta=%s&playCount=1)' % (sysaddon, _sysmeta)))
 						meta.update({'playcount': 0, 'overlay': 6})

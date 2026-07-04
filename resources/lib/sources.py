@@ -358,7 +358,7 @@ class sources:
         sourceDict = [(i[0], i[1], i[1].priority) for i in sourceDict]
         random.shuffle(sourceDict)
         sourceDict = sorted(sourceDict, key=lambda i: i[2])
-        content = 'movies' if season == 0 or season == '' or season == None else 'shows'
+        content = 'shows' if getattr(self, 'mediatype', None) == 'tvshow' else 'movies' if season == 0 or season == '' or season == None else 'shows'
         aliases, localtitle = utils.getAliases(imdb, content)
         if localtitle and title != localtitle and originaltitle != localtitle:
             if not title in aliases: aliases.append(title)
@@ -470,6 +470,7 @@ class sources:
     def _getSource(self, titles, year, season, episode, imdb, source, call, episode_title=None, episode_premiered=None):
         try:
             try:
+                call.mediatype = getattr(self, 'mediatype', None)
                 call.episode_title = episode_title
                 call.episode_premiered = episode_premiered
             except:

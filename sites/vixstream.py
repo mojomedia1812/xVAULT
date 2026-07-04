@@ -70,7 +70,8 @@ class source:
         return '%s%slang=%s' % (src, separator, language)
 
     def _media_urls(self, tmdb_id, season=0, episode=0):
-        if int(season) == 0:
+        is_tvshow = getattr(self, 'mediatype', None) == 'tvshow'
+        if int(season) == 0 and not is_tvshow:
             page_url = 'https://%s/movie/%s' % (self.domain, tmdb_id)
             api_url = 'https://%s/api/movie/%s' % (self.domain, tmdb_id)
             media_type = 'movie'
@@ -81,7 +82,7 @@ class source:
         return media_type, page_url, api_url
 
     def _stable_url(self, tmdb_id, season=0, episode=0, language='de'):
-        if int(season) == 0:
+        if int(season) == 0 and getattr(self, 'mediatype', None) != 'tvshow':
             return 'vixsrc://movie/%s?lang=%s' % (tmdb_id, language)
         return 'vixsrc://tv/%s/%s/%s?lang=%s' % (tmdb_id, int(season), int(episode), language)
 

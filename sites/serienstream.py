@@ -130,7 +130,7 @@ class source:
             logger.info('SerienStream - Init: %s' % self.base_link)
 
     def run(self, titles, year, season=0, episode=0, imdb='', hostDict=None):
-        if season == 0:
+        if int(season or 0) == 0 and getattr(self, 'mediatype', None) != 'tvshow':
             return self.sources
 
         try:

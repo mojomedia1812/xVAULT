@@ -119,9 +119,12 @@ class episodes:
 
 				_sysmeta = control.quote_plus(json.dumps(sysmeta))
 
-				if 'title' in i and i['title']: label = '%sx%02d  %s' % (season, episode, i['title'])
+				if int(season) == 0:
+					if 'title' in i and i['title']: label = 'Special %02d  %s' % (episode, i['title'])
+					else: label = 'Special %02d' % episode
+				elif 'title' in i and i['title']: label = '%sx%02d  %s' % (season, episode, i['title'])
 				else: label = '%sx%02d  Episode %s' % (season, episode,  episode)
-				if datetime.datetime(*(time.strptime(i['premiered'], "%Y-%m-%d")[0:6])) > datetime.datetime.now():
+				if i.get('premiered') and datetime.datetime(*(time.strptime(i['premiered'], "%Y-%m-%d")[0:6])) > datetime.datetime.now():
 					label = '[COLOR=red][I]{}[/I][/COLOR]'.format(label)  # ffcc0000
 
 				poster = i['poster'] if 'poster' in i and 'http' in i['poster'] else sysmeta['poster']
@@ -132,7 +135,10 @@ class episodes:
 					sysmeta.update({'plot': plot})
 
 				#plot = i['plot'] if 'plot' in i and len(i['plot']) > 50 else ''  #sysmeta['plot']
-				plot = '[COLOR blue]%s%sStaffel: %s   Episode: %s[/COLOR]%s%s' % (meta['title'], "\n",i['season'], i['episode'], "\n\n", plot)
+				if int(season) == 0:
+					plot = '[COLOR blue]%s%sSpecial / Pilotfilm: %s[/COLOR]%s%s' % (meta['title'], "\n", i['episode'], "\n\n", plot)
+				else:
+					plot = '[COLOR blue]%s%sStaffel: %s   Episode: %s[/COLOR]%s%s' % (meta['title'], "\n",i['season'], i['episode'], "\n\n", plot)
 
 				meta.update({'poster': poster})
 				meta.update({'fanart': fanart})
