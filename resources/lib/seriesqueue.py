@@ -36,7 +36,6 @@ def start(params):
 
     for offset, episode in enumerate(selected):
         meta = dict(episode)
-        meta['select'] = '2'
         meta['_xvault_queue_playback'] = True
         meta['_xvault_queue_last'] = offset == len(selected) - 1
         meta['_xvault_list_position'] = start_index + 1
@@ -50,7 +49,7 @@ def start(params):
         except:
             pass
 
-        url = '%s?action=play&sysmeta=%s' % (
+        url = '%s?action=play&select=2&sysmeta=%s' % (
             plugin_url,
             control.quote_plus(json.dumps(meta)),
         )

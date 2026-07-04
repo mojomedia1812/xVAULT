@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.07.04.5] - 2026-07-04
+
+- Film- und Serienstarts verwenden die aktuelle Einstellung `Standard-Aktion` wieder als fuehrende Auswahl.
+- Alte Favoriten oder externe Wiedergabe-Links mit gespeichertem Autoplay-Wert koennen `Dialog` oder `Verzeichnis` nicht mehr ueberstimmen.
+- Neue externe Wiedergabe-Links speichern die Standard-Aktion nicht mehr fest in den Medien-Metadaten.
+
 ## [2026.07.04.4] - 2026-07-04
 
 - Die xVAULT-Synchronisation verwendet die lokale Auth-Datei jetzt als fuehrende Login-Quelle, wenn Kodi-Settings und Auth-Datei auseinanderlaufen.

@@ -186,7 +186,6 @@ elif action == 'playExtern':
         else:
             mediatype = 'tvshow'
         sysmeta.update({'mediatype': mediatype})
-        sysmeta.update({'select': control.getSetting('hosts.mode')})
         sysmeta = json.dumps(sysmeta)
         params.update({'sysmeta': sysmeta})
         from resources.lib import sources

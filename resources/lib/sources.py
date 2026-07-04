@@ -41,7 +41,14 @@ class sources:
         episode_title = data.get('episode_title') if 'episode_title' in data else None
         episode_premiered = data.get('episode_premiered') if 'episode_premiered' in data else None
         meta = params['sysmeta']
-        select = data.get('select') if 'select' in data else None
+        # Stored metadata can outlive setting changes, especially in favorites or
+        # external links. Only an explicit route parameter may override the
+        # current global Standard-Aktion setting.
+        select = params.get('select')
+        if select is not None:
+            select = str(select)
+        if select not in ['0', '1', '2']:
+            select = None
         return title, year, imdb, season, episode, originaltitle, premiered, meta, select, episode_title, episode_premiered
 
     def play(self, params):
