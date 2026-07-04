@@ -23,7 +23,7 @@
         <setting id="status.debug" type="bool" label="Debug" default="false" />
         <setting id="first_install.playback_defaults.applied" type="bool" label="Erstinstallations-Wiedergabevorgaben gesetzt" default="false" visible="false" />
     </category>
-    <category label="Indexseiten (DE)">
+    <category label="Indexseiten 1 (DE)">
         <setting type="text" label="[COLOR blue]ACHTUNG:  Die folgenden Optionen werden sofort[/COLOR]" />
         <setting type="text" label="[COLOR blue]und für [B]alle[/B] Indexseiten ausgeführt![/COLOR]" />
         <setting type="sep"/>
@@ -118,6 +118,34 @@
         <setting id="provider.vixstream" type="bool" label="VIXSTREAM   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
         <setting id="provider.vixstream.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
         <setting id="provider.vixstream.check" label="Check" type="bool" default="true" visible="false"/>
+        <setting type="sep"/>
+    </category>
+    <category label="Indexseiten 3 (DE)">
+        <setting type="text" label="[COLOR blue]ACHTUNG:  Die folgenden Optionen werden sofort[/COLOR]" />
+        <setting type="text" label="[COLOR blue]und für [B]alle[/B] Indexseiten ausgeführt![/COLOR]" />
+        <setting type="sep"/>
+        <setting label="Alle Quellen aktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=toggleGerman&amp;setting=true)" option=""/>
+        <setting label="Alle Quellen deaktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=toggleGerman&amp;setting=false)" option=""/>
+        <setting type="sep"/>
+        <setting id="provider.cineto" type="bool" label="CINE.TO   |   [B][COLOR red]Filme[/COLOR][/B]" default="true"/>
+        <setting id="provider.cineto.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
+        <setting id="provider.cineto.check" label="Check" type="bool" default="true" visible="false"/>
+        <setting type="sep"/>
+        <setting id="provider.filmfans" type="bool" label="FILMFANS   |   [B][COLOR red]Filme[/COLOR][/B]" default="true"/>
+        <setting id="provider.filmfans.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
+        <setting id="provider.filmfans.check" label="Check" type="bool" default="true" visible="false"/>
+        <setting type="sep"/>
+        <setting id="provider.nox" type="bool" label="NOX   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true"/>
+        <setting id="provider.nox.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
+        <setting id="provider.nox.check" label="Check" type="bool" default="true" visible="false"/>
+        <setting type="sep"/>
+        <setting id="provider.serienfans" type="bool" label="SERIENFANS   |   [B][COLOR green]Serien[/COLOR][/B]" default="true"/>
+        <setting id="provider.serienfans.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
+        <setting id="provider.serienfans.check" label="Check" type="bool" default="true" visible="false"/>
+        <setting type="sep"/>
+        <setting id="provider.streamcloudforum" type="bool" label="STREAMCLOUD.FORUM   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true"/>
+        <setting id="provider.streamcloudforum.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)"/>
+        <setting id="provider.streamcloudforum.check" label="Check" type="bool" default="true" visible="false"/>
         <setting type="sep"/>
     </category>
     <category label="Wiedergabe">

@@ -723,29 +723,6 @@ class source:
                 logger.info('SerienStream - Resolving: %s' % url[:80])
 
             try:
-                import requests
-                requests.packages.urllib3.disable_warnings()
-
-                session = requests.Session()
-                session.headers.update({
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                    'Referer': getattr(self, 'episode_referer', self.base_link),
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-                })
-
-                response = session.get(url, allow_redirects=True, verify=False, timeout=10)
-                final_url = response.url
-
-                if log_utils:
-                    logger.info('SerienStream - Resolved to: %s' % final_url[:80])
-
-                if final_url and final_url != url and len(final_url) > 20:
-                    return final_url
-
-            except:
-                pass
-
-            try:
                 oRequest = cRequestHandler(url, ignoreErrors=True)
                 oRequest.addHeaderEntry('User-Agent', 'Mozilla/5.0')
                 oRequest.addHeaderEntry('Referer', getattr(self, 'episode_referer', self.base_link))
@@ -758,6 +735,30 @@ class source:
                     return final_url
             except:
                 pass
+
+            if getSetting('bypassDNSlock', 'false') != 'true':
+                try:
+                    import requests
+                    requests.packages.urllib3.disable_warnings()
+
+                    session = requests.Session()
+                    session.headers.update({
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Referer': getattr(self, 'episode_referer', self.base_link),
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+                    })
+
+                    response = session.get(url, allow_redirects=True, verify=False, timeout=10)
+                    final_url = response.url
+
+                    if log_utils:
+                        logger.info('SerienStream - Resolved to: %s' % final_url[:80])
+
+                    if final_url and final_url != url and len(final_url) > 20:
+                        return final_url
+
+                except:
+                    pass
 
             if log_utils:
                 logger.info('SerienStream - Could not resolve, returning original URL')

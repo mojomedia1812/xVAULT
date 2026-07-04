@@ -1,12 +1,10 @@
 # -*- coding: UTF-8 -*-
 import re
-import urllib.parse
-import urllib.request
-import ssl
-import zlib
 from html import unescape
+from urllib.parse import quote
 from resources.lib.utils import isBlockedHoster
 from resources.lib.control import getSetting
+from resources.lib.requestHandler import cRequestHandler
 from resources.lib.tools import logger
 from scrapers.modules import cleantitle
 
@@ -35,22 +33,10 @@ class source:
             headers['Referer'] = referer
 
         try:
-            timeout = int(getSetting('requestTimeout', 10) or 10)
-        except Exception:
-            timeout = 10
-
-        try:
-            request = urllib.request.Request(url, headers=headers)
-            context = ssl._create_unverified_context()
-            with urllib.request.urlopen(request, timeout=timeout, context=context) as response:
-                raw = response.read()
-                encoding = response.headers.get('Content-Encoding', '').lower()
-                if encoding == 'gzip':
-                    raw = zlib.decompress(raw, zlib.MAX_WBITS | 16)
-                elif encoding == 'deflate':
-                    raw = zlib.decompress(raw, -zlib.MAX_WBITS)
-                charset = response.headers.get_content_charset() or 'utf-8'
-                return raw.decode(charset, 'replace')
+            request = cRequestHandler(url, caching=True)
+            for key, value in headers.items():
+                request.addHeaderEntry(key, value)
+            return request.request()
         except Exception as e:
             logger.error('[Filmpalast] Request fehlgeschlagen: %s (%s)' % (url, e))
             return ''
@@ -64,7 +50,7 @@ class source:
             logger.info('[Filmpalast] Suche: %s' % titles)
 
             for title in titles:
-                search_url = self.base_link + (self.search_link % urllib.parse.quote(title))
+                search_url = self.base_link + (self.search_link % quote(title))
                 data = self._request(search_url, self.base_link)
                 if not data:
                     continue

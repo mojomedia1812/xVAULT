@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-import urllib.request
 from scrapers.modules.tools import cParser
 from scrapers.modules import cleantitle
 from resources.lib.control import getSetting, quote_plus
+from resources.lib.requestHandler import cRequestHandler
 import re
 try:
     from json import loads
@@ -52,9 +52,10 @@ class source:
         }
 
     def _request_json(self, url, referer=None):
-        request = urllib.request.Request(url, headers=self._ajax_headers(referer))
-        with urllib.request.urlopen(request, timeout=15) as response:
-            sJson = response.read().decode('utf-8', 'replace')
+        request = cRequestHandler(url, caching=True)
+        for key, value in self._ajax_headers(referer).items():
+            request.addHeaderEntry(key, value)
+        sJson = request.request()
         if not sJson:
             return None
         return loads(sJson)

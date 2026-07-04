@@ -28,6 +28,12 @@ addonVersion = addonInfo('version')
 setSetting = Addon().setSetting
 _getSetting = Addon().getSetting
 _settingsLock = threading.Lock()
+PROVIDER_DOMAIN_REPLACEMENTS = {
+    ('movie4k', 'movie4k-to.cfd'): 'movie4k.sx',
+    ('movie4k', 'www.movie4k-to.cfd'): 'movie4k.sx',
+    ('movie4k', 'movie4k.to'): 'movie4k.sx',
+    ('movie4k', 'www.movie4k.to'): 'movie4k.sx',
+}
 
 def getSetting(Name, default=''):
     result = _getSetting(Name)
@@ -131,6 +137,7 @@ def _checkdomain(_domain, _provider):
         check=None
         status_code=None
         domain = getSetting('provider.'+ _provider +'.domain', _domain)
+        domain = PROVIDER_DOMAIN_REPLACEMENTS.get((_provider, domain), domain)
         base_link = 'https://' + domain
         try:
             UA=RandomUA()

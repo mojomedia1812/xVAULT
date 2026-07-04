@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-import re, random, base64, ast, binascii, json, requests, string
+import re, random, base64, ast, binascii, json, string
 from resources.lib.control import quote_plus, unquote_plus, infoDialog, urlparse, getSetting
 from resources.lib.requestHandler import cRequestHandler
 from resources.lib import pyaes
@@ -33,8 +33,10 @@ def extract_media_id_from_kinoger(kinoger_url):
         "Referer": "https://kinoger.ru/"
     }
     try:
-        response = requests.get(kinoger_url, headers=headers, timeout=15)
-        html = response.text
+        request = cRequestHandler(kinoger_url, caching=False, ignoreErrors=True)
+        for key, value in headers.items():
+            request.addHeaderEntry(key, value)
+        html = request.request()
         patterns = [
             r'https?://[^/]+/e/([a-zA-Z0-9]{8,12})',
             r'voe\.sx/e/([a-zA-Z0-9]{8,12})',
@@ -62,7 +64,7 @@ def get_voe_stream_from_kinoger(kinoger_url):
             return stream_url
         return None
     except Exception as e:
-        xbmc.log(f"Fehler: {str(e)}", xbmc.LOGERROR)
+        log_utils.log('Kinoger VOE Fehler: %s' % str(e), log_utils.LOGERROR)
         return None
 
 class source:
@@ -311,10 +313,16 @@ class source:
             headers.update({'User-Agent': user_agent, 'Host': host, 'Range': 'bytes=0-',
                             'Connection': 'keep-alive',
                             'Accept': 'video/webm,video/ogg,video/*;q=0.9,application/ogg;q=0.7,audio/*;q=0.6,*/*;q=0.5'})
-            r = requests.get(url, allow_redirects=False, headers=headers, timeout=7)
-            if 300 <= r.status_code < 400: return r.headers['Location']
-            if 400 <= r.status_code: return
-            return url
+            request = cRequestHandler(url, caching=False, ignoreErrors=True)
+            for key, value in headers.items():
+                request.addHeaderEntry(key, value)
+            request.request()
+            status = str(request.getStatus())
+            if status in ['301', '302']:
+                return request.getRealUrl()
+            if status.startswith('4') or status.startswith('5'):
+                return
+            return request.getRealUrl() or url
         except:
             return
 

@@ -27,20 +27,26 @@ class source:
             '(KHTML, like Gecko) SamsungBrowser/29.0 Chrome/136.0.0.0 Mobile Safari/537.36'
         )
         self.sources = []
-        self._session = None
 
-    def _get_session(self):
-        if self._session is None:
-            try:
-                import requests
-                self._session = requests.Session()
-                self._session.headers.update({
-                    'User-Agent': self.ua,
-                    'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8'
-                })
-            except ImportError:
-                logger.error('[%s] requests module nicht verfuegbar!' % SITE_NAME)
-        return self._session
+    def _request(self, url, headers=None, caching=False):
+        request = cRequestHandler(url, caching=caching, ignoreErrors=True)
+        request.addHeaderEntry('User-Agent', self.ua)
+        request.addHeaderEntry('Accept-Language', 'de-DE,de;q=0.9,en;q=0.8')
+        for key, value in (headers or {}).items():
+            request.addHeaderEntry(key, value)
+        payload = request.request()
+        return payload, str(request.getStatus()), request.getRealUrl()
+
+    def _request_json(self, url, headers=None, caching=False):
+        payload, status, real_url = self._request(url, headers=headers, caching=caching)
+        if status not in ['200', '301']:
+            logger.error('[%s] API-Status: %s' % (SITE_NAME, status))
+            return None
+        try:
+            return json.loads(payload)
+        except Exception as exc:
+            logger.error('[%s] JSON-Fehler: %s' % (SITE_NAME, str(exc)))
+            return None
 
     def _get_tmdb_id(self, imdb_id):
         try:
@@ -88,19 +94,14 @@ class source:
 
     def _visit_page_for_cookies(self, page_url):
         try:
-            session = self._get_session()
-            if not session:
-                logger.error('[%s] Keine Session verfuegbar' % SITE_NAME)
-                return False
-
             headers = {
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                 'Connection': 'keep-alive',
                 'Upgrade-Insecure-Requests': '1'
             }
-            response = session.get(page_url, headers=headers, timeout=10)
-            logger.info('[%s] Seite besucht: %s - Status: %s' % (SITE_NAME, page_url, response.status_code))
-            return response.status_code == 200
+            payload, status, real_url = self._request(page_url, headers=headers, caching=False)
+            logger.info('[%s] Seite besucht: %s - Status: %s' % (SITE_NAME, page_url, status))
+            return status in ['200', '301']
         except Exception as exc:
             logger.error('[%s] Fehler beim Seitenbesuch: %s' % (SITE_NAME, str(exc)))
             return False
@@ -109,23 +110,15 @@ class source:
         media_type, page_url, api_url = self._media_urls(tmdb_id, season, episode)
         self._visit_page_for_cookies(page_url)
 
-        session = self._get_session()
-        if not session:
-            logger.error('[%s] Keine Session fuer API-Aufruf verfuegbar' % SITE_NAME)
-            return None, None
-
         headers = {
             'Referer': page_url,
             'Accept': 'application/json, */*',
             'Origin': 'https://' + self.domain,
             'Connection': 'keep-alive'
         }
-        response = session.get(api_url, headers=headers, timeout=10)
-        if response.status_code != 200:
-            logger.error('[%s] API-Status: %s' % (SITE_NAME, response.status_code))
+        data = self._request_json(api_url, headers=headers, caching=False)
+        if not data:
             return None, None
-
-        data = response.json()
         src = data.get('src', '')
         if not src:
             logger.warning('[%s] Kein src in API-Response gefunden' % SITE_NAME)
@@ -205,11 +198,6 @@ class source:
 
             logger.info('[%s] resolve() - embed_url: %s' % (SITE_NAME, embed_url))
 
-            session = self._get_session()
-            if not session:
-                logger.error('[%s] Keine Session fuer resolve verfuegbar' % SITE_NAME)
-                return None
-
             video_id_match = re.search(r'/embed/(\d+)', embed_url)
             if not video_id_match:
                 logger.error('[%s] Konnte Video-ID nicht aus embed URL extrahieren' % SITE_NAME)
@@ -225,12 +213,10 @@ class source:
             }
 
             logger.info('[%s] Lade embed-Seite: %s' % (SITE_NAME, embed_url))
-            response = session.get(embed_url, headers=headers, timeout=15)
-            if response.status_code != 200:
-                logger.error('[%s] Embed Status: %s' % (SITE_NAME, response.status_code))
+            html, status, real_url = self._request(embed_url, headers=headers, caching=False)
+            if status not in ['200', '301']:
+                logger.error('[%s] Embed Status: %s' % (SITE_NAME, status))
                 return None
-
-            html = response.text
             token_match = re.search(r"['\"]token['\"]?\s*:\s*['\"]([a-f0-9]+)['\"]", html)
             expires_match = re.search(r"['\"]expires['\"]?\s*:\s*['\"]?(\d+)['\"]?", html)
             url_match = re.search(r"url\s*:\s*['\"]([^'\"]+/playlist/\d+)['\"]", html)

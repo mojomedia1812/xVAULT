@@ -1,8 +1,8 @@
 # -*- coding: UTF-8 -*-
 from resources.lib.utils import isBlockedHoster
 import re, json
-import urllib.request
 from resources.lib.control import getSetting, quote_plus
+from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import cleantitle
 
 SITE_IDENTIFIER = 'movie2k'
@@ -72,9 +72,10 @@ class source:
         }
 
     def _request_json(self, url, referer=None):
-        request = urllib.request.Request(url, headers=self._ajax_headers(referer))
-        with urllib.request.urlopen(request, timeout=15) as response:
-            payload = response.read().decode('utf-8', 'replace')
+        request = cRequestHandler(url, caching=True)
+        for key, value in self._ajax_headers(referer).items():
+            request.addHeaderEntry(key, value)
+        payload = request.request()
         if not payload or '"success":false' in payload:
             return None
         payload = re.sub(r'\\\s+\\', '\\\\', payload)

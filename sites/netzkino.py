@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 import json
 import urllib.parse
-import requests,re
+import re
 from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import cleantitle, dom_parser, source_utils
 from resources.lib.control import getSetting
@@ -34,9 +34,8 @@ class source:
 
         if 1==1:
             sDetailUrl = f"https://www.netzkino.de/details/{content_id}"
-            response = requests.get(sDetailUrl)
-            response.raise_for_status()
-            sHtmlContent= response.text
+            request = cRequestHandler(sDetailUrl, caching=True)
+            sHtmlContent = request.request()
             if not sHtmlContent:
                 return None
             regex = r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>'
@@ -118,9 +117,8 @@ class source:
 
         try:
             sUrl = self._build_graphql_search_url(sSearchText)
-            response = requests.get(sUrl)
-            response.raise_for_status()
-            data = response.json()
+            request = cRequestHandler(sUrl, caching=True)
+            data = json.loads(request.request())
             sJsonContent = data
 
             if not data or 'data' not in data:
@@ -160,8 +158,6 @@ class source:
                             'direct': True
                         })
 
-        except requests.exceptions.HTTPError as e:
-            logger.error(f"[NETZKINO] FEHLER bei HTTP-Anfrage: {e}")
         except json.JSONDecodeError:
             logger.error("[NETZKINO] FEHLER: Konnte API-Antwort nicht als JSON parsen. (Antwort war nicht gültiges JSON)")
         except KeyError as e:

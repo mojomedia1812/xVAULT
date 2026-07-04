@@ -1,5 +1,8 @@
 # -*- coding: UTF-8 -*-
-import re, requests, time, resolveurl as resolver
+import json
+import re
+import time
+import resolveurl as resolver
 from scrapers.modules.tools import cParser
 from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import cleantitle, dom_parser, source_utils
@@ -8,7 +11,8 @@ from resources.lib.control import getSetting
 def get_url():
     url = "https://raw.githubusercontent.com/mr-evil1/megakino/main/megakino-url.json"
     try:
-        current_domain = requests.get(url, timeout=5).json().get("url")
+        request = cRequestHandler(url, caching=True)
+        current_domain = json.loads(request.request()).get("url")
         return current_domain
     except:
         return 'megakino.live'
@@ -34,17 +38,23 @@ class source:
 
     def get_html(self, url):
         try:
-            session = requests.Session()
-            r = session.get(url, headers=self.headers, timeout=10)
-            html = r.text
+            request = cRequestHandler(url, caching=True)
+            for key, value in self.headers.items():
+                request.addHeaderEntry(key, value)
+            html = request.request()
             if html and 'yg=token' in html:
                 token_url = self.base_link + '/index.php?yg=token'
                 token_headers = self.headers.copy()
                 token_headers.update({'X-Requested-With': 'XMLHttpRequest', 'Referer': url})
-                session.get(token_url, headers=token_headers, timeout=10)
+                token_request = cRequestHandler(token_url, caching=False)
+                for key, value in token_headers.items():
+                    token_request.addHeaderEntry(key, value)
+                token_request.request()
                 time.sleep(0.5)
-                r = session.get(url, headers=self.headers, timeout=10)
-                html = r.text
+                request = cRequestHandler(url, caching=False)
+                for key, value in self.headers.items():
+                    request.addHeaderEntry(key, value)
+                html = request.request()
             return html if html and len(html) > 500 else ""
         except:
             return ""

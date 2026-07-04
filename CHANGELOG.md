@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [2026.07.04.3] - 2026-07-04
+
+- Neuer Einstellungsbereich `Indexseiten 3 (DE)` fuer CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM.
+- Neue lokale Scraper fuer CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM wurden eingebunden.
+- STREAMCLOUD.FORUM kann Filme und Serien ueber die Such- und Playerstruktur auswerten und blendet interne Hilfslinks ohne abspielbaren Medienbezug aus.
+- Der bisherige Einstellungsbereich `Indexseiten (DE)` heisst nun `Indexseiten 1 (DE)`.
+- Movie4k wurde auf die aktuelle API-Struktur ueber `movie4k.sx` umgestellt; alte gespeicherte Movie4k-Domains werden beim Providercheck automatisch migriert.
+- Die DoH-Logik wurde fuer die aktiven Indexseiten vereinheitlicht, sodass Seitenabrufe bei aktivierter Option ueber den xVAULT-RequestHandler mit Cloudflare-DoH laufen.
+- BS.to und SerienStream nutzen direkte Session-Requests nur noch als Rueckfall, wenn DNS over HTTPS deaktiviert ist.
+
 ## [2026.07.04.2] - 2026-07-04
 
 - DNS over HTTPS kann in den allgemeinen Einstellungen aktiviert oder deaktiviert werden.

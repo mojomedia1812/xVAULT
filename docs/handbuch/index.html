@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Wiedergabe, LiveTV, Synchronisation, Downloads, Untertitel und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.07.04.2.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.07.04.3.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">Zur Startseite</a>
         </div>
@@ -337,7 +337,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.07.04.2.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.07.04.3.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -416,14 +416,25 @@
         <li>BS.to</li>
         <li>SerienStream</li>
         <li>StreamCloud</li>
+        <li>CINE.TO</li>
+        <li>FILMFANS</li>
+        <li>NOX</li>
+        <li>SERIENFANS</li>
+        <li>STREAMCLOUD.FORUM</li>
         <li>TopStreamFilm</li>
         <li>VixStream</li>
       </ul>
+      <h3>Indexseiten 1, 2 und 3</h3>
+      <p>Die Anbieter sind in den Einstellungen auf mehrere Bereiche verteilt. Der bisherige Bereich <strong>Indexseiten (DE)</strong> heißt jetzt <strong>Indexseiten 1 (DE)</strong>. <strong>Indexseiten 3 (DE)</strong> ergänzt CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM als separat aktivierbare Quellen.</p>
       <h3>Filmpalast</h3>
       <p>Filmpalast wird für Filme und Serien als normale Indexseite geführt. xVAULT berücksichtigt die aktuelle Such- und Quellenstruktur der Seite und übernimmt erkannte Hoster in die Quellenliste, bevor die Resolver-Schicht den eigentlichen Abspiellink vorbereitet.</p>
+      <h3>Movie4k</h3>
+      <p>Movie4k nutzt die aktuelle API-Struktur der erreichbaren Domain. Alte gespeicherte Movie4k-Domainwerte werden beim Providercheck auf die funktionierende Domain migriert, damit die Indexseite nicht durch veraltete Einstellungen als nicht erreichbar markiert wird.</p>
       <h3>BS.to</h3>
       <p>BS.to ist als optionaler Serien-Scraper eingebunden. Der Anbieter kann Serien, Staffeln, Episoden, Sprachvarianten und Hoster liefern. Erkannte Sprachen wie Deutsch, Englisch und deutsch untertitelte Varianten werden an die zentrale Sprachsteuerung weitergegeben.</p>
       <p>Der BS.to-Login in den Konten-Einstellungen ist freiwillig. Ohne Zugangsdaten sucht xVAULT weiter nach Quellen, die ohne Anmeldung und ohne CAPTCHA erreichbar sind. Quellen, die eine CAPTCHA-Prüfung benötigen, werden nicht angezeigt und nicht automatisiert umgangen.</p>
+      <h3>Indexseiten 3 (DE)</h3>
+      <p>CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM werden wie die anderen Indexseiten über eigene Schalter aktiviert oder deaktiviert. xVAULT übernimmt nur Quellen, die sich sinnvoll an Kodi oder die Resolver-Schicht übergeben lassen; interne Hilfslinks, reine Containerwege oder nicht abspielbare Einträge werden ausgefiltert.</p>
       <h3>Serien-Specials in Quellen</h3>
       <p>Bei Sonderfolgen reicht xVAULT Episodentitel, Erstausstrahlung und Staffel-0-Informationen an die Quellen-Scraper weiter. Das hilft, Specials zu finden, wenn Anbieter sie nicht als normale Staffel-Episode führen oder wenn ein Titelvergleich nötig ist.</p>
       <h3>Bevorzugte Streamsprache</h3>
@@ -443,7 +454,7 @@
       <h3>Resolver</h3>
       <p>Hosterlinks werden bei Bedarf über die Resolver-Ebene aufgelöst. Die Resolver-Einstellungen sind im Werkzeugmenü erreichbar. Sie betreffen die Hosterauswahl, aber nicht die Suchlogik der einzelnen Indexseiten.</p>
       <h3>DNS over HTTPS</h3>
-      <p>In den allgemeinen Einstellungen kann xVAULT DNS over HTTPS über Cloudflare aktivieren. Dann fragt der RequestHandler die Ziel-IP über Cloudflare ab, verbindet sich aber weiterhin mit der ursprünglichen Domain, damit Host-Header, Cookies und HTTPS-SNI erhalten bleiben. SerienStream/s.to nutzt denselben Weg; die bekannte feste SerienStream-IP dient nur als Rückfall, falls Cloudflare-DoH keine nutzbare Verbindung liefert.</p>
+      <p>In den allgemeinen Einstellungen kann xVAULT DNS over HTTPS über Cloudflare aktivieren. Dann fragt der RequestHandler die Ziel-IP über Cloudflare ab, verbindet sich aber weiterhin mit der ursprünglichen Domain, damit Host-Header, Cookies und HTTPS-SNI erhalten bleiben. Die aktiven Indexseiten nutzen denselben Weg; feste IPs dienen nur als Rückfall, falls Cloudflare-DoH keine nutzbare Verbindung liefert.</p>
     </section>
 
     <section id="wiedergabe" class="panel manual-section">
@@ -537,14 +548,14 @@
           <li><strong>Automatische Updates:</strong> Standardmäßig aktiv. Kann deaktiviert werden, wenn Updates manuell kontrolliert werden sollen.</li>
           <li><strong>Scraper-Timeout:</strong> Begrenzt, wie lange xVAULT auf Indexseiten wartet.</li>
           <li><strong>Fanart und Doku-Suche:</strong> Steuern zusätzliche Darstellung und Suchoptionen.</li>
-          <li><strong>DNS over HTTPS:</strong> Aktiviert Cloudflare-DoH für Seitenabrufe. Standardmäßig aus; bei Bedarf kann die Option helfen, wenn eine Domain über das aktuelle DNS nicht korrekt aufgelöst wird.</li>
+          <li><strong>DNS over HTTPS:</strong> Aktiviert Cloudflare-DoH für Seitenabrufe der Indexseiten. Standardmäßig aus; bei Bedarf kann die Option helfen, wenn eine Domain über das aktuelle DNS nicht korrekt aufgelöst wird.</li>
           <li><strong>RequestHandler-Cache:</strong> Timeout, Cachezeit, volatiler HTML-Cache, Tagesdelta und Cache-Löschung für Seitenabrufe.</li>
           <li><strong>Status:</strong> Aktualisierung von Gesehen/Ungesehen für Filme, Episoden, Staffeln und Serien.</li>
         </ul>
       </div>
       <div class="setting-group">
         <h3>Indexseiten</h3>
-        <p>Hier werden einzelne Anbieter für Filme und Serien aktiviert oder deaktiviert. Einige Anbieter besitzen zusätzliche Hoster-Prüfungen. Weniger aktivierte Indexseiten können schneller sein, mehr aktivierte Indexseiten erhöhen die Chance auf Treffer. BS.to besitzt zusätzlich optionale Zugangsdaten im Kontenbereich; CAPTCHA-pflichtige Quellen werden ausgeblendet.</p>
+        <p>Hier werden einzelne Anbieter für Filme und Serien aktiviert oder deaktiviert. Die Bereiche heißen <strong>Indexseiten 1 (DE)</strong>, <strong>Indexseiten 2 (DE)</strong> und <strong>Indexseiten 3 (DE)</strong>. Weniger aktivierte Indexseiten können schneller sein, mehr aktivierte Indexseiten erhöhen die Chance auf Treffer. BS.to besitzt zusätzlich optionale Zugangsdaten im Kontenbereich; CAPTCHA-pflichtige Quellen werden ausgeblendet.</p>
       </div>
       <div class="setting-group">
         <h3>Wiedergabe</h3>
@@ -628,7 +639,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geoeffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.07.04.2</span>
+      <span>Handbuch zu xVAULT 2026.07.04.3</span>
     </footer>
   </main>
 </body>

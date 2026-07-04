@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
-import requests
 from resources.lib.control import getSetting
 import urllib.parse
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from resources.lib.requestHandler import cRequestHandler
 
 try:
     import xbmc
@@ -16,25 +14,47 @@ except ImportError:
 from scrapers.modules import source_utils
 SITE_IDENTIFIER = 'huhu'
 DOMAIN = 'www.huhu.to'
+SITE_DOMAIN = DOMAIN
+SITE_NAME = SITE_IDENTIFIER.upper()
 URL_MAIN = f'https://{DOMAIN}/web-vod/'
 URL_LINKS = URL_MAIN + 'api/links?id=%s'
 URL_GET = URL_MAIN + 'api/get?link='
 
+
+def _request_json(url, headers=None):
+    try:
+        request = cRequestHandler(url, caching=True)
+        for key, value in (headers or {}).items():
+            request.addHeaderEntry(key, value)
+        payload = request.request()
+        if not payload:
+            return None
+        return json.loads(payload)
+    except:
+        return None
+
+
+def _request_real_url(url, headers=None):
+    try:
+        request = cRequestHandler(url, caching=False, ignoreErrors=True)
+        for key, value in (headers or {}).items():
+            request.addHeaderEntry(key, value)
+        request.request()
+        return request.getRealUrl() or url
+    except:
+        return None
+
 def get_media_data(imdb='', season=0, episode=0):
     try:
+        find_url = 'https://api.themoviedb.org/3/find/%s?api_key=%s&external_source=imdb_id' % (imdb, getSetting("api.tmdb"))
+        data = _request_json(find_url)
+        if not data:
+            return None
         if season == 0:
-            result = requests.get(
-                f'https://api.themoviedb.org/3/find/{imdb}?api_key={getSetting("api.tmdb")}&external_source=imdb_id',
-                timeout=10,
-                verify=False
-            ).json()["movie_results"][0]
+            result = data["movie_results"][0]
             media_id = f'movie.{result["id"]}'
         else:
-            result = requests.get(
-                f'https://api.themoviedb.org/3/find/{imdb}?api_key={getSetting("api.tmdb")}&external_source=imdb_id',
-                timeout=10,
-                verify=False
-            ).json()["tv_results"][0]
+            result = data["tv_results"][0]
             media_id = f'series.{result["id"]}.{season}.{episode}'
         
         return media_id
@@ -49,17 +69,7 @@ def make_request(url):
     }
     
     try:
-        resp = requests.get(
-            url,
-            headers=headers,
-            timeout=15,
-            verify=False
-        )
-        
-        if resp.status_code != 200:
-            return None
-        
-        return resp.json()
+        return _request_json(url, headers)
     except:
         return None
 
@@ -174,16 +184,7 @@ class source:
                 'Origin': f'https://{DOMAIN}',
                 'User-Agent': 'Mozilla/5.0'
             }
-            
-            resp = requests.get(
-                url,
-                headers=headers,
-                timeout=10,
-                verify=False,
-                allow_redirects=True
-            )
-            
-            return resp.url
+            return _request_real_url(url, headers)
         
         except:
             return None

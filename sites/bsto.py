@@ -377,7 +377,7 @@ class source:
                 logger.info('%s - Login error: %s' % (SITE_NAME, str(exc)))
 
     def _request(self, url, referer=None, post=None, caching=True, accept=None, ajax=True):
-        if self.session is not None:
+        if self.session is not None and getSetting('bypassDNSlock', 'false') != 'true':
             try:
                 headers = {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',

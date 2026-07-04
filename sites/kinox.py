@@ -3,7 +3,6 @@ from resources.lib.utils import isBlockedHoster
 import json
 import re
 import time
-import requests
 from resources.lib.requestHandler import cRequestHandler
 from resources.lib.control import urlparse, quote_plus, urljoin, parse_qs, getSetting, setSetting
 from scrapers.modules import cleantitle, dom_parser, source_utils
@@ -38,10 +37,11 @@ class source:
         for domain in domains:
             try:
                 url = 'http://%s' % domain
-                resp = requests.get(url)
-                url = resp.url
-                if resp.status_code == 200:
-                    r = dom_parser.parse_dom(resp.text, 'meta', attrs={'name': 'keywords'}, req='content')
+                request = cRequestHandler(url, caching=False, ignoreErrors=True)
+                html = request.request()
+                url = request.getRealUrl() or url
+                if str(request.getStatus()) in ['200', '301']:
+                    r = dom_parser.parse_dom(html, 'meta', attrs={'name': 'keywords'}, req='content')
                     if r and 'kinox.to' in r[0].attrs.get('content').lower():
                         setSetting('provider.kinox.domain', urlparse(url).netloc)
                         setSetting('kinox.base_link', url[:-1])

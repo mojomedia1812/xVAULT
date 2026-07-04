@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 import re
 import json
-import urllib.request
 from resources.lib.tools import logger
 from resources.lib.control import getSetting, urlparse, quote_plus
+from resources.lib.requestHandler import cRequestHandler
 
 SITE_IDENTIFIER = 'kinokiste'
 SITE_DOMAIN = 'kinokiste.eu'
@@ -67,9 +67,10 @@ class source:
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json, text/plain, */*'
             }
-            request = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(request, timeout=15) as response:
-                sResponse = response.read().decode('utf-8', 'replace')
+            request = cRequestHandler(url, caching=True)
+            for key, value in headers.items():
+                request.addHeaderEntry(key, value)
+            sResponse = request.request()
             if not sResponse:
                 if log_errors:
                     logger.error('[%s] Leere Antwort von %s' % (SITE_NAME, url))
