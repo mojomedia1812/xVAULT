@@ -104,6 +104,26 @@ def RandomUA():
     _User_Agents = [FF_USER_AGENT, OPERA_USER_AGENT, EDGE_USER_AGENT, CHROME_USER_AGENT, SAFARI_USER_AGENT]
     return choice(_User_Agents)
 
+def _doh_enabled():
+    return getSetting('bypassDNSlock', 'false') == 'true'
+
+def _checkdomain_with_doh(domain):
+    try:
+        from resources.lib.requestHandler import cRequestHandler
+        base_link = 'https://' + domain
+        request = cRequestHandler(base_link, caching=False, ignoreErrors=True)
+        content = request.request()
+        status = str(request.getStatus())
+        real_domain = urlparse(request.getRealUrl() or base_link).hostname or domain
+        error_markers = ('SEITE NICHT ERREICHBAR', 'CLOUDFLARE-SCHUTZ AKTIV', 'URL FEHLER', 'TIMEOUT', 'DDOS GUARD SCHUTZ')
+        if not content or content in error_markers:
+            return False, domain, status
+        if status in ('200', '301', '302') or content:
+            return True, real_domain, status
+    except Exception as exc:
+        if isLogger: logger.warning(' -> [service]: DoH domain check failed for %s: %s' % (domain, str(exc)))
+    return False, domain, None
+
 def _checkdomain(_domain, _provider):
     try:
         import requests
@@ -135,6 +155,13 @@ def _checkdomain(_domain, _provider):
             #pass
         finally:
             wrongDomain = 'site-maps.cc', 'www.drei.at', 'notice.cuii.info'
+            if _doh_enabled() and (check != 'true' or domain in wrongDomain):
+                doh_domain = _domain if domain in wrongDomain else domain
+                doh_check, doh_domain, doh_status = _checkdomain_with_doh(doh_domain)
+                if doh_check and doh_domain not in wrongDomain:
+                    check = 'true'
+                    domain = doh_domain
+                    status_code = 'DoH:%s' % doh_status
             with _settingsLock:
                 if domain in wrongDomain:
                     setSetting('provider.' + _provider + '.check', '')

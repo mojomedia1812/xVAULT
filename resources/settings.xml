@@ -9,6 +9,7 @@
         <setting type="lsep" label="Einstellungen RequestHandler" />
 
         <setting default="10" id="requestTimeout" label="Timeout für HTTP-Anfragen in Sekunden" option="int" range="1,1,60" type="slider" />
+        <setting default="false" id="bypassDNSlock" label="DNS over HTTPS ueber Cloudflare verwenden" type="bool" />
         <setting default="600" id="cacheTime" label="Cachezeit für Webseiten (HtmlCache) in Sekunden" option="int" range="0,60,1800" type="slider" />
         <setting default="true" id="volatileHtmlCache" type="bool" label= "HTML Inhalte werden nur im RAM zwischengespeichert" visible="true"/>
         <setting default="2" id="cacheDeltaDay" label="Html Cache nach Tage löschen" option="int" range="1,1,7" type="slider" />

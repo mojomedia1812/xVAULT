@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.07.04.2] - 2026-07-04
+
+- DNS over HTTPS kann in den allgemeinen Einstellungen aktiviert oder deaktiviert werden.
+- xVAULT nutzt bei aktivierter Option Cloudflare DNS over HTTPS fuer HTTP-Anfragen, ohne die urspruengliche Domain im Request zu ersetzen.
+- SerienStream/s.to nutzt ebenfalls den neuen DoH-Weg; die bekannte feste SerienStream-IP wird nur noch als Rueckfall verwendet, wenn Cloudflare-DoH keine nutzbare Verbindung liefert.
+- Der Provider-Domaincheck beim Kodi-Start prueft bei aktivem DoH blockierte oder fehlgeschlagene Domains ein zweites Mal ueber den xVAULT-RequestHandler, damit Quellen nicht vorzeitig deaktiviert werden.
+
 ## [2026.07.04.1] - 2026-07-04
 
 - Serien pruefen nun auch TMDB-Staffel 0 und zeigen vorhandene Specials oder Pilotfilme als eigenen Eintrag in der Staffelliste an.

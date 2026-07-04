@@ -13,6 +13,7 @@ import json
 import traceback
 import ssl
 import certifi
+import ipaddress
 import socket
 import zlib
 import http.client
@@ -42,13 +43,28 @@ from http.cookiejar import LWPCookieJar, Cookie
 from http.client import HTTPException
 from random import choice
 
+def _doh_enabled():
+    return getSetting('bypassDNSlock', 'false') == 'true'
+
+
+class IPHTTPConnection(http.client.HTTPConnection):
+    def __init__(self, host, ip=None, port=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+        self.ip = ip
+        super().__init__(host, port, timeout=timeout)
+
+    def connect(self):
+        if self.ip:
+            self.sock = self._create_connection((self.ip, self.port), self.timeout)
+        else:
+            super().connect()
+
+
 class IPHTTPSConnection(http.client.HTTPSConnection):
     def __init__(self, host, ip=None, port=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, context=None):
         self.context = context
-        # If an IP is provided, connect to it rather than the resolved host.
         self.ip = ip
-        self.actual_host = host  # original hostname for SNI and Host header
-        super().__init__(host if not ip else ip, port, timeout=timeout, context=context)
+        self.actual_host = host
+        super().__init__(host, port, timeout=timeout, context=context)
 
     def connect(self):
         # Create a socket connection to the provided IP (if any)
@@ -62,29 +78,45 @@ class IPHTTPSConnection(http.client.HTTPSConnection):
             super().connect()
 
 class CustomSecureHTTPSHandler(HTTPSHandler):
-    def __init__(self, ip=None):
-        # Create an SSL context with certifi's CA bundle.
-        context = ssl.create_default_context(cafile=certifi.where())
-        # If an IP is provided, disable hostname checking (since we'll verify using SNI later).
-        context.check_hostname = False if ip else True
-        context.verify_mode = ssl.CERT_REQUIRED
-        self.ip = ip
+    def __init__(self, ip_map=None, verify=True):
+        if verify:
+            context = ssl.create_default_context(cafile=certifi.where())
+            context.check_hostname = True
+            context.verify_mode = ssl.CERT_REQUIRED
+        else:
+            context = ssl.create_default_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+        self.ip_map = ip_map or {}
         self.context = context
         super().__init__(context=context)
 
     def https_open(self, req):
-        # Extract the hostname from the request URL.
         parsed = urlparse(req.full_url)
-        host = parsed.hostname
-        # Define a connection factory that returns an IPHTTPSConnection
+        host = (parsed.hostname or '').lower()
+        ip = self.ip_map.get(host)
         def connection_factory(*args, **kwargs):
-            return IPHTTPSConnection(host, ip=self.ip, timeout=req.timeout, context=self.context)
+            return IPHTTPSConnection(host, ip=ip, timeout=req.timeout, context=self.context)
+        return self.do_open(connection_factory, req)
+
+
+class CustomHTTPHandler(HTTPHandler):
+    def __init__(self, ip_map=None):
+        self.ip_map = ip_map or {}
+        super().__init__()
+
+    def http_open(self, req):
+        parsed = urlparse(req.full_url)
+        host = (parsed.hostname or '').lower()
+        ip = self.ip_map.get(host)
+        def connection_factory(*args, **kwargs):
+            return IPHTTPConnection(host, ip=ip, timeout=req.timeout)
         return self.do_open(connection_factory, req)
 
 
 class RedirectFilter(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, hdrs, newurl):
-        if getSetting('bypassDNSlock', 'false') != 'true':
+        if not _doh_enabled():
             if 'notice.cuii' in newurl:
                 xbmcgui.Dialog().ok("xVAULT Support Information", "Ihr Internetanbieter zensiert ihren Internetzugang!" + '\n' + "Um sich vor der Zensur zu schÃ¼tzen, empfehlen wir euren DNS Server im Router bzw. auf Euren GerÃ¤ten auf Google oder Cloudflare umzustellen - fÃ¼r die Protokolle IPv4 UND IPv6! Anleitungen findet Ihr per Googlesuche z.B. 'Fritzbox DNS Server Ã¤ndern'")  # die neue Funktion 'DNS Sperre umgehen' in xVAULT zu aktivieren oder
                 return None
@@ -93,6 +125,12 @@ class RedirectFilter(HTTPRedirectHandler):
 class cRequestHandler:
     # useful for e.g. tmdb request where multiple requests are made within a loop
     persistent_openers = {}
+    doh_cache = {}
+    DOH_SERVER = "https://cloudflare-dns.com/dns-query"
+    SERIENSTREAM_FALLBACK_IPS = {
+        's.to': '186.2.175.5',
+        'www.s.to': '186.2.175.5',
+    }
 
     @staticmethod
     def RandomUA():
@@ -129,7 +167,7 @@ class cRequestHandler:
         self.jspost = jspost
         self.cacheTime = int(getSetting('cacheTime', 600))
         self.requestTimeout = int(getSetting('requestTimeout', 10))
-        self.bypassDNSlock = (getSetting('bypassDNSlock', 'false') == 'true')
+        self.bypassDNSlock = _doh_enabled()
         self.removeBreakLines(True)
         self.removeNewLines(True)
         self.__setDefaultHeader()
@@ -179,11 +217,11 @@ class cRequestHandler:
         self.addHeaderEntry('Keep-Alive', 'timeout=5')
 
     @staticmethod
-    def __getDefaultHandler(ssl_verify, ip=None):
-        if ip:
-            return [CustomSecureHTTPSHandler(ip=ip)]    
+    def __getDefaultHandler(ssl_verify, ip_map=None):
+        if ip_map:
+            return [CustomHTTPHandler(ip_map=ip_map), CustomSecureHTTPSHandler(ip_map=ip_map, verify=ssl_verify)]
         elif ssl_verify:
-            return [CustomSecureHTTPSHandler()]
+            return [CustomSecureHTTPSHandler(verify=True)]
         else:
             ssl_context = ssl.create_default_context()
             ssl_context.check_hostname = False
@@ -220,13 +258,7 @@ class cRequestHandler:
                         self.__writeVolatileCache(self.getRequestUri(), sContent)
                         return sContent
 
-        # nur ausfÃ¼hren wenn der Ã¼bergabeparameter und die konfiguration passen
-        if self._bypass_dns and self.bypassDNSlock:
-            ### DNS lock bypass
-            ip_override = self.__doh_request(self._sUrl)
-            ### DNS lock bypass
-        else:
-            ip_override = None
+        ip_override = self.__getDnsOverride()
 
         cookieJar = LWPCookieJar(filename=self._cookiePath)
         try:
@@ -235,13 +267,7 @@ class cRequestHandler:
             logger.debug(e)
         
         domain = urlparse(self._sUrl).netloc
-        if domain in cRequestHandler.persistent_openers:
-            opener = cRequestHandler.persistent_openers[domain]
-        else:
-            handlers = self.__getDefaultHandler(self._ssl_verify, ip_override)        
-            handlers += [HTTPHandler(), HTTPCookieProcessor(cookiejar=cookieJar), RedirectFilter()]
-            opener = build_opener(*handlers)
-            cRequestHandler.persistent_openers[domain] = opener
+        opener = self.__getOpener(domain, ip_override, cookieJar)
 
         sParameters = json.dumps(self._aParameters).encode() if self.jspost else urlencode(self._aParameters, True).encode()
         oRequest = Request(self._sUrl, sParameters if len(sParameters) > 0 else None)
@@ -254,7 +280,16 @@ class cRequestHandler:
         cookieJar.add_cookie_header(oRequest)
         
         try:
-            oResponse = opener.open(oRequest)
+            try:
+                oResponse = opener.open(oRequest)
+            except (HTTPError, URLError, HTTPException) as e:
+                fallback_ip = self.__getSerienstreamFallbackIp(ip_override)
+                if fallback_ip:
+                    logger.info(' -> [requestHandler]: DoH request failed for %s, retry with SerienStream fallback IP %s: %s' % (self._sUrl, fallback_ip, str(e)))
+                    opener = self.__getOpener(domain, fallback_ip, cookieJar)
+                    oResponse = opener.open(oRequest)
+                else:
+                    raise
         except HTTPError as e:
             if e.code >= 400:
                 self._Status = str(e.code)
@@ -387,14 +422,78 @@ class cRequestHandler:
     def ignoreExpired(self, bIgnoreExpired):
         self.__bIgnoreExpired = bIgnoreExpired
 
-    def __doh_request(self, url, doh_server="https://cloudflare-dns.com/dns-query"):
-        # Parse the URL
+    def __getDnsOverride(self):
+        if not (self.bypassDNSlock or self._bypass_dns):
+            return None
+
+        parsed_url = urlparse(self._sUrl)
+        hostname = (parsed_url.hostname or '').lower()
+        if not self.__isDohCandidate(hostname):
+            return None
+
+        ip_address = self.__doh_request(self._sUrl)
+        if ip_address:
+            return ip_address
+
+        fallback_ip = self.SERIENSTREAM_FALLBACK_IPS.get(hostname)
+        if fallback_ip:
+            logger.info(' -> [requestHandler]: Cloudflare DoH ohne verwertbare Antwort fuer %s, nutze SerienStream-Fallback-IP %s' % (hostname, fallback_ip))
+            return fallback_ip
+
+        return None
+
+    def __openerKey(self, domain, ip_override):
+        return '%s|%s|%s' % (domain, ip_override or 'system', 'verify' if self._ssl_verify else 'noverify')
+
+    def __getOpener(self, domain, ip_override, cookieJar):
+        ip_map = self.__buildIpMap(ip_override)
+        opener_key = self.__openerKey(domain, ip_override)
+        if opener_key in cRequestHandler.persistent_openers:
+            return cRequestHandler.persistent_openers[opener_key]
+
+        handlers = self.__getDefaultHandler(self._ssl_verify, ip_map)
+        handlers += [HTTPCookieProcessor(cookiejar=cookieJar), RedirectFilter()]
+        if not ip_map:
+            handlers.append(HTTPHandler())
+        opener = build_opener(*handlers)
+        cRequestHandler.persistent_openers[opener_key] = opener
+        return opener
+
+    def __buildIpMap(self, ip_override):
+        hostname = (urlparse(self._sUrl).hostname or '').lower()
+        return {hostname: ip_override} if hostname and ip_override else None
+
+    def __getSerienstreamFallbackIp(self, current_ip):
+        if not (self.bypassDNSlock or self._bypass_dns):
+            return None
+        hostname = (urlparse(self._sUrl).hostname or '').lower()
+        fallback_ip = self.SERIENSTREAM_FALLBACK_IPS.get(hostname)
+        if fallback_ip and current_ip and current_ip != fallback_ip:
+            return fallback_ip
+        return None
+
+    @staticmethod
+    def __isDohCandidate(hostname):
+        if not hostname or hostname in ('localhost',):
+            return False
+        try:
+            ipaddress.ip_address(hostname)
+            return False
+        except ValueError:
+            return True
+
+    def __doh_request(self, url, doh_server=None):
         parsed_url = urlparse(url)
-        hostname = parsed_url.hostname
-        key = 'doh_request' + hostname
+        hostname = (parsed_url.hostname or '').lower()
+        doh_server = doh_server or self.DOH_SERVER
+        key = hostname
+
+        cached = self.doh_cache.get(key)
+        if cached and cached[1] > time.time():
+            return cached[0]
 
         if self.isMemoryCacheActive and self.cacheTime > 0:
-            ip_address = self.__readVolatileCache(key, self.cacheTime)
+            ip_address = self.__readVolatileCache('doh_request_' + hostname, self.cacheTime)
             if ip_address:
                 return ip_address
 
@@ -404,18 +503,38 @@ class cRequestHandler:
         req.add_header("Accept", "application/dns-json")
 
         try:
-            response = urlopen(req, timeout=5)
+            doh_context = ssl.create_default_context(cafile=certifi.where())
+            response = urlopen(req, timeout=5, context=doh_context)
             response_text = response.read().decode("utf-8", "replace")
             dns_response = json.loads(response_text)
             if "Answer" not in dns_response:
                 raise Exception("Invalid DNS response")
-            ip_address = dns_response["Answer"][0]["data"]
+            answers = dns_response.get("Answer") or []
+            ip_address = None
+            ttl = self.cacheTime if self.cacheTime > 0 else 600
+            for answer in answers:
+                if answer.get("type") != 1:
+                    continue
+                candidate = answer.get("data")
+                try:
+                    ipaddress.ip_address(candidate)
+                except Exception:
+                    continue
+                ip_address = candidate
+                ttl = int(answer.get("TTL") or ttl)
+                break
+            if not ip_address:
+                raise Exception("No A record in DNS response")
+            ttl = max(60, min(ttl, 3600))
+            self.doh_cache[key] = (ip_address, time.time() + ttl)
             if self.isMemoryCacheActive and self.cacheTime > 0:
-                self.__writeVolatileCache(key, ip_address)
+                self.__writeVolatileCache('doh_request_' + hostname, ip_address)
+
+            logger.info(' -> [requestHandler]: Cloudflare DoH %s -> %s' % (hostname, ip_address))
 
             return ip_address
         except Exception as e:
-            logger.error(' -> [requestHandler]: DNS query failed: %s' % e)
+            logger.error(' -> [requestHandler]: Cloudflare DoH failed for %s: %s' % (hostname, e))
             return None
 
     def __setCachePath(self):

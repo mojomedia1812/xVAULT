@@ -115,10 +115,7 @@ class source:
         self.language = ['de', 'en']
         self.domain = getSetting('provider.' + SITE_IDENTIFIER + '.domain', SITE_DOMAIN)
 
-        if getSetting('bypassDNSlock') != 'true':
-            self.base_link = 'https://' + self.domain
-        else:
-            self.base_link = 'http://186.2.175.5'
+        self.base_link = 'https://' + self.domain
         self.search_link = '/suche?term='
 
         self.sources = []
