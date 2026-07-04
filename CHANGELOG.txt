@@ -1,3 +1,10 @@
+xVAULT 2026.07.04.7
+Entwickler: mojomedia1812
+
+- "Jetzt synchronisieren" bricht nicht mehr mit PluginError ab, wenn lokale Bookmark-Daten doppelte oder beschaedigte Fortsetzen-Eintraege enthalten.
+- Der Bookmark-Speicher bereinigt doppelte Eintraege beim Speichern und Entfernen und findet Fortsetzen-Eintraege auch dann wieder, wenn sie nicht an erster Stelle stehen.
+- Die manuelle Synchronisation gleicht den Login-Zustand vor dem Start ab und meldet unerwartete lokale Sync-Fehler sauber statt mit Python-Traceback.
+
 xVAULT 2026.07.04.6
 Entwickler: mojomedia1812
 

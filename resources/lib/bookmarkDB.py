@@ -162,32 +162,45 @@ def _get_storage(filename='storage.pcl'):
     return _Storage(_profile_dir, filename)
 
 
+def _get_queries(storage):
+    queries = storage.get('queries', [])
+    if not isinstance(queries, list):
+        queries = []
+    clean_queries = []
+    for item in queries:
+        if not isinstance(item, dict) or 'idFile' not in item:
+            continue
+        clean_queries.append({
+            'idFile': item.get('idFile'),
+            'time': item.get('time', '')
+        })
+    storage['queries'] = clean_queries
+    return clean_queries
+
+
 def save_query(idFile, timeInSeconds, filename=None):
     with _get_storage(filename) as storage:
-        if 'queries' not in storage:
-            storage['queries'] = []
+        queries = _get_queries(storage)
         entry = {
             'idFile': idFile,
             'time': timeInSeconds
         }
-        for i in range(0, len(storage['queries'])):
-            if storage['queries'][i]['idFile'] == idFile:
-                storage['queries'].pop(i)
+        storage['queries'] = [item for item in queries if item.get('idFile') != idFile]
         storage['queries'].insert(0, entry)
+
 
 def remove_query(idFile, filename=None):
     with _get_storage(filename) as storage:
-        for i in range(0, len(storage['queries'])):
-            if storage['queries'][i]['idFile'] == idFile:
-                storage['queries'].pop(i)
+        queries = _get_queries(storage)
+        storage['queries'] = [item for item in queries if item.get('idFile') != idFile]
+
 
 def get_query(idFile, filename=None):
     with _get_storage(filename) as storage:
-        for i in range(0, len(storage['queries'])):
-            if storage['queries'][i]['idFile'] == idFile:
-                return [idFile, storage['queries'][i]['time']]
-            else:
-                return []
+        for item in _get_queries(storage):
+            if item.get('idFile') == idFile:
+                return [idFile, item.get('time')]
+    return []
 
 
 

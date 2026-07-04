@@ -2,7 +2,7 @@ import time
 
 import xbmcgui
 
-from resources.lib import control
+from resources.lib import control, log_utils
 from resources.lib.sync import binge_sync, favorites_sync, storage
 from resources.lib.sync.api_client import ApiError, Client
 
@@ -92,14 +92,23 @@ def logout():
 
 
 def sync_now():
+    storage.reconcile_auth_settings()
     if not storage.is_logged_in():
         control.infoDialog('Bitte zuerst anmelden.', icon='WARNING')
         return
-    ok_fav = favorites_sync.check_and_push_if_changed(silent=True, require_enabled=False)
-    ok_binge = binge_sync.push_local(silent=True)
-    binge_sync.pull_remote(apply_bookmarks=True, silent=True)
-    storage.update_last_sync(time.strftime('%Y-%m-%d %H:%M:%S'))
-    control.infoDialog('Synchronisation abgeschlossen.', icon='INFO')
+    try:
+        client = Client()
+        favorites_sync.check_and_push_if_changed(silent=True, client=client, require_enabled=False)
+        binge_sync.push_local(silent=True, client=client, require_login=False)
+        binge_sync.pull_remote(apply_bookmarks=True, silent=True, client=client, require_login=False)
+        storage.update_last_sync(time.strftime('%Y-%m-%d %H:%M:%S'))
+        storage.set_status('Angemeldet als %s' % storage.email())
+        control.infoDialog('Synchronisation abgeschlossen.', icon='INFO')
+    except ApiError as exc:
+        control.infoDialog(str(exc), icon='WARNING', time=6000)
+    except Exception as exc:
+        log_utils.log('xVAULT sync: manual sync failed: %s' % str(exc), log_utils.LOGERROR)
+        control.infoDialog('Synchronisation fehlgeschlagen.', icon='WARNING', time=6000)
 
 
 def show_status():

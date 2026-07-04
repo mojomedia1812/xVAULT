@@ -273,7 +273,10 @@ def apply_to_bookmarks(items):
         position = item.get('position_seconds')
         if not name or not position:
             continue
-        bookmarkDB.save_query(_bookmark_id(name, year), str(position), 'bookmarks')
+        try:
+            bookmarkDB.save_query(_bookmark_id(name, year), str(position), 'bookmarks')
+        except Exception as exc:
+            log_sync_warning('failed to apply bookmark state: %s' % exc)
 
 
 def apply_to_playcount(item):

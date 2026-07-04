@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.07.04.7] - 2026-07-04
+
+- `Jetzt synchronisieren` bricht nicht mehr mit PluginError ab, wenn lokale Bookmark-Daten doppelte oder beschädigte Fortsetzen-Einträge enthalten.
+- Der Bookmark-Speicher bereinigt doppelte Einträge beim Speichern und Entfernen und findet Fortsetzen-Einträge auch dann wieder, wenn sie nicht an erster Stelle stehen.
+- Die manuelle Synchronisation gleicht den Login-Zustand vor dem Start ab und meldet unerwartete lokale Sync-Fehler sauber statt mit Python-Traceback.
+
 ## [2026.07.04.6] - 2026-07-04
 
 - Die Einstellung `Standard-Aktion` verwendet im Kodi-Settingsdialog stabile Textwerte statt anfaelliger numerischer Enum-Werte.
