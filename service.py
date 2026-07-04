@@ -237,6 +237,11 @@ if __name__ == "__main__":
 		first_install.apply_playback_defaults_once()
 	except Exception:
 		pass
+	try:
+		from resources.lib import playback_settings
+		playback_settings.migrate_mode_setting()
+	except Exception:
+		pass
 	from resources.lib import updater
 	if updater.automatic_updates_enabled():
 		from resources.lib import repository

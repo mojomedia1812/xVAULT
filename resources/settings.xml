@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
     <category label="Allgemein">
-        <setting id="hosts.mode" type="enum" label="Standard-Aktion" values="Dialog|Verzeichnis|Autoplay" default="2" />
+        <setting id="hosts.mode" type="select" label="Standard-Aktion" values="Dialog|Verzeichnis|Autoplay" default="Autoplay" />
         <setting id="updates.auto" type="bool" label="Automatische Updates aktivieren" default="true" />
         <setting id="scrapers.timeout" type="slider" label="Zeitlimit für Indexseiten" default="35" range="10,60" option="int" />
         <setting id="fanart" type="bool" label="Fanart verwenden" default="true" />

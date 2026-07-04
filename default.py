@@ -29,6 +29,11 @@ if action is None or action == 'root':
         first_install.apply_playback_defaults_once()
     except Exception:
         pass
+    try:
+        from resources.lib import playback_settings
+        playback_settings.migrate_mode_setting()
+    except Exception:
+        pass
     from resources.lib import startup_info
     startup_info.show_pending_startup_info()
     try:

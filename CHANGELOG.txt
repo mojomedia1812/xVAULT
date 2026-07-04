@@ -1,3 +1,10 @@
+xVAULT 2026.07.04.6
+Entwickler: mojomedia1812
+
+- Die Einstellung "Standard-Aktion" verwendet im Kodi-Settingsdialog stabile Textwerte statt anfaelliger numerischer Enum-Werte.
+- Alte Profile mit "0", "1" oder "2" werden weiter verstanden und beim Start auf "Dialog", "Verzeichnis" oder "Autoplay" migriert.
+- "Dialog" bleibt dadurch auch dann gespeichert, wenn die Add-on-Einstellungen aus einer aktiven Folgen- oder Quellenliste heraus geoeffnet werden.
+
 xVAULT 2026.07.04.5
 Entwickler: mojomedia1812
 

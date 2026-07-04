@@ -2,7 +2,7 @@
 import sys
 import re, json, random, time
 from concurrent.futures import ThreadPoolExecutor
-from resources.lib import log_utils, utils, control
+from resources.lib import log_utils, utils, control, playback_settings
 from resources.lib.control import py2_decode, py2_encode, quote_plus, parse_qsl
 import resolveurl as resolver
 # from functools import reduce
@@ -44,11 +44,7 @@ class sources:
         # Stored metadata can outlive setting changes, especially in favorites or
         # external links. Only an explicit route parameter may override the
         # current global Standard-Aktion setting.
-        select = params.get('select')
-        if select is not None:
-            select = str(select)
-        if select not in ['0', '1', '2']:
-            select = None
+        select = playback_settings.normalize_mode(params.get('select'), None)
         return title, year, imdb, season, episode, originaltitle, premiered, meta, select, episode_title, episode_premiered
 
     def play(self, params):
@@ -67,8 +63,7 @@ class sources:
                 pass
 
             url = None
-            select = control.getSetting('hosts.mode') if select == None else str(select)
-            if select == '': select = '2'
+            select = playback_settings.get_mode() if select == None else playback_settings.normalize_mode(select)
             select = self._enforceStreamLanguageSelectionMode(select)
             if select == None: return
 
@@ -119,7 +114,7 @@ class sources:
         if str(select) != '2':
             return select
 
-        current_mode = control.getSetting('hosts.mode')
+        current_mode = playback_settings.get_mode()
         if current_mode in ['0', '1']:
             return current_mode
 
@@ -132,7 +127,7 @@ class sources:
             return None
 
         select = str(choice)
-        control.setSetting(id='hosts.mode', value=select)
+        playback_settings.set_mode(select)
         control.infoDialog('Standard-Aktion wurde auf %s gesetzt.' % (['Dialog', 'Verzeichnis'][choice]), icon='INFO')
         return select
 

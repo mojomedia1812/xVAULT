@@ -8,7 +8,7 @@ import hashlib,os,codecs
 from sqlite3 import dbapi2 as database
 import xbmc, xbmcplugin
 from resources.lib.control import py2_encode, translatePath, executebuiltin
-from resources.lib import log_utils, control, playcountDB
+from resources.lib import log_utils, control, playcountDB, playback_settings
 
 try:
     import xmlrpclib as _xmlrpclib
@@ -238,7 +238,7 @@ class player(xbmc.Player):
         refreshtime = 2
         control.sleep(refreshtime)
         ccont = ''
-        if control.getSetting('hosts.mode') == '1': # Liste der Streams (Hosterliste) als Verzeichnis
+        if playback_settings.get_mode() == '1': # Liste der Streams (Hosterliste) als Verzeichnis
             count = 0
             # prÃ¼fen ob Hosterliste aktiv ist - content ist da 'videos'
             for count in range(1, 25+1):

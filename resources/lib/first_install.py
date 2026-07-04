@@ -1,7 +1,7 @@
 import json
 import os
 
-from resources.lib import control
+from resources.lib import control, playback_settings
 
 
 STATE_FILE = os.path.join(control.addonProfilePath, 'startup_info.json')
@@ -30,7 +30,7 @@ def apply_playback_defaults_once():
             return
 
         control.setSetting(id='hosts.language', value='1')
-        control.setSetting(id='hosts.mode', value='2')
+        playback_settings.set_mode('2')
         control.setSetting(id=APPLIED_SETTING, value='true')
     except Exception:
         pass

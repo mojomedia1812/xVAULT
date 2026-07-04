@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.07.04.6] - 2026-07-04
+
+- Die Einstellung `Standard-Aktion` verwendet im Kodi-Settingsdialog stabile Textwerte statt anfaelliger numerischer Enum-Werte.
+- Alte Profile mit `0`, `1` oder `2` werden weiter verstanden und beim Start auf `Dialog`, `Verzeichnis` oder `Autoplay` migriert.
+- `Dialog` bleibt dadurch auch dann gespeichert, wenn die Add-on-Einstellungen aus einer aktiven Folgen- oder Quellenliste heraus geoeffnet werden.
+
 ## [2026.07.04.5] - 2026-07-04
 
 - Film- und Serienstarts verwenden die aktuelle Einstellung `Standard-Aktion` wieder als fuehrende Auswahl.
