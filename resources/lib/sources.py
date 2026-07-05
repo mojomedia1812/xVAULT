@@ -1,6 +1,7 @@
 # edit 2025-06-12
 import sys
 import base64
+import hashlib
 import re, json, random, time
 from concurrent.futures import ThreadPoolExecutor
 from html import unescape as html_unescape
@@ -12,6 +13,9 @@ import resolveurl as resolver
 from resources.lib.control import getKodiVersion
 
 if int(getKodiVersion()) >= 20: from infotagger.listitem import ListItemInfoTag
+
+SOURCE_CACHE_TTL = 15 * 60
+SOURCE_CACHE_LIMIT = 5
 
 # für self.sysmeta - zur späteren verwendung als meta
 _params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
@@ -353,16 +357,24 @@ class sources:
     def getSources(self, title, year, imdb, season, episode, originaltitle, premiered, quality='HD', timeout=30, episode_title=None, episode_premiered=None):
 #TODO
         # self._getHostDict()
+        sourceDict = self.sourceDict
+        sourceDict = [(i[0], i[1], i[1].priority) for i in sourceDict]
+        random.shuffle(sourceDict)
+        sourceDict = sorted(sourceDict, key=lambda i: i[2])
+
+        cache_key = self._sourceCacheKey(title, year, imdb, season, episode, originaltitle, premiered, episode_title, episode_premiered, sourceDict)
+        cached = self._readSourceCache(cache_key)
+        if cached:
+            self.sources = cached
+            log_utils.log('Quellen-Cache verwendet: %s Treffer' % len(self.sources), log_utils.LOGINFO)
+            return self.sources
+
         control.idle() #ok
         progressDialog = control.progressDialog if control.getSetting('progress.dialog') == '0' else control.progressDialogBG
         progressDialog.create(control.addonInfo('name'), '')
         progressDialog.update(0)
         progressDialog.update(0, "Quellen werden vorbereitet")
 
-        sourceDict = self.sourceDict
-        sourceDict = [(i[0], i[1], i[1].priority) for i in sourceDict]
-        random.shuffle(sourceDict)
-        sourceDict = sorted(sourceDict, key=lambda i: i[2])
         content = 'shows' if getattr(self, 'mediatype', None) == 'tvshow' else 'movies' if season == 0 or season == '' or season == None else 'shows'
         aliases, localtitle = utils.getAliases(imdb, content)
         if localtitle and title != localtitle and originaltitle != localtitle:
@@ -469,7 +481,123 @@ class sources:
         try: progressDialog.close()
         except: pass
         self.sourcesFilter()
+        self._writeSourceCache(cache_key, self.sources)
         return self.sources
+
+    def _sourceCacheKey(self, title, year, imdb, season, episode, originaltitle, premiered, episode_title, episode_premiered, sourceDict):
+        provider_state = []
+        for name, call, priority in sorted(sourceDict, key=lambda item: item[0]):
+            provider_state.append({
+                'name': name,
+                'domain': getattr(call, 'domain', ''),
+                'priority': priority
+            })
+
+        settings = {}
+        for setting in [
+            'hosts.quality',
+            'hosts.language',
+            'hosts.language.mode',
+            'hosts.language.unknown',
+            'hosts.language.multi',
+            'hosts.sort.provider',
+            'hosts.sort.priority',
+            'hosts.limit',
+            'hosts.limit.num'
+        ]:
+            settings[setting] = control.getSetting(setting)
+
+        key = {
+            'version': 1,
+            'addon': control.addonVersion,
+            'mediatype': getattr(self, 'mediatype', None),
+            'title': py2_decode(title),
+            'originaltitle': py2_decode(originaltitle),
+            'year': str(year or ''),
+            'imdb': str(imdb or ''),
+            'season': str(season or ''),
+            'episode': str(episode or ''),
+            'premiered': str(premiered or ''),
+            'episode_title': str(episode_title or ''),
+            'episode_premiered': str(episode_premiered or ''),
+            'aliases': sorted([str(i) for i in getattr(self, 'aliases', [])]),
+            'providers': provider_state,
+            'settings': settings
+        }
+        raw_key = json.dumps(key, sort_keys=True)
+        return hashlib.sha256(raw_key.encode('utf-8')).hexdigest()
+
+    def _readSourceCache(self, cache_key):
+        try:
+            raw = control.window.getProperty(self.sourceCacheProperty)
+            if not raw:
+                return None
+            cache = json.loads(raw)
+            if cache.get('key') == cache_key:
+                entry = cache
+            else:
+                entry = (cache.get('entries') or {}).get(cache_key)
+            if not entry:
+                return None
+            if int(time.time()) - int(entry.get('timestamp', 0)) > SOURCE_CACHE_TTL:
+                return None
+            items = entry.get('items')
+            if not isinstance(items, list) or len(items) == 0:
+                return None
+            return items
+        except Exception as e:
+            log_utils.log('Quellen-Cache konnte nicht gelesen werden: %s' % str(e), log_utils.LOGWARNING)
+            return None
+
+    def _writeSourceCache(self, cache_key, items):
+        try:
+            if not isinstance(items, list) or len(items) == 0:
+                return
+            payload = self._readSourceCachePayload()
+            entries = payload.get('entries')
+            if not isinstance(entries, dict):
+                entries = {}
+            now = int(time.time())
+            entries[cache_key] = {
+                'timestamp': int(time.time()),
+                'items': items
+            }
+            for key, entry in list(entries.items()):
+                if now - int(entry.get('timestamp', 0)) > SOURCE_CACHE_TTL:
+                    entries.pop(key, None)
+            while len(entries) > SOURCE_CACHE_LIMIT:
+                oldest = sorted(entries.items(), key=lambda item: int(item[1].get('timestamp', 0)))[0][0]
+                entries.pop(oldest, None)
+            payload = {
+                'version': 1,
+                'entries': entries
+            }
+            control.window.setProperty(self.sourceCacheProperty, json.dumps(payload))
+            log_utils.log('Quellen-Cache gespeichert: %s Treffer' % len(items), log_utils.LOGINFO)
+        except Exception as e:
+            log_utils.log('Quellen-Cache konnte nicht gespeichert werden: %s' % str(e), log_utils.LOGWARNING)
+
+    def _readSourceCachePayload(self):
+        try:
+            raw = control.window.getProperty(self.sourceCacheProperty)
+            if not raw:
+                return {'version': 1, 'entries': {}}
+            payload = json.loads(raw)
+            if isinstance(payload.get('entries'), dict):
+                return payload
+            if payload.get('key') and payload.get('items'):
+                return {
+                    'version': 1,
+                    'entries': {
+                        payload.get('key'): {
+                            'timestamp': payload.get('timestamp', 0),
+                            'items': payload.get('items')
+                        }
+                    }
+                }
+        except:
+            pass
+        return {'version': 1, 'entries': {}}
 
 
     def _getSource(self, titles, year, season, episode, imdb, source, call, episode_title=None, episode_premiered=None):
@@ -1009,5 +1137,6 @@ class sources:
     def getConstants(self):
         self.itemsProperty = '%s.container.items' % control.Addon.getAddonInfo('id')
         self.metaProperty = '%s.container.meta'  % control.Addon.getAddonInfo('id')
+        self.sourceCacheProperty = '%s.sources.last' % control.Addon.getAddonInfo('id')
         from scrapers import sources
         self.sourceDict = sources()

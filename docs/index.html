@@ -40,12 +40,12 @@
         <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
         <tr><th colspan="4"><hr></th></tr>
         <tr><td>[PARENTDIR]</td><td><a href="../" data-umami-event="Verzeichnisnavigation geoeffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geoeffnet">plugin.video.xvault/</a></td><td align="right">05.Jul.2026 12:55:55</td><td align="right">-</td></tr>
+        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geoeffnet">plugin.video.xvault/</a></td><td align="right">05.Jul.2026 16:06:40</td><td align="right">-</td></tr>
         <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geoeffnet">repository.xvault/</a></td><td align="right">04.Jul.2026 08:48:56</td><td align="right">-</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geoeffnet">addons.xml</a></td><td align="right">05.Jul.2026 13:49:07</td><td align="right">2.44 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geoeffnet">addons.xml.md5</a></td><td align="right">05.Jul.2026 13:49:07</td><td align="right">32.00 B</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">05.Jul.2026 13:49:07</td><td align="right">1.96 MB</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">05.Jul.2026 13:49:07</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geoeffnet">addons.xml</a></td><td align="right">05.Jul.2026 16:06:40</td><td align="right">2.44 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geoeffnet">addons.xml.md5</a></td><td align="right">05.Jul.2026 16:06:40</td><td align="right">32.00 B</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">05.Jul.2026 16:06:40</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">05.Jul.2026 16:06:40</td><td align="right">1.96 MB</td></tr>
         <tr><th colspan="4"><hr></th></tr>
       </tbody>
     </table>
@@ -61,10 +61,10 @@
 
         <div class="release">
           <span>Aktuelle Version</span>
-          <strong>2026.07.05.3</strong>
+          <strong>2026.07.05.4</strong>
         </div>
 
-        <a class="download" href="downloads/plugin.video.xvault-2026.07.05.3.zip" download data-umami-event="Add-on ZIP heruntergeladen">
+        <a class="download" href="downloads/plugin.video.xvault-2026.07.05.4.zip" download data-umami-event="Add-on ZIP heruntergeladen">
           Installations-ZIP herunterladen
         </a>
 
@@ -128,6 +128,17 @@
     </section>
     <!-- release-notes:start -->
     <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.07.05.4</p>
+      <h2>Aenderungen im Ueberblick</h2>
+      <ul class="update-list">
+        <li>Zuletzt gefundene Quellenlisten fuer Filme und Serien werden fuer die aktuelle Kodi-Sitzung kurz zwischengespeichert, damit ein erneuter Quellenwechsel nicht sofort wieder alle Indexseiten abfragt.</li>
+        <li>Der Quellen-Cache ist auf wenige Eintraege und 15 Minuten begrenzt und beruecksichtigt Titel, Folge, Sprache, Qualitaet, Sortierung, Limit und aktivierte Provider.</li>
+        <li>Hoster-Links werden weiterhin frisch aufgeloest und getestet; der Cache speichert nur die bereits gesammelte Quellenliste.</li>
+        <li>Der Wiedergabe-Waechter prueft den Fortschritt erst, wenn Kodi eine gueltige Gesamtlaufzeit meldet.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
       <p class="section-kicker">Neu in 2026.07.05.3</p>
       <h2>Aenderungen im Ueberblick</h2>
       <ul class="update-list">
@@ -166,16 +177,6 @@
         <li>&quot;Jetzt synchronisieren&quot; bricht nicht mehr mit PluginError ab, wenn lokale Bookmark-Daten doppelte oder beschaedigte Fortsetzen-Eintraege enthalten.</li>
         <li>Der Bookmark-Speicher bereinigt doppelte Eintraege beim Speichern und Entfernen und findet Fortsetzen-Eintraege auch dann wieder, wenn sie nicht an erster Stelle stehen.</li>
         <li>Die manuelle Synchronisation gleicht den Login-Zustand vor dem Start ab und meldet unerwartete lokale Sync-Fehler sauber statt mit Python-Traceback.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.07.04.6</p>
-      <h2>Aenderungen im Ueberblick</h2>
-      <ul class="update-list">
-        <li>Die Einstellung &quot;Standard-Aktion&quot; verwendet im Kodi-Settingsdialog stabile Textwerte statt anfaelliger numerischer Enum-Werte.</li>
-        <li>Alte Profile mit &quot;0&quot;, &quot;1&quot; oder &quot;2&quot; werden weiter verstanden und beim Start auf &quot;Dialog&quot;, &quot;Verzeichnis&quot; oder &quot;Autoplay&quot; migriert.</li>
-        <li>&quot;Dialog&quot; bleibt dadurch auch dann gespeichert, wenn die Add-on-Einstellungen aus einer aktiven Folgen- oder Quellenliste heraus geoeffnet werden.</li>
       </ul>
     </section>
     <!-- release-notes:end -->
@@ -222,13 +223,14 @@
     <section class="panel checksum">
       <h2>Dateiprüfung</h2>
       <p>SHA-256</p>
-      <code>B4DE7BA39007F0DBD041C0495236E87C73E3B42FB78641D7367EA03ACF976F1A</code>
+      <code>3AE90BD7CA0CC7B5A445CE06DFC58958CCA982C7CC1C7EDDFBDCFE63D34E5B14</code>
     </section>
 
     <section class="panel archive">
       <h2>Vorherige Versionen</h2>
       <ul class="archive-list">
         <!-- previous-downloads:start -->
+        <li><a href="downloads/plugin.video.xvault-2026.07.05.3.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.05.3 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.07.05.2.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.05.2 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.07.05.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.05.1 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.07.04.7.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.04.7 herunterladen</a><span>33,8 MB</span></li>
@@ -238,7 +240,6 @@
         <li><a href="downloads/plugin.video.xvault-2026.07.04.3.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.04.3 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.07.04.2.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.04.2 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.07.04.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.04.1 herunterladen</a><span>33,8 MB</span></li>
-        <li><a href="downloads/plugin.video.xvault-2026.07.03.4.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.03.4 herunterladen</a><span>33,8 MB</span></li>
         <!-- previous-downloads:end -->
       </ul>
     </section>
@@ -246,7 +247,7 @@
     <footer>
       <a href="handbuch/" data-umami-event="Handbuch geoeffnet">Handbuch</a>
       <a href="https://github.com/mojomedia1812/xVAULT" data-umami-event="GitHub Repo geoeffnet">Quellcode auf GitHub</a>
-      <span>Version 2026.07.05.3</span>
+      <span>Version 2026.07.05.4</span>
     </footer>
   </main>
 </body>

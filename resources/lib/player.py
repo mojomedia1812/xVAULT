@@ -147,7 +147,7 @@ class player(xbmc.Player):
             if self.isPlayingVideo():
                 self.totalTime = self.getTotalTime()
                 self.currentTime = self.getTime()
-                watcher = (self.currentTime / self.totalTime >= .9)
+                watcher = self.totalTime > 0 and (self.currentTime / self.totalTime >= .9)
                 if watcher and not self.watcher_control:
                     playcountDB.updatePlaycount(self.mediatype, self.title, self.name, self.imdb, self.number_of_seasons, self.season, self.number_of_episodes, self.episode, 1)
                     #control.setSetting(id='watcher.control', value='true')
