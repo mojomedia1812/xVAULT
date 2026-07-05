@@ -8,6 +8,7 @@
 - Der Quellen-Cache ist auf wenige Eintraege und 15 Minuten begrenzt und beruecksichtigt Titel, Folge, Sprache, Qualitaet, Sortierung, Limit und aktivierte Provider.
 - Hoster-Links werden weiterhin frisch aufgeloest und getestet; der Cache speichert nur die bereits gesammelte Quellenliste.
 - Der Wiedergabe-Waechter prueft den Fortschritt erst, wenn Kodi eine gueltige Gesamtlaufzeit meldet.
+- Das GitHub-Pages-Downloadarchiv wird auf die aktuelle Version plus zwei Vorversionen begrenzt, damit Deployments stabil kleiner bleiben.
 
 ## [2026.07.05.3] - 2026-07-05
 
