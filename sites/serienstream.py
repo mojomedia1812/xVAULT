@@ -405,16 +405,19 @@ class source:
 
             sHtmlContent = self._request_page(full_url)
 
-            if not self._has_stream_links(sHtmlContent) and int(season) != 0:
-                special = self._find_special_episode_page(
+            if self._should_find_matching_episode(sHtmlContent, season):
+                mapped_episode = self._find_matching_episode_page(
                     url,
+                    season,
+                    episode,
                     getattr(self, 'episode_title', None),
-                    getattr(self, 'episode_premiered', None)
+                    getattr(self, 'episode_premiered', None),
+                    full_url
                 )
-                if special:
-                    full_url, sHtmlContent = special
+                if mapped_episode:
+                    full_url, sHtmlContent = mapped_episode
                     if log_utils:
-                        logger.info('SerienStream - Special fallback: %s' % full_url)
+                        logger.info('SerienStream - Episode title/date fallback: %s' % full_url)
 
             if len(sHtmlContent) == 0:
                 return self.sources
@@ -507,52 +510,108 @@ class source:
     def _has_stream_links(self, html):
         return bool(self._parse_stream_link_buttons(html))
 
-    def _find_special_episode_page(self, series_url, episode_title=None, episode_premiered=None):
+    def _should_find_matching_episode(self, html, season):
+        if int(season or 0) == 0:
+            return False
+
+        episode_title = getattr(self, 'episode_title', None)
+        episode_premiered = getattr(self, 'episode_premiered', None)
+        if not episode_title and not episode_premiered:
+            return False
+
+        if not self._has_stream_links(html):
+            return True
+
+        page_title = self._extract_episode_title(html)
+        if episode_title and page_title and not self._episode_titles_match(episode_title, page_title):
+            if log_utils:
+                logger.info('SerienStream - Direct episode title mismatch: request=%s | page=%s' % (episode_title, page_title))
+            return True
+
+        page_date = self._extract_publish_date(html)
+        if episode_premiered and page_date and not self._dates_match(episode_premiered, page_date):
+            if log_utils:
+                logger.info('SerienStream - Direct episode date mismatch: request=%s | page=%s' % (episode_premiered, page_date))
+            return True
+
+        return False
+
+    def _find_matching_episode_page(self, series_url, season=0, episode=0, episode_title=None, episode_premiered=None, direct_url=''):
         if not episode_title and not episode_premiered:
             return None
 
-        season_url = '%s/staffel-0' % series_url.rstrip('/')
-        season_full_url = urljoin(self.base_link, season_url)
+        season_numbers = self._available_seasons(series_url, season)
 
         if log_utils:
-            logger.info('SerienStream - Special fallback check: %s | title=%s | premiered=%s' % (
-                season_full_url,
+            logger.info('SerienStream - Episode fallback check: seasons=%s | S%02dE%02d | title=%s | premiered=%s' % (
+                season_numbers,
+                int(season or 0),
+                int(episode or 0),
                 episode_title,
                 episode_premiered
             ))
 
-        season_html = self._request_page(season_full_url)
-        if not season_html:
-            return None
+        direct_path = self._normalise_episode_path(direct_url)
+        for season_number in season_numbers:
+            season_url = '%s/staffel-%d' % (series_url.rstrip('/'), int(season_number))
+            season_full_url = urljoin(self.base_link, season_url)
 
-        episode_links = self._parse_episode_links(season_html, season_url)
-        if not episode_links:
-            return None
-
-        for episode_url in episode_links:
-            full_url = urljoin(self.base_link, episode_url)
-            html = self._request_page(full_url)
-            if not html or not self._has_stream_links(html):
+            season_html = self._request_page(season_full_url)
+            if not season_html:
                 continue
 
-            page_title = self._extract_episode_title(html)
-            if episode_title and self._episode_titles_match(episode_title, page_title):
-                return full_url, html
+            episode_links = self._parse_episode_links(season_html, series_url, season_number)
+            if not episode_links:
+                continue
 
-            page_date = self._extract_publish_date(html)
-            if episode_premiered and self._dates_match(episode_premiered, page_date):
-                return full_url, html
+            for episode_url in episode_links:
+                if self._normalise_episode_path(episode_url) == direct_path:
+                    continue
+
+                full_url = urljoin(self.base_link, episode_url)
+                html = self._request_page(full_url)
+                if not html or not self._has_stream_links(html):
+                    continue
+
+                page_title = self._extract_episode_title(html)
+                if episode_title and self._episode_titles_match(episode_title, page_title):
+                    return full_url, html
+
+                page_date = self._extract_publish_date(html)
+                if episode_premiered and self._dates_match(episode_premiered, page_date):
+                    return full_url, html
 
         return None
 
-    def _parse_episode_links(self, html, season_url):
+    def _available_seasons(self, series_url, requested_season=0):
+        seasons = set()
+        base_html = self._request_page(urljoin(self.base_link, series_url.rstrip('/')))
+        for value in re.findall(r'/staffel-(\d+)(?:/|["\'])', base_html or '', re.IGNORECASE):
+            try:
+                seasons.add(int(value))
+            except:
+                pass
+
+        requested = int(requested_season or 0)
+        if requested:
+            seasons.add(requested)
+            for value in range(max(0, requested - 1), requested + 5):
+                seasons.add(value)
+        seasons.add(0)
+
+        if not seasons:
+            seasons = set(range(0, 9))
+
+        return sorted([season for season in seasons if 0 <= season <= 15])
+
+    def _parse_episode_links(self, html, series_url, season_number):
         links = []
         seen = set()
-        season_prefix = season_url.rstrip('/')
+        series_slug = self._series_slug(series_url)
 
         patterns = [
-            r'href="([^"]*/staffel-0/episode-\d+)"',
-            r"href='([^']*/staffel-0/episode-\d+)'",
+            r'href="([^"]*/staffel-%d/episode-\d+)"' % int(season_number),
+            r"href='([^']*/staffel-%d/episode-\d+)'" % int(season_number),
         ]
         for pattern in patterns:
             for href in re.findall(pattern, html or '', re.IGNORECASE):
@@ -561,7 +620,7 @@ class source:
                     href = re.sub(r'^https?://[^/]+', '', href)
                 if not href.startswith('/'):
                     href = '/' + href
-                if season_prefix not in href:
+                if series_slug and series_slug not in href:
                     continue
                 if href in seen:
                     continue
@@ -573,6 +632,30 @@ class source:
             return int(match.group(1)) if match else 0
 
         return sorted(links, key=episode_number)
+
+    @staticmethod
+    def _series_slug(series_url):
+        try:
+            value = series_url.rstrip('/')
+            if '/staffel-' in value:
+                value = value.split('/staffel-', 1)[0]
+            return value.rstrip('/').split('/')[-1]
+        except:
+            return ''
+
+    @staticmethod
+    def _normalise_episode_path(url):
+        if not url:
+            return ''
+        try:
+            value = html_unescape(str(url))
+            value = re.sub(r'^https?://[^/]+', '', value)
+            if not value.startswith('/'):
+                value = '/' + value
+            value = value.replace('/stream/', '/')
+            return value.rstrip('/')
+        except:
+            return ''
 
     def _extract_episode_title(self, html):
         patterns = [
@@ -595,7 +678,7 @@ class source:
         candidate_variants = self._episode_title_variants(candidate)
 
         if log_utils:
-            logger.info('SerienStream - Special title match: request=%s | candidate=%s' % (
+            logger.info('SerienStream - Episode title match: request=%s | candidate=%s' % (
                 requested_variants,
                 candidate_variants
             ))

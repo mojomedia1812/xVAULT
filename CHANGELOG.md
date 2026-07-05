@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.07.05.1] - 2026-07-05
+
+- SerienStream prueft bei Serienfolgen mit abweichender Anbieter-Staffelzaehlung den Episodentitel und die Erstausstrahlung, statt nur die direkte SxxExx-Nummer blind zu uebernehmen.
+- Folgen wie `Chilling Adventures of Sabrina` S1E12 werden dadurch auf die passende Anbieter-Staffel und Anbieter-Folge gemappt, wenn TMDB/xVAULT und Anbieter die Staffeln unterschiedlich schneiden.
+- Direkt gefundene Anbieterfolgen werden bei vorhandenem Episodentitel validiert, damit Quellen nicht auf eine falsche Folge zeigen.
+
 ## [2026.07.04.7] - 2026-07-04
 
 - `Jetzt synchronisieren` bricht nicht mehr mit PluginError ab, wenn lokale Bookmark-Daten doppelte oder beschädigte Fortsetzen-Einträge enthalten.

@@ -4,6 +4,7 @@ import html
 import re
 import xml.etree.ElementTree as ET
 import shutil
+import time
 from zipfile import ZIP_DEFLATED, ZipFile
 
 
@@ -149,9 +150,48 @@ def validate_repository_zip(output):
             raise RuntimeError("Repository-ZIP enthält falsche Add-on-ID")
 
 
+def _file_digest(path):
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _same_file_content(source, output):
+    if not output.exists():
+        return False
+    try:
+        if source.stat().st_size != output.stat().st_size:
+            return False
+        return _file_digest(source) == _file_digest(output)
+    except OSError:
+        return False
+
+
+def copy2_retry(source, output, attempts=12, delay=0.75):
+    source = Path(source)
+    output = Path(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    if _same_file_content(source, output):
+        return output
+
+    last_error = None
+    for _ in range(attempts):
+        try:
+            shutil.copy2(source, output)
+            return output
+        except OSError as exc:
+            last_error = exc
+            time.sleep(delay)
+            if _same_file_content(source, output):
+                return output
+    raise last_error
+
+
 def sync_repository_zip_aliases():
     for output in (REPOSITORY_DIRECT_OUTPUT, REPOSITORY_VERSIONED_DIRECT_OUTPUT):
-        shutil.copy2(REPOSITORY_OUTPUT, output)
+        copy2_retry(REPOSITORY_OUTPUT, output)
         validate_repository_zip(output)
         print(output)
 
@@ -161,15 +201,15 @@ def sync_browsable_repository_layout():
     REPOSITORY_INDEX_DIR.mkdir(parents=True, exist_ok=True)
     _prune_browsable_archives()
 
-    shutil.copy2(REPOSITORY_PLUGIN_OUTPUT, ADDON_INDEX_OUTPUT)
+    copy2_retry(REPOSITORY_PLUGIN_OUTPUT, ADDON_INDEX_OUTPUT)
     validate(ADDON_INDEX_OUTPUT)
-    shutil.copy2(PROJECT_DIR / "addon.xml", ADDON_INDEX_DIR / "addon.xml")
-    shutil.copy2(PROJECT_DIR / "resources" / "icon.png", ADDON_INDEX_DIR / "icon.png")
+    copy2_retry(PROJECT_DIR / "addon.xml", ADDON_INDEX_DIR / "addon.xml")
+    copy2_retry(PROJECT_DIR / "resources" / "icon.png", ADDON_INDEX_DIR / "icon.png")
 
-    shutil.copy2(REPOSITORY_OUTPUT, REPOSITORY_INDEX_OUTPUT)
+    copy2_retry(REPOSITORY_OUTPUT, REPOSITORY_INDEX_OUTPUT)
     validate_repository_zip(REPOSITORY_INDEX_OUTPUT)
     (REPOSITORY_INDEX_DIR / "addon.xml").write_text(_repository_addon_xml() + "\n", encoding="utf-8", newline="\n")
-    shutil.copy2(PROJECT_DIR / "resources" / "icon.png", REPOSITORY_INDEX_DIR / "icon.png")
+    copy2_retry(PROJECT_DIR / "resources" / "icon.png", REPOSITORY_INDEX_DIR / "icon.png")
 
     _write_index(ADDON_INDEX_DIR, "/xVAULT/plugin.video.xvault/", [
         _entry("addon.xml", ADDON_INDEX_DIR / "addon.xml"),
