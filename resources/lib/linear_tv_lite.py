@@ -1,10 +1,11 @@
+import base64
 import html
 import json
 import os
 import re
 import sys
 import time
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode, urljoin
 
 try:
     import requests
@@ -17,6 +18,9 @@ from resources.lib import linear_tv
 
 BASE_URL = "https://www.2ix2.com"
 POSTS_URL = BASE_URL + "/wp-json/wp/v2/posts"
+NYDUS_BASE_URL = "https://nydus.org"
+NYDUS_LIVE_URL = NYDUS_BASE_URL + "/stream/live/"
+NYDUS_EMBED_URL = NYDUS_BASE_URL + "/stream/embedplayer_hq.php?id=%s"
 CACHE_FILE = os.path.join(control.addonProfilePath, "linear-tv-lite-catalog.json")
 CACHE_TTL = 6 * 60 * 60
 BROWSER_USER_AGENT = (
@@ -29,6 +33,9 @@ CATEGORIES = (
     {"slug": "at", "label": "Österreichische TV", "category_id": 61},
     {"slug": "ch", "label": "Schweizer TV", "category_id": 100},
 )
+
+NYDUS_AUSTRIA_IDS = {"orf-1", "orf-2", "servus-tv"}
+NYDUS_SWISS_IDS = {"srf1", "srf2", "srf-info", "srfinfo", "3plus", "4plus", "5plus", "6plus"}
 
 
 def show_home():
@@ -68,7 +75,7 @@ def show_category(category_slug):
             "plotoutline": _plot(channel),
             "mediatype": "video",
         })
-        item.setArt({"icon": control.addonIcon(), "thumb": control.addonIcon()})
+        item.setArt(_art(channel))
         control.addItem(handle, _url({"action": "liveTVLitePlay", "id": channel.get("id")}), item, False)
     _end(category["label"], cache=False)
 
@@ -80,14 +87,18 @@ def play(channel_id):
         control.resolveUrl(_handle(), False, control.item("LiveTV lite", offscreen=True))
         return
 
-    stream_url = channel.get("stream_url") or ""
+    stream_url = _resolve_channel_stream(channel)
     if not stream_url:
-        control.infoDialog("Stream konnte nicht gelesen werden", icon="WARNING", time=3500)
+        if channel.get("source") == "nydus":
+            control.infoDialog("Nydus-Stream ist in Kodi nicht direkt abspielbar.", icon="WARNING", time=5000)
+        else:
+            control.infoDialog("Stream konnte nicht gelesen werden", icon="WARNING", time=3500)
         control.resolveUrl(_handle(), False, control.item(channel.get("name") or "LiveTV lite", offscreen=True))
         return
     status = _probe_stream(stream_url, channel.get("page_url"))
     if status and status >= 400:
-        control.infoDialog("2ix2-Stream aktuell nicht erreichbar (HTTP %s)" % status, icon="WARNING", time=5000)
+        source = "Nydus" if channel.get("source") == "nydus" else "2ix2"
+        control.infoDialog("%s-Stream aktuell nicht erreichbar (HTTP %s)" % (source, status), icon="WARNING", time=5000)
         control.resolveUrl(_handle(), False, control.item(channel.get("name") or "LiveTV lite", offscreen=True))
         return
 
@@ -100,7 +111,7 @@ def play(channel_id):
         "plotoutline": _plot(channel),
         "mediatype": "video",
     })
-    item.setArt({"icon": control.addonIcon(), "thumb": control.addonIcon()})
+    item.setArt(_art(channel))
     linear_tv._configure_stream(item, playback_url)
     item.setPath(playback_url)
     control.resolveUrl(_handle(), True, item)
@@ -108,19 +119,26 @@ def play(channel_id):
 
 def _catalog(refresh=False):
     cached = _read_cache()
+    cached_channels = _usable_channels(cached.get("channels") or []) if cached else []
     if not refresh and cached:
         timestamp = int(cached.get("timestamp") or 0)
-        channels = cached.get("channels") or []
-        if channels and time.time() - timestamp < CACHE_TTL:
-            return channels
+        if cached_channels and time.time() - timestamp < CACHE_TTL:
+            return cached_channels
 
     channels = _load_channels()
     if channels:
         _write_cache(channels)
         return channels
-    if cached and cached.get("channels"):
+
+    fallback = _load_nydus_channels()
+    if fallback:
+        log_utils.log("LiveTV lite nutzt Nydus als Ersatzquelle: %d Sender" % len(fallback), log_utils.LOGWARNING)
+        _write_cache(fallback)
+        control.infoDialog("LiveTV lite nutzt Nydus als Ersatzquelle.", icon="WARNING", time=3500)
+        return fallback
+    if cached_channels:
         control.infoDialog("LiveTV lite nutzt die gespeicherte Senderliste.", icon="WARNING", time=3500)
-        return cached.get("channels") or []
+        return cached_channels
     return []
 
 
@@ -162,7 +180,7 @@ def _category_posts(category_id):
 def _channel_from_post(post, category):
     content = post.get("content", {}).get("rendered") or ""
     stream_url = _extract_stream_url(content)
-    if not stream_url:
+    if not _is_stream_url(stream_url):
         return None
 
     post_id = str(post.get("id") or post.get("slug") or stream_url)
@@ -173,6 +191,7 @@ def _channel_from_post(post, category):
         "category_slug": category["slug"],
         "page_url": post.get("link") or BASE_URL,
         "stream_url": stream_url,
+        "source": "2ix2",
     }
 
 
@@ -186,9 +205,140 @@ def _extract_stream_url(content):
     )
     for pattern in patterns:
         match = re.search(pattern, text, flags=re.I)
-        if match:
+        if match and _is_stream_url(match.group(1)):
             return html.unescape(match.group(1)).strip()
     return ""
+
+
+def _usable_channels(channels):
+    return _dedupe_channels([channel for channel in channels or [] if _is_usable_channel(channel)])
+
+
+def _is_usable_channel(channel):
+    if _is_stream_url(channel.get("stream_url")):
+        return True
+    return channel.get("source") == "nydus" and bool(channel.get("nydus_id"))
+
+
+def _is_stream_url(value):
+    value = html.unescape(value or "").strip()
+    if not value.lower().startswith(("http://", "https://")):
+        return False
+    return ".m3u8" in value.lower()
+
+
+def _load_nydus_channels():
+    if requests is None:
+        return []
+    try:
+        response = requests.get(NYDUS_LIVE_URL, headers=_nydus_headers(), timeout=20)
+        response.raise_for_status()
+        page = _decode_nydus_page(response.text)
+        channels = _parse_nydus_channels(page)
+        log_utils.log("LiveTV lite Nydus-Senderliste gelesen: %d Sender" % len(channels), log_utils.LOGINFO)
+        return _dedupe_channels(channels)
+    except Exception as exc:
+        log_utils.log("LiveTV lite Nydus fallback failed: %s" % str(exc), log_utils.LOGWARNING)
+        return []
+
+
+def _decode_nydus_page(content):
+    match = re.search(r"var\s+str\s*=\s*['\"]([A-Za-z0-9+/=]+)['\"]", content or "")
+    if not match:
+        return content or ""
+    decoded = _b64decode(match.group(1))
+    return decoded or content or ""
+
+
+def _parse_nydus_channels(content):
+    channels = []
+    seen = set()
+    pattern = re.compile(
+        r"<a\b[^>]*href=['\"]([^'\"]*/stream/live/([^'\"]+)/)['\"][^>]*>\s*"
+        r"<div\b[^>]*class=['\"][^'\"]*tvsender[^'\"]*['\"][^>]*data-id=['\"]([^'\"]+)['\"][^>]*>\s*"
+        r"<img\b[^>]*src=['\"]([^'\"]+)['\"][^>]*alt=['\"]([^'\"]+)['\"]",
+        re.I | re.S,
+    )
+    for match in pattern.finditer(content or ""):
+        page_url = urljoin(NYDUS_LIVE_URL, html.unescape(match.group(1)))
+        nydus_id = html.unescape(match.group(3)).strip()
+        logo_url = urljoin(NYDUS_LIVE_URL, html.unescape(match.group(4)))
+        name = _clean_title(html.unescape(match.group(5)).replace("-", " "))
+        if not nydus_id or not name:
+            continue
+        category = _nydus_category(nydus_id)
+        if not category:
+            continue
+        key = (category["slug"], _normalize(name), nydus_id)
+        if key in seen:
+            continue
+        seen.add(key)
+        channels.append({
+            "id": "nydus:%s:%s" % (category["slug"], nydus_id),
+            "name": name,
+            "category": category["label"],
+            "category_slug": category["slug"],
+            "page_url": page_url,
+            "stream_url": "",
+            "source": "nydus",
+            "nydus_id": nydus_id,
+            "logo_url": logo_url,
+        })
+    return channels
+
+
+def _nydus_category(nydus_id):
+    normalized = (nydus_id or "").strip().lower()
+    if normalized in NYDUS_AUSTRIA_IDS:
+        return _category("at")
+    if normalized in NYDUS_SWISS_IDS:
+        return _category("ch")
+    return _category("de")
+
+
+def _resolve_channel_stream(channel):
+    stream_url = channel.get("stream_url") or ""
+    if _is_stream_url(stream_url):
+        return stream_url
+    if channel.get("source") == "nydus":
+        stream_url = _resolve_nydus_stream(channel)
+        if _is_stream_url(stream_url):
+            channel["stream_url"] = stream_url
+            return stream_url
+    return ""
+
+
+def _resolve_nydus_stream(channel):
+    if requests is None:
+        return ""
+    nydus_id = channel.get("nydus_id") or ""
+    if not nydus_id:
+        return ""
+    try:
+        embed_url = NYDUS_EMBED_URL % quote(nydus_id, safe="")
+        response = requests.get(embed_url, headers=_nydus_headers(channel.get("page_url")), timeout=20)
+        response.raise_for_status()
+        zdec = re.search(r"zdec\s*=\s*['\"]([^'\"]+)", response.text or "")
+        if not zdec:
+            return ""
+        script = _b64decode(zdec.group(1))
+        nested = re.search(r"atob\(['\"]([^'\"]+)", script or "")
+        if not nested:
+            return ""
+        target = _b64decode(nested.group(1))
+        if _is_stream_url(target):
+            return target
+        log_utils.log("LiveTV lite Nydus-Sender ist kein direkter HLS-Stream: %s -> %s" % (nydus_id, target), log_utils.LOGWARNING)
+    except Exception as exc:
+        log_utils.log("LiveTV lite Nydus resolve failed for %s: %s" % (nydus_id, str(exc)), log_utils.LOGWARNING)
+    return ""
+
+
+def _b64decode(value):
+    try:
+        return base64.b64decode((value or "").encode("ascii")).decode("utf-8", "replace")
+    except Exception:
+        return ""
 
 
 def _dedupe_channels(channels):
@@ -217,8 +367,18 @@ def _category(slug):
     return None
 
 
+def _art(channel):
+    icon = channel.get("logo_url") or control.addonIcon()
+    return {"icon": icon, "thumb": icon}
+
+
 def _plot(channel):
-    return "%s\n%s" % (channel.get("category") or "LiveTV lite", channel.get("page_url") or BASE_URL)
+    source = "Quelle: Nydus" if channel.get("source") == "nydus" else "Quelle: 2ix2"
+    return "%s\n%s\n%s" % (
+        channel.get("category") or "LiveTV lite",
+        source,
+        channel.get("page_url") or BASE_URL,
+    )
 
 
 def _with_kodi_headers(stream_url, referer):
@@ -263,6 +423,16 @@ def _headers():
         "Accept": "application/json,text/html,*/*",
         "Accept-Language": "de-DE,de;q=0.9,en-US;q=0.7,en;q=0.6",
         "Referer": BASE_URL + "/",
+        "Connection": "close",
+    }
+
+
+def _nydus_headers(referer=None):
+    return {
+        "User-Agent": BROWSER_USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/json;q=0.8,*/*;q=0.7",
+        "Accept-Language": "de-DE,de;q=0.9,en-US;q=0.7,en;q=0.6",
+        "Referer": referer or NYDUS_LIVE_URL,
         "Connection": "close",
     }
 

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.07.05.5] - 2026-07-05
+
+- LiveTV lite bleibt auch bei temporaer nicht erreichbarer 2ix2-API nutzbar und liest dann Nydus als Ersatzquelle.
+- Nydus-Sender werden nach Deutsche TV, Österreichische TV und Schweizer TV einsortiert; echte HLS-Streams werden beim Start aus dem Nydus-Player dynamisch aufgeloest.
+- Browser-only- oder Cloudflare-Embed-Ziele aus Nydus werden nicht als defekter Kodi-Stream gestartet, sondern mit Hinweis abgefangen.
+
 ## [2026.07.05.4] - 2026-07-05
 
 - Zuletzt gefundene Quellenlisten fuer Filme und Serien werden fuer die aktuelle Kodi-Sitzung kurz zwischengespeichert, damit ein erneuter Quellenwechsel nicht sofort wieder alle Indexseiten abfragt.
