@@ -10,6 +10,7 @@
 - VOE-Quellen werden bei Bedarf direkt in xVAULT auf einen abspielbaren MP4/HLS-Link aufgeloest, auch wenn ResolveURL die aktuelle VOE-Ausweichdomain noch nicht kennt.
 - Hoster-Seiten, die ResolveURL nicht zu einem echten Direktstream aufloesen kann, werden nicht mehr an Kodi als Video uebergeben.
 - Lokale Cookie-Laufzeitdaten werden beim Release-Build nicht mehr in das Add-on-ZIP aufgenommen.
+- Das GitHub-Pages-Downloadarchiv wird auf die aktuelle Version plus die letzten 10 Vorversionen begrenzt, damit die Repo-Page zuverlässig deployed.
 
 ## [2026.07.05.2] - 2026-07-05
 

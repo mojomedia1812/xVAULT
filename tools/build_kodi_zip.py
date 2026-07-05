@@ -34,6 +34,7 @@ REPOSITORY_INDEX_OUTPUT = REPOSITORY_INDEX_DIR / REPOSITORY_ZIP_NAME
 ADDONS_XML = PROJECT_DIR / "docs" / "addons.xml"
 CHANGELOG = PROJECT_DIR / "CHANGELOG.txt"
 RELEASE_NOTES_LIMIT = 5
+DOWNLOAD_ARCHIVE_KEEP = 10
 UMAMI_TRACKING = """  <script
     defer
     src="https://cloud.umami.is/script.js"
@@ -266,6 +267,7 @@ def update_kodi_repository_metadata():
 
 
 def update_download_page(output):
+    prune_download_archives()
     sync_browsable_repository_layout()
     page = PROJECT_DIR / "docs" / "index.html"
     digest = hashlib.sha256(output.read_bytes()).hexdigest().upper()
@@ -407,6 +409,30 @@ def _archive_downloads_html():
             % (path.name, version, _format_size(path.stat().st_size))
         )
     return "\n".join(lines)
+
+def prune_download_archives():
+    downloads = PROJECT_DIR / "docs" / "downloads"
+    versions = []
+    for path in downloads.glob("plugin.video.xvault-*.zip"):
+        match = re.match(r"plugin\.video\.xvault-(.+)\.zip$", path.name)
+        if not match:
+            continue
+        versions.append((match.group(1), path))
+
+    versions.sort(key=lambda item: _version_key(item[0]), reverse=True)
+    keep = set()
+    previous = 0
+    for version, path in versions:
+        if version == VERSION:
+            keep.add(path)
+            continue
+        if previous < DOWNLOAD_ARCHIVE_KEEP:
+            keep.add(path)
+            previous += 1
+
+    for version, path in versions:
+        if path not in keep:
+            path.unlink()
 
 
 def _version_key(version):
