@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Wiedergabe, LiveTV, Synchronisation, Downloads, Untertitel und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.07.05.2.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.07.05.3.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">Zur Startseite</a>
         </div>
@@ -337,7 +337,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.07.05.2.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.07.05.3.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -482,6 +482,9 @@
       <p>Filme und Episoden werden anhand des Wiedergabefortschritts als gesehen markiert. Staffeln gelten als gesehen, sobald alle bekannten Episoden der Staffel gesehen sind. Eine Serie gilt als gesehen, sobald alle bekannten Staffeln und Episoden gesehen sind.</p>
       <p>Wenn später eine neue Episode oder Staffel auftaucht, wird der übergeordnete Status wieder geöffnet. Dadurch bleibt die Übersicht ehrlich: Eine komplett gesehene Serie kann wieder ungesehen erscheinen, sobald neuer Inhalt verfügbar wird.</p>
       <p>Nach dem Ende einer Wiedergabe aktualisiert xVAULT die aktuelle Liste nur einmal und lässt entweder die Serienlogik die erste ungesehene Folge auswählen oder stellt die vorherige Position wieder her. Dadurch springt die Auswahl nicht mehrfach zwischen alter und neuer Position.</p>
+      <p>Beim Start einer Serienquelle verwendet xVAULT die vorhandene IMDB-Kennung unabhängig davon, ob sie als <strong>imdb_id</strong> oder <strong>imdbnumber</strong> aus einer Liste, einem Favoriten oder einem Kodi-Profil kommt. Fehlende optionale Metadaten verhindern dadurch nicht mehr, dass Kodi den Player-Eintrag erhält.</p>
+      <p>VOE-Quellen können direkt in xVAULT aufgelöst werden, wenn die installierte ResolveURL-Version die aktuelle VOE-Ausweichdomain noch nicht kennt. Dadurch erhalten Windows, Linux und Android wieder einen echten MP4- oder HLS-Link statt nur die Hoster-Webseite.</p>
+      <p>Wenn ein Hoster nur eine Webseite, aber keinen echten Direktstream liefert, wird diese Quelle übersprungen. So bekommt Kodi keine HTML-Seite als Video und kann mit weiteren Quellen fortfahren.</p>
       <h3>Wiedergabe ab hier</h3>
       <p>Bei Episodenlisten kann xVAULT aufeinanderfolgende Episoden ab einer gewählten Stelle starten. Das ist besonders praktisch für Serienabende und Staffel-Fortsetzungen.</p>
     </section>
@@ -620,6 +623,7 @@
         <tbody>
           <tr><td>Kodi zeigt keine Dateien im Repository</td><td>Repository-ZIP direkt installieren, URL <strong>http://xvault.ddnss.de/repository.xvault.zip</strong> prüfen und sicherstellen, dass Kodi die Seite als Dateilisting erkennt.</td></tr>
           <tr><td>Keine Film- oder Serienquellen</td><td>Indexseiten aktivieren, Scraper-Timeout erhöhen, alternative Schreibweise suchen und die bevorzugte Streamsprache auf Alle stellen.</td></tr>
+          <tr><td>Allgemeiner Fehler bei Serienwiedergabe</td><td>Aktuelle xVAULT-Version installieren und das Kodi-Log prüfen. Player-Startfehler werden als Playback-Startfehler protokolliert, wenn Metadaten oder Resolverdaten unvollständig sind.</td></tr>
           <tr><td>Autoplay startet falsche Sprache</td><td>Streamsprache nicht auf Alle verwenden, wenn Autoplay gewünscht ist. Bei Alle bewusst Dialog oder Verzeichnis auswählen.</td></tr>
           <tr><td>LiveTV startet nicht</td><td>Senderliste aktualisieren, Preflight aktiv lassen, Puffergröße erhöhen und eine andere Wiedergabe-Engine testen.</td></tr>
           <tr><td>LiveTV ruckelt</td><td>Puffergröße erhöhen, Netzwerk prüfen, FFmpeg Direct oder Kodi intern testen und instabile Sender später erneut laden.</td></tr>
@@ -648,7 +652,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geoeffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.07.05.2</span>
+      <span>Handbuch zu xVAULT 2026.07.05.3</span>
     </footer>
   </main>
 </body>

@@ -49,7 +49,7 @@ class player(xbmc.Player):
 
             if control.is_python2 and type(self.name) != unicode:
                 self.name = self.name.decode('utf-8')
-            self.imdb = meta['imdb_id'] if 'imdb_id' in meta else None
+            self.imdb = meta.get('imdb_id') or meta.get('imdbnumber') or meta.get('imdb')
             self.number_of_seasons = meta['number_of_seasons'] if 'number_of_seasons' in meta else None
             self.season = meta['season'] if 'season' in meta else None
             self.number_of_episodes = meta['number_of_episodes'] if 'number_of_episodes' in meta else None
@@ -72,14 +72,20 @@ class player(xbmc.Player):
             plot = control.unquote(meta['plot']) if 'plot' in meta else ''
 
             Info = {'plot': plot}
-            Info.setdefault('IMDBNumber', meta['imdbnumber'])
+            if self.imdb:
+                Info.setdefault('IMDBNumber', self.imdb)
             if meta['mediatype'] == 'movie':
-                Info.setdefault('OriginalTitle', meta['title'])
-                Info.setdefault('year', meta['year'])
+                if meta.get('title'):
+                    Info.setdefault('OriginalTitle', meta['title'])
+                if meta.get('year'):
+                    Info.setdefault('year', meta['year'])
             else:
-                Info.setdefault('TVshowtitle', meta['title'])
-                Info.setdefault('Season', self.season)
-                Info.setdefault('Episode', self.episode)
+                if meta.get('title'):
+                    Info.setdefault('TVshowtitle', meta['title'])
+                if self.season != None:
+                    Info.setdefault('Season', self.season)
+                if self.episode != None:
+                    Info.setdefault('Episode', self.episode)
 
             item = control.item(label=self.name)
 
@@ -118,7 +124,8 @@ class player(xbmc.Player):
                 xbmc.Player().play(url, item)
             self.keepPlaybackAlive()
             return
-        except:
+        except Exception as e:
+            log_utils.log('Playback start failed: %s' % str(e), log_utils.LOGERROR)
             return
 
 

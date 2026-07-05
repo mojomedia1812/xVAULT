@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [2026.07.05.3] - 2026-07-05
+
+- Serienwiedergaben brechen nicht mehr vor dem Kodi-Player-Start ab, wenn die Metadaten nur `imdb_id` statt `imdbnumber` enthalten.
+- Player-InfoLabels werden robuster aus vorhandenen Metadaten aufgebaut, damit Favoriten, alte Listen und Android/Kodi-Varianten keine fehlenden Pflichtfelder erzwingen.
+- Startfehler im Player werden jetzt im Kodi-Log als Playback-Startfehler protokolliert, statt still verschluckt zu werden.
+- VOE-Quellen werden bei Bedarf direkt in xVAULT auf einen abspielbaren MP4/HLS-Link aufgeloest, auch wenn ResolveURL die aktuelle VOE-Ausweichdomain noch nicht kennt.
+- Hoster-Seiten, die ResolveURL nicht zu einem echten Direktstream aufloesen kann, werden nicht mehr an Kodi als Video uebergeben.
+- Lokale Cookie-Laufzeitdaten werden beim Release-Build nicht mehr in das Add-on-ZIP aufgenommen.
+
 ## [2026.07.05.2] - 2026-07-05
 
 - SerienStream nutzt als feste Domain `serienstream.to`.

@@ -1,7 +1,10 @@
 # edit 2025-06-12
 import sys
+import base64
 import re, json, random, time
 from concurrent.futures import ThreadPoolExecutor
+from html import unescape as html_unescape
+from urllib.parse import urlencode, urljoin, urlparse
 from resources.lib import log_utils, utils, control, playback_settings
 from resources.lib.control import py2_decode, py2_encode, quote_plus, parse_qsl
 import resolveurl as resolver
@@ -677,14 +680,24 @@ class sources:
             url = call.resolve(url)
 
             if not direct == True:
-                try:
-                    hmf = resolver.HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=False)
-                    if not hmf.valid_url():
-                        hmf = resolver.HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=True)
-                    if hmf.valid_url():
-                        url = hmf.resolve()
-                        if url == False or url == None or url == '': url = None # raise Exception()
-                except:
+                resolved = False
+                voe_url = self._resolveVoeDirect(url, item)
+                if voe_url:
+                    url = voe_url
+                    resolved = True
+                else:
+                    try:
+                        hmf = resolver.HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=False)
+                        if not hmf.valid_url():
+                            hmf = resolver.HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=True)
+                        if hmf.valid_url():
+                            url = hmf.resolve()
+                            resolved = True
+                            if url == False or url == None or url == '': url = None # raise Exception()
+                    except:
+                        url = None
+                if url and not resolved and not self._looksLikeDirectMediaUrl(url):
+                    log_utils.log('Resolver lieferte keinen Direktstream: Provider %s / %s' % (item['provider'], item['source']), log_utils.LOGWARNING)
                     url = None
             elif item.get('prioHoster', 0) >= 999:
                 try:
@@ -711,6 +724,78 @@ class sources:
         except:
             if info: self.errorForSources()
             return
+
+    def _looksLikeDirectMediaUrl(self, url):
+        try:
+            clean_url = str(url).split('|', 1)[0].split('?', 1)[0].lower()
+            return re.search(r'\.(?:m3u8?|mpd|mp4|mkv|avi|mov|flv|wmv|webm|ts)$', clean_url) != None
+        except:
+            return False
+
+    def _resolveVoeDirect(self, url, item):
+        try:
+            if 'voe' not in str(item.get('source', '')).lower() and 'voe' not in urlparse(str(url).split('|', 1)[0]).netloc.lower():
+                return None
+
+            import requests
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            }
+            page_url = str(url).split('|', 1)[0]
+            response = requests.get(page_url, headers=headers, timeout=12, allow_redirects=True)
+            html = response.text or ''
+            real_url = response.url
+
+            for _ in range(3):
+                redirect = re.search(r"window\.location\.href\s*=\s*'([^']+)'", html)
+                if not redirect:
+                    break
+                page_url = urljoin(real_url, html_unescape(redirect.group(1)))
+                response = requests.get(page_url, headers=headers, timeout=12, allow_redirects=True)
+                html = response.text or ''
+                real_url = response.url
+
+            packed = re.search(r'json">\["([^"]+)"\]</script>\s*<script\s+src="([^"]+)', html)
+            if not packed:
+                return None
+
+            script_url = urljoin(real_url, html_unescape(packed.group(2)))
+            script = requests.get(script_url, headers=headers, timeout=12).text or ''
+            repl = re.search(r"(\[(?:'\W{2}'[,\]]){1,9})", script)
+            if not repl:
+                return None
+
+            data = self._decodeVoePayload(packed.group(1), repl.group(1))
+            media_url = data.get('direct_access_url') or data.get('source') or data.get('file')
+            if not media_url:
+                return None
+
+            stream_headers = urlencode({
+                'User-Agent': headers['User-Agent'],
+                'Referer': real_url,
+            })
+            log_utils.log('VOE direkt aufgeloest: Provider %s / %s' % (item.get('provider'), item.get('source')), log_utils.LOGINFO)
+            return '%s|%s' % (media_url, stream_headers)
+        except Exception as e:
+            log_utils.log('VOE Direktaufloesung fehlgeschlagen: %s' % str(e), log_utils.LOGWARNING)
+            return None
+
+    def _decodeVoePayload(self, encoded, replacements):
+        tokens = [re.escape(token) for token in replacements[2:-2].split("','")]
+        text = ''
+        for char in encoded:
+            value = ord(char)
+            if 64 < value < 91:
+                value = (value - 52) % 26 + 65
+            elif 96 < value < 123:
+                value = (value - 84) % 26 + 97
+            text += chr(value)
+        for token in tokens:
+            text = re.sub(token, '', text)
+        step = base64.b64decode(text).decode('utf-8', errors='replace')
+        step = ''.join(chr(ord(char) - 3) for char in step)
+        return json.loads(base64.b64decode(step[::-1]).decode('utf-8', errors='replace'))
 
 
     def sourcesDialog(self, items):
