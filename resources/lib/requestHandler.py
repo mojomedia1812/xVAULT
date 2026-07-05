@@ -128,8 +128,8 @@ class cRequestHandler:
     doh_cache = {}
     DOH_SERVER = "https://cloudflare-dns.com/dns-query"
     SERIENSTREAM_FALLBACK_IPS = {
-        's.to': '186.2.175.5',
-        'www.s.to': '186.2.175.5',
+        'serienstream.to': '186.2.163.190',
+        'www.serienstream.to': '186.2.163.190',
     }
 
     @staticmethod

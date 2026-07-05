@@ -28,11 +28,14 @@ addonVersion = addonInfo('version')
 setSetting = Addon().setSetting
 _getSetting = Addon().getSetting
 _settingsLock = threading.Lock()
+SERIENSTREAM_OLD_DOMAIN = '.'.join(('s', 'to'))
 PROVIDER_DOMAIN_REPLACEMENTS = {
     ('movie4k', 'movie4k-to.cfd'): 'movie4k.sx',
     ('movie4k', 'www.movie4k-to.cfd'): 'movie4k.sx',
     ('movie4k', 'movie4k.to'): 'movie4k.sx',
     ('movie4k', 'www.movie4k.to'): 'movie4k.sx',
+    ('serienstream', SERIENSTREAM_OLD_DOMAIN): 'serienstream.to',
+    ('serienstream', 'www.' + SERIENSTREAM_OLD_DOMAIN): 'serienstream.to',
 }
 
 def getSetting(Name, default=''):

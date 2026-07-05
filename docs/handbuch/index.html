@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Wiedergabe, LiveTV, Synchronisation, Downloads, Untertitel und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.07.05.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.07.05.2.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">Zur Startseite</a>
         </div>
@@ -337,7 +337,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.07.05.1.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.07.05.2.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -437,8 +437,10 @@
       <p>CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM werden wie die anderen Indexseiten über eigene Schalter aktiviert oder deaktiviert. xVAULT übernimmt nur Quellen, die sich sinnvoll an Kodi oder die Resolver-Schicht übergeben lassen; interne Hilfslinks, reine Containerwege oder nicht abspielbare Einträge werden ausgefiltert.</p>
       <h3>Serien-Specials in Quellen</h3>
       <p>Bei Sonderfolgen reicht xVAULT Episodentitel, Erstausstrahlung und Staffel-0-Informationen an die Quellen-Scraper weiter. Das hilft, Specials zu finden, wenn Anbieter sie nicht als normale Staffel-Episode führen oder wenn ein Titelvergleich nötig ist.</p>
+      <h3>SerienStream-Domain</h3>
+      <p>SerienStream wird über <strong>serienstream.to</strong> angesprochen. Alte lokal gespeicherte Domainwerte werden beim Providercheck und beim Scraperstart automatisch auf diese Domain migriert.</p>
       <h3>Folgenerkennung bei abweichenden Staffeln</h3>
-      <p>Einige Anbieter teilen Serien anders als TMDB, zum Beispiel in Parts statt in Staffeln. Wenn SerienStream eine Folge unter der direkten SxxExx-Nummer nicht findet oder der Titel der gefundenen Anbieterfolge nicht passt, prüft xVAULT die verfügbaren Anbieter-Staffeln anhand von Episodentitel und Erstausstrahlung und übernimmt nur einen bestätigten Treffer.</p>
+      <p>Einige Anbieter teilen Serien anders als TMDB, zum Beispiel in Parts statt in Staffeln. Wenn SerienStream eine Folge unter der direkten SxxExx-Nummer nicht findet oder der Titel der gefundenen Anbieterfolge nicht passt, prüft xVAULT die verfügbaren Anbieter-Staffeln anhand von Episodentitel und Erstausstrahlung und übernimmt nur einen bestätigten Treffer. Der Episodentitel hat Vorrang; ein Datum wird nur als Rückfall genutzt, wenn es genau einen passenden Kandidaten gibt.</p>
       <h3>Bevorzugte Streamsprache</h3>
       <table class="manual-table">
         <thead>
@@ -646,7 +648,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geoeffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.07.05.1</span>
+      <span>Handbuch zu xVAULT 2026.07.05.2</span>
     </footer>
   </main>
 </body>

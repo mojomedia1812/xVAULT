@@ -40,12 +40,12 @@
         <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
         <tr><th colspan="4"><hr></th></tr>
         <tr><td>[PARENTDIR]</td><td><a href="../" data-umami-event="Verzeichnisnavigation geoeffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geoeffnet">plugin.video.xvault/</a></td><td align="right">05.Jul.2026 08:57:23</td><td align="right">-</td></tr>
+        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geoeffnet">plugin.video.xvault/</a></td><td align="right">05.Jul.2026 11:13:16</td><td align="right">-</td></tr>
         <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geoeffnet">repository.xvault/</a></td><td align="right">04.Jul.2026 08:48:56</td><td align="right">-</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geoeffnet">addons.xml</a></td><td align="right">05.Jul.2026 09:01:48</td><td align="right">2.44 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geoeffnet">addons.xml.md5</a></td><td align="right">05.Jul.2026 09:01:48</td><td align="right">32.00 B</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">05.Jul.2026 09:01:48</td><td align="right">1.96 MB</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">05.Jul.2026 09:01:48</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geoeffnet">addons.xml</a></td><td align="right">05.Jul.2026 11:17:17</td><td align="right">2.44 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geoeffnet">addons.xml.md5</a></td><td align="right">05.Jul.2026 11:17:17</td><td align="right">32.00 B</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">05.Jul.2026 11:17:17</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">05.Jul.2026 11:17:17</td><td align="right">1.96 MB</td></tr>
         <tr><th colspan="4"><hr></th></tr>
       </tbody>
     </table>
@@ -61,10 +61,10 @@
 
         <div class="release">
           <span>Aktuelle Version</span>
-          <strong>2026.07.05.1</strong>
+          <strong>2026.07.05.2</strong>
         </div>
 
-        <a class="download" href="downloads/plugin.video.xvault-2026.07.05.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
+        <a class="download" href="downloads/plugin.video.xvault-2026.07.05.2.zip" download data-umami-event="Add-on ZIP heruntergeladen">
           Installations-ZIP herunterladen
         </a>
 
@@ -128,6 +128,17 @@
     </section>
     <!-- release-notes:start -->
     <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.07.05.2</p>
+      <h2>Aenderungen im Ueberblick</h2>
+      <ul class="update-list">
+        <li>SerienStream nutzt als feste Domain &quot;serienstream.to&quot;.</li>
+        <li>Alte lokal gespeicherte SerienStream-Domainwerte werden beim Providercheck und beim Scraperstart automatisch auf &quot;serienstream.to&quot; migriert.</li>
+        <li>Der SerienStream-DoH-Fallback wurde auf die neue Domain und die passende aktuelle Fallback-IP umgestellt.</li>
+        <li>Bei Serien mit gleichem Veroeffentlichungsdatum mehrerer Folgen hat der Episodentitel jetzt Vorrang; Datums-Fallbacks werden nur noch genutzt, wenn sie eindeutig sind.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
       <p class="section-kicker">Neu in 2026.07.05.1</p>
       <h2>Aenderungen im Ueberblick</h2>
       <ul class="update-list">
@@ -164,17 +175,6 @@
         <li>Film- und Serienstarts verwenden die aktuelle Einstellung &quot;Standard-Aktion&quot; wieder als fuehrende Auswahl.</li>
         <li>Alte Favoriten oder externe Wiedergabe-Links mit gespeichertem Autoplay-Wert koennen &quot;Dialog&quot; oder &quot;Verzeichnis&quot; nicht mehr ueberstimmen.</li>
         <li>Neue externe Wiedergabe-Links speichern die Standard-Aktion nicht mehr fest in den Medien-Metadaten.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.07.04.4</p>
-      <h2>Aenderungen im Ueberblick</h2>
-      <ul class="update-list">
-        <li>Die xVAULT-Synchronisation verwendet die lokale Auth-Datei jetzt als fuehrende Login-Quelle, wenn Kodi-Settings und Auth-Datei auseinanderlaufen.</li>
-        <li>Veraltete Sync-API-Keys in den Kodi-Settings werden automatisch mit der Auth-Datei abgeglichen.</li>
-        <li>Server-Backups von Favoriten koennen dadurch wiederhergestellt werden, ohne faelschlich mit &quot;Nicht angemeldet&quot; abgewiesen zu werden.</li>
-        <li>Der Sync-API-Client versucht bei &quot;UNAUTHORIZED&quot; einen weiteren gespeicherten Key, falls Kodi noch einen abweichenden Key in den Settings haelt.</li>
       </ul>
     </section>
     <!-- release-notes:end -->
@@ -221,13 +221,14 @@
     <section class="panel checksum">
       <h2>Dateiprüfung</h2>
       <p>SHA-256</p>
-      <code>28E5F1C8AAB01AE8660EB0D4924A588722EBC171310B584B94F3F52A4B427769</code>
+      <code>2AE502B9F6226DDA493F8C43970A0621F2A4DEDAF71FD37AB4F8B36552FE6194</code>
     </section>
 
     <section class="panel archive">
       <h2>Vorherige Versionen</h2>
       <ul class="archive-list">
         <!-- previous-downloads:start -->
+        <li><a href="downloads/plugin.video.xvault-2026.07.05.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.05.1 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.07.04.7.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.04.7 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.07.04.6.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.04.6 herunterladen</a><span>33,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.07.04.5.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.04.5 herunterladen</a><span>33,8 MB</span></li>
@@ -259,7 +260,7 @@
     <footer>
       <a href="handbuch/" data-umami-event="Handbuch geoeffnet">Handbuch</a>
       <a href="https://github.com/mojomedia1812/xVAULT" data-umami-event="GitHub Repo geoeffnet">Quellcode auf GitHub</a>
-      <span>Version 2026.07.05.1</span>
+      <span>Version 2026.07.05.2</span>
     </footer>
   </main>
 </body>

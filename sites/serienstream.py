@@ -10,9 +10,10 @@ from resources.lib.tools import logger, cParser
 
 
 SITE_IDENTIFIER = 'serienstream'
-SITE_DOMAIN = 's.to'
+SITE_DOMAIN = 'serienstream.to'
 SITE_NAME = 'SerienStream'
 log_utils = True
+LEGACY_DOMAINS = set(['.'.join(('s', 'to')), 'www.' + '.'.join(('s', 'to'))])
 
 try:
     from html import unescape as html_unescape
@@ -115,6 +116,12 @@ class source:
         self.priority = 4
         self.language = ['de', 'en']
         self.domain = getSetting('provider.' + SITE_IDENTIFIER + '.domain', SITE_DOMAIN)
+        if (self.domain or '').lower() in LEGACY_DOMAINS:
+            self.domain = SITE_DOMAIN
+            try:
+                setSetting('provider.' + SITE_IDENTIFIER + '.domain', SITE_DOMAIN)
+            except:
+                pass
 
         self.base_link = 'https://' + self.domain
         self.search_link = '/suche?term='
@@ -523,10 +530,12 @@ class source:
             return True
 
         page_title = self._extract_episode_title(html)
-        if episode_title and page_title and not self._episode_titles_match(episode_title, page_title):
-            if log_utils:
-                logger.info('SerienStream - Direct episode title mismatch: request=%s | page=%s' % (episode_title, page_title))
-            return True
+        if episode_title and page_title:
+            if not self._episode_titles_match(episode_title, page_title):
+                if log_utils:
+                    logger.info('SerienStream - Direct episode title mismatch: request=%s | page=%s' % (episode_title, page_title))
+                return True
+            return False
 
         page_date = self._extract_publish_date(html)
         if episode_premiered and page_date and not self._dates_match(episode_premiered, page_date):
@@ -552,6 +561,7 @@ class source:
             ))
 
         direct_path = self._normalise_episode_path(direct_url)
+        date_matches = []
         for season_number in season_numbers:
             season_url = '%s/staffel-%d' % (series_url.rstrip('/'), int(season_number))
             season_full_url = urljoin(self.base_link, season_url)
@@ -579,7 +589,20 @@ class source:
 
                 page_date = self._extract_publish_date(html)
                 if episode_premiered and self._dates_match(episode_premiered, page_date):
-                    return full_url, html
+                    if episode_title:
+                        date_matches.append((full_url, html))
+                    else:
+                        return full_url, html
+
+        if episode_title and len(date_matches) == 1:
+            if log_utils:
+                logger.info('SerienStream - Unique episode date fallback: %s' % date_matches[0][0])
+            return date_matches[0]
+        if episode_title and len(date_matches) > 1 and log_utils:
+            logger.info('SerienStream - Episode date fallback ignored because %d candidates share %s' % (
+                len(date_matches),
+                episode_premiered
+            ))
 
         return None
 

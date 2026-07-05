@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.07.05.2] - 2026-07-05
+
+- SerienStream nutzt als feste Domain `serienstream.to`.
+- Alte lokal gespeicherte SerienStream-Domainwerte werden beim Providercheck und beim Scraperstart automatisch auf `serienstream.to` migriert.
+- Der SerienStream-DoH-Fallback wurde auf die neue Domain und die passende aktuelle Fallback-IP umgestellt.
+- Bei Serien mit gleichem Veröffentlichungsdatum mehrerer Folgen hat der Episodentitel jetzt Vorrang; Datums-Fallbacks werden nur noch genutzt, wenn sie eindeutig sind.
+
 ## [2026.07.05.1] - 2026-07-05
 
 - SerienStream prueft bei Serienfolgen mit abweichender Anbieter-Staffelzaehlung den Episodentitel und die Erstausstrahlung, statt nur die direkte SxxExx-Nummer blind zu uebernehmen.
@@ -47,7 +54,7 @@
 
 - DNS over HTTPS kann in den allgemeinen Einstellungen aktiviert oder deaktiviert werden.
 - xVAULT nutzt bei aktivierter Option Cloudflare DNS over HTTPS fuer HTTP-Anfragen, ohne die urspruengliche Domain im Request zu ersetzen.
-- SerienStream/s.to nutzt ebenfalls den neuen DoH-Weg; die bekannte feste SerienStream-IP wird nur noch als Rueckfall verwendet, wenn Cloudflare-DoH keine nutzbare Verbindung liefert.
+- SerienStream/serienstream.to nutzt ebenfalls den neuen DoH-Weg; die bekannte feste SerienStream-IP wird nur noch als Rueckfall verwendet, wenn Cloudflare-DoH keine nutzbare Verbindung liefert.
 - Der Provider-Domaincheck beim Kodi-Start prueft bei aktivem DoH blockierte oder fehlgeschlagene Domains ein zweites Mal ueber den xVAULT-RequestHandler, damit Quellen nicht vorzeitig deaktiviert werden.
 
 ## [2026.07.04.1] - 2026-07-04
@@ -60,7 +67,7 @@
 
 ## [2026.07.03.4] - 2026-07-03
 
-- SerienStream findet Sonderfolgen nun ueber Staffel 0, wenn die normale Serienfolge auf s.to nicht vorhanden ist und der Episodentitel zur Special-Folge passt.
+- SerienStream findet Sonderfolgen nun ueber Staffel 0, wenn die normale Serienfolge auf serienstream.to nicht vorhanden ist und der Episodentitel zur Special-Folge passt.
 - Episodentitel und Episoden-Erstausstrahlung werden an die Quellen-Scraper weitergereicht, damit Anbieter-Sonderfaelle gezielter erkannt werden koennen.
 - Vixstream speichert keine kurzlebigen Embed-Links mehr in der Quellenliste, sondern loest sie frisch beim Abspielen auf.
 - Filmpalast akzeptiert bei Serien nur noch Treffer mit passender SxxEyy-Kennung und nimmt S01E10 nicht mehr als Ersatz fuer S01E11.

@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.07.05.1`
+Aktueller Stand: `2026.07.05.2`
 
 Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geaendert wird, muss diese README geprueft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** oeffnen.
-3. Die Datei `plugin.video.xvault-2026.07.05.1.zip` auswaehlen.
+3. Die Datei `plugin.video.xvault-2026.07.05.2.zip` auswaehlen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen ueber das Repository.
@@ -34,7 +34,8 @@ Weitere Hinweise zu Abhaengigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 
 - Suche und Wiedergabe von Filmen, TV-Serien und LiveTV.
 - Serien zeigen vorhandene Specials aus TMDB-Staffel 0 als eigenen Staffel-Eintrag an; Sonderfolgen bleiben beim Abspielen echte Serienfolgen.
-- SerienStream prueft bei abweichender Anbieter-Staffelzaehlung Episodentitel und Erstausstrahlung, damit Folgen auch dann gefunden werden, wenn TMDB/xVAULT und Anbieter die Staffeln unterschiedlich schneiden.
+- SerienStream verwendet `serienstream.to`; alte gespeicherte Domainwerte werden automatisch auf diese Domain migriert.
+- SerienStream prueft bei abweichender Anbieter-Staffelzaehlung Episodentitel und Erstausstrahlung, damit Folgen auch dann gefunden werden, wenn TMDB/xVAULT und Anbieter die Staffeln unterschiedlich schneiden; gleiche Veroeffentlichungsdaten mehrerer Folgen werden dabei nicht mehr als eindeutiger Treffer behandelt.
 - Streamquellen fuer Filme und Serien koennen nach bevorzugter Sprache sortiert oder gefiltert werden; mehrere Scraper liefern Deutsch/Englisch-Varianten sauber an die Quellenliste, und Autoplay wird bei Sprache `Alle` automatisch in Dialog oder Verzeichnis umgestellt.
 - Die Standard-Aktion `Dialog`, `Verzeichnis` oder `Autoplay` wird beim Start von Filmen und Folgen aus den aktuellen Einstellungen gelesen; alte Favoriten oder externe Aufrufe frieren die Auswahl nicht mehr auf einen frueheren Wert ein.
 - Die Standard-Aktion wird in Kodi als stabiler Textwert gespeichert und intern kompatibel normalisiert, damit `Dialog` auch aus einer aktiven Folgenliste heraus nicht wieder auf `Verzeichnis` zurueckspringt.
