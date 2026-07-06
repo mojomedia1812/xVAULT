@@ -1,3 +1,9 @@
+xVAULT 2026.07.06.1
+Entwickler: mojomedia1812
+
+- Filmpalast-Suchpfade werden nicht mehr doppelt kodiert, damit Titel mit Leerzeichen und Umlauten wieder Treffer liefern.
+- Filmpalast nutzt die bestehende RequestHandler-Logik mit unveraendert kodierten URLs und wertet VOE-HD-Links aus der aktuellen Streamstruktur wieder aus.
+
 xVAULT 2026.07.05.5
 Entwickler: mojomedia1812
 

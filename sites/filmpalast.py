@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 import re
 from html import unescape
-from urllib.parse import quote
+from urllib.parse import quote, urljoin, urlparse
 from resources.lib.utils import isBlockedHoster
 from resources.lib.control import getSetting
 from resources.lib.requestHandler import cRequestHandler
@@ -33,7 +33,7 @@ class source:
             headers['Referer'] = referer
 
         try:
-            request = cRequestHandler(url, caching=True)
+            request = cRequestHandler(url, caching=True, preserve_url=True)
             for key, value in headers.items():
                 request.addHeaderEntry(key, value)
             return request.request()
@@ -166,12 +166,12 @@ class source:
         for block in blocks:
             host_match = re.search(r'<p[^>]*class=["\'][^"\']*hostName[^"\']*["\'][^>]*>(.*?)</p>', block, re.S | re.I)
             hoster = self._clean_text(host_match.group(1)) if host_match else 'Filmpalast'
-            for url_match in re.finditer(r'\b(?:href|data-player-url)=["\']([^"\']+)["\']', block, re.S | re.I):
+            for url_match in re.finditer(r'\b(?:href|data-player-url|data-url|data-href)=["\']([^"\']+)["\']', block, re.S | re.I):
                 stream_url = unescape(url_match.group(1)).strip()
                 if not stream_url or stream_url == '#' or stream_url.lower().startswith('javascript'):
                     continue
                 stream_url = self._absolute_url(stream_url)
-                if self.domain in urllib.parse.urlparse(stream_url).netloc and '/stream/' in stream_url:
+                if self.domain in urlparse(stream_url).netloc and '/stream/' in stream_url:
                     continue
                 key = (hoster.lower(), stream_url)
                 if key in seen:
@@ -184,7 +184,7 @@ class source:
         url = unescape(url or '').strip()
         if url.startswith('//'):
             return 'https:' + url
-        return urllib.parse.urljoin(self.base_link, url)
+        return urljoin(self.base_link, url)
 
     @staticmethod
     def _clean_text(value):

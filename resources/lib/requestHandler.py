@@ -145,8 +145,8 @@ class cRequestHandler:
         _User_Agents = [FF_USER_AGENT, OPERA_USER_AGENT, EDGE_USER_AGENT, CHROME_USER_AGENT, SAFARI_USER_AGENT]
         return choice(_User_Agents)
 
-    def __init__(self, sUrl, caching=True, ignoreErrors=True, compression=True, jspost=False, ssl_verify=False, bypass_dns=False):
-        self._sUrl = self.__cleanupUrl(sUrl)
+    def __init__(self, sUrl, caching=True, ignoreErrors=True, compression=True, jspost=False, ssl_verify=False, bypass_dns=False, preserve_url=False):
+        self._sUrl = sUrl if preserve_url else self.__cleanupUrl(sUrl)
         self._sRealUrl = ''
         # self._USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0'
         self._USER_AGENT = self.RandomUA()

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2026.07.06.1] - 2026-07-06
+
+- Filmpalast-Suchpfade werden nicht mehr doppelt kodiert, damit Titel mit Leerzeichen und Umlauten wieder Treffer liefern.
+- Filmpalast nutzt die bestehende RequestHandler-Logik mit unveraendert kodierten URLs und wertet VOE-HD-Links aus der aktuellen Streamstruktur wieder aus.
+
 ## [2026.07.05.5] - 2026-07-05
 
 - LiveTV lite bleibt auch bei temporaer nicht erreichbarer 2ix2-API nutzbar und liest dann Nydus als Ersatzquelle.
