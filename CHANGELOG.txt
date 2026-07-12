@@ -1,3 +1,9 @@
+xVAULT 2026.07.12.2
+Entwickler: mojomedia1812
+
+- Beim laufenden Film- oder Serienstream zeigt das Playback-Label jetzt zusaetzlich den gewaehlten Hoster und die Indexseite an, z.B. "VOE @ SerienStream".
+- Bookmarks, Playcount und Synchronisierung behalten weiter den normalen Titel ohne Hoster-Zusatz, damit Fortschritte nicht pro Quelle getrennt werden.
+
 xVAULT 2026.07.12.1
 Entwickler: mojomedia1812
 

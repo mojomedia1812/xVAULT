@@ -46,9 +46,12 @@ class player(xbmc.Player):
                 self.name = title + ' (%s)' % meta['year'] if meta.get('year', False) else title
             else:
                 self.name = title + ' S%02dE%02d' % (int(meta['season']), int(meta['episode']))
+            self.playback_name = self._playbackLabel(self.name, meta)
 
             if control.is_python2 and type(self.name) != unicode:
                 self.name = self.name.decode('utf-8')
+            if control.is_python2 and type(self.playback_name) != unicode:
+                self.playback_name = self.playback_name.decode('utf-8')
             self.imdb = meta.get('imdb_id') or meta.get('imdbnumber') or meta.get('imdb')
             self.number_of_seasons = meta['number_of_seasons'] if 'number_of_seasons' in meta else None
             self.season = meta['season'] if 'season' in meta else None
@@ -72,6 +75,7 @@ class player(xbmc.Player):
             plot = control.unquote(meta['plot']) if 'plot' in meta else ''
 
             Info = {'plot': plot}
+            Info.setdefault('Title', self.playback_name)
             if self.imdb:
                 Info.setdefault('IMDBNumber', self.imdb)
             if meta['mediatype'] == 'movie':
@@ -87,7 +91,7 @@ class player(xbmc.Player):
                 if self.episode != None:
                     Info.setdefault('Episode', self.episode)
 
-            item = control.item(label=self.name)
+            item = control.item(label=self.playback_name)
 
             # TS: video/mp2t
             # HLS: application/x-mpegURL or application/vnd.apple.mpegurl
@@ -127,6 +131,26 @@ class player(xbmc.Player):
         except Exception as e:
             log_utils.log('Playback start failed: %s' % str(e), log_utils.LOGERROR)
             return
+
+    def _playbackLabel(self, name, meta):
+        try:
+            hoster = self._cleanStreamDisplay(meta.get('_xvault_stream_hoster'))
+            provider = self._cleanStreamDisplay(meta.get('_xvault_stream_provider'))
+            if hoster and provider and hoster.lower() != provider.lower():
+                return '%s | %s @ %s' % (name, hoster, provider)
+            if hoster:
+                return '%s | %s' % (name, hoster)
+            if provider:
+                return '%s | %s' % (name, provider)
+        except:
+            pass
+        return name
+
+    def _cleanStreamDisplay(self, value):
+        if value == None:
+            return ''
+        value = re.sub(r'\[[^\]]+\]', '', str(value))
+        return re.sub(r'\s+', ' ', value).strip()
 
 
     def keepPlaybackAlive(self):

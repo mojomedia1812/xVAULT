@@ -105,6 +105,7 @@ class sources:
 
             try: meta = json.loads(meta)
             except: pass
+            meta = self._mergeSelectedStreamMeta(meta, getattr(self, 'selectedSourceItem', None))
 
             from resources.lib.player import player
             player().run(title, url, meta)
@@ -347,6 +348,7 @@ class sources:
                 #self.errorForSources()
                 return
 
+            meta = self._mergeSelectedStreamMeta(meta, item)
             from resources.lib.player import player
             player().run(title, self.url, meta)
             return self.url
@@ -613,11 +615,62 @@ class sources:
             sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
             for i in sources:
                 i.update({'provider': source})
+                i.update({'provider_display': self._providerDisplayName(source, call)})
                 if not 'priority' in i: i.update({'priority': 100})
                 if not 'prioHoster' in i: i.update({'prioHoster': 100})
             self.sources.extend(sources)
         except:
             pass
+
+    def _providerDisplayName(self, provider, call=None):
+        try:
+            site_name = getattr(getattr(call.__class__, '__init__', None), '__globals__', {}).get('SITE_NAME', '') if call else ''
+            if site_name:
+                return self._streamDisplayText(site_name)
+            module = sys.modules.get(call.__class__.__module__) if call else None
+            site_name = getattr(module, 'SITE_NAME', '') if module else ''
+            if site_name:
+                return self._streamDisplayText(site_name)
+        except:
+            pass
+        return self._streamDisplayText(provider)
+
+    def _streamDisplayText(self, value):
+        value = '' if value == None else str(value)
+        value = re.sub(r'\[[^\]]+\]', '', value)
+        value = re.sub(r'\s+', ' ', value).strip()
+        known = {
+            'voe': 'VOE',
+            'vivo': 'VIVO',
+            'vidoza': 'Vidoza',
+            'doodstream': 'DoodStream',
+            'serienstream': 'SerienStream',
+            'filmpalast': 'Filmpalast'
+        }
+        return known.get(value.lower(), value)
+
+    def _mergeSelectedStreamMeta(self, meta, item):
+        try:
+            if not isinstance(meta, dict):
+                meta = json.loads(meta)
+            else:
+                meta = dict(meta)
+        except:
+            return meta
+        if not item:
+            return meta
+
+        hoster = self._streamDisplayText(item.get('source'))
+        provider = self._streamDisplayText(item.get('provider_display') or item.get('provider'))
+        if hoster:
+            meta['_xvault_stream_hoster'] = hoster
+        if provider:
+            meta['_xvault_stream_provider'] = provider
+        if item.get('quality'):
+            meta['_xvault_stream_quality'] = item.get('quality')
+        if item.get('label'):
+            meta['_xvault_stream_label'] = item.get('label')
+        return meta
 
     def _normalizeStreamLanguage(self, item):
         language_codes = self._languageCodesFromText(item.get('language', ''))
@@ -983,6 +1036,7 @@ class sources:
                     if self.url == None: raise Exception()
 
                     self.selectedSource = items[i]['label']
+                    self.selectedSourceItem = items[i]
 
                     try: progressDialog.close()
                     except: pass
@@ -1034,7 +1088,9 @@ class sources:
 
                 url = self.sourcesResolve(items[i], False, True)
                 if u == None: u = url
-                if not url == None: break
+                if not url == None:
+                    self.selectedSourceItem = items[i]
+                    break
             except:
                 pass
 
