@@ -1,3 +1,10 @@
+xVAULT 2026.07.12.1
+Entwickler: mojomedia1812
+
+- xVAULT kann als Player fuer TMDbHelper genutzt werden und nimmt Film- sowie Serienfolgen-Parameter ueber eine eigene playTMDbHelper-Route entgegen.
+- Die mitgelieferte TMDbHelper-Player-Datei wird bei installiertem TMDbHelper automatisch ins TMDbHelper-Profil kopiert.
+- TMDbHelper-Aufrufe nutzen weiter xVAULTs Quellenlogik, Resolver, Trakt/Wiedergabe-Monitoring und den in xVAULT gewaehlten Auswahlmodus.
+
 xVAULT 2026.07.06.1
 Entwickler: mojomedia1812
 

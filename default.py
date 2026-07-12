@@ -34,6 +34,11 @@ if action is None or action == 'root':
         playback_settings.migrate_mode_setting()
     except Exception:
         pass
+    try:
+        from resources.lib import tmdbhelper_integration
+        tmdbhelper_integration.ensure_player()
+    except Exception:
+        pass
     from resources.lib import startup_info
     startup_info.show_pending_startup_info()
     try:
@@ -175,6 +180,10 @@ elif action == 'mediaInfo':
     dialog.update(0)
     from resources.lib import sources
     sources.sources().mediaInfo(source, dialog)
+
+elif action == 'playTMDbHelper':
+    from resources.lib import tmdbhelper_player
+    tmdbhelper_player.play(params)
 
 elif action == 'playExtern':
     import json

@@ -245,6 +245,11 @@ if __name__ == "__main__":
 		playback_settings.migrate_mode_setting()
 	except Exception:
 		pass
+	try:
+		from resources.lib import tmdbhelper_integration
+		tmdbhelper_integration.ensure_player()
+	except Exception:
+		pass
 	from resources.lib import updater
 	if updater.automatic_updates_enabled():
 		from resources.lib import repository
