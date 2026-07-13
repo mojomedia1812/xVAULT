@@ -3,7 +3,7 @@ Entwickler: mojomedia1812
 
 - Favoriten werden fuer mehrere Geraete serverseitig zusammengefuehrt; explizit geloeschte Favoriten werden nicht mehr durch aeltere Snapshots anderer Geraete wiederhergestellt.
 - Binge-/Gesehen-Status synchronisiert jetzt auch manuell gesetzte Gesehen-/Ungesehen-Aenderungen, Staffeln, Serien und Staffel-0/Specials robuster.
-- Laufende xVAULT-Installationen pruefen regelmaessig auf Remote-Aenderungen, alle Kodi-Geräte denselben Sync-Stand erhalten.
+- Laufende xVAULT-Installationen pruefen regelmaessig auf Remote-Aenderungen, damit alle Kodi-Geräte denselben Sync-Stand erhalten.
 - Trakt-Integration lokal vorbereitet: optionale Anmeldung, Watchlist/Collection-Menues, Gesehen-Abgleich, Scrobbling und Bewertungen.
 - API-Backend fuer die Sync-Merge-Logik aktualisiert und Live-Kodi-Menues inklusive TMDB-Suchen, Serienpfad, LiveTV und LiveTV lite getestet.
 
