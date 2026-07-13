@@ -308,15 +308,177 @@ function bearer_key(): string
     return trim((string)($headers['X-API-Key'] ?? $headers['x-api-key'] ?? ($_SERVER['HTTP_X_API_KEY'] ?? '')));
 }
 
+function latest_favorites_payload(PDO $pdo, int $userId): ?array
+{
+    $stmt = $pdo->prepare('SELECT data_json FROM favorites_backups WHERE user_id = ? ORDER BY updated_at DESC, id DESC LIMIT 1');
+    $stmt->execute([$userId]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        return null;
+    }
+    $payload = json_decode($row['data_json'], true);
+    return is_array($payload) ? $payload : null;
+}
+
+function merge_favorites_payload(?array $serverPayload, array $incomingPayload, array $deletedKeys, ?string $deviceId): array
+{
+    $removed = array_fill_keys($deletedKeys, true);
+    $entries = [];
+    foreach (array_merge(favorites_payload_entries($incomingPayload), favorites_payload_entries($serverPayload)) as $entry) {
+        $key = favorite_entry_key($entry);
+        if ($key === '' || isset($removed[$key]) || isset($entries[$key])) {
+            continue;
+        }
+        $entries[$key] = $entry;
+    }
+
+    $mergedEntries = array_values($entries);
+    $payload = $incomingPayload;
+    unset($payload['deleted_keys'], $payload['removed_keys'], $payload['base_keys']);
+    $payload['schema_version'] = 1;
+    $payload['source'] = $payload['source'] ?? 'kodi_favourites';
+    $payload['device_id'] = $deviceId;
+    $payload['updated_at'] = now();
+    $payload['raw_xml'] = build_favorites_xml($mergedEntries);
+    $payload['items'] = favorites_items_from_entries($mergedEntries);
+    $payload['favorites_hash'] = hash('sha256', trim(str_replace("\r\n", "\n", $payload['raw_xml'])));
+    return $payload;
+}
+
+function favorites_payload_entries(?array $payload): array
+{
+    if (!is_array($payload)) {
+        return [];
+    }
+    $entries = [];
+    $raw = (string)($payload['raw_xml'] ?? '');
+    if (trim($raw) !== '' && function_exists('simplexml_load_string')) {
+        $xml = @simplexml_load_string($raw);
+        if ($xml !== false) {
+            foreach ($xml->favourite as $node) {
+                $entries[] = [
+                    'label' => isset($node['name']) ? (string)$node['name'] : '',
+                    'thumb' => isset($node['thumb']) ? (string)$node['thumb'] : '',
+                    'path' => trim((string)$node),
+                ];
+            }
+        }
+    }
+    if (!$entries && isset($payload['items']) && is_array($payload['items'])) {
+        foreach ($payload['items'] as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $entries[] = [
+                'label' => (string)($item['label'] ?? ''),
+                'thumb' => (string)($item['thumb'] ?? ''),
+                'path' => (string)($item['path'] ?? ''),
+            ];
+        }
+    }
+    return dedupe_favorite_entries($entries);
+}
+
+function deleted_favorite_keys(array $data, array $payload): array
+{
+    $keys = [];
+    foreach ([$data, $payload] as $source) {
+        foreach (['deleted_keys', 'removed_keys'] as $field) {
+            if (!isset($source[$field]) || !is_array($source[$field])) {
+                continue;
+            }
+            foreach ($source[$field] as $key) {
+                $key = trim((string)$key);
+                if ($key !== '') {
+                    $keys[$key] = true;
+                }
+            }
+        }
+    }
+    return array_keys($keys);
+}
+
+function dedupe_favorite_entries(array $entries): array
+{
+    $result = [];
+    $seen = [];
+    foreach ($entries as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        $normalized = [
+            'label' => (string)($entry['label'] ?? ''),
+            'thumb' => (string)($entry['thumb'] ?? ''),
+            'path' => trim((string)($entry['path'] ?? '')),
+        ];
+        $key = favorite_entry_key($normalized);
+        if ($key === '' || isset($seen[$key])) {
+            continue;
+        }
+        $seen[$key] = true;
+        $result[] = $normalized;
+    }
+    return $result;
+}
+
+function favorite_entry_key(array $entry): string
+{
+    return trim((string)($entry['path'] ?? ($entry['label'] ?? '')));
+}
+
+function build_favorites_xml(array $entries): string
+{
+    $xml = "<favourites>\n";
+    foreach ($entries as $entry) {
+        $attrs = '';
+        if (($entry['label'] ?? '') !== '') {
+            $attrs .= ' name="' . xml_escape((string)$entry['label']) . '"';
+        }
+        if (($entry['thumb'] ?? '') !== '') {
+            $attrs .= ' thumb="' . xml_escape((string)$entry['thumb']) . '"';
+        }
+        $xml .= '  <favourite' . $attrs . '>' . xml_escape((string)($entry['path'] ?? '')) . "</favourite>\n";
+    }
+    return $xml . "</favourites>\n";
+}
+
+function favorites_items_from_entries(array $entries): array
+{
+    $items = [];
+    $order = 1;
+    foreach ($entries as $entry) {
+        $path = (string)($entry['path'] ?? '');
+        $items[] = [
+            'order' => $order++,
+            'label' => (string)($entry['label'] ?? ''),
+            'thumb' => (string)($entry['thumb'] ?? ''),
+            'path' => $path,
+            'type' => strpos($path, 'plugin.video.xvault') !== false ? 'video' : 'unknown',
+        ];
+    }
+    return $items;
+}
+
+function xml_escape(string $value): string
+{
+    return htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+}
+
 function favorites_push(PDO $pdo, array $user, array $data): void
 {
     $payload = $data['favorites'] ?? $data['data'] ?? null;
     if (!is_array($payload)) {
         respond(false, 'Favoritendaten fehlen', null, 'MISSING_FIELDS', 400);
     }
+    $deviceId = short_text($data['device_id'] ?? ($payload['device_id'] ?? null), 128);
+    $payload = merge_favorites_payload(
+        latest_favorites_payload($pdo, (int)$user['id']),
+        $payload,
+        deleted_favorite_keys($data, $payload),
+        $deviceId
+    );
     $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $hash = hash('sha256', $json);
-    $deviceId = short_text($data['device_id'] ?? ($payload['device_id'] ?? null), 128);
     $now = now();
     $stmt = $pdo->prepare('INSERT INTO favorites_backups (user_id, device_id, data_json, data_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)');
     $stmt->execute([$user['id'], $deviceId, $json, $hash, $now, $now]);
@@ -416,9 +578,18 @@ function sync_push(PDO $pdo, array $user, array $data): void
     $result = [];
     if (isset($data['favorites']) || isset($data['data'])) {
         $payload = $data['favorites'] ?? $data['data'];
+        if (!is_array($payload)) {
+            respond(false, 'Favoritendaten fehlen', null, 'MISSING_FIELDS', 400);
+        }
+        $deviceId = short_text($data['device_id'] ?? ($payload['device_id'] ?? null), 128);
+        $payload = merge_favorites_payload(
+            latest_favorites_payload($pdo, (int)$user['id']),
+            $payload,
+            deleted_favorite_keys($data, $payload),
+            $deviceId
+        );
         $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $hash = hash('sha256', $json);
-        $deviceId = short_text($data['device_id'] ?? ($payload['device_id'] ?? null), 128);
         $now = now();
         $stmt = $pdo->prepare('INSERT INTO favorites_backups (user_id, device_id, data_json, data_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)');
         $stmt->execute([$user['id'], $deviceId, $json, $hash, $now, $now]);

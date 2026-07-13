@@ -2,7 +2,7 @@
 
 ## Zweck
 
-Die xVAULT-Synchronisation sichert benutzerbezogen Kodi-Favoriten und Wiedergabestaende, damit diese nach Neuinstallation oder Geraetewechsel wiederhergestellt werden koennen.
+Die xVAULT-Synchronisation sichert benutzerbezogen Kodi-Favoriten und Wiedergabestaende, damit diese nach Neuinstallation, Geraetewechsel oder paralleler Nutzung auf mehreren Geraeten wiederhergestellt und abgeglichen werden koennen.
 
 ## API-Endpunkte
 
@@ -23,9 +23,17 @@ Wenn URL-Rewriting aktiv ist, funktionieren auch die entsprechenden `/api/...`-P
 ## Datenbanktabellen
 
 - `users`: Benutzerkonto, Passwort-Hash, API-Key-Hash, Login-Metadaten.
-- `favorites_backups`: versionierte Favoriten-Backups pro Benutzer.
-- `binge_state`: aktueller Wiedergabe-/Binge-Stand pro stabilem `item_key`.
+- `favorites_backups`: versionierte Favoriten-Backups pro Benutzer. Neue Backups werden serverseitig mit dem aktuellen Serverstand zusammengefuehrt; explizite `deleted_keys` verhindern, dass entfernte Favoriten durch ein anderes Geraet wieder auftauchen.
+- `binge_state`: aktueller Wiedergabe-/Binge-Stand pro stabilem `item_key`. Eintraege werden pro Film/Folge per Upsert zusammengefuehrt; der neuere Fortschritt gewinnt, bereits abgeschlossene Eintraege bleiben gesehen.
 - `sync_log`: technische Sync-Historie ohne sensible Inhalte.
+
+## Multi-Geraete-Verhalten
+
+- Beim Start zieht xVAULT den aktuellen Binge-Stand vom Server und wendet Bookmarks/Gesehen-Status lokal an.
+- Im laufenden Betrieb prueft der Hintergrunddienst regelmaessig auf Remote-Aenderungen. Dadurch werden Favoriten und Binge-Status auch ohne Neustart auf anderen angemeldeten Geraeten sichtbar.
+- Favoriten werden vor jedem Push mit dem letzten Serverstand gemergt. Parallele Hinzufuegungen von PC, Android TV und Raspberry bleiben erhalten.
+- Entfernte Favoriten werden als geloeschte Keys mitgesendet, damit ein paralleles Geraet sie nicht durch einen veralteten Snapshot erneut auf den Server schreibt.
+- Binge-/Gesehen-Status ist benutzerbezogen. Wenn mehrere Geraete mit demselben xVAULT-Konto angemeldet sind, sehen alle Geraete denselben Stand.
 
 Die Tabellen werden beim ersten API-Aufruf automatisch angelegt.
 

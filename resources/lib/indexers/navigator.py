@@ -18,7 +18,7 @@ class navigator:
 		self.addDirectoryItem("Suche nach Person / Darsteller", 'personSearch', '03_darsteller_suche_nach_person.png', 'DefaultAddonsSearch.png')
 		self.addDirectoryItem("Filme", 'movieNavigator', '04_filme.png', 'DefaultMovies.png')
 		self.addDirectoryItem("TV-Serien", 'tvNavigator', '05_tv_serien.png', 'DefaultTVShows.png')
-		self.addDirectoryItem("LiveTV", 'liveTVNavigator', 'DefaultTVShows.png', 'DefaultTVShows.png')
+		self.addDirectoryItem("LIVE-TV", 'liveTVNavigator', 'DefaultTVShows.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("LiveTV lite", 'liveTVLiteNavigator', 'DefaultTVShows.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("Stream-URL abspielen", 'playURL', '07_stream_url_abspielen.png', 'DefaultAddonWebSkin.png', isFolder=False)
 		self.addDirectoryItem("Werkzeuge", 'toolNavigator', '06_werkzeuge.png', 'DefaultAddonProgram.png')
@@ -32,6 +32,10 @@ class navigator:
 		self.addDirectoryItem("[B]Filme[/B] - Am besten bewertet", 'listings&media_type=movie&url=production_status=released%26sort_by=vote_average.desc', '04_05_filme_am_besten_bewertet.png', 'DefaultMovies.png')
 		self.addDirectoryItem("[B]Filme[/B] - Meist bewertet", 'listings&media_type=movie&url=production_status=released%26sort_by=vote_count.desc', '04_06_filme_meist_bewertet.png', 'DefaultMovies.png')
 		self.addDirectoryItem("[B]Filme[/B] - Bestes Einspielergebnis", 'listings&media_type=movie&url=production_status=released%26sort_by=revenue.desc', '04_07_filme_bestes_einspielergebnis.png', 'DefaultMovies.png')
+		if control.getSetting('trakt.watchlist.menu', 'true') == 'true':
+			self.addDirectoryItem("[B]Trakt[/B] - Watchlist Filme", 'traktList&type=watchlist&media_type=movie', '04_filme.png', 'DefaultMovies.png')
+		if control.getSetting('trakt.collection.menu', 'true') == 'true':
+			self.addDirectoryItem("[B]Trakt[/B] - Collection Filme", 'traktList&type=collection&media_type=movie', '04_filme.png', 'DefaultMovies.png')
 		self._endDirectory()
 
 	def tvshows(self):
@@ -39,6 +43,10 @@ class navigator:
 		self.addDirectoryItem("[B]Serien[/B] - Am populärsten", 'listings&media_type=tv&url=sort_by=popularity.desc', '05_02_serien_am_populaersten.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("[B]Serien[/B] - Am besten bewertet", 'listings&media_type=tv&url=sort_by=vote_average.desc', '05_03_serien_am_besten_bewertet.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("[B]Serien[/B] - Meist bewertet", 'listings&media_type=tv&url=sort_by=vote_count.desc', '05_04_serien_meist_bewertet.png', 'DefaultTVShows.png')
+		if control.getSetting('trakt.watchlist.menu', 'true') == 'true':
+			self.addDirectoryItem("[B]Trakt[/B] - Watchlist Serien", 'traktList&type=watchlist&media_type=tv', '05_tv_serien.png', 'DefaultTVShows.png')
+		if control.getSetting('trakt.collection.menu', 'true') == 'true':
+			self.addDirectoryItem("[B]Trakt[/B] - Collection Serien", 'traktList&type=collection&media_type=tv', '05_tv_serien.png', 'DefaultTVShows.png')
 		self._endDirectory()
 
 	def tools(self):

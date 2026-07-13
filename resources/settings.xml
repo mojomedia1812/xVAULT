@@ -215,7 +215,29 @@
         <setting type="lsep" label="TMDb" />
         <setting id="api.tmdb" type="text" option="hidden" label="API-Key" default="0b529d296545c2545a68db5cb903cd94" />
         <setting type="lsep" label="TRAKT" />
-        <setting id="api.trakt" type="text" option="hidden" label="API-Key" default="85d3b28a69fd4d8162b3ea78689e1c8b15ff2ad9c1430ef6fc5a950662aee3ec" />
+        <setting id="api.trakt" type="text" label="Client ID / API-Key" default="" />
+        <setting id="api.trakt.secret" type="text" option="hidden" label="Client Secret" default="" />
+        <setting id="trakt.aliases.enabled" type="bool" label="Alias-Suche ueber Trakt aktivieren" default="true" />
+        <setting id="trakt.alias.timeout" type="slider" label="Alias-Timeout in Sekunden" default="5" range="1,1,20" option="int" />
+        <setting id="trakt.alias.cache.hours" type="slider" label="Alias-Cache in Stunden" default="168" range="1,1,720" option="int" />
+        <setting id="trakt.enabled" type="bool" label="Trakt-Konto verwenden" default="false" />
+        <setting id="trakt.sync.watched" type="bool" label="Gesehen-Status mit Trakt synchronisieren" default="false" />
+        <setting id="trakt.scrobble.enabled" type="bool" label="Wiedergabe an Trakt scrobbeln" default="false" />
+        <setting id="trakt.watchlist.menu" type="bool" label="Trakt-Watchlist im Menue anzeigen" default="true" />
+        <setting id="trakt.collection.menu" type="bool" label="Trakt-Collection im Menue anzeigen" default="true" />
+        <setting id="trakt.ratings.enabled" type="bool" label="Trakt-Bewertungen im Kontextmenue anzeigen" default="false" />
+        <setting label="Trakt verbinden" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=traktAuthorize)"/>
+        <setting label="Trakt jetzt synchronisieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=traktSyncNow)"/>
+        <setting label="Trakt-Gesehen importieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=traktImportWatched)"/>
+        <setting label="Lokalen Gesehen-Status zu Trakt senden" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=traktExportWatched)"/>
+        <setting label="Trakt-Status anzeigen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=traktStatus)"/>
+        <setting label="Trakt trennen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=traktLogout)"/>
+        <setting id="trakt.status" type="text" label="Trakt-Status" default="Nicht verbunden" enable="false"/>
+        <setting id="trakt.last_sync_at" type="text" label="Letzter Trakt-Sync" default="" enable="false"/>
+        <setting id="trakt.username" type="text" label="Trakt-Benutzer" default="" visible="false"/>
+        <setting id="trakt.access_token" type="text" option="hidden" label="Trakt Access Token" default="" visible="false"/>
+        <setting id="trakt.refresh_token" type="text" option="hidden" label="Trakt Refresh Token" default="" visible="false"/>
+        <setting id="trakt.token_expires_at" type="text" label="Trakt Token Ablauf" default="" visible="false"/>
         <setting type="lsep" label="FANART.TV" />
         <setting id="api.fanart.tv" type="text" label="API-Key" option="hidden" default="e376e8591e1580089d93ab4135fcc082" />
         <setting type="lsep" label="Konto [B]opensubtitles.org[/B]"/>

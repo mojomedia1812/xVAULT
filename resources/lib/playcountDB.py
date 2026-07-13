@@ -61,7 +61,7 @@ if not exists(playcountDB) or stat(playcountDB).st_size == 0: # size DB
 
 
 # Achtung wird mit MultiThread benutzt
-def getPlaycount(mediatype, column_names, column_value, season=0, episode=0):
+def getPlaycount(mediatype, column_names, column_value, season=None, episode=None):
     conn = _get_connection(playcountDB)
     cursor = conn.cursor()
     sql_get  = _get(mediatype, column_names, column_value, season, episode)
@@ -135,10 +135,10 @@ def getTvshowStatus(title):
 
 
 def setSeasonStatus(title, name, season, number_of_episodes, playcount):
-    season = _safe_int(season) or 0
+    season = _safe_int(season)
     number_of_episodes = _safe_int(number_of_episodes) or 0
     playcount = 1 if _safe_int(playcount) else 0
-    if not title or not season:
+    if not title or season is None:
         return
     name = name or '%s S%02d' % (title, season)
     conn = db.connect(playcountDB)
@@ -217,7 +217,7 @@ def countWatchedSeasons(title):
     conn = _get_connection(playcountDB)
     cursor = conn.cursor()
     try:
-        cursor.execute('SELECT COUNT(DISTINCT season) AS total FROM season WHERE title = ? AND playcount > 0', (title,))
+        cursor.execute('SELECT COUNT(DISTINCT season) AS total FROM season WHERE title = ? AND season > 0 AND playcount > 0', (title,))
         row = cursor.fetchone()
         return row['total'] if row else 0
     finally:
@@ -230,6 +230,9 @@ def _safe_int(value):
         return int(value)
     except Exception:
         return None
+
+def _has_value(value):
+    return value is not None and value != ''
 
 
 def _get_connection(filename):
@@ -246,9 +249,9 @@ def _dict_factory(cursor, row):
 def _get(mediatype, column_names, column_value, season, episode):
     if mediatype == 'movie':
         sql_get = 'SELECT playcount FROM movie WHERE %s="%s"' % (column_names, column_value)
-    elif season and episode:
+    elif _has_value(season) and _has_value(episode):
         sql_get = 'SELECT playcount FROM episode WHERE %s="%s" and season=%s and episode=%s' % (column_names, column_value, season, episode)
-    elif season:
+    elif _has_value(season):
         sql_get = 'SELECT playcount FROM season WHERE %s = "%s" and season = %s' % (column_names, column_value, season)
     else:
         sql_get = 'SELECT playcount FROM tvshow WHERE %s = "%s"' % (column_names, column_value)
@@ -258,13 +261,13 @@ def _get(mediatype, column_names, column_value, season, episode):
 def createEntry(mediatype, title, name, imdb, number_of_seasons, season, number_of_episodes, episode):
     if mediatype == 'movie':
         _createEntry(mediatype, title, name, imdb, number_of_seasons, season, number_of_episodes, episode, column_names = 'name')
-    if season and episode:
+    if _has_value(season) and _has_value(episode):
         _createEntry(mediatype, title, name, imdb, number_of_seasons, season, number_of_episodes, episode)
         name = name[:-3]
         _createEntry(mediatype, title, name, imdb, number_of_seasons, season, number_of_episodes, None)
         name = name[:-4]
         _createEntry(mediatype, title, name, imdb, number_of_seasons, None, number_of_episodes, None)
-    elif season:
+    elif _has_value(season):
         _createEntry(mediatype, title, name, imdb, number_of_seasons, season, number_of_episodes, None)
         name = name[:-4]
         _createEntry(mediatype, title, name, imdb, number_of_seasons, None, number_of_episodes, None)
@@ -290,10 +293,10 @@ def _sql_insert(mediatype, title, name, imdb, number_of_seasons, season, number_
     if mediatype == 'movie':
         sql_insert = __insert_from_dict('movie', 4)
         sql_value = (title, name, imdb, 0)
-    elif season and episode:
+    elif _has_value(season) and _has_value(episode):
         sql_insert = __insert_from_dict('episode', 5)
         sql_value = (title, name, season, episode, 0)
-    elif season:
+    elif _has_value(season):
         sql_insert = __insert_from_dict('season', 5)
         sql_value = (title, name, season, number_of_episodes, 0)
     else:
@@ -316,10 +319,10 @@ def UpdatePlaycount(params): # for context menu
     if 'systitle' in meta and meta['systitle']: systitle = meta['systitle']
     if 'sysname' in meta and meta['sysname']: sysname = meta['sysname']
     if 'imdb_id' in meta and meta['imdb_id']: imdb_id = meta['imdb_id']
-    if 'number_of_seasons' in meta and meta['number_of_seasons']: number_of_seasons = meta['number_of_seasons']
-    if 'season' in meta and meta['season']: season = meta['season']
-    if 'number_of_episodes' in meta and meta['number_of_episodes']: number_of_episodes = meta['number_of_episodes']
-    if 'episode' in meta and meta['episode']: episode = meta['episode']
+    if 'number_of_seasons' in meta and _has_value(meta['number_of_seasons']): number_of_seasons = meta['number_of_seasons']
+    if 'season' in meta and _has_value(meta['season']): season = meta['season']
+    if 'number_of_episodes' in meta and _has_value(meta['number_of_episodes']): number_of_episodes = meta['number_of_episodes']
+    if 'episode' in meta and _has_value(meta['episode']): episode = meta['episode']
     if 'playCount' in params and params['playCount']: playCount = int(params['playCount'])
     if mediatype == 'movie':
         column_names = 'imdb_id'
@@ -357,14 +360,14 @@ def _refresh_parent_status(cursor, mediatype, title, name, id, number_of_seasons
     season = _safe_int(season)
     episode = _safe_int(episode)
     playcount = 1 if _safe_int(playcount) else 0
-    if not season:
+    if season is None:
         return
 
     total_episodes = _safe_int(number_of_episodes) or _stored_season_total(cursor, title, season)
     season_name = '%s S%02d' % (title, season)
     season_playcount = playcount
 
-    if episode:
+    if episode is not None:
         if not playcount:
             season_playcount = 0
         elif total_episodes:
@@ -377,6 +380,9 @@ def _refresh_parent_status(cursor, mediatype, title, name, id, number_of_seasons
         _upsert_season_status(cursor, title, season_name, season, total_episodes, season_playcount)
     else:
         cursor.execute('UPDATE season SET playcount = ? WHERE title = ? AND season = ?', (season_playcount, title, season))
+
+    if season == 0:
+        return
 
     if not season_playcount:
         _set_tvshow_playcount(cursor, title, name, id, number_of_seasons, 0)
@@ -421,7 +427,7 @@ def _refresh_tvshow_status(cursor, title, name, id, number_of_seasons):
     total_seasons = _safe_int(number_of_seasons) or _stored_tvshow_total(cursor, title)
     if not total_seasons:
         return
-    cursor.execute('SELECT COUNT(DISTINCT season) FROM season WHERE title = ? AND playcount > 0', (title,))
+    cursor.execute('SELECT COUNT(DISTINCT season) FROM season WHERE title = ? AND season > 0 AND playcount > 0', (title,))
     row = cursor.fetchone()
     watched_seasons = _safe_int(row[0]) if row else 0
     playcount = 1 if watched_seasons >= total_seasons else 0
@@ -457,9 +463,9 @@ def _set_tvshow_playcount(cursor, title, name, id, number_of_seasons, playcount)
 def _sql_update(table, title, name, id, season, episode, playcount):
     if table == 'movie':
         sql_update = 'UPDATE movie SET playcount = %s WHERE imdb_id = "%s"' % (playcount, id)
-    elif season and episode:
+    elif _has_value(season) and _has_value(episode):
         sql_update = 'UPDATE episode SET playcount = %s WHERE name = "%s"' % (playcount, name)
-    elif season:
+    elif _has_value(season):
         sql_update = 'UPDATE season SET playcount = %s WHERE name = "%s"' % (playcount, name)
     else:
         sql_update = 'UPDATE tvshow SET playcount = %s WHERE name = "%s"' % (playcount, name)

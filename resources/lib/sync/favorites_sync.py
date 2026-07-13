@@ -11,6 +11,7 @@ from resources.lib.sync.api_client import ApiError, Client
 
 
 STATE_FILE = 'sync_favorites_state.json'
+REMOTE_PULL_INTERVAL = 45
 
 
 def favourites_path():
@@ -31,7 +32,7 @@ def favorites_hash(raw_xml=None):
     return hashlib.sha256(normalized).hexdigest()
 
 
-def collect(raw_xml=None):
+def collect(raw_xml=None, deleted_keys=None, base_keys=None):
     raw = read_favourites() if raw_xml is None else raw_xml
     items = []
     if raw.strip():
@@ -48,7 +49,7 @@ def collect(raw_xml=None):
         except Exception as exc:
             log_utils.log('xVAULT sync: failed to parse favourites.xml: %s' % exc, log_utils.LOGWARNING)
     digest = favorites_hash(raw)
-    return {
+    payload = {
         'schema_version': 1,
         'source': 'kodi_favourites',
         'addon': control.addonId,
@@ -58,6 +59,11 @@ def collect(raw_xml=None):
         'raw_xml': raw,
         'items': items,
     }
+    if deleted_keys:
+        payload['deleted_keys'] = sorted(set(deleted_keys))
+    if base_keys is not None:
+        payload['base_keys'] = list(base_keys)
+    return payload
 
 
 def check_and_push_if_changed(silent=True, client=None, require_enabled=True, force=False):
@@ -82,7 +88,7 @@ def check_and_push_if_changed(silent=True, client=None, require_enabled=True, fo
                 control.infoDialog(str(exc), icon='WARNING')
             return False
 
-    merged_raw = merge_favorites(local_raw, server_raw, deletion_aware=True)
+    merged_raw, deleted_keys = merge_favorites_with_deleted(local_raw, server_raw, deletion_aware=True)
     merged_hash = favorites_hash(merged_raw)
     local_needs_update = merged_hash != local_hash
 
@@ -100,7 +106,7 @@ def check_and_push_if_changed(silent=True, client=None, require_enabled=True, fo
         return local_needs_update
 
     try:
-        client.push_favorites(collect(merged_raw))
+        client.push_favorites(collect(merged_raw, deleted_keys=deleted_keys))
         mark_synced(merged_raw)
         storage.update_last_sync(iso_now())
         storage.set_status('Angemeldet als %s' % storage.email())
@@ -150,6 +156,11 @@ def restore_from_server(mode='ask', client=None, require_login=True):
 
 
 def merge_favorites(local_xml, server_xml, deletion_aware=False):
+    merged_raw, _deleted_keys = merge_favorites_with_deleted(local_xml, server_xml, deletion_aware=deletion_aware)
+    return merged_raw
+
+
+def merge_favorites_with_deleted(local_xml, server_xml, deletion_aware=False):
     local_entries = _dedupe_entries(_parse_entries(local_xml))
     server_entries = _dedupe_entries(_parse_entries(server_xml))
     removed = set()
@@ -159,7 +170,7 @@ def merge_favorites(local_xml, server_xml, deletion_aware=False):
             local_keys = set(_entry_key(item) for item in local_entries)
             server_keys = set(_entry_key(item) for item in server_entries)
             removed = (last_keys - local_keys) | (last_keys - server_keys)
-    return _build_xml(_combine_entries(local_entries, server_entries, removed))
+    return _build_xml(_combine_entries(local_entries, server_entries, removed)), removed
 
 
 def _parse_entries(raw):
@@ -279,11 +290,23 @@ def monitor_changes(interval=5):
     try:
         import xbmc
         monitor = xbmc.Monitor()
+        next_remote_pull = 0
         while not monitor.abortRequested():
             if monitor.waitForAbort(interval):
                 break
+            now = time.time()
             if has_local_changes():
                 check_and_push_if_changed(silent=True)
+                next_remote_pull = now + REMOTE_PULL_INTERVAL
+            elif now >= next_remote_pull:
+                check_and_push_if_changed(silent=True)
+                if storage.is_enabled() and storage.is_logged_in():
+                    try:
+                        from resources.lib.sync import binge_sync
+                        binge_sync.pull_remote(apply_bookmarks=True, silent=True)
+                    except Exception as exc:
+                        log_utils.log('xVAULT sync: binge remote monitor failed: %s' % exc, log_utils.LOGWARNING)
+                next_remote_pull = now + REMOTE_PULL_INTERVAL
     except Exception as exc:
         log_utils.log('xVAULT sync: favorites monitor stopped: %s' % exc, log_utils.LOGWARNING)
 

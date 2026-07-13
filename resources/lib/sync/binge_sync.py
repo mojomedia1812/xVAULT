@@ -46,6 +46,26 @@ def record_playback(meta, name, year, current_time, total_time, completed=None, 
     return True
 
 
+def update_watch_status_from_params(params, push=True):
+    try:
+        import json
+        meta = json.loads(params.get('meta') or '{}')
+    except Exception:
+        return False
+    watched = str(params.get('playCount', '0')) == '1'
+    return update_watch_status(meta, watched=watched, push=push)
+
+
+def update_watch_status(meta, watched=True, push=True):
+    item = _manual_watch_item(meta, watched)
+    if not item:
+        return False
+    save_items([item])
+    if push and storage.is_enabled() and storage.is_logged_in():
+        push_local(silent=True)
+    return True
+
+
 def item_key(meta, name, year):
     if meta.get('tmdb_id'):
         base = 'tmdb:%s:%s:%s' % (meta.get('tmdb_id'), meta.get('season', ''), meta.get('episode', ''))
@@ -101,13 +121,27 @@ def _candidate_keys(item):
         if tmdb_id:
             keys.append('movie:tmdb:%s' % tmdb_id)
         keys.append('movie:name:%s:%s' % (_norm_title(item.get('title') or item.get('name')), str(item.get('year') or '')))
+    if mediatype == 'tvshow':
+        imdb_id = str(extra.get('imdb_id') or '')
+        if imdb_id:
+            keys.append('tvshow:imdb:%s' % imdb_id)
+        tmdb_id = str(extra.get('tmdb_id') or '')
+        if tmdb_id:
+            keys.append('tvshow:tmdb:%s' % tmdb_id)
+        keys.append('tvshow:name:%s' % _norm_title(item.get('title') or item.get('name')))
+    if mediatype == 'season':
+        tmdb_id = str(extra.get('tmdb_id') or '')
+        season = _maybe_int(item.get('season'))
+        if tmdb_id and season is not None:
+            keys.append('season:tmdb:%s:%s' % (tmdb_id, season))
+        keys.append('season:name:%s:%s' % (_norm_title(item.get('title')), season if season is not None else ''))
     if mediatype == 'episode':
         tmdb_id = str(extra.get('tmdb_id') or '')
         season = _maybe_int(item.get('season'))
         episode = _maybe_int(item.get('episode'))
-        if tmdb_id and season and episode:
+        if tmdb_id and season is not None and episode is not None:
             keys.append('episode:tmdb:%s:%s:%s' % (tmdb_id, season, episode))
-        keys.append('episode:name:%s:%s:%s' % (_norm_title(item.get('title')), season or '', episode or ''))
+        keys.append('episode:name:%s:%s:%s' % (_norm_title(item.get('title')), season if season is not None else '', episode if episode is not None else ''))
     if item.get('item_key'):
         keys.append('item:%s' % item.get('item_key'))
     return [key for key in keys if key and '::' not in key]
@@ -133,6 +167,10 @@ def collect_local_playcount_items():
         items.append(_movie_row_to_item(row))
     for row in watched.get('episodes', []):
         items.append(_episode_row_to_item(row))
+    for row in watched.get('seasons', []):
+        items.append(_season_row_to_item(row))
+    for row in watched.get('tvshows', []):
+        items.append(_tvshow_row_to_item(row))
     return [item for item in items if item]
 
 
@@ -171,7 +209,7 @@ def _episode_row_to_item(row):
     name = row.get('name') or title
     season = _maybe_int(row.get('season'))
     episode = _maybe_int(row.get('episode'))
-    if not title or not name or not season or not episode:
+    if not title or not name or season is None or episode is None:
         return None
     meta = {'mediatype': 'episode', 'season': season, 'episode': episode}
     return {
@@ -192,6 +230,66 @@ def _episode_row_to_item(row):
             'mediatype': 'episode',
             'imdb_id': '',
             'tmdb_id': '',
+        },
+    }
+
+
+def _season_row_to_item(row):
+    title = row.get('title') or ''
+    season = _maybe_int(row.get('season'))
+    if not title or season is None:
+        return None
+    name = row.get('name') or '%s S%02d' % (title, season)
+    meta = {'mediatype': 'season', 'season': season}
+    return {
+        'schema_version': 1,
+        'item_key': item_key(meta, name, '0'),
+        'title': title,
+        'name': name,
+        'year': '0',
+        'season': season,
+        'episode': None,
+        'position_seconds': 0,
+        'duration_seconds': 0,
+        'watched_percent': 100.0,
+        'completed': True,
+        'provider': 'xvault-playcount',
+        'updated_at': iso_now(),
+        'extra': {
+            'mediatype': 'season',
+            'imdb_id': '',
+            'tmdb_id': '',
+            'number_of_episodes': row.get('number_of_episodes') or '',
+        },
+    }
+
+
+def _tvshow_row_to_item(row):
+    title = row.get('title') or row.get('name') or ''
+    if not title:
+        return None
+    name = row.get('name') or title
+    imdb_id = row.get('imdb_id') or ''
+    meta = {'mediatype': 'tvshow', 'imdb_id': imdb_id}
+    return {
+        'schema_version': 1,
+        'item_key': item_key(meta, name, '0'),
+        'title': title,
+        'name': name,
+        'year': '0',
+        'season': None,
+        'episode': None,
+        'position_seconds': 0,
+        'duration_seconds': 0,
+        'watched_percent': 100.0,
+        'completed': True,
+        'provider': 'xvault-playcount',
+        'updated_at': iso_now(),
+        'extra': {
+            'mediatype': 'tvshow',
+            'imdb_id': imdb_id,
+            'tmdb_id': '',
+            'number_of_seasons': row.get('number_of_seasons') or '',
         },
     }
 
@@ -268,6 +366,9 @@ def apply_to_bookmarks(items):
         if item.get('completed'):
             apply_to_playcount(item)
             continue
+        if _is_unwatched_marker(item):
+            apply_to_unwatched(item)
+            continue
         name = item.get('name') or item.get('title')
         year = str(item.get('year') or '0')
         position = item.get('position_seconds')
@@ -285,7 +386,7 @@ def apply_to_playcount(item):
     if not title or not name:
         return False
     extra = item.get('extra') or {}
-    mediatype = extra.get('mediatype') or ('episode' if item.get('season') and item.get('episode') else 'movie')
+    mediatype = extra.get('mediatype') or ('episode' if item.get('season') is not None and item.get('episode') is not None else 'movie')
     imdb_id = extra.get('imdb_id') or ''
     season = _maybe_int(item.get('season'))
     episode = _maybe_int(item.get('episode'))
@@ -294,12 +395,48 @@ def apply_to_playcount(item):
             playcountDB.createEntry('movie', title, name, imdb_id, None, None, None, None)
             playcountDB.updatePlaycount('movie', title, name, imdb_id, None, None, None, None, 1)
             return True
-        if season and episode:
+        if mediatype == 'tvshow':
+            playcountDB.setTvshowStatus(title, name, imdb_id, extra.get('number_of_seasons'), 1)
+            return True
+        if mediatype == 'season' and season is not None:
+            playcountDB.setSeasonStatus(title, name, season, extra.get('number_of_episodes'), 1)
+            return True
+        if season is not None and episode is not None:
             playcountDB.createEntry('episode', title, name, imdb_id, None, season, None, episode)
             playcountDB.updatePlaycount('episode', title, name, imdb_id, None, season, None, episode, 1)
             return True
     except Exception as exc:
         log_sync_warning('failed to apply watched state: %s' % exc)
+    return False
+
+
+def apply_to_unwatched(item):
+    title = item.get('title') or item.get('name') or ''
+    name = item.get('name') or title
+    if not title or not name:
+        return False
+    extra = item.get('extra') or {}
+    mediatype = extra.get('mediatype') or ('episode' if item.get('season') is not None and item.get('episode') is not None else 'movie')
+    imdb_id = extra.get('imdb_id') or ''
+    season = _maybe_int(item.get('season'))
+    episode = _maybe_int(item.get('episode'))
+    try:
+        if mediatype == 'movie' and imdb_id:
+            playcountDB.createEntry('movie', title, name, imdb_id, None, None, None, None)
+            playcountDB.updatePlaycount('movie', title, name, imdb_id, None, None, None, None, 0)
+            return True
+        if mediatype == 'tvshow':
+            playcountDB.setTvshowStatus(title, name, imdb_id, extra.get('number_of_seasons'), 0)
+            return True
+        if mediatype == 'season' and season is not None:
+            playcountDB.setSeasonStatus(title, name, season, extra.get('number_of_episodes'), 0)
+            return True
+        if season is not None and episode is not None:
+            playcountDB.createEntry('episode', title, name, imdb_id, None, season, None, episode)
+            playcountDB.updatePlaycount('episode', title, name, imdb_id, None, season, None, episode, 0)
+            return True
+    except Exception as exc:
+        log_sync_warning('failed to apply unwatched state: %s' % exc)
     return False
 
 
@@ -317,7 +454,7 @@ def is_movie_watched(meta):
 def is_episode_watched(title, season, episode, meta=None):
     season = _maybe_int(season)
     episode = _maybe_int(episode)
-    if not season or not episode:
+    if season is None or episode is None:
         return False
     for item in completed_items():
         if _item_mediatype(item) != 'episode':
@@ -336,8 +473,11 @@ def is_episode_watched(title, season, episode, meta=None):
 def is_season_watched(title, season, number_of_episodes=None):
     season = _maybe_int(season)
     total = _maybe_int(number_of_episodes)
-    if not season or not total:
+    if season is None or not total:
         return False
+    for item in completed_items():
+        if _item_mediatype(item) == 'season' and _maybe_int(item.get('season')) == season and _norm_title(item.get('title')) == _norm_title(title):
+            return True
     watched = set()
     for item in completed_items():
         if _item_mediatype(item) != 'episode':
@@ -363,10 +503,14 @@ def completed_items():
 def _item_mediatype(item):
     extra = item.get('extra') or {}
     mediatype = extra.get('mediatype')
+    if mediatype in ('movie', 'episode', 'season', 'tvshow'):
+        return mediatype
     if mediatype == 'movie':
         return 'movie'
-    if item.get('season') and item.get('episode'):
+    if item.get('season') is not None and item.get('episode') is not None:
         return 'episode'
+    if item.get('season') is not None:
+        return 'season'
     return mediatype or 'movie'
 
 
@@ -409,6 +553,10 @@ def _bookmark_id(name, year):
 
 
 def is_newer(candidate, current):
+    if _is_unwatched_marker(candidate):
+        return (candidate.get('updated_at') or '') >= (current.get('updated_at') or '')
+    if _is_unwatched_marker(current) and not candidate.get('completed'):
+        return False
     if current.get('completed') and not candidate.get('completed'):
         return False
     if candidate.get('completed') and not current.get('completed'):
@@ -427,6 +575,58 @@ def is_newer(candidate, current):
 
 def _is_playcount_import(item):
     return item.get('provider') == 'xvault-playcount'
+
+
+def _is_unwatched_marker(item):
+    return item.get('watch_state') == 'unwatched'
+
+
+def _manual_watch_item(meta, watched):
+    title = meta.get('systitle') or meta.get('title') or meta.get('showtitle') or meta.get('name') or ''
+    name = meta.get('sysname') or meta.get('name') or title
+    season = _maybe_int(meta.get('season'))
+    episode = _maybe_int(meta.get('episode'))
+    mediatype = meta.get('mediatype')
+    if not mediatype:
+        if season is not None and episode is not None:
+            mediatype = 'episode'
+        elif season is not None:
+            mediatype = 'season'
+        else:
+            mediatype = 'movie'
+    if not title or not name:
+        return None
+    year = str(meta.get('year') or '0')
+    key_meta = {
+        'mediatype': mediatype,
+        'imdb_id': meta.get('imdb_id') or meta.get('imdb') or meta.get('imdbnumber'),
+        'tmdb_id': meta.get('tmdb_id'),
+        'season': season,
+        'episode': episode,
+    }
+    return {
+        'schema_version': 1,
+        'item_key': item_key(key_meta, name, year),
+        'title': title,
+        'name': name,
+        'year': year,
+        'season': season,
+        'episode': episode,
+        'position_seconds': 0,
+        'duration_seconds': 0,
+        'watched_percent': 100.0 if watched else 0.0,
+        'completed': bool(watched),
+        'watch_state': 'watched' if watched else 'unwatched',
+        'provider': 'xvault-manual',
+        'updated_at': iso_now(),
+        'extra': {
+            'mediatype': mediatype,
+            'imdb_id': key_meta.get('imdb_id') or '',
+            'tmdb_id': key_meta.get('tmdb_id') or '',
+            'number_of_seasons': meta.get('number_of_seasons') or '',
+            'number_of_episodes': meta.get('number_of_episodes') or '',
+        },
+    }
 
 
 def _maybe_int(value):

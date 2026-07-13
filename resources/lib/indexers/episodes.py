@@ -174,6 +174,13 @@ class episodes:
 						sysmeta.update({'playcount': 0, 'overlay': 6})
 				except:
 					pass
+				try:
+					from resources.lib import trakt
+					rate_item = trakt.context_rate_item(sysaddon, sysmeta)
+					if rate_item:
+						cm.append(rate_item)
+				except:
+					pass
 				cm.append(('Einstellungen', 'RunPlugin(%s?action=addonSettings)' % sysaddon))
 				item.addContextMenuItems(cm)
 

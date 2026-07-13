@@ -258,8 +258,14 @@ if __name__ == "__main__":
 	delHtmlCache()
 	ensure_youtube_api_keys()
 	try:
-		from resources.lib.sync import binge_sync
-		binge_sync.pull_remote(apply_bookmarks=True, silent=True)
+		from resources.lib.sync import binge_sync, storage
+		if storage.is_enabled() and storage.is_logged_in():
+			binge_sync.pull_remote(apply_bookmarks=True, silent=True)
+	except Exception:
+		pass
+	try:
+		from resources.lib import trakt
+		trakt.sync_watched(silent=True)
 	except Exception:
 		pass
 	try:

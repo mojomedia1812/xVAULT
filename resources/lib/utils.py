@@ -118,31 +118,18 @@ def multikeysort(items, columns):
 
 
 def getExtIDS(imdb, type): # get external IDS
-    # V2_API_KEY = getSetting('api.trakt').strip()
-    # e:\__DEV-19\devkodi\addons\metadata.themoviedb.org.python\python\lib\tmdbscraper\
-    V2_API_KEY = '5f2dc73b6b11c2ac212f5d8b4ec8f3dc4b727bb3f026cd254d89eda997fe64ae' # 4a65e1e644af74c98f9f2b3884669deb3fac9531ee71f39babf1dee46d264d17
-    headers = {'Content-Type': 'application/json', 'trakt-api-key': V2_API_KEY, 'trakt-api-version': '2'}
-    url = 'https://api.trakt.tv/{0}/{1}/?extended=full'.format(type, imdb)
-    result = requests.get(url, headers=headers)
-    if result.status_code == 200:
-        result = json.loads(result.content)
-        return result['ids']
-    else:
-        return [], ''
+    try:
+        from resources.lib import trakt
+        return trakt.get_external_ids(imdb, type)
+    except:
+        return {}
 
 
 def getAliases(imdb, type):
-    # V2_API_KEY = getSetting('api.trakt').strip()
-    V2_API_KEY = '5f2dc73b6b11c2ac212f5d8b4ec8f3dc4b727bb3f026cd254d89eda997fe64ae'
-    headers = {'Content-Type': 'application/json', 'trakt-api-key': V2_API_KEY, 'trakt-api-version': '2'}
-    aliasesUrl = 'https://api.trakt.tv/{0}/{1}/aliases'.format(type, imdb)
-    result = requests.get(aliasesUrl, headers=headers)
-    if result.status_code == 200:
-        result = json.loads(result.content)
-        localtitle = [i['title'] for i in result if i['country'] in ['de']]
-        localtitle = localtitle[0] if any(localtitle) else None
-        return [i['title'] for i in result if i['country'] in ['de', 'us', 'en', 'at', '']], localtitle
-    else:
+    try:
+        from resources.lib import trakt
+        return trakt.get_aliases(imdb, type)
+    except:
         return [], ''
 
 def aliases_to_array(aliases, filter=None):

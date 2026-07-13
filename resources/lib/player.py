@@ -198,8 +198,14 @@ class player(xbmc.Player):
             # Subtitles in Player MenÃ¼ ausschalten - wird dann bei Bedarf per "Hand" eingeschaltet
             # xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Player.SetSubtitle", "params": {"playerid": 1, "subtitle" : "on"}, "id": "1"}')
             xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Player.SetSubtitle", "params": {"playerid": 1, "subtitle" : "off"}, "id": "1"}')
+        self._traktStart()
         if self.isdebug: log_utils.log('Ende - onAVStarted', log_utils.LOGINFO)
 
+    def onPlayBackPaused(self):
+        self._traktPause()
+
+    def onPlayBackResumed(self):
+        self._traktStart()
 
     def onPlayBackStopped(self):
         self._finishPlayback(True, playback_ended=False)
@@ -224,6 +230,11 @@ class player(xbmc.Player):
         try:
             from resources.lib.sync import binge_sync
             binge_sync.record_playback(self.meta, self.name, self.year, self.currentTime, self.totalTime, completed=completed, push=True)
+        except:
+            pass
+        try:
+            from resources.lib import trakt
+            trakt.record_playback(self.meta, self.currentTime, self.totalTime, completed=completed)
         except:
             pass
         if restore_navigation:
@@ -263,6 +274,38 @@ class player(xbmc.Player):
             playcountDB.updatePlaycount(self.mediatype, self.title, self.name, self.imdb, self.number_of_seasons, self.season, self.number_of_episodes, self.episode, 1)
         except:
             pass
+
+
+    def _traktStart(self):
+        try:
+            from resources.lib import trakt
+            trakt.scrobble_start(self.meta, self._safePlayerTime(), self._safePlayerTotal())
+        except:
+            pass
+
+
+    def _traktPause(self):
+        try:
+            from resources.lib import trakt
+            trakt.scrobble_pause(self.meta, self._safePlayerTime(), self._safePlayerTotal())
+        except:
+            pass
+
+
+    def _safePlayerTime(self):
+        try:
+            self.currentTime = self.getTime()
+        except:
+            pass
+        return self.currentTime
+
+
+    def _safePlayerTotal(self):
+        try:
+            self.totalTime = self.getTotalTime()
+        except:
+            pass
+        return self.totalTime
 
 
     def parentDir(self):

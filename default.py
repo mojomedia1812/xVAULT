@@ -242,6 +242,17 @@ elif action and action.startswith('sync'):
     from resources.lib.sync import account
     account.dispatch(action)
 
+elif action and action.startswith('trakt'):
+    from resources.lib import trakt
+    trakt_directory = trakt.dispatch(action, params)
+    if not trakt_directory:
+        try:
+            handle = int(sys.argv[1])
+            if handle >= 0:
+                control.endofdirectory(handle, succeeded=True, cacheToDisc=False)
+        except Exception:
+            pass
+
 elif action == 'playTrailer':
     try:
         from resources.lib.trailer import playTrailer
@@ -259,7 +270,13 @@ elif action == 'UpdatePlayCount':
     from resources.lib import playcountDB
     playcountDB.UpdatePlaycount(params)
     try:
+        from resources.lib import trakt
+        trakt.update_watch_status_from_params(params, silent=True)
+    except Exception:
+        pass
+    try:
         from resources.lib.sync import binge_sync
+        binge_sync.update_watch_status_from_params(params, push=False)
         binge_sync.push_local(silent=True)
     except Exception:
         pass
