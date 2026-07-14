@@ -215,8 +215,7 @@
         <setting type="lsep" label="TMDb" />
         <setting id="api.tmdb" type="text" option="hidden" label="API-Key" default="0b529d296545c2545a68db5cb903cd94" />
         <setting type="lsep" label="TRAKT" />
-        <setting id="api.trakt" type="text" label="Client ID / API-Key" default="" />
-        <setting id="api.trakt.secret" type="text" option="hidden" label="Client Secret" default="" />
+        <setting type="text" label="[COLOR blue]Trakt verbindet xVAULT per Geräte-Code-OAuth.[CR]Du brauchst keine API-Keys einzutragen.[/COLOR]" />
         <setting id="trakt.aliases.enabled" type="bool" label="Alias-Suche ueber Trakt aktivieren" default="true" />
         <setting id="trakt.alias.timeout" type="slider" label="Alias-Timeout in Sekunden" default="5" range="1,1,20" option="int" />
         <setting id="trakt.alias.cache.hours" type="slider" label="Alias-Cache in Stunden" default="168" range="1,1,720" option="int" />

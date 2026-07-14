@@ -1,3 +1,10 @@
+xVAULT 2026.07.14.1
+Entwickler: mojomedia1812
+
+- Trakt-Anmeldung nutzt jetzt Device-Code-OAuth: xVAULT zeigt einen Geraetecode an, der unter trakt.tv/activate freigegeben wird.
+- Trakt-Zugangsdaten werden robust im xVAULT-Profil gespeichert; Token-Refresh bleibt auch dann stabil, wenn Kodi Settings leere Werte zurueckliefern.
+- Trakt-Status, Watchlist, Collection, Gesehen-Import, Alias-Suche, Token-Refresh sowie die Schreib-Payloads fuer History, Scrobbling und Bewertungen wurden lokal und in Kodi geprueft.
+
 xVAULT 2026.07.13.1
 Entwickler: mojomedia1812
 

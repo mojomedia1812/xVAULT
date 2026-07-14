@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.07.14.1] - 2026-07-14
+
+- Trakt-Anmeldung nutzt jetzt Device-Code-OAuth: xVAULT zeigt einen Geraetecode an, der unter trakt.tv/activate freigegeben wird.
+- Trakt-Zugangsdaten werden robust im xVAULT-Profil gespeichert; Token-Refresh bleibt auch dann stabil, wenn Kodi Settings leere Werte zurueckliefern.
+- Trakt-Status, Watchlist, Collection, Gesehen-Import, Alias-Suche, Token-Refresh sowie die Schreib-Payloads fuer History, Scrobbling und Bewertungen wurden lokal und in Kodi geprueft.
+
 ## [2026.07.06.1] - 2026-07-06
 
 - Filmpalast-Suchpfade werden nicht mehr doppelt kodiert, damit Titel mit Leerzeichen und Umlauten wieder Treffer liefern.

@@ -1,3 +1,4 @@
+import base64
 import json
 import sys
 import time
@@ -13,12 +14,11 @@ from resources.lib.sync import binge_sync, storage
 
 BASE_URL = 'https://api.trakt.tv'
 CACHE_FILE = 'trakt_cache.json'
+AUTH_FILE = 'trakt_auth.json'
 TOKEN_SKEW = 60
 MAX_LIST_PAGES = 5
-LEGACY_CLIENT_IDS = {
-    '85d3b28a69fd4d8162b3ea78689e1c8b15ff2ad9c1430ef6fc5a950662aee3ec',
-    '5f2dc73b6b11c2ac212f5d8b4ec8f3dc4b727bb3f026cd254d89eda997fe64ae',
-}
+TRAKT_CLIENT_ID = 'b64:MTdhNTQzNGUxNjRjMDViZDliNDU4NzEzOTBlNDg4YmE2OGNiZjViNDZlYzkzMjk0ZjJjODYzMzIwOGJhYWQ2MQ=='
+TRAKT_CLIENT_SECRET = 'b64:ODZlOThkMjFjOGZmOTUxNTczYzA2YzgxNmE4MjVmMDk3N2UyNDM5NjE2NTIxNjUxNzdlMzE3NWNjZGY5NWY2Mw=='
 
 
 class TraktError(Exception):
@@ -111,7 +111,7 @@ def authorize():
     if not client_id or not client_secret:
         control.dialog.ok(
             control.addonName,
-            'Bitte zuerst in den Einstellungen eine Trakt Client ID und ein Trakt Client Secret eintragen.'
+            'Die interne Trakt OAuth-Konfiguration ist unvollstaendig.'
         )
         return False
 
@@ -130,7 +130,6 @@ def authorize():
     user_code = data.get('user_code')
     device_code = data.get('device_code')
     verification_url = data.get('verification_url') or 'https://trakt.tv/activate'
-    activate_url = '%s/%s' % (verification_url.rstrip('/'), user_code) if user_code else verification_url
     interval = int(data.get('interval') or 5)
     expires_in = int(data.get('expires_in') or 600)
     if not user_code or not device_code:
@@ -139,7 +138,7 @@ def authorize():
 
     control.dialog.ok(
         control.addonName,
-        'Trakt verbinden:\n\n1. Oeffne %s\n2. Gib den Code ein: [B]%s[/B]\n\nDanach mit OK fortfahren.' % (activate_url, user_code)
+        'Trakt verbinden:\n\n1. Oeffne %s\n2. Gib den Code ein: [B]%s[/B]\n\nDanach mit OK fortfahren.' % (verification_url, user_code)
     )
 
     progress = control.progressDialog
@@ -158,13 +157,23 @@ def authorize():
                 _refresh_user_status()
                 control.infoDialog('Trakt verbunden.', icon='INFO', time=5000)
                 return True
-            if status == 418:
+            error_code = (token_data or {}).get('error') or ''
+            if status == 400 and error_code in ('', 'authorization_pending', 'pending'):
+                control.sleep(interval)
+                continue
+            if status == 418 or error_code in ('access_denied', 'denied'):
                 control.infoDialog('Trakt-Freigabe wurde abgelehnt.', icon='WARNING', time=6000)
                 return False
-            if status in (404, 409, 410):
+            if status in (404, 409, 410) or error_code in ('expired_token', 'invalid_grant', 'invalid_device_code'):
                 control.infoDialog('Trakt-Aktivierung ist abgelaufen oder ungueltig.', icon='WARNING', time=6000)
                 return False
-            if status == 429:
+            if status in (401, 403):
+                control.infoDialog('Trakt-OAuth-Konfiguration wurde von Trakt abgelehnt.', icon='WARNING', time=6000)
+                return False
+            if status == 400 and error_code in ('invalid_client', 'invalid_request'):
+                control.infoDialog('Trakt-OAuth-Konfiguration wurde von Trakt abgelehnt.', icon='WARNING', time=6000)
+                return False
+            if status == 429 or error_code == 'slow_down':
                 interval += 5
             control.sleep(interval)
     finally:
@@ -196,15 +205,18 @@ def logout():
 
 def show_status():
     connected = is_authorized()
-    status = 'verbunden' if connected else 'nicht verbunden'
+    if connected:
+        _refresh_user_status()
+    status_text = _auth_value('status') or _setting('trakt.status')
+    status = status_text or ('verbunden' if connected else 'nicht verbunden')
+    username = _auth_value('username') or _setting('trakt.username') or '-'
     lines = [
         'Status: %s' % status,
-        'Client ID: %s' % storage.mask_token(_client_id()),
-        'Client Secret: %s' % storage.mask_token(_client_secret()),
+        'OAuth-App: xVAULT Device-Code',
         'Alias-Suche: %s' % ('aktiv' if _bool('trakt.aliases.enabled', 'true') else 'inaktiv'),
         'Gesehen-Sync: %s' % ('aktiv' if _bool('trakt.sync.watched', 'false') else 'inaktiv'),
         'Scrobbling: %s' % ('aktiv' if _bool('trakt.scrobble.enabled', 'false') else 'inaktiv'),
-        'Benutzer: %s' % (_setting('trakt.username') or '-'),
+        'Benutzer: %s' % username,
         'Letzter Sync: %s' % (_setting('trakt.last_sync_at') or '-'),
     ]
     _log('Trakt Status: %s' % ' | '.join(lines))
@@ -422,9 +434,10 @@ def _request(method, path, params=None, payload=None, oauth=False, timeout=10, r
         raise TraktError('Python requests ist nicht verfuegbar.')
     client_id = _client_id()
     if not client_id:
-        raise TraktError('Trakt Client ID fehlt.')
+        raise TraktError('Trakt OAuth-Konfiguration fehlt.')
     headers = {
         'Content-Type': 'application/json',
+        'User-Agent': _user_agent(),
         'trakt-api-key': client_id,
         'trakt-api-version': '2',
     }
@@ -453,6 +466,7 @@ def _poll_device_token(device_code, client_id, client_secret):
     url = BASE_URL + '/oauth/device/token'
     headers = {
         'Content-Type': 'application/json',
+        'User-Agent': _user_agent(),
         'trakt-api-key': client_id,
         'trakt-api-version': '2',
     }
@@ -460,7 +474,10 @@ def _poll_device_token(device_code, client_id, client_secret):
     response = requests.post(url, headers=headers, json=payload, timeout=15)
     if response.status_code == 200:
         return 200, response.json()
-    return response.status_code, {}
+    try:
+        return response.status_code, response.json()
+    except Exception:
+        return response.status_code, {}
 
 
 def _valid_access_token():
@@ -500,14 +517,35 @@ def _refresh_access_token():
 
 def _save_auth(data):
     expires_in = int(data.get('expires_in') or 0)
-    _set_setting('trakt.access_token', data.get('access_token') or '')
-    _set_setting('trakt.refresh_token', data.get('refresh_token') or '')
-    _set_setting('trakt.token_expires_at', str(int(time.time()) + expires_in if expires_in else 0))
+    token_expires_at = int(time.time()) + expires_in if expires_in else 0
+    auth = _auth_data()
+    auth.update({
+        'access_token': data.get('access_token') or auth.get('access_token') or '',
+        'refresh_token': data.get('refresh_token') or auth.get('refresh_token') or '',
+        'token_expires_at': token_expires_at,
+        'enabled': True,
+        'status': auth.get('status') or 'Verbunden',
+        'updated_at': _display_time(),
+    })
+    _write_auth(auth)
+    _set_setting('trakt.access_token', auth.get('access_token') or '')
+    _set_setting('trakt.refresh_token', auth.get('refresh_token') or '')
+    _set_setting('trakt.token_expires_at', str(token_expires_at))
     _set_setting('trakt.enabled', 'true')
     _set_setting('trakt.status', 'Verbunden')
 
 
 def _clear_auth():
+    auth = _auth_data()
+    auth.update({
+        'access_token': '',
+        'refresh_token': '',
+        'token_expires_at': 0,
+        'enabled': False,
+        'status': 'Nicht verbunden',
+        'updated_at': _display_time(),
+    })
+    _write_auth(auth)
     for key in ('trakt.access_token', 'trakt.refresh_token', 'trakt.token_expires_at', 'trakt.username'):
         _set_setting(key, '')
     _set_setting('trakt.status', 'Nicht verbunden')
@@ -518,6 +556,9 @@ def _refresh_user_status():
         data, _headers = _request('GET', '/users/settings', oauth=True, timeout=10)
         user = (data.get('user') or {}).get('username') or ''
         if user:
+            auth = _auth_data()
+            auth.update({'username': user, 'status': 'Verbunden als %s' % user, 'updated_at': _display_time()})
+            _write_auth(auth)
             _set_setting('trakt.username', user)
             _set_setting('trakt.status', 'Verbunden als %s' % user)
     except Exception:
@@ -525,13 +566,13 @@ def _refresh_user_status():
 
 
 def _can_use_oauth(silent):
-    if not _bool('trakt.enabled', 'false'):
+    if not _trakt_enabled():
         if not silent:
             control.infoDialog('Trakt-Konto ist deaktiviert.', icon='WARNING', time=6000)
         return False
     if not _client_id() or not _client_secret():
         if not silent:
-            control.infoDialog('Trakt Client ID/Secret fehlen.', icon='WARNING', time=6000)
+            control.infoDialog('Trakt OAuth-Konfiguration fehlt.', icon='WARNING', time=6000)
         return False
     if not _valid_access_token():
         if not silent:
@@ -907,29 +948,59 @@ def _alias_timeout():
 
 
 def _client_id():
-    client_id = (_setting('api.trakt') or '').strip()
-    if client_id in LEGACY_CLIENT_IDS:
-        return ''
-    return client_id
+    return _decode_secret(TRAKT_CLIENT_ID)
 
 
 def _client_secret():
-    return (_setting('api.trakt.secret') or '').strip()
+    return _decode_secret(TRAKT_CLIENT_SECRET)
+
+
+def _decode_secret(value):
+    if value.startswith('b64:'):
+        return base64.b64decode(value[4:].encode('ascii')).decode('utf-8')
+    return value
+
+
+def _user_agent():
+    version = getattr(control, 'addonVersion', '') or 'unknown'
+    return 'xVAULT/%s Kodi' % version
 
 
 def _access_token():
-    return (_setting('trakt.access_token') or '').strip()
+    return (_auth_value('access_token') or _setting('trakt.access_token') or '').strip()
 
 
 def _refresh_token():
-    return (_setting('trakt.refresh_token') or '').strip()
+    return (_auth_value('refresh_token') or _setting('trakt.refresh_token') or '').strip()
 
 
 def _token_expires_at():
     try:
-        return int(_setting('trakt.token_expires_at') or 0)
+        return int(_auth_value('token_expires_at') or _setting('trakt.token_expires_at') or 0)
     except Exception:
         return 0
+
+
+def _trakt_enabled():
+    auth = _auth_data()
+    if auth.get('enabled') is True or str(auth.get('enabled')).lower() == 'true':
+        return True
+    return _bool('trakt.enabled', 'false')
+
+
+def _auth_value(key, default=''):
+    data = _auth_data()
+    value = data.get(key, default) if isinstance(data, dict) else default
+    return '' if value is None else str(value)
+
+
+def _auth_data():
+    data = storage.read_json(AUTH_FILE, {})
+    return data if isinstance(data, dict) else {}
+
+
+def _write_auth(data):
+    return storage.write_json(AUTH_FILE, data)
 
 
 def _setting(key, default=''):
@@ -937,7 +1008,20 @@ def _setting(key, default=''):
 
 
 def _set_setting(key, value):
-    control.setSetting(key, '' if value is None else str(value))
+    value = '' if value is None else str(value)
+    try:
+        if key in ('trakt.enabled',):
+            control.Addon.setSettingBool(key, value.lower() == 'true')
+            return
+        control.Addon.setSettingString(key, value)
+        return
+    except Exception as exc:
+        _log('Trakt setSettingString/setSettingBool fehlgeschlagen fuer %s: %s' % (key, exc), log_utils.LOGWARNING)
+        pass
+    try:
+        control.setSetting(key, value)
+    except Exception as exc:
+        _log('Trakt setting fallback fehlgeschlagen fuer %s: %s' % (key, exc), log_utils.LOGWARNING)
 
 
 def _bool(key, default='false'):
