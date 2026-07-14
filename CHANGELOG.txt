@@ -1,3 +1,10 @@
+xVAULT 2026.07.14.3
+Entwickler: mojomedia1812
+
+- xVAULT-Synchronisation nutzt den neuen API-Host xvault-sql.ddnss.de und den neuen Datenbankspace fuer Favoriten und Binge-/Wiedergabestaende.
+- Sync-API auf dem neuen Space bereitgestellt; Status, Registrierung, Favoriten-/Binge-Sync und Pull wurden gegen die neue Datenbank getestet.
+- Sync-Client verwendet fuer den neuen Host zuerst den erreichbaren HTTP-Endpunkt, damit fehlendes HTTPS nicht vor jedem Sync zu Wartezeiten fuehrt.
+
 xVAULT 2026.07.14.2
 Entwickler: mojomedia1812
 

@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.07.14.2`
+Aktueller Stand: `2026.07.14.3`
 
 Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geaendert wird, muss diese README geprueft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** oeffnen.
-3. Die Datei `plugin.video.xvault-2026.07.14.2.zip` auswaehlen.
+3. Die Datei `plugin.video.xvault-2026.07.14.3.zip` auswaehlen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen ueber das Repository.
@@ -56,6 +56,7 @@ Weitere Hinweise zu Abhaengigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Nach beendeter Wiedergabe wird der Gesehen-Status aktualisiert, ohne dass die Auswahl mehrfach zwischen alter Position und naechster ungesehener Folge springt.
 - DNS over HTTPS ist standardmaessig aktiv und kann in den allgemeinen Einstellungen deaktiviert werden. xVAULT nutzt Cloudflare fuer die DNS-Aufloesung seiner HTTP-Anfragen; die aktivierten Indexseiten laufen ueber dieselbe RequestHandler-Logik, feste IPs bleiben nur Rueckfall.
 - xVAULT-Synchronisation fuer Favoriten und Wiedergabestaende.
+- Die xVAULT-Synchronisation nutzt den neuen API-Host `xvault-sql.ddnss.de` fuer Favoriten- und Binge-/Wiedergabestaende.
 - Die Synchronisation gleicht gespeicherte Login-Daten automatisch ab, damit Server-Backups auch nach einem veralteten lokalen API-Key wiederhergestellt werden koennen.
 - `Jetzt synchronisieren` bereinigt doppelte lokale Fortsetzen-Eintraege und bricht dadurch nicht mehr mit einem PluginError ab, wenn alte Bookmark-Daten mehrfach vorhanden sind.
 - Automatische Updatepruefung kann in den allgemeinen Einstellungen aktiviert oder deaktiviert werden.

@@ -8,6 +8,8 @@ Die xVAULT-Synchronisation sichert benutzerbezogen Kodi-Favoriten und Wiedergabe
 
 Die API akzeptiert JSON und antwortet immer mit JSON.
 
+Aktueller Produktivhost: `http://xvault-sql.ddnss.de/index.php?action=`
+
 - `POST /index.php?action=register`
 - `POST /index.php?action=login`
 - `POST /index.php?action=favorites_push`
@@ -72,11 +74,11 @@ Serverdateien liegen im Repository unter `api/`.
 
 Auf dem Zielhost muss eine echte `config.php` mit Datenbankzugangsdaten neben `index.php` liegen. Im Repository liegt nur `config.example.php`.
 
-Typischer Upload:
+Aktueller Upload fuer den neuen Freehostia-Space:
 
-- `api/index.php` -> `/htdocs/index.php`
-- `api/.htaccess` -> `/htdocs/.htaccess`
-- lokale, nicht versionierte `api/config.php` -> `/htdocs/config.php`
+- `api/index.php` -> `/xvault-sql.ddnss.de/index.php`
+- `api/.htaccess` -> `/xvault-sql.ddnss.de/.htaccess`
+- lokale, nicht versionierte `api/config.php` -> `/xvault-sql.ddnss.de/config.php`
 
 ## Secrets
 

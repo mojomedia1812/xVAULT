@@ -8,8 +8,8 @@ from resources.lib import log_utils
 from resources.lib.sync import storage
 
 
-HTTPS_BASE = 'https://xvault.xo.je/index.php?action='
-HTTP_BASE = 'http://xvault.xo.je/index.php?action='
+HTTPS_BASE = 'https://xvault-sql.ddnss.de/index.php?action='
+HTTP_BASE = 'http://xvault-sql.ddnss.de/index.php?action='
 TIMEOUT = 15
 USER_AGENT = 'Mozilla/5.0 (Kodi; xVAULT Sync)'
 CHALLENGE_RE = re.compile(r'toNumbers\("([0-9a-f]+)"\)')
@@ -88,7 +88,7 @@ class Client(object):
             if auth and key:
                 headers['Authorization'] = 'Bearer %s' % key
                 headers['X-API-Key'] = key
-            for base in (HTTPS_BASE, HTTP_BASE):
+            for base in (HTTP_BASE, HTTPS_BASE):
                 try:
                     raw = self._open(base, action, method, body, headers)
                     data = json.loads(raw)

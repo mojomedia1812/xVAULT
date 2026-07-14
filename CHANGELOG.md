@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.07.14.3] - 2026-07-14
+
+- xVAULT-Synchronisation nutzt den neuen API-Host `xvault-sql.ddnss.de` und den neuen Datenbankspace fuer Favoriten und Binge-/Wiedergabestaende.
+- Sync-API auf dem neuen Space bereitgestellt; Status, Registrierung, Favoriten-/Binge-Sync und Pull wurden gegen die neue Datenbank getestet.
+- Sync-Client verwendet fuer den neuen Host zuerst den erreichbaren HTTP-Endpunkt, damit fehlendes HTTPS nicht vor jedem Sync zu Wartezeiten fuehrt.
+
 ## [2026.07.14.2] - 2026-07-14
 
 - Lokale Pickle-Speicher schreiben Daten jetzt per atomischem Dateiersatz mit kurzem Retry bei Windows-Dateisperren, damit abgebrochene Schreibvorgaenge bei vollem Speicher oder OneDrive-Locks die bestehende Datei nicht beschaedigen.
