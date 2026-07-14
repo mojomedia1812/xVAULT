@@ -23,9 +23,9 @@ _MODE_ALIASES = {
 }
 
 _MODE_SETTING_VALUES = {
-    MODE_DIALOG: 'Dialog',
-    MODE_DIRECTORY: 'Verzeichnis',
-    MODE_AUTOPLAY: 'Autoplay',
+    MODE_DIALOG: MODE_DIALOG,
+    MODE_DIRECTORY: MODE_DIRECTORY,
+    MODE_AUTOPLAY: MODE_AUTOPLAY,
 }
 
 
@@ -39,7 +39,8 @@ def normalize_mode(value, default=MODE_AUTOPLAY):
 
 
 def get_mode(default=MODE_AUTOPLAY):
-    return normalize_mode(control.getSetting('hosts.mode'), default)
+    raw = _read_addon_setting('hosts.mode') or _read_profile_setting('hosts.mode')
+    return normalize_mode(raw, default)
 
 
 def set_mode(value):
@@ -49,7 +50,7 @@ def set_mode(value):
 
 
 def migrate_mode_setting():
-    raw = _read_profile_setting('hosts.mode') or control.getSetting('hosts.mode')
+    raw = _read_profile_setting('hosts.mode') or _read_addon_setting('hosts.mode')
     mode = normalize_mode(raw, None)
     if mode is None:
         return set_mode(MODE_AUTOPLAY)
@@ -72,3 +73,15 @@ def _read_profile_setting(setting_id):
     except Exception:
         pass
     return ''
+
+
+def _read_addon_setting(setting_id):
+    try:
+        import xbmcaddon
+        return xbmcaddon.Addon().getSetting(setting_id)
+    except Exception:
+        pass
+    try:
+        return control.getSetting(setting_id)
+    except Exception:
+        return ''

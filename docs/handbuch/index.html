@@ -459,7 +459,7 @@
       <h3>Resolver</h3>
       <p>Hosterlinks werden bei Bedarf über die Resolver-Ebene aufgelöst. Die Resolver-Einstellungen sind im Werkzeugmenü erreichbar. Sie betreffen die Hosterauswahl, aber nicht die Suchlogik der einzelnen Indexseiten.</p>
       <h3>DNS over HTTPS</h3>
-      <p>In den allgemeinen Einstellungen kann xVAULT DNS over HTTPS über Cloudflare aktivieren. Dann fragt der RequestHandler die Ziel-IP über Cloudflare ab, verbindet sich aber weiterhin mit der ursprünglichen Domain, damit Host-Header, Cookies und HTTPS-SNI erhalten bleiben. Die aktiven Indexseiten nutzen denselben Weg; feste IPs dienen nur als Rückfall, falls Cloudflare-DoH keine nutzbare Verbindung liefert.</p>
+      <p>DNS over HTTPS über Cloudflare ist standardmäßig aktiv und kann in den allgemeinen Einstellungen deaktiviert werden. Der RequestHandler fragt die Ziel-IP über Cloudflare ab, verbindet sich aber weiterhin mit der ursprünglichen Domain, damit Host-Header, Cookies und HTTPS-SNI erhalten bleiben. Die aktiven Indexseiten nutzen denselben Weg; feste IPs dienen nur als Rückfall, falls Cloudflare-DoH keine nutzbare Verbindung liefert.</p>
     </section>
 
     <section id="wiedergabe" class="panel manual-section">
@@ -476,7 +476,7 @@
           <tr><td>Autoplay</td><td>Startet automatisch die beste passende Quelle. Diese Option wird bei Streamsprache <strong>Alle</strong> automatisch verhindert.</td></tr>
         </tbody>
       </table>
-      <p>Die Einstellung wird beim normalen Start von Filmen und Folgen frisch aus den Kodi-Einstellungen gelesen. Alte Favoriten oder externe Wiedergabe-Links können dadurch nicht mehr unbemerkt einen früher gespeicherten Autoplay-Wert erzwingen. In Kodi wird die Auswahl als Textwert gespeichert und intern kompatibel normalisiert, damit <strong>Dialog</strong> auch beim Öffnen der Add-on-Einstellungen aus einer aktiven Folgenliste heraus erhalten bleibt.</p>
+      <p>Die Einstellung wird beim normalen Start von Filmen und Folgen zuerst aus Kodis aktuellem Add-on-Setting gelesen; die Profil-Datei dient als Rückfall. Alte Favoriten oder externe Wiedergabe-Links können dadurch nicht mehr unbemerkt einen früher gespeicherten Autoplay-Wert erzwingen. Die Auswahl nutzt Kodis native Enum-Speicherung, versteht alte Textwerte weiterhin und wird bei Plugin-Aufrufen automatisch migriert, damit Änderungen aus den Add-on-Einstellungen auch aus einer aktiven Favoriten- oder Folgenliste heraus für die nächste Wiedergabe gelten.</p>
       <h3>Fortsetzen</h3>
       <p>xVAULT kann Wiedergabepositionen speichern und beim nächsten Start einer Quelle anbieten, an der letzten Position weiterzuschauen. Das Verhalten lässt sich in den Wiedergabeeinstellungen steuern.</p>
       <h3>Gesehen markieren</h3>
@@ -486,6 +486,7 @@
       <p>Beim Start einer Serienquelle verwendet xVAULT die vorhandene IMDB-Kennung unabhängig davon, ob sie als <strong>imdb_id</strong> oder <strong>imdbnumber</strong> aus einer Liste, einem Favoriten oder einem Kodi-Profil kommt. Fehlende optionale Metadaten verhindern dadurch nicht mehr, dass Kodi den Player-Eintrag erhält.</p>
       <p>VOE-Quellen können direkt in xVAULT aufgelöst werden, wenn die installierte ResolveURL-Version die aktuelle VOE-Ausweichdomain noch nicht kennt. Dadurch erhalten Windows, Linux und Android wieder einen echten MP4- oder HLS-Link statt nur die Hoster-Webseite.</p>
       <p>Wenn ein Hoster nur eine Webseite, aber keinen echten Direktstream liefert, wird diese Quelle übersprungen. So bekommt Kodi keine HTML-Seite als Video und kann mit weiteren Quellen fortfahren.</p>
+      <p>Hängende Resolver- oder Player-Starts werden zeitlich begrenzt. Wenn Autoplay aktiv ist und eine gefundene Quelle nicht wirklich startet, versucht xVAULT danach weitere verfügbare Quellen statt dauerhaft im Ladezustand zu bleiben. Beendet Kodi eine Wiedergabe ohne Stop-Callback an das Add-on, erkennt xVAULT den fehlenden aktiven Videoplayer selbst und schließt die Wiedergabeüberwachung.</p>
       <h3>Wiedergabe ab hier</h3>
       <p>Bei Episodenlisten kann xVAULT aufeinanderfolgende Episoden ab einer gewählten Stelle starten. Das ist besonders praktisch für Serienabende und Staffel-Fortsetzungen.</p>
     </section>
@@ -559,11 +560,11 @@
       <div class="setting-group">
         <h3>Allgemein</h3>
         <ul>
-          <li><strong>Standard-Aktion:</strong> Dialog, Verzeichnis oder Autoplay. Die aktuelle Einstellung gilt auch für ältere Favoriten und externe Wiedergabe-Links, wird stabil als Textwert gespeichert und bei Streamsprache Alle automatisch vor Autoplay geschützt.</li>
+          <li><strong>Standard-Aktion:</strong> Dialog, Verzeichnis oder Autoplay. Die aktuelle Einstellung gilt auch für ältere Favoriten und externe Wiedergabe-Links, nutzt Kodis native Enum-Speicherung mit automatischer Migration alter Textwerte und wird bei Streamsprache Alle automatisch vor Autoplay geschützt.</li>
           <li><strong>Automatische Updates:</strong> Standardmäßig aktiv. Kann deaktiviert werden, wenn Updates manuell kontrolliert werden sollen.</li>
           <li><strong>Scraper-Timeout:</strong> Begrenzt, wie lange xVAULT auf Indexseiten wartet.</li>
           <li><strong>Fanart und Doku-Suche:</strong> Steuern zusätzliche Darstellung und Suchoptionen.</li>
-          <li><strong>DNS over HTTPS:</strong> Aktiviert Cloudflare-DoH für Seitenabrufe der Indexseiten. Standardmäßig aus; bei Bedarf kann die Option helfen, wenn eine Domain über das aktuelle DNS nicht korrekt aufgelöst wird.</li>
+          <li><strong>DNS over HTTPS:</strong> Aktiviert Cloudflare-DoH für Seitenabrufe der Indexseiten. Standardmäßig aktiv; bei Bedarf kann die Option deaktiviert werden.</li>
           <li><strong>RequestHandler-Cache:</strong> Timeout, Cachezeit, volatiler HTML-Cache, Tagesdelta und Cache-Löschung für Seitenabrufe.</li>
           <li><strong>Status:</strong> Aktualisierung von Gesehen/Ungesehen für Filme, Episoden, Staffeln und Serien.</li>
         </ul>

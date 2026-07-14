@@ -1,3 +1,12 @@
+xVAULT 2026.07.14.2
+Entwickler: mojomedia1812
+
+- Standard-Aktion nutzt wieder Kodis native Enum-Speicherung und migriert alte Textwerte, damit Aenderungen aus Add-on-Settings in aktiven Favoriten- und Folgenlisten wirklich gespeichert werden.
+- Autoplay wird beim Start von Filmen und Folgen frisch aus Kodis aktuellem Add-on-Setting gelesen; alte Favoriten oder externe Aufrufe ueberstimmen die aktuelle Auswahl nicht mehr.
+- DNS over HTTPS nutzt eine neue Einstellungs-ID, ist standardmaessig aktiv und bleibt ueber die allgemeinen Einstellungen abschaltbar.
+- Autoplay und Streamauswahl begrenzen haengende Resolver- oder Player-Starts per Timeout und versuchen bei Autoplay weitere Quellen.
+- Fire-TV-Stick-Kompatibilitaet kann lokal mit neuen Profil- und Kodi-Simulatoren geprueft werden.
+
 xVAULT 2026.07.14.1
 Entwickler: mojomedia1812
 

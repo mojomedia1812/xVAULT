@@ -16,6 +16,12 @@ table = params.get('table')
 title = params.get('title')
 source = params.get('source')
 
+try:
+    from resources.lib import playback_settings
+    playback_settings.migrate_mode_setting()
+except Exception:
+    pass
+
 
 if action is None or action == 'root':
     from resources.lib import updater
@@ -27,11 +33,6 @@ if action is None or action == 'root':
     try:
         from resources.lib import first_install
         first_install.apply_playback_defaults_once()
-    except Exception:
-        pass
-    try:
-        from resources.lib import playback_settings
-        playback_settings.migrate_mode_setting()
     except Exception:
         pass
     try:

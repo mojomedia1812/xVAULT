@@ -10,7 +10,6 @@ import time
 import hashlib
 import pickle
 from copy import deepcopy
-from shutil import copyfile
 import xbmc, xbmcaddon, xbmcvfs
 
 if sys.version_info.major == 3:
@@ -113,9 +112,15 @@ class _Storage(MutableMapping):
             try:
                 with open(tmp, 'wb') as fo:
                     fo.write(contents)
-                copyfile(tmp, self._filename)
+                    try:
+                        fo.flush()
+                        os.fsync(fo.fileno())
+                    except OSError:
+                        pass
+                _replace_file(tmp, self._filename)
             finally:
-                os.remove(tmp)
+                if os.path.exists(tmp):
+                    os.remove(tmp)
         del self._storage
 
     def copy(self):
@@ -137,6 +142,17 @@ def _py2_decode(s, encoding='utf-8'):
     if sys.version_info.major == 2 and isinstance(s, bytes):
         s = s.decode(encoding)
     return s
+
+
+def _replace_file(source, destination):
+    for attempt in range(50):
+        try:
+            os.replace(source, destination)
+            return
+        except PermissionError:
+            if attempt >= 49:
+                raise
+            time.sleep(0.05)
 
 def _get_storage(filename='storage.pcl'):
     """

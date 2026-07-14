@@ -20,6 +20,8 @@ except:
 # eventuell zur spÃ¤teren verwendung als meta
 #_params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
 
+PLAYBACK_START_TIMEOUT = 45
+
 class player(xbmc.Player):
     def __init__(self, *args, **kwargs):
         xbmc.Player.__init__(self, *args, **kwargs)
@@ -28,6 +30,7 @@ class player(xbmc.Player):
         self.currentTime = 0
         self.playcount = 0
         self.watcher_control = False
+        self.playback_started = False
         self.list_position = 0
         self.list_content = ''
         self.queue_playback = False
@@ -126,11 +129,10 @@ class player(xbmc.Player):
                 xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, item)
             else:
                 xbmc.Player().play(url, item)
-            self.keepPlaybackAlive()
-            return
+            return self.keepPlaybackAlive()
         except Exception as e:
             log_utils.log('Playback start failed: %s' % str(e), log_utils.LOGERROR)
-            return
+            return False
 
     def _playbackLabel(self, name, meta):
         try:
@@ -155,20 +157,36 @@ class player(xbmc.Player):
 
     def keepPlaybackAlive(self):
         if self.isdebug: log_utils.log('Start - keepPlaybackAlive', log_utils.LOGINFO)
-        for i in range(0, 240):
-            if self.isPlayingVideo(): break
+        started = False
+        for i in range(0, PLAYBACK_START_TIMEOUT):
+            if self.streamFinished:
+                break
+            if self.isPlayingVideo():
+                started = True
+                self.playback_started = True
+                break
             control.sleep(1)
 
-        if self.isPlayingVideo():
-            try:
-                playcountDB.createEntry(self.mediatype, self.title, self.name, self.imdb, self.number_of_seasons, self.season, self.number_of_episodes, self.episode)
-            except:
-                pass
+        if not started:
+            control.idle()
+            log_utils.log(
+                'Playback start timeout nach %s Sekunden: %s' %
+                (PLAYBACK_START_TIMEOUT, getattr(self, 'playback_name', getattr(self, 'name', 'unbekannt'))),
+                log_utils.LOGWARNING
+            )
+            return False
+
+        try:
+            playcountDB.createEntry(self.mediatype, self.title, self.name, self.imdb, self.number_of_seasons, self.season, self.number_of_episodes, self.episode)
+        except:
+            pass
 
         monitor = xbmc.Monitor()
         self.watcher_control = False
+        stopped_without_callback = 0
         while (not monitor.abortRequested()) & (not self.streamFinished):
             if self.isPlayingVideo():
+                stopped_without_callback = 0
                 self.totalTime = self.getTotalTime()
                 self.currentTime = self.getTime()
                 watcher = self.totalTime > 0 and (self.currentTime / self.totalTime >= .9)
@@ -176,9 +194,16 @@ class player(xbmc.Player):
                     playcountDB.updatePlaycount(self.mediatype, self.title, self.name, self.imdb, self.number_of_seasons, self.season, self.number_of_episodes, self.episode, 1)
                     #control.setSetting(id='watcher.control', value='true')
                     self.watcher_control = True
+            else:
+                stopped_without_callback += 1
+                if stopped_without_callback >= 5:
+                    log_utils.log('Playback ohne Stop-Callback beendet: %s' % getattr(self, 'playback_name', ''), log_utils.LOGWARNING)
+                    self._finishPlayback(True, playback_ended=False)
+                    break
             monitor.waitForAbort(3)
 
         if self.isdebug: log_utils.log('Ende - keepPlaybackAlive', log_utils.LOGINFO)
+        return True
 
 
     def idleForPlayback(self):
@@ -190,6 +215,7 @@ class player(xbmc.Player):
 
     def onAVStarted(self):
         if self.isdebug: log_utils.log('Start - onAVStarted', log_utils.LOGINFO)
+        self.playback_started = True
         control.execute('Dialog.Close(all,true)')
         if not self.offset == '0': self.seekTime(float(self.offset))
         self.idleForPlayback()
@@ -214,8 +240,15 @@ class player(xbmc.Player):
         self._finishPlayback(not self.queue_playback or self.queue_last, playback_ended=True)
         if self.isdebug: log_utils.log('Ende - onPlayBackEnded', log_utils.LOGINFO)
 
+    def onPlayBackError(self):
+        log_utils.log('Playback-Fehler vor oder waehrend der Wiedergabe: %s' % getattr(self, 'playback_name', ''), log_utils.LOGWARNING)
+        self.streamFinished = True
+
     def _finishPlayback(self, restore_navigation, playback_ended=False):
         if self.streamFinished:
+            return
+        if not self.playback_started:
+            self.streamFinished = True
             return
         if self.isdebug: log_utils.log('Start - onPlayBackStopped', log_utils.LOGINFO)
         self.runVideoDB()

@@ -16,6 +16,7 @@ if int(getKodiVersion()) >= 20: from infotagger.listitem import ListItemInfoTag
 
 SOURCE_CACHE_TTL = 15 * 60
 SOURCE_CACHE_LIMIT = 5
+SOURCE_RESOLVE_TIMEOUT = 30
 
 # für self.sysmeta - zur späteren verwendung als meta
 _params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
@@ -28,7 +29,25 @@ class sources:
         if 'sysmeta' in _params: self.sysmeta = _params['sysmeta'] # string zur späteren verwendung als meta
         self.watcher = False
         self.executor = ThreadPoolExecutor(max_workers=20)
+        self.executor_shutdown = False
         self.url = None
+
+    def _ensureExecutor(self):
+        if getattr(self, 'executor_shutdown', False):
+            self.executor = ThreadPoolExecutor(max_workers=20)
+            self.executor_shutdown = False
+
+    def _shutdownExecutor(self):
+        try:
+            if getattr(self, 'executor_shutdown', False):
+                return
+            try:
+                self.executor.shutdown(wait=False, cancel_futures=True)
+            except TypeError:
+                self.executor.shutdown(False)
+            self.executor_shutdown = True
+        except:
+            pass
 
     def get(self, params):
         data = json.loads(params['sysmeta'])
@@ -99,7 +118,11 @@ class sources:
                     if  url == 'close://': return
                 # Autoplay
                 else:
-                    url = self.sourcesDirect(items)
+                    try: autoplay_meta = json.loads(meta)
+                    except: autoplay_meta = meta
+                    if self.sourcesAutoplay(items, title, autoplay_meta):
+                        return
+                    url = None
 
             if url == None: return self.errorForSources()
 
@@ -108,9 +131,12 @@ class sources:
             meta = self._mergeSelectedStreamMeta(meta, getattr(self, 'selectedSourceItem', None))
 
             from resources.lib.player import player
-            player().run(title, url, meta)
+            if not player().run(title, url, meta):
+                self.errorForSources()
         except Exception as e:
             log_utils.log('Error %s' % str(e), log_utils.LOGERROR)
+        finally:
+            self._shutdownExecutor()
 
     def _enforceStreamLanguageSelectionMode(self, select):
         if getattr(self, 'mediatype', None) not in ['movie', 'tvshow']:
@@ -317,6 +343,7 @@ class sources:
             #if isDebug: log_utils.log('playItem 237', log_utils.LOGWARNING)
             if item['source'] == None: raise Exception()
             
+            self._ensureExecutor()
             future = self.executor.submit(self.sourcesResolve, item)
             
             waiting_time = 30
@@ -350,10 +377,13 @@ class sources:
 
             meta = self._mergeSelectedStreamMeta(meta, item)
             from resources.lib.player import player
-            player().run(title, self.url, meta)
+            if not player().run(title, self.url, meta):
+                self.errorForSources()
             return self.url
         except Exception as e:
             log_utils.log('Error %s' % str(e), log_utils.LOGERROR)
+        finally:
+            self._shutdownExecutor()
 
 
     def getSources(self, title, year, imdb, season, episode, originaltitle, premiered, quality='HD', timeout=30, episode_title=None, episode_premiered=None):
@@ -387,6 +417,7 @@ class sources:
                 aliases.append(i)
         titles = utils.get_titles_for_search(title, originaltitle, aliases)
 
+        self._ensureExecutor()
         futures = {self.executor.submit(self._getSource, titles, year, season, episode, imdb, provider[0], provider[1], episode_title, episode_premiered): provider[0] for provider in sourceDict}
         provider_names = {provider[0].upper() for provider in sourceDict}
 
@@ -1027,8 +1058,7 @@ class sources:
                         waiting_time = waiting_time - 1
 
                         if control.condVisibility('Window.IsActive(virtualkeyboard)') or \
-                                control.condVisibility('Window.IsActive(yesnoDialog)') or \
-                                control.condVisibility('Window.IsActive(ProgressDialog)'):
+                                control.condVisibility('Window.IsActive(yesnoDialog)'):
                             waiting_time = waiting_time + 1 #dont count down while dialog is presented ## control.condVisibility('Window.IsActive(PopupRecapInfoWindow)') or \
 
                     if not future.done(): block = items[i]['source']
@@ -1056,6 +1086,122 @@ class sources:
             log_utils.log('Error %s' % str(e), log_utils.LOGINFO)
 
 
+    def _resolveSourceWithTimeout(self, item, progressDialog=None, timeout=SOURCE_RESOLVE_TIMEOUT):
+        self._ensureExecutor()
+        future = self.executor.submit(self.sourcesResolve, item, False, True)
+        waiting_time = timeout
+        while waiting_time > 0:
+            try:
+                if control.abortRequested:
+                    return sys.exit()
+                if progressDialog and progressDialog.iscanceled():
+                    return 'close://'
+            except:
+                pass
+
+            if future.done():
+                break
+            control.sleep(1)
+            waiting_time = waiting_time - 1
+
+            if control.condVisibility('Window.IsActive(virtualkeyboard)') or \
+                    control.condVisibility('Window.IsActive(yesnoDialog)'):
+                waiting_time = waiting_time + 1
+
+        if not future.done():
+            log_utils.log(
+                'Resolve Timeout: Provider %s / Hoster %s nach %s Sekunden' %
+                (item.get('provider'), item.get('source'), timeout),
+                log_utils.LOGWARNING
+            )
+            return None
+
+        try:
+            return future.result()
+        except Exception as e:
+            log_utils.log(
+                'Resolve Fehler: Provider %s / Hoster %s / %s' %
+                (item.get('provider'), item.get('source'), str(e)),
+                log_utils.LOGWARNING
+            )
+            return None
+
+
+    def sourcesAutoplay(self, items, title, meta):
+        if not items:
+            return False
+
+        header = control.addonInfo('name')
+        header2 = header.upper()
+        progressDialog = None
+
+        try:
+            control.sleep(1)
+            progressDialog = control.progressDialog if control.getSetting('progress.dialog') == '0' else control.progressDialogBG
+            progressDialog.create(header, '')
+            progressDialog.update(0)
+        except:
+            progressDialog = None
+
+        try:
+            from resources.lib.player import player
+
+            for i in range(len(items)):
+                item = items[i]
+                try:
+                    if progressDialog:
+                        try:
+                            if progressDialog.iscanceled():
+                                break
+                            progressDialog.update(int((100 / float(len(items))) * i), str(item['label']))
+                        except:
+                            progressDialog.update(int((100 / float(len(items))) * i), str(header2) + str(item['label']))
+
+                    if control.abortRequested:
+                        return sys.exit()
+
+                    url = self._resolveSourceWithTimeout(item, progressDialog, SOURCE_RESOLVE_TIMEOUT)
+                    if url == 'close://':
+                        return False
+                    if url == None:
+                        continue
+
+                    self.selectedSourceItem = item
+                    playback_meta = self._mergeSelectedStreamMeta(dict(meta) if isinstance(meta, dict) else meta, item)
+
+                    try: progressDialog.close()
+                    except: pass
+                    progressDialog = None
+
+                    log_utils.log(
+                        'Autoplay versucht Quelle: Provider %s / Hoster %s' %
+                        (item.get('provider'), item.get('source')),
+                        log_utils.LOGINFO
+                    )
+                    if player().run(title, url, playback_meta):
+                        return True
+
+                    log_utils.log(
+                        'Autoplay Quelle startete nicht: Provider %s / Hoster %s' %
+                        (item.get('provider'), item.get('source')),
+                        log_utils.LOGWARNING
+                    )
+
+                    try:
+                        progressDialog = control.progressDialog if control.getSetting('progress.dialog') == '0' else control.progressDialogBG
+                        progressDialog.create(header, '')
+                        progressDialog.update(int((100 / float(len(items))) * (i + 1)))
+                    except:
+                        progressDialog = None
+                except:
+                    pass
+        finally:
+            try: progressDialog.close()
+            except: pass
+
+        return False
+
+
     def sourcesDirect(self, items):
         # TODO - OK
         # filter = [i for i in items if i['source'].lower() in self.hostcapDict and i['debrid'] == '']
@@ -1078,15 +1224,20 @@ class sources:
 
         for i in range(len(items)):
             try:
-                if progressDialog.iscanceled(): break
-                progressDialog.update(int((100 / float(len(items))) * i), str(items[i]['label']))
+                if progressDialog and progressDialog.iscanceled(): break
+                if progressDialog: progressDialog.update(int((100 / float(len(items))) * i), str(items[i]['label']))
             except:
-                progressDialog.update(int((100 / float(len(items))) * i), str(header2) + str(items[i]['label']))
+                try:
+                    if progressDialog: progressDialog.update(int((100 / float(len(items))) * i), str(header2) + str(items[i]['label']))
+                except:
+                    pass
 
             try:
                 if control.abortRequested: return sys.exit()
 
-                url = self.sourcesResolve(items[i], False, True)
+                url = self._resolveSourceWithTimeout(items[i], progressDialog, SOURCE_RESOLVE_TIMEOUT)
+                if url == 'close://':
+                    break
                 if u == None: u = url
                 if not url == None:
                     self.selectedSourceItem = items[i]

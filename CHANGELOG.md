@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [2026.07.14.2] - 2026-07-14
+
+- Android-basierter Fire-TV-Stick-Profil-Simulator fuer xVAULT-Kompatibilitaetschecks hinzugefuegt, inklusive Android-TV-AVD-Testplaenen nach dem Amazon-AVD-Vorgehen.
+- Lokale Pickle-Speicher schreiben Daten jetzt per atomischem Dateiersatz mit kurzem Retry bei Windows-Dateisperren, damit abgebrochene Schreibvorgaenge bei vollem Speicher oder OneDrive-Locks die bestehende Datei nicht beschaedigen.
+- Kodi-/xVAULT-Simulator fuer Fire-TV-Stick-Grenzen hinzugefuegt, inklusive AFTMM-Fokus und Datenbank-Stresstest fuer Pickle-Speicher und `playcount.db`.
+- Autoplay und Streamauswahl brechen haengende Resolver- oder Player-Starts jetzt mit Timeout ab, versuchen bei Autoplay weitere Quellen und beenden den Wiedergabe-Waechter auch dann, wenn Kodi keinen Stop-Callback liefert.
+- DNS over HTTPS nutzt eine neue Einstellungs-ID und ist dadurch auch bei bestehenden Profilen standardmaessig aktiv, bleibt danach aber ueber die allgemeinen Einstellungen abschaltbar.
+- Die Standard-Aktion wird beim Start von Filmen und Folgen frisch aus Kodis aktuellem Add-on-Setting gelesen und nutzt die Profil-Datei nur als Rueckfall, damit Aenderungen aus dem Kodi-Settingsdialog sofort fuer die naechste Wiedergabe gelten.
+- Die Standard-Aktion nutzt wieder Kodis native Enum-Speicherung und migriert alte Textwerte bei jedem Plugin-Aufruf, damit Aenderungen aus Add-on-Settings in aktiven Favoriten- und Folgenlisten wirklich gespeichert werden.
+
 ## [2026.07.14.1] - 2026-07-14
 
 - Trakt-Anmeldung nutzt jetzt Device-Code-OAuth: xVAULT zeigt einen Geraetecode an, der unter trakt.tv/activate freigegeben wird.

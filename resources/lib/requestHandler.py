@@ -44,7 +44,10 @@ from http.client import HTTPException
 from random import choice
 
 def _doh_enabled():
-    return getSetting('bypassDNSlock', 'false') == 'true'
+    value = getSetting('bypassDNSlock.enabled', '')
+    if value in ['true', 'false']:
+        return value == 'true'
+    return True
 
 
 class IPHTTPConnection(http.client.HTTPConnection):
