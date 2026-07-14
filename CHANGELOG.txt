@@ -3,8 +3,10 @@ Entwickler: mojomedia1812
 
 - Standard-Aktion nutzt wieder Kodis native Enum-Speicherung und migriert alte Textwerte, damit Aenderungen aus Add-on-Settings in aktiven Favoriten- und Folgenlisten wirklich gespeichert werden.
 - Autoplay wird beim Start von Filmen und Folgen frisch aus Kodis aktuellem Add-on-Setting gelesen; alte Favoriten oder externe Aufrufe ueberstimmen die aktuelle Auswahl nicht mehr.
-- DNS over HTTPS nutzt eine neue Einstellungs-ID, ist standardmaessig aktiv und bleibt ueber die allgemeinen Einstellungen abschaltbar.
 - Autoplay und Streamauswahl begrenzen haengende Resolver- oder Player-Starts per Timeout und versuchen bei Autoplay weitere Quellen.
+- Zuletzt gefundene Quellenlisten fuer Filme und Serien werden kurz zwischengespeichert, damit ein Quellenwechsel nicht erneut alle Indexseiten abfragen muss.
+- Lokale Pickle-Speicher schreiben Daten per atomischem Dateiersatz mit Retry, damit Schreibabbrueche bei Speicher- oder Windows-Dateisperren keine bestehenden Daten beschaedigen.
+- DNS over HTTPS nutzt eine neue Einstellungs-ID, ist standardmaessig aktiv und bleibt ueber die allgemeinen Einstellungen abschaltbar.
 - Fire-TV-Stick-Kompatibilitaet kann lokal mit neuen Profil- und Kodi-Simulatoren geprueft werden.
 
 xVAULT 2026.07.14.1

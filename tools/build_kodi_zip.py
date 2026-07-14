@@ -342,8 +342,9 @@ def _release_notes_html():
             '    </section>'
         ) % html.escape(VERSION)
     blocks = []
-    for version, bullets in releases:
-        items = "\n".join("        <li>%s</li>" % html.escape(bullet) for bullet in bullets[:4])
+    for index, (version, bullets) in enumerate(releases):
+        visible_bullets = bullets if index == 0 else bullets[:4]
+        items = "\n".join("        <li>%s</li>" % html.escape(bullet) for bullet in visible_bullets)
         blocks.append(
             '    <section class="panel update-panel">\n'
             '      <p class="section-kicker">Neu in %s</p>\n'
