@@ -7,7 +7,6 @@ Entwickler: mojomedia1812
 - Zuletzt gefundene Quellenlisten fuer Filme und Serien werden kurz zwischengespeichert, damit ein Quellenwechsel nicht erneut alle Indexseiten abfragen muss.
 - Lokale Pickle-Speicher schreiben Daten per atomischem Dateiersatz mit Retry, damit Schreibabbrueche bei Speicher- oder Windows-Dateisperren keine bestehenden Daten beschaedigen.
 - DNS over HTTPS nutzt eine neue Einstellungs-ID, ist standardmaessig aktiv und bleibt ueber die allgemeinen Einstellungen abschaltbar.
-- Fire-TV-Stick-Kompatibilitaet kann lokal mit neuen Profil- und Kodi-Simulatoren geprueft werden.
 
 xVAULT 2026.07.14.1
 Entwickler: mojomedia1812
