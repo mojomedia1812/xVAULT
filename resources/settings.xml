@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
     <category label="Allgemein">
-        <setting id="hosts.mode.v2" type="labelenum" label="Standard-Aktion" values="Dialog|Verzeichnis|Autoplay" default="Autoplay" />
-        <setting id="hosts.mode.v2.migrated" type="bool" label="Standard-Aktion migriert" default="false" visible="false" />
+        <setting label="Standard-Aktion ändern" type="action" action="RunPlugin(&quot;plugin://plugin.video.xvault/?action=setPlaybackMode&quot;)" />
         <setting id="updates.auto" type="bool" label="Automatische Updates aktivieren" default="true" />
         <setting id="scrapers.timeout" type="slider" label="Zeitlimit für Indexseiten" default="35" range="10,60" option="int" />
         <setting id="fanart" type="bool" label="Fanart verwenden" default="true" />

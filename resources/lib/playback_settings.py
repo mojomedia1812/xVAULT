@@ -8,9 +8,12 @@ MODE_DIALOG = '0'
 MODE_DIRECTORY = '1'
 MODE_AUTOPLAY = '2'
 
-SETTING_ID = 'hosts.mode.v2'
-MIGRATION_SETTING_ID = 'hosts.mode.v2.migrated'
-LEGACY_SETTING_IDS = ('hosts.mode', 'default.action')
+SETTING_ID = 'xvault.playback.mode'
+MIGRATION_SETTING_ID = 'xvault.playback.mode.migrated'
+MODE_FILE = 'playback_mode.txt'
+LEGACY_SETTING_IDS = ('hosts.mode.v3', 'hosts.mode.v2', 'hosts.mode', 'default.action')
+LEGACY_MARKER_IDS = ('hosts.mode.v3.migrated', 'hosts.mode.v2.migrated')
+MODE_ORDER = (MODE_DIALOG, MODE_DIRECTORY, MODE_AUTOPLAY)
 
 _MODE_LABELS = {
     MODE_DIALOG: 'Dialog',
@@ -49,7 +52,7 @@ def normalize_mode(value, default=MODE_AUTOPLAY):
 
 
 def get_mode(default=MODE_AUTOPLAY):
-    mode, _raw, _source = _resolve_mode(default, prefer_live=True)
+    mode, _raw, _source = _resolve_mode(default)
     return mode
 
 
@@ -59,61 +62,65 @@ def set_mode(value):
     return mode
 
 
+def select_mode(value=None):
+    if value is None:
+        labels = [_MODE_LABELS[mode] for mode in MODE_ORDER]
+        choice = control.selectDialog(labels, 'Standard-Aktion')
+        if choice < 0:
+            return None
+        mode = MODE_ORDER[choice]
+    else:
+        mode = normalize_mode(value, None)
+        if mode is None:
+            control.infoDialog('Ungueltige Standard-Aktion.', icon='WARNING')
+            return None
+
+    set_mode(mode)
+    control.infoDialog('Standard-Aktion: %s' % _MODE_LABELS[mode], icon='INFO')
+    return mode
+
+
 def migrate_mode_setting():
-    mode, raw, source = _resolve_mode(None, prefer_live=True)
+    mode, _raw, source = _resolve_mode(None)
     if mode is None:
         return MODE_AUTOPLAY
-
-    desired = _MODE_SETTING_VALUES[mode]
-    if (
-        str(raw).strip() != desired
-        or _profile_setting_differs_from_mode(mode)
-        or _profile_source_differs_from_live(source, mode)
-    ):
+    if source != 'file' or _legacy_profile_settings_present():
         _write_mode(mode)
     return mode
 
 
 def has_profile_mode():
-    for setting_id in (SETTING_ID,) + LEGACY_SETTING_IDS:
+    mode, _raw, source = _resolve_mode(None)
+    return mode is not None and source != 'default'
+
+
+def _resolve_mode(default=MODE_AUTOPLAY):
+    file_raw = _read_mode_file()
+    file_mode = normalize_mode(file_raw, None)
+    if file_mode is not None:
+        return file_mode, file_raw, 'file'
+
+    explicit_profile_candidates = []
+    default_profile_candidates = []
+    for setting_id in LEGACY_SETTING_IDS:
         raw, is_default = _read_profile_setting(setting_id)
         if _profile_value_is_explicit(raw, is_default):
-            return True
-    return False
+            explicit_profile_candidates.append((raw, 'profile:%s' % setting_id))
+        elif _profile_value_is_default(raw, is_default):
+            default_profile_candidates.append((raw, 'profile-default:%s' % setting_id))
 
-
-def _resolve_mode(default=MODE_AUTOPLAY, prefer_live=True):
-    current_raw, current_is_default = _read_profile_setting(SETTING_ID)
-    live_raw, live_available = _read_live_addon_setting(SETTING_ID)
-    explicit_profile_candidates = [
-        (current_raw, 'profile:%s' % SETTING_ID, _profile_value_is_explicit(current_raw, current_is_default))
-    ]
-    default_profile_candidates = [
-        (current_raw, 'profile-default:%s' % SETTING_ID, _profile_value_is_default(current_raw, current_is_default))
-    ]
-    live_candidates = [(live_raw, 'live:%s' % SETTING_ID, live_available)]
+    for raw, source in explicit_profile_candidates:
+        mode = normalize_mode(raw, None)
+        if mode is not None:
+            return mode, raw, source
 
     for setting_id in LEGACY_SETTING_IDS:
-        legacy_raw, legacy_is_default = _read_profile_setting(setting_id)
-        explicit_profile_candidates.append(
-            (legacy_raw, 'profile:%s' % setting_id, _profile_value_is_explicit(legacy_raw, legacy_is_default))
-        )
-        default_profile_candidates.append(
-            (legacy_raw, 'profile-default:%s' % setting_id, _profile_value_is_default(legacy_raw, legacy_is_default))
-        )
-        legacy_live_raw, legacy_live_available = _read_live_addon_setting(setting_id)
-        live_candidates.append((legacy_live_raw, 'live:%s' % setting_id, legacy_live_available))
+        raw, available = _read_live_addon_setting(setting_id)
+        mode = normalize_mode(raw, None)
+        if available and mode is not None:
+            return mode, raw, 'live:%s' % setting_id
 
-    if _stored_legacy_should_precede_live(live_raw, current_raw, current_is_default, explicit_profile_candidates):
-        ordered_candidates = explicit_profile_candidates + live_candidates + default_profile_candidates
-    elif prefer_live:
-        ordered_candidates = live_candidates + explicit_profile_candidates + default_profile_candidates
-    else:
-        ordered_candidates = explicit_profile_candidates + live_candidates + default_profile_candidates
-
-    for raw, source, enabled in ordered_candidates:
-        if not enabled:
-            continue
+    for raw, source in default_profile_candidates:
         mode = normalize_mode(raw, None)
         if mode is not None:
             return mode, raw, source
@@ -122,43 +129,40 @@ def _resolve_mode(default=MODE_AUTOPLAY, prefer_live=True):
 
 
 def _write_mode(mode):
-    value = _MODE_SETTING_VALUES[mode]
-    if mode == MODE_AUTOPLAY:
-        try:
-            control.setSetting(id=SETTING_ID, value=_MODE_LABELS[MODE_DIALOG])
-        except Exception:
-            pass
-    control.setSetting(id=SETTING_ID, value=value)
-    control.setSetting(id=MIGRATION_SETTING_ID, value='true')
-    _write_profile_setting(SETTING_ID, value, clear_legacy=True)
-    _write_profile_setting(MIGRATION_SETTING_ID, 'true')
+    _write_mode_file(_MODE_SETTING_VALUES[mode])
+    _remove_profile_settings(LEGACY_SETTING_IDS + LEGACY_MARKER_IDS)
 
 
-def _profile_source_differs_from_live(source, mode):
-    if not str(source).startswith('profile:'):
-        return False
-    raw, available = _read_live_addon_setting(SETTING_ID)
-    return available and normalize_mode(raw, None) != mode
+def _mode_file_path():
+    return os.path.join(control.addonProfilePath, MODE_FILE)
 
 
-def _profile_setting_differs_from_mode(mode):
-    raw, _is_default = _read_profile_setting(SETTING_ID)
-    return bool(raw) and str(raw).strip() != _MODE_SETTING_VALUES[mode]
+def _read_mode_file():
+    try:
+        with open(_mode_file_path(), 'r', encoding='utf-8') as handle:
+            return handle.read().strip()
+    except Exception:
+        return ''
 
 
-def _stored_legacy_should_precede_live(live_raw, current_raw, current_is_default, explicit_profile_candidates):
-    if _migration_marker_applied():
-        return False
-    if normalize_mode(live_raw, None) != MODE_AUTOPLAY:
-        return False
-    if normalize_mode(current_raw, None) is not None and not current_is_default:
-        return False
-    for raw, source, enabled in explicit_profile_candidates:
-        if (
-            enabled
-            and source in ('profile:%s' % setting_id for setting_id in LEGACY_SETTING_IDS)
-            and normalize_mode(raw, None) in (MODE_DIALOG, MODE_DIRECTORY)
-        ):
+def _write_mode_file(value):
+    try:
+        path = _mode_file_path()
+        directory = os.path.dirname(path)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory)
+        tmp_path = path + '.tmp'
+        with open(tmp_path, 'w', encoding='utf-8') as handle:
+            handle.write(value + '\n')
+        os.replace(tmp_path, path)
+    except Exception:
+        pass
+
+
+def _legacy_profile_settings_present():
+    for setting_id in LEGACY_SETTING_IDS + LEGACY_MARKER_IDS:
+        raw, _is_default = _read_profile_setting(setting_id)
+        if raw:
             return True
     return False
 
@@ -171,11 +175,6 @@ def _profile_value_is_explicit(raw, is_default):
 def _profile_value_is_default(raw, is_default):
     mode = normalize_mode(raw, None)
     return mode is not None and is_default and not _profile_value_is_explicit(raw, is_default)
-
-
-def _migration_marker_applied():
-    raw, _is_default = _read_profile_setting(MIGRATION_SETTING_ID)
-    return str(raw).strip().lower() == 'true'
 
 
 def _read_profile_setting(setting_id):
@@ -192,44 +191,25 @@ def _read_profile_setting(setting_id):
     return '', False
 
 
-def _write_profile_setting(setting_id, value, clear_legacy=False):
+def _remove_profile_settings(setting_ids):
     try:
         path = os.path.join(control.addonProfilePath, 'settings.xml')
-        if os.path.exists(path):
-            root = ET.parse(path).getroot()
-        else:
-            root = ET.Element('settings', {'version': '2'})
-
-        if clear_legacy:
-            for node in list(root.findall('setting')):
-                if node.get('id') in LEGACY_SETTING_IDS:
-                    root.remove(node)
-
-        target = None
-        for node in root.findall('setting'):
-            if node.get('id') == setting_id:
-                target = node
-                break
-        if target is None:
-            target = ET.SubElement(root, 'setting', {'id': setting_id})
-        target.attrib.pop('default', None)
-        target.text = value
-
-        directory = os.path.dirname(path)
-        if directory and not os.path.exists(directory):
-            os.makedirs(directory)
-        ET.ElementTree(root).write(path, encoding='utf-8', xml_declaration=False)
+        if not os.path.exists(path):
+            return
+        root = ET.parse(path).getroot()
+        changed = False
+        for node in list(root.findall('setting')):
+            if node.get('id') in setting_ids:
+                root.remove(node)
+                changed = True
+        if changed:
+            ET.ElementTree(root).write(path, encoding='utf-8', xml_declaration=False)
     except Exception:
         pass
 
 
 def _read_live_addon_setting(setting_id):
     try:
-        import xbmcaddon
-        return xbmcaddon.Addon().getSetting(setting_id), True
-    except Exception:
-        pass
-    try:
-        return control.getSetting(setting_id), False
+        return control.getSetting(setting_id), True
     except Exception:
         return '', False

@@ -435,6 +435,11 @@ elif action == 'addonSettings':
     query = params.get('query')
     control.openSettings(query)
 
+elif action == 'setPlaybackMode':
+    from resources.lib import playback_settings
+    playback_settings.select_mode(params.get('mode'))
+    _finish_action()
+
 elif action == 'resetSettings':
     status = control.resetSettings()
     if status:

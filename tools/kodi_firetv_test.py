@@ -592,120 +592,156 @@ def run_playback_settings_check(profile: FireTvStickProfile, kodi_version: str, 
         )
 
         from resources.lib import playback_settings
-        setting_id = playback_settings.SETTING_ID
-        legacy_setting_id = "hosts.mode"
+        mode_file = state.profile_dir / playback_settings.MODE_FILE
+
+        def stored_label() -> str:
+            return mode_file.read_text(encoding="utf-8").strip() if mode_file.exists() else ""
+
+        def reset_mode_file() -> None:
+            if mode_file.exists():
+                mode_file.unlink()
+
+        def profile_has(setting_id: str) -> bool:
+            if not settings_path.exists():
+                return False
+            try:
+                root = ET.parse(str(settings_path)).getroot()
+                return any(node.get("id") == setting_id for node in root.findall("setting"))
+            except Exception:
+                return False
+
+        def legacy_cleared() -> bool:
+            return not any(profile_has(setting_id) for setting_id in playback_settings.LEGACY_SETTING_IDS)
 
         checks = []
         for live_value, expected in (("Verzeichnis", "1"), ("Dialog", "0"), ("Autoplay", "2")):
-            state.settings[setting_id] = live_value
+            playback_settings.set_mode(live_value)
             actual = playback_settings.get_mode()
-            checks.append("%s=>%s" % (live_value, actual))
-            if actual != expected:
+            label = stored_label()
+            checks.append("%s=>%s/%s" % (live_value, actual, label))
+            if actual != expected or label != live_value:
                 return CheckResult(
                     "playback-settings",
                     "FAIL",
-                    "Live-Wert %s ergab %s statt %s; checks=%s" % (live_value, actual, expected, ", ".join(checks)),
+                    "Dateiwert %s ergab mode=%s label=%s statt %s/%s; checks=%s" %
+                    (live_value, actual, label, expected, live_value, ", ".join(checks)),
                 )
 
+        reset_mode_file()
         settings_path.write_text(
             '<settings version="2">\n'
             '    <setting id="hosts.mode">Verzeichnis</setting>\n'
             '</settings>\n',
             encoding="utf-8",
         )
-        state.settings[setting_id] = "Autoplay"
         migrated = playback_settings.migrate_mode_setting()
-        written = state.settings.get(setting_id)
-        if migrated != "1" or written != "Verzeichnis":
+        written = stored_label()
+        if migrated != "1" or written != "Verzeichnis" or not legacy_cleared():
             return CheckResult(
                 "playback-settings",
                 "FAIL",
-                "Legacy-Migration ergab mode=%s write=%s statt 1/Verzeichnis." % (migrated, written),
+                "Legacy-Migration ergab mode=%s write=%s statt 1/Verzeichnis oder entfernte Legacy nicht." % (migrated, written),
             )
 
+        playback_settings.set_mode("Verzeichnis")
         settings_path.write_text(
             '<settings version="2">\n'
             '    <setting id="hosts.mode.v2" default="true">Autoplay</setting>\n'
             '</settings>\n',
             encoding="utf-8",
         )
-        state.settings[setting_id] = "Verzeichnis"
         migrated = playback_settings.migrate_mode_setting()
-        if migrated != "1" or state.settings.get(setting_id) != "Verzeichnis":
+        if migrated != "1" or stored_label() != "Verzeichnis" or not legacy_cleared():
             return CheckResult(
                 "playback-settings",
                 "FAIL",
                 "Default-Profilwert ueberschrieb Live-Wert: mode=%s write=%s." %
-                (migrated, state.settings.get(setting_id)),
+                (migrated, stored_label()),
             )
 
+        reset_mode_file()
+        settings_path.write_text(
+            '<settings version="2">\n'
+            '    <setting id="hosts.mode.v2" default="true">Dialog</setting>\n'
+            '</settings>\n',
+            encoding="utf-8",
+        )
+        migrated = playback_settings.migrate_mode_setting()
+        if migrated != "0" or stored_label() != "Dialog" or not legacy_cleared():
+            return CheckResult(
+                "playback-settings",
+                "FAIL",
+                "v2-Labelwert wurde nicht uebernommen: mode=%s write=%s." %
+                (migrated, stored_label()),
+            )
+
+        reset_mode_file()
         settings_path.write_text(
             '<settings version="2">\n'
             '    <setting id="hosts.mode" default="true">2</setting>\n'
             '</settings>\n',
             encoding="utf-8",
         )
-        state.settings[setting_id] = ""
         migrated = playback_settings.migrate_mode_setting()
-        if migrated != "2" or state.settings.get(setting_id) != "Autoplay":
+        if migrated != "2" or stored_label() != "Autoplay" or not legacy_cleared():
             return CheckResult(
                 "playback-settings",
                 "FAIL",
                 "Numerischer Altwert wurde nicht auf Label migriert: mode=%s write=%s." %
-                (migrated, state.settings.get(setting_id)),
+                (migrated, stored_label()),
             )
 
+        reset_mode_file()
         settings_path.write_text(
             '<settings version="2">\n'
             '    <setting id="hosts.mode">1</setting>\n'
             '</settings>\n',
             encoding="utf-8",
         )
-        state.settings[setting_id] = "Autoplay"
         migrated = playback_settings.migrate_mode_setting()
-        if migrated != "1" or state.settings.get(setting_id) != "Verzeichnis":
+        if migrated != "1" or stored_label() != "Verzeichnis" or not legacy_cleared():
             return CheckResult(
                 "playback-settings",
                 "FAIL",
                 "Numerischer Nicht-Autoplay-Altwert ging verloren: mode=%s write=%s legacy=%s." %
-                (migrated, state.settings.get(setting_id), legacy_setting_id),
+                (migrated, stored_label(), "hosts.mode"),
             )
 
+        reset_mode_file()
         settings_path.write_text(
             '<settings version="2">\n'
             '    <setting id="hosts.mode" default="true">1</setting>\n'
             '</settings>\n',
             encoding="utf-8",
         )
-        state.settings[setting_id] = "Autoplay"
         migrated = playback_settings.migrate_mode_setting()
-        if migrated != "1" or state.settings.get(setting_id) != "Verzeichnis":
+        if migrated != "1" or stored_label() != "Verzeichnis" or not legacy_cleared():
             return CheckResult(
                 "playback-settings",
                 "FAIL",
                 "Default-markierter Legacy-Wert wurde nicht bewahrt: mode=%s write=%s." %
-                (migrated, state.settings.get(setting_id)),
+                (migrated, stored_label()),
             )
 
+        playback_settings.set_mode("Autoplay")
         settings_path.write_text(
             '<settings version="2">\n'
-            '    <setting id="hosts.mode.v2">Verzeichnis</setting>\n'
-            '    <setting id="hosts.mode.v2.migrated">true</setting>\n'
+            '    <setting id="hosts.mode.v3">Verzeichnis</setting>\n'
+            '    <setting id="hosts.mode.v3.migrated">true</setting>\n'
             '    <setting id="hosts.mode" default="true">1</setting>\n'
             '</settings>\n',
             encoding="utf-8",
         )
-        state.settings[setting_id] = "Autoplay"
         migrated = playback_settings.migrate_mode_setting()
-        if migrated != "2" or state.settings.get(setting_id) != "Autoplay":
+        if migrated != "2" or stored_label() != "Autoplay" or not legacy_cleared():
             return CheckResult(
                 "playback-settings",
                 "FAIL",
                 "Legacy-Wert blockierte Autoplay-Wechsel: mode=%s write=%s." %
-                (migrated, state.settings.get(setting_id)),
+                (migrated, stored_label()),
             )
 
-        return CheckResult("playback-settings", "PASS", "Live-Wechsel und Legacy-Migration konsistent (%s)." % ", ".join(checks))
+        return CheckResult("playback-settings", "PASS", "Profildatei-Wechsel und Legacy-Migration konsistent (%s)." % ", ".join(checks))
     except Exception as exc:
         return CheckResult("playback-settings", "FAIL", "%s: %s" % (exc.__class__.__name__, exc))
     finally:

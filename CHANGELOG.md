@@ -1,5 +1,12 @@
 # Changelog
 
+## [2026.07.17.9] - 2026-07-17
+
+- Die Standard-Aktion nutzt in den Kodi-Einstellungen kein Kodi-Enum/Labelenum-Dropdown mehr, sondern einen xVAULT-eigenen Auswahl-Dialog und speichert den Wert in einer eigenen Profildatei.
+- Vorhandene Werte aus `hosts.mode.v3`, `hosts.mode.v2`, `hosts.mode` und `default.action` werden weiterhin einmalig uebernommen, danach koennen alte Kodi-Defaultwerte den Wechsel nicht mehr zurueckschreiben.
+- Die Kodi-Settings-Action ruft den xVAULT-Auswahldialog mit gequoteter Plugin-URL auf, damit der Wechsel auch aus Kodis Einstellungsdialog zuverlaessig ausgefuehrt wird.
+- Der Fire-TV/Kodi-Test prueft jetzt die xVAULT-Profildatei, den v2/v3-Updatepfad und den Wechsel zurueck auf `Autoplay` nach gesetztem Migrationsmarker.
+
 ## [2026.07.17.8] - 2026-07-17
 
 - Die Standard-Aktion nutzt in laufendem Kodi wieder den Live-Wert aus der Add-on-API, damit ein Wechsel zwischen `Dialog`, `Verzeichnis` und `Autoplay` sofort uebernommen wird.
