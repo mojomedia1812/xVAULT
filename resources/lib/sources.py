@@ -33,6 +33,7 @@ class sources:
         self.executor = ThreadPoolExecutor(max_workers=20)
         self.executor_shutdown = False
         self.url = None
+        self.last_source_error = 'no_sources'
 
     def _ensureExecutor(self):
         if getattr(self, 'executor_shutdown', False):
@@ -96,7 +97,10 @@ class sources:
             if select == None: return
 
             #Liste der gefundenen Streams
+            self.last_source_error = 'no_sources'
+            self._telemetryEvent('source_collection_started', 'sources', self._sourceTelemetryPayload())
             items = self.getSources(title, year, imdb, season, episode, originaltitle, premiered, episode_title=episode_title, episode_premiered=episode_premiered)
+            self._telemetryEvent('source_collection_finished', 'sources', self._sourceTelemetryPayload(len(items)))
             ## unnötig
             #select = '1' if control.getSetting('downloads') == 'true' and not (control.getSetting('download.movie.path') == '' or control.getSetting('download.tv.path') == '') else select
 
@@ -126,9 +130,10 @@ class sources:
                     except: autoplay_meta = meta
                     if self.sourcesAutoplay(items, title, autoplay_meta):
                         return
+                    self.last_source_error = 'autoplay_failed'
                     url = None
 
-            if url == None: return self.errorForSources()
+            if url == None: return self.errorForSources(getattr(self, 'last_source_error', 'no_sources'))
 
             try: meta = json.loads(meta)
             except: pass
@@ -136,7 +141,7 @@ class sources:
 
             from resources.lib.player import player
             if not player().run(title, url, meta):
-                self.errorForSources()
+                self.errorForSources('playback_start_failed')
         except Exception as e:
             log_utils.log('Error %s' % str(e), log_utils.LOGERROR)
         finally:
@@ -168,6 +173,26 @@ class sources:
         playback_settings.set_mode(select)
         control.infoDialog('Standard-Aktion wurde auf %s gesetzt.' % (['Dialog', 'Verzeichnis'][choice]), icon='INFO')
         return select
+
+
+    def _sourceTelemetryPayload(self, source_count=None, error_group=None):
+        payload = {
+            'media_type': getattr(self, 'mediatype', 'unknown'),
+            'playback_mode': playback_settings.get_mode(),
+        }
+        if source_count is not None:
+            payload['source_count'] = int(source_count)
+        if error_group:
+            payload['error_group'] = error_group
+        return payload
+
+
+    def _telemetryEvent(self, event_name, event_group='sources', payload=None):
+        try:
+            from resources.lib import telemetry
+            telemetry.event(event_name, event_group, payload or {})
+        except:
+            pass
 
 
 # Liste gefundene Streams Indexseite|Hoster
@@ -382,7 +407,7 @@ class sources:
             meta = self._mergeSelectedStreamMeta(meta, item)
             from resources.lib.player import player
             if not player().run(title, self.url, meta):
-                self.errorForSources()
+                self.errorForSources('playback_start_failed')
             return self.url
         except Exception as e:
             log_utils.log('Error %s' % str(e), log_utils.LOGERROR)
@@ -1369,7 +1394,8 @@ class sources:
             control.infoDialog("Auflösung konnte nicht ermittelt werden", sound=False, icon='INFO')
 
 
-    def errorForSources(self):
+    def errorForSources(self, error_group='no_sources'):
+        self._telemetryEvent('source_collection_failed', 'sources', self._sourceTelemetryPayload(0, error_group))
         control.infoDialog("Keine Streams verfügbar oder ausgewählt", sound=False, icon='INFO')
 
     def getTitle(self, title):

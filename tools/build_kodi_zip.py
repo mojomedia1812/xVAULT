@@ -56,6 +56,7 @@ EXCLUDED_PARTS = {
     "__pycache__",
     "docs",
     "api",
+    "backups",
     "cookies",
     "scrapers_source",
     "stream-link-auditor",

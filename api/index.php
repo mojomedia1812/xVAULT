@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 try {
     $pdo = db($config);
     ensure_schema($pdo);
-    dispatch($pdo);
+    dispatch($pdo, $config);
 } catch (Throwable $e) {
     log_error('SERVER_ERROR: ' . $e->getMessage());
     respond(false, 'Serverfehler', null, 'SERVER_ERROR', 500);
@@ -103,9 +103,86 @@ function ensure_schema(PDO $pdo): void
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         INDEX idx_user_created (user_id, created_at)
     ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS telemetry_installations (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        install_hash CHAR(64) NOT NULL UNIQUE,
+        first_seen_at DATETIME NOT NULL,
+        last_seen_at DATETIME NOT NULL,
+        current_addon_version VARCHAR(32) DEFAULT NULL,
+        current_kodi_version VARCHAR(64) DEFAULT NULL,
+        os_family VARCHAR(64) DEFAULT NULL,
+        os_version VARCHAR(128) DEFAULT NULL,
+        device_class VARCHAR(64) DEFAULT NULL,
+        hardware_family VARCHAR(128) DEFAULT NULL,
+        cpu_arch VARCHAR(64) DEFAULT NULL,
+        telemetry_consent_version VARCHAR(32) DEFAULT NULL,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NOT NULL,
+        INDEX idx_telemetry_install_last_seen (last_seen_at),
+        INDEX idx_telemetry_install_device (device_class),
+        INDEX idx_telemetry_install_os (os_family)
+    ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS telemetry_sessions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        installation_id INT NOT NULL,
+        session_hash CHAR(64) NOT NULL UNIQUE,
+        started_at DATETIME NOT NULL,
+        last_heartbeat_at DATETIME NOT NULL,
+        ended_at DATETIME DEFAULT NULL,
+        duration_seconds INT NOT NULL DEFAULT 0,
+        addon_version VARCHAR(32) DEFAULT NULL,
+        kodi_version VARCHAR(64) DEFAULT NULL,
+        os_family VARCHAR(64) DEFAULT NULL,
+        os_version VARCHAR(128) DEFAULT NULL,
+        device_class VARCHAR(64) DEFAULT NULL,
+        hardware_family VARCHAR(128) DEFAULT NULL,
+        cpu_arch VARCHAR(64) DEFAULT NULL,
+        end_reason VARCHAR(64) DEFAULT NULL,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NOT NULL,
+        FOREIGN KEY (installation_id) REFERENCES telemetry_installations(id) ON DELETE CASCADE,
+        INDEX idx_telemetry_session_install (installation_id),
+        INDEX idx_telemetry_session_seen (last_heartbeat_at)
+    ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS telemetry_events (
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+        installation_id INT NOT NULL,
+        session_id INT DEFAULT NULL,
+        event_name VARCHAR(64) NOT NULL,
+        event_group VARCHAR(64) DEFAULT NULL,
+        occurred_at DATETIME NOT NULL,
+        addon_version VARCHAR(32) DEFAULT NULL,
+        kodi_version VARCHAR(64) DEFAULT NULL,
+        os_family VARCHAR(64) DEFAULT NULL,
+        device_class VARCHAR(64) DEFAULT NULL,
+        payload_json TEXT DEFAULT NULL,
+        created_at DATETIME NOT NULL,
+        FOREIGN KEY (installation_id) REFERENCES telemetry_installations(id) ON DELETE CASCADE,
+        FOREIGN KEY (session_id) REFERENCES telemetry_sessions(id) ON DELETE SET NULL,
+        INDEX idx_telemetry_event_name (event_name),
+        INDEX idx_telemetry_event_created (created_at),
+        INDEX idx_telemetry_event_install (installation_id)
+    ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS telemetry_daily_stats (
+        stat_date DATE NOT NULL,
+        event_name VARCHAR(64) NOT NULL,
+        addon_version VARCHAR(32) NOT NULL DEFAULT '',
+        os_family VARCHAR(64) NOT NULL DEFAULT '',
+        device_class VARCHAR(64) NOT NULL DEFAULT '',
+        unique_installations INT NOT NULL DEFAULT 0,
+        session_count INT NOT NULL DEFAULT 0,
+        event_count INT NOT NULL DEFAULT 0,
+        total_runtime_seconds BIGINT NOT NULL DEFAULT 0,
+        updated_at DATETIME NOT NULL,
+        PRIMARY KEY (stat_date, event_name, addon_version, os_family, device_class)
+    ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
 }
 
-function dispatch(PDO $pdo): void
+function dispatch(PDO $pdo, array $config): void
 {
     $action = action_name();
     if ($action === 'status') {
@@ -122,6 +199,10 @@ function dispatch(PDO $pdo): void
     if ($action === 'password_reset') {
         require_method('POST');
         reset_password($pdo, input_json());
+    }
+    if ($action === 'telemetry') {
+        require_method('POST');
+        telemetry_ingest($pdo, input_json(), $config);
     }
 
     $user = require_user($pdo);
@@ -172,6 +253,7 @@ function action_name(): string
         'binge/pull' => 'binge_pull',
         'sync/push' => 'sync_push',
         'sync/pull' => 'sync_pull',
+        'telemetry' => 'telemetry',
     ];
     return $map[$path] ?? 'status';
 }
@@ -632,6 +714,134 @@ function sync_pull(PDO $pdo, array $user): void
         }
     }
     respond(true, 'OK', ['favorites' => $fav, 'binge_items' => $binge]);
+}
+
+function telemetry_ingest(PDO $pdo, array $data, array $config): void
+{
+    $installId = (string)($data['install_id'] ?? '');
+    if (!preg_match('/^[A-Za-z0-9._:-]{16,128}$/', $installId)) {
+        respond(false, 'Installations-ID fehlt', null, 'MISSING_INSTALL_ID', 400);
+    }
+    $eventName = telemetry_slug($data['event'] ?? 'event', 'event');
+    $eventGroup = telemetry_slug($data['event_group'] ?? 'general', 'general');
+    $sessionIdRaw = (string)($data['session_id'] ?? '');
+    $sessionHash = $sessionIdRaw !== '' ? telemetry_hash($sessionIdRaw, $config) : null;
+    $installHash = telemetry_hash($installId, $config);
+    $now = now();
+
+    $context = is_array($data['context'] ?? null) ? $data['context'] : [];
+    $addonVersion = short_text($context['addon_version'] ?? $data['addon_version'] ?? null, 32);
+    $kodiVersion = short_text($context['kodi_version'] ?? $data['kodi_version'] ?? null, 64);
+    $osFamily = short_text($context['os_family'] ?? null, 64);
+    $osVersion = short_text($context['os_version'] ?? null, 128);
+    $deviceClass = short_text($context['device_class'] ?? null, 64);
+    $hardwareFamily = short_text($context['hardware_family'] ?? null, 128);
+    $cpuArch = short_text($context['cpu_arch'] ?? null, 64);
+    $consentVersion = short_text($context['telemetry_consent_version'] ?? '1', 32);
+
+    $installationId = telemetry_upsert_installation($pdo, $installHash, $now, $addonVersion, $kodiVersion, $osFamily, $osVersion, $deviceClass, $hardwareFamily, $cpuArch, $consentVersion);
+    $sessionDbId = null;
+    if ($sessionHash) {
+        $sessionDbId = telemetry_upsert_session($pdo, $installationId, $sessionHash, $now, $addonVersion, $kodiVersion, $osFamily, $osVersion, $deviceClass, $hardwareFamily, $cpuArch, $eventName, short_text($data['end_reason'] ?? null, 64));
+    }
+    telemetry_store_event($pdo, $installationId, $sessionDbId, $eventName, $eventGroup, $now, $addonVersion, $kodiVersion, $osFamily, $deviceClass, telemetry_payload($data['payload'] ?? []));
+    respond(true, 'OK', ['accepted' => true]);
+}
+
+function telemetry_hash(string $value, array $config): string
+{
+    $salt = (string)($config['telemetry_salt'] ?? '');
+    if ($salt === '') {
+        $salt = hash('sha256', (string)($config['db_pass'] ?? 'xvault'));
+    }
+    return hash_hmac('sha256', $value, $salt);
+}
+
+function telemetry_upsert_installation(PDO $pdo, string $installHash, string $now, ?string $addonVersion, ?string $kodiVersion, ?string $osFamily, ?string $osVersion, ?string $deviceClass, ?string $hardwareFamily, ?string $cpuArch, ?string $consentVersion): int
+{
+    $stmt = $pdo->prepare('INSERT INTO telemetry_installations
+        (install_hash, first_seen_at, last_seen_at, current_addon_version, current_kodi_version, os_family, os_version, device_class, hardware_family, cpu_arch, telemetry_consent_version, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            last_seen_at = VALUES(last_seen_at),
+            current_addon_version = VALUES(current_addon_version),
+            current_kodi_version = VALUES(current_kodi_version),
+            os_family = VALUES(os_family),
+            os_version = VALUES(os_version),
+            device_class = VALUES(device_class),
+            hardware_family = VALUES(hardware_family),
+            cpu_arch = VALUES(cpu_arch),
+            telemetry_consent_version = VALUES(telemetry_consent_version),
+            updated_at = VALUES(updated_at)');
+    $stmt->execute([$installHash, $now, $now, $addonVersion, $kodiVersion, $osFamily, $osVersion, $deviceClass, $hardwareFamily, $cpuArch, $consentVersion, $now, $now]);
+    $stmt = $pdo->prepare('SELECT id FROM telemetry_installations WHERE install_hash = ? LIMIT 1');
+    $stmt->execute([$installHash]);
+    return (int)$stmt->fetchColumn();
+}
+
+function telemetry_upsert_session(PDO $pdo, int $installationId, string $sessionHash, string $now, ?string $addonVersion, ?string $kodiVersion, ?string $osFamily, ?string $osVersion, ?string $deviceClass, ?string $hardwareFamily, ?string $cpuArch, string $eventName, ?string $endReason): int
+{
+    $endedAt = $eventName === 'app_stop' ? $now : null;
+    $stmt = $pdo->prepare('INSERT INTO telemetry_sessions
+        (installation_id, session_hash, started_at, last_heartbeat_at, ended_at, duration_seconds, addon_version, kodi_version, os_family, os_version, device_class, hardware_family, cpu_arch, end_reason, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            last_heartbeat_at = VALUES(last_heartbeat_at),
+            ended_at = COALESCE(VALUES(ended_at), ended_at),
+            duration_seconds = GREATEST(0, TIMESTAMPDIFF(SECOND, started_at, VALUES(last_heartbeat_at))),
+            addon_version = VALUES(addon_version),
+            kodi_version = VALUES(kodi_version),
+            os_family = VALUES(os_family),
+            os_version = VALUES(os_version),
+            device_class = VALUES(device_class),
+            hardware_family = VALUES(hardware_family),
+            cpu_arch = VALUES(cpu_arch),
+            end_reason = COALESCE(VALUES(end_reason), end_reason),
+            updated_at = VALUES(updated_at)');
+    $stmt->execute([$installationId, $sessionHash, $now, $now, $endedAt, $addonVersion, $kodiVersion, $osFamily, $osVersion, $deviceClass, $hardwareFamily, $cpuArch, $endReason, $now, $now]);
+    $stmt = $pdo->prepare('SELECT id FROM telemetry_sessions WHERE session_hash = ? LIMIT 1');
+    $stmt->execute([$sessionHash]);
+    return (int)$stmt->fetchColumn();
+}
+
+function telemetry_store_event(PDO $pdo, int $installationId, ?int $sessionId, string $eventName, string $eventGroup, string $now, ?string $addonVersion, ?string $kodiVersion, ?string $osFamily, ?string $deviceClass, array $payload): void
+{
+    $json = $payload ? json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null;
+    $stmt = $pdo->prepare('INSERT INTO telemetry_events
+        (installation_id, session_id, event_name, event_group, occurred_at, addon_version, kodi_version, os_family, device_class, payload_json, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$installationId, $sessionId, $eventName, $eventGroup, $now, $addonVersion, $kodiVersion, $osFamily, $deviceClass, $json, $now]);
+}
+
+function telemetry_payload($payload): array
+{
+    if (!is_array($payload)) {
+        return [];
+    }
+    $allowed = ['menu', 'media_type', 'playback_mode', 'error_group', 'source_count', 'working_count', 'blocked_count', 'sync_area', 'setting_group', 'feature'];
+    $result = [];
+    foreach ($allowed as $key) {
+        if (!array_key_exists($key, $payload)) {
+            continue;
+        }
+        if (is_int($payload[$key]) || is_float($payload[$key])) {
+            $result[$key] = $payload[$key];
+        } else {
+            $result[$key] = short_text($payload[$key], 128);
+        }
+    }
+    return $result;
+}
+
+function telemetry_slug($value, string $default): string
+{
+    $slug = strtolower((string)$value);
+    $slug = preg_replace('/[^a-z0-9_:-]+/', '_', $slug);
+    $slug = trim($slug, '_');
+    if ($slug === '') {
+        $slug = $default;
+    }
+    return substr($slug, 0, 64);
 }
 
 function log_sync(PDO $pdo, int $userId, ?string $deviceId, string $type, string $direction, string $status, string $message): void

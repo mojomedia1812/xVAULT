@@ -33,6 +33,17 @@ def dispatch(action):
         control.dialog.ok(control.addonName, PRIVACY_TEXT)
 
 
+def track_sync(event_name, area='manual', error_group=None):
+    payload = {'sync_area': area}
+    if error_group:
+        payload['error_group'] = error_group
+    try:
+        from resources.lib import telemetry
+        telemetry.event(event_name, 'sync', payload)
+    except Exception:
+        pass
+
+
 def register():
     email = ask_email()
     if not email:
@@ -96,6 +107,7 @@ def sync_now():
     if not storage.is_logged_in():
         control.infoDialog('Bitte zuerst anmelden.', icon='WARNING')
         return
+    track_sync('sync_started', 'manual')
     try:
         client = Client()
         favorites_sync.check_and_push_if_changed(silent=True, client=client, require_enabled=False)
@@ -103,11 +115,14 @@ def sync_now():
         binge_sync.pull_remote(apply_bookmarks=True, silent=True, client=client, require_login=False)
         storage.update_last_sync(time.strftime('%Y-%m-%d %H:%M:%S'))
         storage.set_status('Angemeldet als %s' % storage.email())
+        track_sync('sync_finished', 'manual')
         control.infoDialog('Synchronisation abgeschlossen.', icon='INFO')
     except ApiError as exc:
+        track_sync('sync_failed', 'manual', 'api_error')
         control.infoDialog(str(exc), icon='WARNING', time=6000)
     except Exception as exc:
         log_utils.log('xVAULT sync: manual sync failed: %s' % str(exc), log_utils.LOGERROR)
+        track_sync('sync_failed', 'manual', 'plugin_error')
         control.infoDialog('Synchronisation fehlgeschlagen.', icon='WARNING', time=6000)
 
 

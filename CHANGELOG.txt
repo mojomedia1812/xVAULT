@@ -1,3 +1,12 @@
+xVAULT 2026.07.17.2
+Entwickler: mojomedia1812
+
+- Supportpakete koennen ueber Werkzeuge erstellt werden: xVAULT sammelt nur Diagnosedaten, redigiert Zugangsdaten und private Pfade, packt alles als UUID-ZIP und zeigt vor dem Upload den Paketinhalt an.
+- Nach Bestaetigung wird das Supportpaket zu filebin.net hochgeladen, per da.gd in eine kurze Service-ID umgewandelt und das lokale ZIP geloescht.
+- Optionale xVAULT-Nutzungsstatistik lokal vorbereitet: Installations-ID, Sitzung, grobe System-/Hardwareklasse, Laufzeit-Heartbeat, Navigation, Quellen-/Wiedergabe- und Sync-Events werden nur bei aktivierter Einstellung gesendet.
+- Der API-Endpunkt speichert keine Titel, Suchbegriffe, Stream-URLs, Zugangsdaten oder privaten Eingaben; Installations- und Sitzungs-IDs werden serverseitig gehasht.
+- Datenbank-Backup der bisherigen Sync-Datenbank wurde lokal unter backups/ abgelegt und vom Repository ausgeschlossen.
+
 xVAULT 2026.07.17.1
 Entwickler: mojomedia1812
 

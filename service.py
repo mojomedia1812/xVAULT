@@ -236,6 +236,11 @@ if __name__ == "__main__":
 	from resources.lib import dependencies
 	dependencies.ensure_all_dependencies()
 	try:
+		from resources.lib import telemetry
+		telemetry.app_start()
+	except Exception:
+		pass
+	try:
 		from resources.lib import first_install
 		first_install.apply_playback_defaults_once()
 	except Exception:
@@ -274,3 +279,9 @@ if __name__ == "__main__":
 		favorites_sync.monitor_changes(interval=5)
 	except Exception:
 		pass
+	finally:
+		try:
+			from resources.lib import telemetry
+			telemetry.app_stop()
+		except Exception:
+			pass

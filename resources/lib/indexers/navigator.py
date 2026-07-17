@@ -51,6 +51,7 @@ class navigator:
 
 	def tools(self):
 		self.addDirectoryItem("[B]Support[/B]: Information anzeigen", 'pluginInfo', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False)
+		self.addDirectoryItem("[B]Support[/B]: Paket erstellen und hochladen", 'supportUpload', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False)
 		self.addDirectoryItem(control.addonName +": EINSTELLUNGEN", 'addonSettings', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
 		self.addDirectoryItem("[B]Resolver[/B]: EINSTELLUNGEN", 'resolverSettings', '06_03_resolver_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
 		self._endDirectory()

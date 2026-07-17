@@ -23,6 +23,23 @@ except Exception:
     pass
 
 
+def _track_menu(menu):
+    try:
+        from resources.lib import telemetry
+        telemetry.menu_opened(menu)
+    except Exception:
+        pass
+
+
+def _finish_action():
+    try:
+        handle = int(sys.argv[1])
+        if handle >= 0:
+            control.endofdirectory(handle, succeeded=True, cacheToDisc=False)
+    except Exception:
+        pass
+
+
 if action is None or action == 'root':
     from resources.lib import updater
     if updater.automatic_updates_enabled():
@@ -52,22 +69,32 @@ if action is None or action == 'root':
         linear_tv.clear_session_health()
     except Exception:
         pass
+    _track_menu('root')
     from resources.lib.indexers import navigator
     navigator.navigator().root()
 
 elif action == 'pluginInfo':
     from resources.lib import supportinfo
     supportinfo.pluginInfo()
+    _finish_action()
+
+elif action == 'supportUpload':
+    from resources.lib import supportinfo
+    supportinfo.createSupportPackageAndUpload()
+    _finish_action()
 
 elif action == 'movieNavigator':
+    _track_menu('movies')
     from resources.lib.indexers import navigator
     navigator.navigator().movies()
 
 elif action == 'tvNavigator':
+    _track_menu('tvshows')
     from resources.lib.indexers import navigator
     navigator.navigator().tvshows()
 
 elif action == 'liveTVNavigator':
+    _track_menu('livetv')
     from resources.lib import linear_tv
     linear_tv.show_home()
 
@@ -104,6 +131,7 @@ elif action == 'liveTVPlay':
     linear_tv.play(params.get('id'))
 
 elif action == 'liveTVLiteNavigator':
+    _track_menu('livetv_lite')
     from resources.lib import linear_tv_lite
     linear_tv_lite.show_home()
 
@@ -120,10 +148,12 @@ elif action == 'liveTVLitePlay':
     linear_tv_lite.play(params.get('id'))
 
 elif action == 'toolNavigator':
+    _track_menu('tools')
     from resources.lib.indexers import navigator
     navigator.navigator().tools()
 
 elif action == 'downloadNavigator':
+    _track_menu('downloads')
     from resources.lib.indexers import navigator
     navigator.navigator().downloads()
 
@@ -238,6 +268,16 @@ elif action == 'playURL':
         xbmc.Player().play(url, item)
     except:
         control.infoDialog("Keinen Video Link gefunden", sound=True, icon='WARNING', time=1000)
+
+elif action == 'telemetryStatus':
+    from resources.lib import telemetry
+    telemetry.show_status()
+    try:
+        handle = int(sys.argv[1])
+        if handle >= 0:
+            control.endofdirectory(handle, succeeded=True, cacheToDisc=False)
+    except Exception:
+        pass
 
 elif action and action.startswith('sync'):
     from resources.lib.sync import account

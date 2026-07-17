@@ -6,6 +6,19 @@
         <setting id="scrapers.timeout" type="slider" label="Zeitlimit für Indexseiten" default="35" range="10,60" option="int" />
         <setting id="fanart" type="bool" label="Fanart verwenden" default="true" />
         <setting id="search.doku" type="bool" label="Auch nach Dokumentationen suchen" default="false" />
+        <setting type="lsep" label="Nutzungsstatistik" />
+        <setting id="telemetry.enabled" type="bool" label="Anonyme Nutzungsstatistik aktivieren" default="false" />
+        <setting label="Statistikstatus anzeigen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=telemetryStatus)" />
+        <setting id="telemetry.install_id" type="text" label="Statistik Installations-ID" default="" visible="false" />
+        <setting id="telemetry.session_id" type="text" label="Statistik Sitzung" default="" visible="false" />
+        <setting id="telemetry.last_heartbeat" type="text" label="Statistik letzter Heartbeat" default="" visible="false" />
+        <setting id="telemetry.consent_version" type="text" label="Statistik Zustimmungsversion" default="" visible="false" />
+        <setting type="lsep" label="Support" />
+        <setting label="Supportpaket erstellen und hochladen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=supportUpload)" />
+        <setting id="support.upload.provider" type="enum" label="Support-Upload-Dienst" values="filebin.net|file.io|0x0.st" default="0" />
+        <setting id="support.upload.expiry" type="enum" label="Supportpaket automatisch loeschen nach" values="1 Tag|7 Tage|14 Tage" default="1" />
+        <setting id="support.last_uuid" type="text" label="Letzte Support UUID" default="" visible="false" />
+        <setting id="support.last_link" type="text" label="Letzter Support Link" default="" visible="false" />
         <setting type="lsep" label="Einstellungen RequestHandler" />
 
         <setting default="10" id="requestTimeout" label="Timeout für HTTP-Anfragen in Sekunden" option="int" range="1,1,60" type="slider" />

@@ -159,6 +159,24 @@ class player(xbmc.Player):
         return re.sub(r'\s+', ' ', value).strip()
 
 
+    def _telemetryPayload(self, error_group=None):
+        payload = {
+            'media_type': getattr(self, 'mediatype', 'unknown'),
+            'playback_mode': playback_settings.get_mode(),
+        }
+        if error_group:
+            payload['error_group'] = error_group
+        return payload
+
+
+    def _telemetryEvent(self, event_name, error_group=None):
+        try:
+            from resources.lib import telemetry
+            telemetry.event(event_name, 'playback', self._telemetryPayload(error_group))
+        except:
+            pass
+
+
     def keepPlaybackAlive(self):
         if self.isdebug: log_utils.log('Start - keepPlaybackAlive', log_utils.LOGINFO)
         started = False
@@ -178,6 +196,7 @@ class player(xbmc.Player):
                 (PLAYBACK_START_TIMEOUT, getattr(self, 'playback_name', getattr(self, 'name', 'unbekannt'))),
                 log_utils.LOGWARNING
             )
+            self._telemetryEvent('playback_failed', 'player_timeout')
             return False
 
         try:
@@ -220,6 +239,7 @@ class player(xbmc.Player):
     def onAVStarted(self):
         if self.isdebug: log_utils.log('Start - onAVStarted', log_utils.LOGINFO)
         self.playback_started = True
+        self._telemetryEvent('playback_started')
         control.execute('Dialog.Close(all,true)')
         if not self.offset == '0': self.seekTime(float(self.offset))
         self.idleForPlayback()
@@ -246,6 +266,7 @@ class player(xbmc.Player):
 
     def onPlayBackError(self):
         log_utils.log('Playback-Fehler vor oder waehrend der Wiedergabe: %s' % getattr(self, 'playback_name', ''), log_utils.LOGWARNING)
+        self._telemetryEvent('playback_failed', 'player_error')
         self.streamFinished = True
 
     def _finishPlayback(self, restore_navigation, playback_ended=False):
@@ -263,6 +284,7 @@ class player(xbmc.Player):
             if not self.watcher_control:
                 self._markWatched()
             self.watcher_control = True
+        self._telemetryEvent('playback_completed' if completed else 'playback_stopped')
         bookmarks().reset(self.currentTime, self.totalTime, self.name, self.year)
         try:
             from resources.lib.sync import binge_sync
