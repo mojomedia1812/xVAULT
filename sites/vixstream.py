@@ -241,6 +241,8 @@ class source:
 
                 headers_dict = {
                     'User-Agent': self.ua,
+                    'Accept': '*/*',
+                    'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8' if stream_language == 'de' else 'en-US,en;q=0.9,de;q=0.7',
                     'Referer': embed_url,
                     'Origin': 'https://' + VIXCLOUD,
                 }

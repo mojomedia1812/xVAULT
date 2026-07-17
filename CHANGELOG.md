@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.07.17.1] - 2026-07-17
+
+- Scraper erhalten die aktuelle ResolveURL-Hosterliste, damit Quellen von FHDFilme, HDfilme, Megakino, StreamCloud, TopStreamFilm und aehnlichen Anbietern nicht mehr vorzeitig ausgefiltert werden.
+- Die Standard-Aktion `Verzeichnis` liefert Quellenlisten auch bei RPC-, Favoriten- und externen Aufrufen wieder als Kodi-Verzeichnis statt in den Dialog zurueckzufallen.
+- VIXSTREAM-Playlist-Streams ohne `.m3u8`-Endung werden als HLS erkannt und mit gemeinsamen InputStream-Adaptive-Headern abgespielt, damit Manifest, Segmente und AES-Schluessel erreichbar bleiben.
+
 ## [2026.07.14.3] - 2026-07-14
 
 - xVAULT-Synchronisation nutzt den neuen API-Host `xvault-sql.ddnss.de` und den neuen Datenbankspace fuer Favoriten und Binge-/Wiedergabestaende.

@@ -2,6 +2,7 @@
 import sys
 import base64
 import hashlib
+import inspect
 import re, json, random, time
 from concurrent.futures import ThreadPoolExecutor
 from html import unescape as html_unescape
@@ -25,6 +26,7 @@ class sources:
     def __init__(self):
         self.getConstants()
         self.sources = []
+        self.hostDict = []
         self.current = int(time.time())
         if 'sysmeta' in _params: self.sysmeta = _params['sysmeta'] # string zur späteren verwendung als meta
         self.watcher = False
@@ -104,16 +106,18 @@ class sources:
 
             if len(items) > 0:
                 # Auswahl Verzeichnis
-                if select == '1' and 'plugin' in control.infoLabel('Container.PluginName'):
+                if select == '1':
                     control.window.clearProperty(self.itemsProperty)
                     control.window.setProperty(self.itemsProperty, json.dumps(items))
                     
                     control.window.clearProperty(self.metaProperty)
                     control.window.setProperty(self.metaProperty, meta)
-                    control.sleep(2)
-                    return control.execute('Container.Update(%s?action=addItem&title=%s)' % (sys.argv[0], quote_plus(title)))
+                    if 'plugin' in control.infoLabel('Container.PluginName'):
+                        control.sleep(2)
+                        return control.execute('Container.Update(%s?action=addItem&title=%s)' % (sys.argv[0], quote_plus(title)))
+                    return self.addItem(title)
                 # Auswahl Dialog
-                elif select == '0' or select == '1':
+                elif select == '0':
                     url = self.sourcesDialog(items)
                     if  url == 'close://': return
                 # Autoplay
@@ -388,7 +392,7 @@ class sources:
 
     def getSources(self, title, year, imdb, season, episode, originaltitle, premiered, quality='HD', timeout=30, episode_title=None, episode_premiered=None):
 #TODO
-        # self._getHostDict()
+        self.hostDict = self._getHostDict()
         sourceDict = self.sourceDict
         sourceDict = [(i[0], i[1], i[1].priority) for i in sourceDict]
         random.shuffle(sourceDict)
@@ -641,7 +645,10 @@ class sources:
                 call.episode_premiered = episode_premiered
             except:
                 pass
-            sources = call.run(titles, year, season, episode, imdb)  # kasi self.hostDict
+            if self._acceptsHostDict(call):
+                sources = call.run(titles, year, season, episode, imdb, hostDict=self.hostDict)
+            else:
+                sources = call.run(titles, year, season, episode, imdb)
             if sources == None or sources == []: raise Exception()
             sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
             for i in sources:
@@ -652,6 +659,32 @@ class sources:
             self.sources.extend(sources)
         except:
             pass
+
+    def _acceptsHostDict(self, call):
+        try:
+            return 'hostDict' in inspect.signature(call.run).parameters
+        except:
+            return False
+
+    def _getHostDict(self):
+        try:
+            domains = []
+            relevant = resolver.relevant_resolvers(
+                include_disabled=True,
+                include_universal=False,
+                include_popups=True
+            )
+            for item in relevant:
+                for domain in getattr(item, 'domains', []) or []:
+                    domain = str(domain).strip().lower()
+                    if domain and domain != '*':
+                        domains.append(domain)
+            domains = sorted(set(domains))
+            log_utils.log('ResolveURL-Hosterliste geladen: %s Domains' % len(domains), log_utils.LOGINFO)
+            return domains
+        except Exception as e:
+            log_utils.log('ResolveURL-Hosterliste konnte nicht geladen werden: %s' % str(e), log_utils.LOGWARNING)
+            return []
 
     def _providerDisplayName(self, provider, call=None):
         try:
@@ -940,6 +973,8 @@ class sources:
     def _looksLikeDirectMediaUrl(self, url):
         try:
             clean_url = str(url).split('|', 1)[0].split('?', 1)[0].lower()
+            if re.search(r'/playlist/\d+(?:/|$)', urlparse(clean_url).path):
+                return True
             return re.search(r'\.(?:m3u8?|mpd|mp4|mkv|avi|mov|flv|wmv|webm|ts)$', clean_url) != None
         except:
             return False

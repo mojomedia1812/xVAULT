@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.07.14.3`
+Aktueller Stand: `2026.07.17.1`
 
 Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geaendert wird, muss diese README geprueft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** oeffnen.
-3. Die Datei `plugin.video.xvault-2026.07.14.3.zip` auswaehlen.
+3. Die Datei `plugin.video.xvault-2026.07.17.1.zip` auswaehlen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen ueber das Repository.
@@ -47,6 +47,9 @@ Weitere Hinweise zu Abhaengigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Die Standard-Aktion `Dialog`, `Verzeichnis` oder `Autoplay` wird beim Start von Filmen und Folgen frisch aus Kodis aktuellem Add-on-Setting gelesen; die Profil-Datei dient als Rueckfall. Alte Favoriten oder externe Aufrufe frieren die Auswahl nicht mehr auf einen frueheren Wert ein.
 - Die Standard-Aktion nutzt Kodis native Enum-Speicherung und migriert alte Textwerte automatisch, damit Aenderungen aus den Add-on-Settings auch aus einer aktiven Favoriten- oder Folgenliste heraus fuer die naechste Wiedergabe gelten.
 - Filmpalast liest die aktuelle Such- und Quellenstruktur, schuetzt bereits korrekt kodierte Suchpfade vor Doppel-Kodierung und uebernimmt erkannte Hoster erst ohne vorzeitige ResolveURL-Filterung in die Quellenliste.
+- Scraper erhalten die aktuelle ResolveURL-Hosterliste, damit Quellen von FHDFilme, HDfilme, Megakino, StreamCloud, TopStreamFilm und aehnlichen Anbietern nicht mehr vorzeitig ausgefiltert werden.
+- Die Standard-Aktion `Verzeichnis` liefert Quellenlisten auch aus Favoriten, RPC- und externen Aufrufen wieder als Kodi-Verzeichnis, statt ungewollt in den Dialog zurueckzufallen.
+- VIXSTREAM-Playlist-Streams ohne `.m3u8`-Endung werden als HLS erkannt und mit gemeinsamen InputStream-Adaptive-Headern abgespielt, damit Manifest, Segmente und AES-Schluessel erreichbar bleiben.
 - Movie4k nutzt die aktuelle API-Struktur ueber `movie4k.sx`; alte Movie4k-Domainwerte werden beim Providercheck automatisch auf die funktionierende Domain migriert.
 - Neuer Einstellungsbereich `Indexseiten 3 (DE)` fuer CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM; der bisherige Bereich `Indexseiten (DE)` heisst jetzt `Indexseiten 1 (DE)`.
 - Bei einer frischen Erstinstallation startet xVAULT mit Streamsprache Deutsch und Standard-Aktion Autoplay; bestehende Profile und Updates behalten ihre gewaehlten Einstellungen.

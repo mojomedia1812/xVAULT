@@ -457,7 +457,7 @@
       <h3>Qualität, Sortierung und Limits</h3>
       <p>In den Wiedergabeeinstellungen kann xVAULT Quellen sortieren, nach Qualität filtern und die Anzahl der angezeigten Hoster begrenzen. Das hilft, lange Listen übersichtlich zu halten und schlechte Quellen auszusortieren.</p>
       <h3>Resolver</h3>
-      <p>Hosterlinks werden bei Bedarf über die Resolver-Ebene aufgelöst. Die Resolver-Einstellungen sind im Werkzeugmenü erreichbar. Sie betreffen die Hosterauswahl, aber nicht die Suchlogik der einzelnen Indexseiten.</p>
+      <p>Hosterlinks werden bei Bedarf über die Resolver-Ebene aufgelöst. Die Resolver-Einstellungen sind im Werkzeugmenü erreichbar. xVAULT übergibt den Scrapern die aktuell von ResolveURL bekannte Hosterliste, damit passende Quellen nicht vorzeitig ausgefiltert werden. Die Suchlogik der einzelnen Indexseiten bleibt davon getrennt.</p>
       <h3>DNS over HTTPS</h3>
       <p>DNS over HTTPS über Cloudflare ist standardmäßig aktiv und kann in den allgemeinen Einstellungen deaktiviert werden. Der RequestHandler fragt die Ziel-IP über Cloudflare ab, verbindet sich aber weiterhin mit der ursprünglichen Domain, damit Host-Header, Cookies und HTTPS-SNI erhalten bleiben. Die aktiven Indexseiten nutzen denselben Weg; feste IPs dienen nur als Rückfall, falls Cloudflare-DoH keine nutzbare Verbindung liefert.</p>
     </section>
@@ -472,7 +472,7 @@
         </thead>
         <tbody>
           <tr><td>Dialog</td><td>Zeigt eine Auswahlliste über der aktuellen Ansicht. Gut geeignet, wenn man nur schnell eine Quelle auswählen möchte.</td></tr>
-          <tr><td>Verzeichnis</td><td>Öffnet Quellen als Kodi-Verzeichnis. Gut geeignet, wenn Quellen geprüft, sortiert oder erneut geöffnet werden sollen.</td></tr>
+          <tr><td>Verzeichnis</td><td>Öffnet Quellen als Kodi-Verzeichnis. Gut geeignet, wenn Quellen geprüft, sortiert oder erneut geöffnet werden sollen. Diese Ansicht wird auch bei Favoriten, RPC- und externen Aufrufen zuverlässig als Kodi-Verzeichnis aufgebaut.</td></tr>
           <tr><td>Autoplay</td><td>Startet automatisch die beste passende Quelle. Diese Option wird bei Streamsprache <strong>Alle</strong> automatisch verhindert.</td></tr>
         </tbody>
       </table>
@@ -485,6 +485,7 @@
       <p>Nach dem Ende einer Wiedergabe aktualisiert xVAULT die aktuelle Liste nur einmal und lässt entweder die Serienlogik die erste ungesehene Folge auswählen oder stellt die vorherige Position wieder her. Dadurch springt die Auswahl nicht mehrfach zwischen alter und neuer Position.</p>
       <p>Beim Start einer Serienquelle verwendet xVAULT die vorhandene IMDB-Kennung unabhängig davon, ob sie als <strong>imdb_id</strong> oder <strong>imdbnumber</strong> aus einer Liste, einem Favoriten oder einem Kodi-Profil kommt. Fehlende optionale Metadaten verhindern dadurch nicht mehr, dass Kodi den Player-Eintrag erhält.</p>
       <p>VOE-Quellen können direkt in xVAULT aufgelöst werden, wenn die installierte ResolveURL-Version die aktuelle VOE-Ausweichdomain noch nicht kennt. Dadurch erhalten Windows, Linux und Android wieder einen echten MP4- oder HLS-Link statt nur die Hoster-Webseite.</p>
+      <p>VIXSTREAM-Quellen können HLS-Playlistadressen verwenden, die nicht wie klassische <strong>.m3u8</strong>-Dateien aussehen. xVAULT erkennt diese Playlistwege trotzdem als HLS und übergibt die nötigen Header gemeinsam an InputStream Adaptive, damit Manifest, Segmente und Schlüssel erreichbar bleiben.</p>
       <p>Wenn ein Hoster nur eine Webseite, aber keinen echten Direktstream liefert, wird diese Quelle übersprungen. So bekommt Kodi keine HTML-Seite als Video und kann mit weiteren Quellen fortfahren.</p>
       <p>Hängende Resolver- oder Player-Starts werden zeitlich begrenzt. Wenn Autoplay aktiv ist und eine gefundene Quelle nicht wirklich startet, versucht xVAULT danach weitere verfügbare Quellen statt dauerhaft im Ladezustand zu bleiben. Beendet Kodi eine Wiedergabe ohne Stop-Callback an das Add-on, erkennt xVAULT den fehlenden aktiven Videoplayer selbst und schließt die Wiedergabeüberwachung.</p>
       <h3>Wiedergabe ab hier</h3>
@@ -656,7 +657,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geoeffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geoeffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.07.06.1</span>
+      <span>Handbuch zu xVAULT 2026.07.17.1</span>
     </footer>
   </main>
 </body>

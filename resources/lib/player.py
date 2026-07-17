@@ -100,9 +100,12 @@ class player(xbmc.Player):
             # HLS: application/x-mpegURL or application/vnd.apple.mpegurl
             # Dash: application/dash+xml
             kodiver = int(xbmc.getInfoLabel("System.BuildVersion").split(".")[0])
-            if ".m3u" in url or '.mpd' in url:
+            stream_probe_url = url.split('|', 1)[0].split('?', 1)[0].lower()
+            is_hls_manifest = ".m3u" in stream_probe_url or re.search(r'/playlist/\d+(?:/|$)', stream_probe_url) != None
+            is_dash_manifest = '.mpd' in stream_probe_url
+            if is_hls_manifest or is_dash_manifest:
                 item.setProperty("inputstream", "inputstream.adaptive")
-                if '.mpd' in url:
+                if is_dash_manifest:
                     if kodiver < 21: item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
                     item.setMimeType('application/dash+xml')
                 else:
@@ -112,6 +115,7 @@ class player(xbmc.Player):
                 item.setContentLookup(False)
                 if '|' in url:
                     stream_url, strhdr = url.split('|')
+                    item.setProperty('inputstream.adaptive.common_headers', strhdr)
                     item.setProperty('inputstream.adaptive.stream_headers', strhdr)
                     if kodiver > 19: item.setProperty('inputstream.adaptive.manifest_headers', strhdr)
                     #item.setPath(stream_url)
