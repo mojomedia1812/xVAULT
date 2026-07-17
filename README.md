@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.07.17.2`
+Aktueller Stand: `2026.07.17.3`
 
 Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geaendert wird, muss diese README geprueft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** oeffnen.
-3. Die Datei `plugin.video.xvault-2026.07.17.2.zip` auswaehlen.
+3. Die Datei `plugin.video.xvault-2026.07.17.3.zip` auswaehlen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen ueber das Repository.
@@ -63,7 +63,6 @@ Weitere Hinweise zu Abhaengigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Die Synchronisation gleicht gespeicherte Login-Daten automatisch ab, damit Server-Backups auch nach einem veralteten lokalen API-Key wiederhergestellt werden koennen.
 - `Jetzt synchronisieren` bereinigt doppelte lokale Fortsetzen-Eintraege und bricht dadurch nicht mehr mit einem PluginError ab, wenn alte Bookmark-Daten mehrfach vorhanden sind.
 - Ueber **Werkzeuge > Support** kann ein redigiertes Diagnosepaket erstellt, nach Bestaetigung hochgeladen und ueber eine kurze Service-ID weitergegeben werden; lokale ZIP-Dateien werden nach dem Upload geloescht.
-- Optionale xVAULT-Nutzungsstatistik kann in den allgemeinen Einstellungen aktiviert werden. Erfasst werden technische Zaehler wie Installation, Sitzung, grobe System-/Hardwareklasse, Laufzeit-Heartbeat, Navigation, Quellen-/Wiedergabe- und Sync-Events; Titel, Suchbegriffe, Stream-URLs, Zugangsdaten und private Eingaben werden nicht gesendet.
 - Automatische Updatepruefung kann in den allgemeinen Einstellungen aktiviert oder deaktiviert werden.
 - LiveTV-Senderliste mit lokalem Cache, Kategorien, Suche, Favoriten, Senderlogos, einstellbarer Stream-Puffergroesse, plattformneutraler HLS-Wiedergabe-Engine, wiederholter HLS-Stabilitaetspruefung, passendem Ersatzstream-Fallback, EPG-Vorschau fuer aktuell laufende und folgende Sendungen sowie einer Senderlisten-Pruefung, die vor dem Start warnt, am Ende per Ergebnisdialog gepruefte, funktionierende und temporaer gesperrte Sender zaehlt und nicht erreichbare Sender temporaer bis zum naechsten xVAULT-Hauptstart ausblendet.
 - LiveTV lite liest Deutsche TV-, Österreichische TV- und Schweizer TV-Sender direkt aus der 2ix2-WordPress-API und startet die dort hinterlegten HLS-Streams schlank ohne EPG- oder Favoriten-Schicht; wenn 2ix2 temporaer nicht erreichbar ist, nutzt xVAULT Nydus als Ersatzquelle und loest dort echte HLS-Streams beim Start dynamisch auf.

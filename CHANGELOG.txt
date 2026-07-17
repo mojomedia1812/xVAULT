@@ -1,3 +1,10 @@
+xVAULT 2026.07.17.3
+Entwickler: mojomedia1812
+
+- Kodi-Wrapper-Objekte wie Dialoge, Fenster, Player, Playlists und Addon-Handles werden nicht mehr als langlebige Modul-Globals gehalten, damit CPythonInvoker-Cleanup-Warnungen nach xVAULT-Aufrufen vermieden werden.
+- Progress-Dialoge werden verwaltet freigegeben und beim Add-on-Ende bereinigt; Serienqueue nutzt lokale Player-/Playlist-Objekte fuer die Kodi-Uebergabe.
+- Der Kodi-Service ist von control.py/xbmcaddon entkoppelt und liest Provider-Konstanten direkt aus den Dateien, damit Service-Starts ohne CPythonInvoker-Addon-Klassenreste enden.
+
 xVAULT 2026.07.17.2
 Entwickler: mojomedia1812
 

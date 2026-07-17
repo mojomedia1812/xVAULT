@@ -287,6 +287,7 @@ def has_local_changes():
 
 
 def monitor_changes(interval=5):
+    monitor = None
     try:
         import xbmc
         monitor = xbmc.Monitor()
@@ -314,6 +315,11 @@ def monitor_changes(interval=5):
                 next_remote_pull = now + REMOTE_PULL_INTERVAL
     except Exception as exc:
         log_utils.log('xVAULT sync: favorites monitor stopped: %s' % exc, log_utils.LOGWARNING)
+    finally:
+        try:
+            del monitor
+        except Exception:
+            pass
 
 
 def backup_current():

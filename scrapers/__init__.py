@@ -4,12 +4,6 @@ import pkgutil
 
 from resources.lib import log_utils
 
-try:
-    import xbmcaddon
-    __addon__ = xbmcaddon.Addon()
-except Exception:
-    __addon__ = None
-
 debug = True
 
 _SCRAPERS_ROOT = os.path.dirname(__file__)
@@ -17,6 +11,30 @@ _ADDON_ROOT = os.path.dirname(_SCRAPERS_ROOT)
 _SITES_FOLDER = os.path.join(_ADDON_ROOT, 'sites')
 _LEGACY_FOLDER = os.path.join(_SCRAPERS_ROOT, 'scrapers_source', 'de')
 _MODULE_CACHE = {}
+
+
+def _get_setting(setting_id):
+    try:
+        import xbmcaddon
+    except Exception:
+        return ''
+    addon = xbmcaddon.Addon()
+    try:
+        return addon.getSetting(setting_id)
+    finally:
+        del addon
+
+
+def _set_setting(setting_id, value):
+    try:
+        import xbmcaddon
+    except Exception:
+        return None
+    addon = xbmcaddon.Addon()
+    try:
+        return addon.setSetting(setting_id, value)
+    finally:
+        del addon
 
 
 def _folder_has_providers(folder):
@@ -87,8 +105,7 @@ def sources(specified_folders=None):
                 module = _load_module(loader, module_name)
                 sourceDict.append((module_name, module.source()))
             except Exception as e:
-                if __addon__ is not None:
-                    __addon__.setSetting('provider.' + module_name, 'false')
+                _set_setting('provider.' + module_name, 'false')
                 if debug:
                     log_utils.log('Error: Loading module: "%s": %s' % (module_name, e), log_utils.LOGERROR)
         return sourceDict
@@ -97,9 +114,8 @@ def sources(specified_folders=None):
 
 
 def enabledCheck(module_name):
-    if __addon__ is not None:
-        if __addon__.getSetting('provider.' + module_name) == 'false' or __addon__.getSetting('provider.' + module_name + '.check') == 'false':
-            return False
+    if _get_setting('provider.' + module_name) == 'false' or _get_setting('provider.' + module_name + '.check') == 'false':
+        return False
     return True
 
 

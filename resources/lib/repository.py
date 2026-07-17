@@ -74,7 +74,11 @@ def _enable_repository():
 def _refresh_addons():
     try:
         xbmc.executebuiltin('UpdateLocalAddons')
-        xbmc.Monitor().waitForAbort(1)
+        monitor = xbmc.Monitor()
+        try:
+            monitor.waitForAbort(1)
+        finally:
+            del monitor
     except Exception:
         pass
 
@@ -82,7 +86,11 @@ def _refresh_addons():
 def _refresh_repositories():
     try:
         xbmc.executebuiltin('UpdateAddonRepos')
-        xbmc.Monitor().waitForAbort(1)
+        monitor = xbmc.Monitor()
+        try:
+            monitor.waitForAbort(1)
+        finally:
+            del monitor
     except Exception:
         pass
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026.07.17.3] - 2026-07-17
+
+- Kodi-Wrapper-Objekte wie Dialoge, Fenster, Player, Playlists und Addon-Handles werden nicht mehr als langlebige Modul-Globals gehalten, damit CPythonInvoker-Cleanup-Warnungen nach xVAULT-Aufrufen vermieden werden.
+- Progress-Dialoge werden verwaltet freigegeben und beim Add-on-Ende bereinigt; Serienqueue nutzt lokale Player-/Playlist-Objekte fuer die Kodi-Uebergabe.
+- Der Kodi-Service ist von `control.py`/`xbmcaddon` entkoppelt und liest Provider-Konstanten direkt aus den Dateien, damit Service-Starts ohne CPythonInvoker-Addon-Klassenreste enden.
+
 ## [2026.07.17.2] - 2026-07-17
 
 - Supportfunktion fuer redigierte Diagnosepakete hinzugefuegt: Kodi-/Addon-Kontext, relevante Abhaengigkeiten, redigierte Einstellungen, xVAULT-bezogene Logzeilen sowie Dateilisten werden automatisch gesammelt und als UUID-ZIP gepackt.

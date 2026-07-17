@@ -78,7 +78,11 @@ def _read_profile_setting(setting_id):
 def _read_addon_setting(setting_id):
     try:
         import xbmcaddon
-        return xbmcaddon.Addon().getSetting(setting_id)
+        addon = xbmcaddon.Addon()
+        try:
+            return addon.getSetting(setting_id)
+        finally:
+            del addon
     except Exception:
         pass
     try:

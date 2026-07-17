@@ -10,7 +10,7 @@ import time
 import hashlib
 import pickle
 from copy import deepcopy
-import xbmc, xbmcaddon, xbmcvfs
+import xbmc, xbmcvfs
 
 if sys.version_info.major == 3:
     from urllib.parse import quote_plus
@@ -177,7 +177,12 @@ def _get_storage(filename='storage.pcl'):
     :rtype: Storage
     """
     if filename == None or filename == '': filename='storage.pcl'
-    _profile_dir = _py2_decode(translatePath(xbmcaddon.Addon().getAddonInfo('profile')))
+    import xbmcaddon
+    addon = xbmcaddon.Addon()
+    try:
+        _profile_dir = _py2_decode(translatePath(addon.getAddonInfo('profile')))
+    finally:
+        del addon
 
     return _Storage(_profile_dir, filename)
 
