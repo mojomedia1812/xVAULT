@@ -573,6 +573,145 @@ def run_db_stress(profile: FireTvStickProfile, iterations: int, kodi_version: st
         sys.path[:] = old_path
 
 
+def run_playback_settings_check(profile: FireTvStickProfile, kodi_version: str, profile_dir: Path) -> CheckResult:
+    state = create_state(profile, kodi_version, profile_dir)
+    old_path = list(sys.path)
+    try:
+        install_kodi_stubs(state)
+        purge_xvault_modules()
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+
+        settings_path = state.profile_dir / "settings.xml"
+        settings_path.write_text(
+            '<settings version="2">\n'
+            '    <setting id="hosts.mode">Autoplay</setting>\n'
+            '    <setting id="default.action">2</setting>\n'
+            '</settings>\n',
+            encoding="utf-8",
+        )
+
+        from resources.lib import playback_settings
+        setting_id = playback_settings.SETTING_ID
+        legacy_setting_id = "hosts.mode"
+
+        checks = []
+        for live_value, expected in (("Verzeichnis", "1"), ("Dialog", "0"), ("Autoplay", "2")):
+            state.settings[setting_id] = live_value
+            actual = playback_settings.get_mode()
+            checks.append("%s=>%s" % (live_value, actual))
+            if actual != expected:
+                return CheckResult(
+                    "playback-settings",
+                    "FAIL",
+                    "Live-Wert %s ergab %s statt %s; checks=%s" % (live_value, actual, expected, ", ".join(checks)),
+                )
+
+        settings_path.write_text(
+            '<settings version="2">\n'
+            '    <setting id="hosts.mode">Verzeichnis</setting>\n'
+            '</settings>\n',
+            encoding="utf-8",
+        )
+        state.settings[setting_id] = "Autoplay"
+        migrated = playback_settings.migrate_mode_setting()
+        written = state.settings.get(setting_id)
+        if migrated != "1" or written != "Verzeichnis":
+            return CheckResult(
+                "playback-settings",
+                "FAIL",
+                "Legacy-Migration ergab mode=%s write=%s statt 1/Verzeichnis." % (migrated, written),
+            )
+
+        settings_path.write_text(
+            '<settings version="2">\n'
+            '    <setting id="hosts.mode.v2" default="true">Autoplay</setting>\n'
+            '</settings>\n',
+            encoding="utf-8",
+        )
+        state.settings[setting_id] = "Verzeichnis"
+        migrated = playback_settings.migrate_mode_setting()
+        if migrated != "1" or state.settings.get(setting_id) != "Verzeichnis":
+            return CheckResult(
+                "playback-settings",
+                "FAIL",
+                "Default-Profilwert ueberschrieb Live-Wert: mode=%s write=%s." %
+                (migrated, state.settings.get(setting_id)),
+            )
+
+        settings_path.write_text(
+            '<settings version="2">\n'
+            '    <setting id="hosts.mode" default="true">2</setting>\n'
+            '</settings>\n',
+            encoding="utf-8",
+        )
+        state.settings[setting_id] = ""
+        migrated = playback_settings.migrate_mode_setting()
+        if migrated != "2" or state.settings.get(setting_id) != "Autoplay":
+            return CheckResult(
+                "playback-settings",
+                "FAIL",
+                "Numerischer Altwert wurde nicht auf Label migriert: mode=%s write=%s." %
+                (migrated, state.settings.get(setting_id)),
+            )
+
+        settings_path.write_text(
+            '<settings version="2">\n'
+            '    <setting id="hosts.mode">1</setting>\n'
+            '</settings>\n',
+            encoding="utf-8",
+        )
+        state.settings[setting_id] = "Autoplay"
+        migrated = playback_settings.migrate_mode_setting()
+        if migrated != "1" or state.settings.get(setting_id) != "Verzeichnis":
+            return CheckResult(
+                "playback-settings",
+                "FAIL",
+                "Numerischer Nicht-Autoplay-Altwert ging verloren: mode=%s write=%s legacy=%s." %
+                (migrated, state.settings.get(setting_id), legacy_setting_id),
+            )
+
+        settings_path.write_text(
+            '<settings version="2">\n'
+            '    <setting id="hosts.mode" default="true">1</setting>\n'
+            '</settings>\n',
+            encoding="utf-8",
+        )
+        state.settings[setting_id] = "Autoplay"
+        migrated = playback_settings.migrate_mode_setting()
+        if migrated != "1" or state.settings.get(setting_id) != "Verzeichnis":
+            return CheckResult(
+                "playback-settings",
+                "FAIL",
+                "Default-markierter Legacy-Wert wurde nicht bewahrt: mode=%s write=%s." %
+                (migrated, state.settings.get(setting_id)),
+            )
+
+        settings_path.write_text(
+            '<settings version="2">\n'
+            '    <setting id="hosts.mode.v2">Verzeichnis</setting>\n'
+            '    <setting id="hosts.mode.v2.migrated">true</setting>\n'
+            '    <setting id="hosts.mode" default="true">1</setting>\n'
+            '</settings>\n',
+            encoding="utf-8",
+        )
+        state.settings[setting_id] = "Autoplay"
+        migrated = playback_settings.migrate_mode_setting()
+        if migrated != "2" or state.settings.get(setting_id) != "Autoplay":
+            return CheckResult(
+                "playback-settings",
+                "FAIL",
+                "Legacy-Wert blockierte Autoplay-Wechsel: mode=%s write=%s." %
+                (migrated, state.settings.get(setting_id)),
+            )
+
+        return CheckResult("playback-settings", "PASS", "Live-Wechsel und Legacy-Migration konsistent (%s)." % ", ".join(checks))
+    except Exception as exc:
+        return CheckResult("playback-settings", "FAIL", "%s: %s" % (exc.__class__.__name__, exc))
+    finally:
+        sys.path[:] = old_path
+
+
 def stress_search_storage(module: Any, state: SimulationState, iterations: int) -> CheckResult:
     filename = "movies.pcl"
     for index in range(iterations):
@@ -800,6 +939,7 @@ def run_all(profile: FireTvStickProfile, iterations: int, kodi_version: str, kee
     results.extend(profile_limit_report(profile))
     results.append(run_kodi_smoke(profile, "root", kodi_version, profile_dir))
     results.append(run_kodi_smoke(profile, "movieNavigator", kodi_version, profile_dir))
+    results.append(run_playback_settings_check(profile, kodi_version, profile_dir))
     results.extend(run_db_stress(profile, iterations, kodi_version, profile_dir))
     if temp is not None:
         temp.cleanup()
@@ -888,6 +1028,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             results.extend(profile_limit_report(profile))
             results.append(run_kodi_smoke(profile, "root", args.kodi_version, profile_dir))
             results.append(run_kodi_smoke(profile, "movieNavigator", args.kodi_version, profile_dir))
+            results.append(run_playback_settings_check(profile, args.kodi_version, profile_dir))
             results.extend(run_db_stress(profile, args.iterations, args.kodi_version, profile_dir))
         else:
             raise ValueError("Unknown command: %s" % args.command)

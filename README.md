@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.07.17.7`
+Aktueller Stand: `2026.07.17.8`
 
 Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geaendert wird, muss diese README geprueft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die fuehrende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** oeffnen.
-3. Die Datei `plugin.video.xvault-2026.07.17.7.zip` auswaehlen.
+3. Die Datei `plugin.video.xvault-2026.07.17.8.zip` auswaehlen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen ueber das Repository.
@@ -45,7 +45,7 @@ Weitere Hinweise zu Abhaengigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Zuletzt gefundene Quellenlisten fuer Filme und Serien werden kurz fuer die aktuelle Kodi-Sitzung zwischengespeichert. Beim erneuten Quellenwechsel fuer denselben Titel kann xVAULT die Liste wiederverwenden, waehrend Hoster-Links weiterhin frisch aufgeloest und getestet werden.
 - Streamquellen fuer Filme und Serien koennen nach bevorzugter Sprache sortiert oder gefiltert werden; mehrere Scraper liefern Deutsch/Englisch-Varianten sauber an die Quellenliste, und Autoplay wird bei Sprache `Alle` automatisch in Dialog oder Verzeichnis umgestellt.
 - Die Standard-Aktion `Dialog`, `Verzeichnis` oder `Autoplay` wird beim Start von Filmen und Folgen frisch aus Kodis aktuellem Add-on-Setting gelesen; die Profil-Datei dient als Rueckfall. Alte Favoriten oder externe Aufrufe frieren die Auswahl nicht mehr auf einen frueheren Wert ein.
-- Die Standard-Aktion nutzt Kodis native Enum-Speicherung und migriert alte Textwerte automatisch, damit Aenderungen aus den Add-on-Settings auch aus einer aktiven Favoriten- oder Folgenliste heraus fuer die naechste Wiedergabe gelten.
+- Die Standard-Aktion nutzt eine neue native Label-Enum-Einstellung und migriert alte numerische `hosts.mode`-/`default.action`-Werte automatisch, damit Aenderungen aus den Add-on-Settings auch aus einer aktiven Favoriten- oder Folgenliste heraus fuer die naechste Wiedergabe gelten.
 - Filmpalast liest die aktuelle Such- und Quellenstruktur, schuetzt bereits korrekt kodierte Suchpfade vor Doppel-Kodierung und uebernimmt erkannte Hoster erst ohne vorzeitige ResolveURL-Filterung in die Quellenliste.
 - Scraper erhalten die aktuelle ResolveURL-Hosterliste, damit Quellen von FHDFilme, HDfilme, Megakino, StreamCloud, TopStreamFilm und aehnlichen Anbietern nicht mehr vorzeitig ausgefiltert werden.
 - Die Standard-Aktion `Verzeichnis` liefert Quellenlisten auch aus Favoriten, RPC- und externen Aufrufen wieder als Kodi-Verzeichnis, statt ungewollt in den Dialog zurueckzufallen.

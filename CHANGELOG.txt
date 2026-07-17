@@ -1,3 +1,10 @@
+xVAULT 2026.07.17.8
+Entwickler: mojomedia1812
+
+- Die Standard-Aktion nutzt in laufendem Kodi wieder den Live-Wert aus der Add-on-API, damit ein Wechsel zwischen Dialog, Verzeichnis und Autoplay sofort uebernommen wird.
+- Die Einstellung nutzt eine neue Kodi-Label-Enum-ID mit Dialog/Verzeichnis/Autoplay; alte numerische hosts.mode/default.action-Werte bleiben als Legacy-Quelle erhalten und werden beim Start migriert.
+- Der Fire-TV/Kodi-Test prueft den Standard-Aktionswechsel jetzt explizit gegen stale/default-markierte Profil-Dateien und alte default.action-Werte.
+
 xVAULT 2026.07.17.7
 Entwickler: mojomedia1812
 
