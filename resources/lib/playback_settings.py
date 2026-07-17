@@ -8,6 +8,9 @@ MODE_DIALOG = '0'
 MODE_DIRECTORY = '1'
 MODE_AUTOPLAY = '2'
 
+SETTING_ID = 'hosts.mode'
+LEGACY_SETTING_ID = 'default.action'
+
 _MODE_ALIASES = {
     '0': MODE_DIALOG,
     'dialog': MODE_DIALOG,
@@ -39,40 +42,73 @@ def normalize_mode(value, default=MODE_AUTOPLAY):
 
 
 def get_mode(default=MODE_AUTOPLAY):
-    raw = _read_addon_setting('hosts.mode') or _read_profile_setting('hosts.mode')
-    return normalize_mode(raw, default)
+    mode, _raw, _source = _resolve_mode(default)
+    return mode
 
 
 def set_mode(value):
     mode = normalize_mode(value, MODE_AUTOPLAY)
-    control.setSetting(id='hosts.mode', value=_MODE_SETTING_VALUES[mode])
+    _write_mode(mode)
     return mode
 
 
 def migrate_mode_setting():
-    raw = _read_profile_setting('hosts.mode') or _read_addon_setting('hosts.mode')
-    mode = normalize_mode(raw, None)
+    mode, raw, source = _resolve_mode(None)
     if mode is None:
-        return set_mode(MODE_AUTOPLAY)
+        return MODE_AUTOPLAY
 
     desired = _MODE_SETTING_VALUES[mode]
-    if str(raw).strip() != desired:
-        control.setSetting(id='hosts.mode', value=desired)
+    canonical_sources = ('profile:%s' % SETTING_ID, 'addon:%s' % SETTING_ID)
+    if source not in canonical_sources or str(raw).strip() != desired:
+        _write_mode(mode)
     return mode
+
+
+def has_profile_mode():
+    for setting_id in (SETTING_ID, LEGACY_SETTING_ID):
+        raw, is_default = _read_profile_setting(setting_id)
+        if raw and not is_default and normalize_mode(raw, None) is not None:
+            return True
+    return False
+
+
+def _resolve_mode(default=MODE_AUTOPLAY):
+    current_raw, current_is_default = _read_profile_setting(SETTING_ID)
+    legacy_raw, legacy_is_default = _read_profile_setting(LEGACY_SETTING_ID)
+
+    candidates = (
+        (current_raw, 'profile:%s' % SETTING_ID, not current_is_default),
+        (legacy_raw, 'profile:%s' % LEGACY_SETTING_ID, not legacy_is_default),
+        (current_raw, 'profile-default:%s' % SETTING_ID, current_is_default),
+        (_read_addon_setting(SETTING_ID), 'addon:%s' % SETTING_ID, True),
+        (_read_addon_setting(LEGACY_SETTING_ID), 'addon:%s' % LEGACY_SETTING_ID, True),
+    )
+
+    for raw, source, enabled in candidates:
+        if not enabled:
+            continue
+        mode = normalize_mode(raw, None)
+        if mode is not None:
+            return mode, raw, source
+    return default, '', 'default'
+
+
+def _write_mode(mode):
+    control.setSetting(id=SETTING_ID, value=_MODE_SETTING_VALUES[mode])
 
 
 def _read_profile_setting(setting_id):
     try:
         path = os.path.join(control.addonProfilePath, 'settings.xml')
         if not os.path.exists(path):
-            return ''
+            return '', False
         root = ET.parse(path).getroot()
         for node in root.findall('setting'):
             if node.get('id') == setting_id:
-                return (node.text or node.get('value') or '').strip()
+                return (node.text or node.get('value') or '').strip(), node.get('default') == 'true'
     except Exception:
         pass
-    return ''
+    return '', False
 
 
 def _read_addon_setting(setting_id):

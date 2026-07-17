@@ -1,3 +1,10 @@
+xVAULT 2026.07.17.7
+Entwickler: mojomedia1812
+
+- Die Standard-Aktion Dialog/Verzeichnis/Autoplay liest wieder den tatsaechlich gespeicherten Profilwert und faellt nicht mehr durch den Kodi-Default auf Autoplay zurueck.
+- Vorhandene alte Standard-Aktionswerte werden nach hosts.mode migriert; die Erstinstallation ueberschreibt vorhandene Profilwerte nicht mehr mit Autoplay.
+- Provider-Checks auf Fire TV/Android speichern bei aktivem DNS over HTTPS fehlgeschlagene direkte Service-Checks nicht mehr als harte Deaktivierung, damit DoH-faehige Indexseiten aktiv bleiben.
+
 xVAULT 2026.07.17.6
 Entwickler: mojomedia1812
 

@@ -25,6 +25,11 @@ def apply_playback_defaults_once():
         if control.getSetting(APPLIED_SETTING) == 'true':
             return
 
+        if playback_settings.has_profile_mode():
+            control.setSetting(id=APPLIED_SETTING, value='true')
+            playback_settings.migrate_mode_setting()
+            return
+
         if _profile_has_existing_state():
             control.setSetting(id=APPLIED_SETTING, value='true')
             return

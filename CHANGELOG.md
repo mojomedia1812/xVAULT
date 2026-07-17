@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026.07.17.7] - 2026-07-17
+
+- Die Standard-Aktion `Dialog`/`Verzeichnis`/`Autoplay` liest wieder den tatsaechlich gespeicherten Profilwert und faellt nicht mehr durch den Kodi-Default auf `Autoplay` zurueck.
+- Vorhandene alte Standard-Aktionswerte werden nach `hosts.mode` migriert; die Erstinstallation ueberschreibt vorhandene Profilwerte nicht mehr mit `Autoplay`.
+- Provider-Checks auf Fire TV/Android speichern bei aktivem DNS over HTTPS fehlgeschlagene direkte Service-Checks nicht mehr als harte Deaktivierung, damit DoH-faehige Indexseiten aktiv bleiben.
+
 ## [2026.07.17.6] - 2026-07-17
 
 - Add-on-Laufzeitcode auf den finalen Stand `2026.07.17.2` zurueckgesetzt und als neue Version veroeffentlicht.
