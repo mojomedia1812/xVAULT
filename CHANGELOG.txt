@@ -2,35 +2,35 @@ xVAULT 2026.07.17.9
 Entwickler: mojomedia1812
 
 - Die Standard-Aktion nutzt in den Kodi-Einstellungen kein Kodi-Enum/Labelenum-Dropdown mehr, sondern einen xVAULT-eigenen Auswahl-Dialog und speichert den Wert in einer eigenen Profildatei.
-- Vorhandene Werte aus hosts.mode.v3, hosts.mode.v2, hosts.mode und default.action werden weiterhin einmalig uebernommen, danach koennen alte Kodi-Defaultwerte den Wechsel nicht mehr zurueckschreiben.
-- Die Kodi-Settings-Action ruft den xVAULT-Auswahldialog mit gequoteter Plugin-URL auf, damit der Wechsel auch aus Kodis Einstellungsdialog zuverlaessig ausgefuehrt wird.
-- Der Fire-TV/Kodi-Test prueft jetzt die xVAULT-Profildatei, den v2/v3-Updatepfad und den Wechsel zurueck auf Autoplay nach gesetztem Migrationsmarker.
+- Vorhandene Werte aus hosts.mode.v3, hosts.mode.v2, hosts.mode und default.action werden weiterhin einmalig übernommen, danach können alte Kodi-Defaultwerte den Wechsel nicht mehr zurückschreiben.
+- Die Kodi-Settings-Action ruft den xVAULT-Auswahldialog mit gequoteter Plugin-URL auf, damit der Wechsel auch aus Kodis Einstellungsdialog zuverlässig ausgeführt wird.
+- Der Fire-TV/Kodi-Test prüft jetzt die xVAULT-Profildatei, den v2/v3-Updatepfad und den Wechsel zurück auf Autoplay nach gesetztem Migrationsmarker.
 
 xVAULT 2026.07.17.8
 Entwickler: mojomedia1812
 
-- Die Standard-Aktion nutzt in laufendem Kodi wieder den Live-Wert aus der Add-on-API, damit ein Wechsel zwischen Dialog, Verzeichnis und Autoplay sofort uebernommen wird.
+- Die Standard-Aktion nutzt in laufendem Kodi wieder den Live-Wert aus der Add-on-API, damit ein Wechsel zwischen Dialog, Verzeichnis und Autoplay sofort übernommen wird.
 - Die Einstellung nutzt eine neue Kodi-Label-Enum-ID mit Dialog/Verzeichnis/Autoplay; alte numerische hosts.mode/default.action-Werte bleiben als Legacy-Quelle erhalten und werden beim Start migriert.
-- Der Fire-TV/Kodi-Test prueft den Standard-Aktionswechsel jetzt explizit gegen stale/default-markierte Profil-Dateien und alte default.action-Werte.
+- Der Fire-TV/Kodi-Test prüft den Standard-Aktionswechsel jetzt explizit gegen stale/default-markierte Profil-Dateien und alte default.action-Werte.
 
 xVAULT 2026.07.17.7
 Entwickler: mojomedia1812
 
-- Die Standard-Aktion Dialog/Verzeichnis/Autoplay liest wieder den tatsaechlich gespeicherten Profilwert und faellt nicht mehr durch den Kodi-Default auf Autoplay zurueck.
-- Vorhandene alte Standard-Aktionswerte werden nach hosts.mode migriert; die Erstinstallation ueberschreibt vorhandene Profilwerte nicht mehr mit Autoplay.
-- Provider-Checks auf Fire TV/Android speichern bei aktivem DNS over HTTPS fehlgeschlagene direkte Service-Checks nicht mehr als harte Deaktivierung, damit DoH-faehige Indexseiten aktiv bleiben.
+- Die Standard-Aktion Dialog/Verzeichnis/Autoplay liest wieder den tatsächlich gespeicherten Profilwert und fällt nicht mehr durch den Kodi-Default auf Autoplay zurück.
+- Vorhandene alte Standard-Aktionswerte werden nach hosts.mode migriert; die Erstinstallation überschreibt vorhandene Profilwerte nicht mehr mit Autoplay.
+- Provider-Checks auf Fire TV/Android speichern bei aktivem DNS over HTTPS fehlgeschlagene direkte Service-Checks nicht mehr als harte Deaktivierung, damit DoH-fähige Indexseiten aktiv bleiben.
 
 xVAULT 2026.07.17.6
 Entwickler: mojomedia1812
 
-- Add-on-Laufzeitcode auf den finalen Stand 2026.07.17.2 zurueckgesetzt und als neue Version veroeffentlicht.
-- Diese Version ersetzt die spaeteren Aenderungen aus 2026.07.17.3 bis 2026.07.17.5, um den stabileren Stand fuer Fire-TV-Tests wieder bereitzustellen.
+- Add-on-Laufzeitcode auf den finalen Stand 2026.07.17.2 zurückgesetzt und als neue Version veröffentlicht.
+- Diese Version ersetzt die späteren Änderungen aus 2026.07.17.3 bis 2026.07.17.5, um den stabileren Stand für Fire-TV-Tests wieder bereitzustellen.
 
 xVAULT 2026.07.17.5
 Entwickler: mojomedia1812
 
-- Staffellisten grosser Serien wie Murdoch Mysteries werden auf Fire TV/Android schlanker aufgebaut, damit Kodi beim Scrollen nicht durch schwere TV-Show-InfoTags, Cast-Bilder oder leere Streamdetails belastet wird.
-- Staffel-Metadaten werden nur noch begrenzt parallel geladen und nach der Gesehen-Status-Pruefung ohne Episodenlisten im Staffelcache gehalten; die Staffelliste nutzt einen allgemeinen Videocontent statt tvshows.
+- Staffellisten großer Serien wie Murdoch Mysteries werden auf Fire TV/Android schlanker aufgebaut, damit Kodi beim Scrollen nicht durch schwere TV-Show-InfoTags, Cast-Bilder oder leere Streamdetails belastet wird.
+- Staffel-Metadaten werden nur noch begrenzt parallel geladen und nach der Gesehen-Status-Prüfung ohne Episodenlisten im Staffelcache gehalten; die Staffelliste nutzt einen allgemeinen Videocontent statt tvshows.
 
 xVAULT 2026.07.17.3
 Entwickler: mojomedia1812

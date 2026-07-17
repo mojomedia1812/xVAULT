@@ -357,7 +357,7 @@ def _release_notes_html():
         return (
             '    <section class="panel update-panel">\n'
             '      <p class="section-kicker">Neu in %s</p>\n'
-            '      <h2>Aktuelle Aenderungen</h2>\n'
+            '      <h2>Aktuelle Änderungen</h2>\n'
             '      <p>Details stehen in CHANGELOG.txt.</p>\n'
             '    </section>'
         ) % html.escape(VERSION)
@@ -404,7 +404,7 @@ def _read_changelog_releases():
 
 
 def _release_title(bullets):
-    return "Aenderungen im Ueberblick"
+    return "Änderungen im Überblick"
 
 
 def _archive_downloads_html():
@@ -554,7 +554,7 @@ def _kodi_listing_fragment():
 
 def _index_rows(entries, parent):
     rows = [
-        '<tr><td>[PARENTDIR]</td><td><a href="%s" data-umami-event="Verzeichnisnavigation geoeffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>' % parent
+        '<tr><td>[PARENTDIR]</td><td><a href="%s" data-umami-event="Verzeichnisnavigation geöffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>' % parent
     ]
     for entry in entries:
         path = entry["path"]
@@ -571,15 +571,15 @@ def _index_rows(entries, parent):
 
 def _index_link_attrs(name):
     if name.endswith("/"):
-        event = "Verzeichnis geoeffnet"
+        event = "Verzeichnis geöffnet"
     elif name.endswith(".zip"):
         event = "Datei heruntergeladen"
     elif name.endswith(".md5"):
-        event = "Checksum geoeffnet"
+        event = "Checksum geöffnet"
     elif name.endswith(".xml"):
-        event = "Repository-Metadaten geoeffnet"
+        event = "Repository-Metadaten geöffnet"
     else:
-        event = "Repository-Datei geoeffnet"
+        event = "Repository-Datei geöffnet"
     return ' data-umami-event="%s"' % html.escape(event, quote=True)
 
 
