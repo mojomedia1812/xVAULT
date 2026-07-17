@@ -12,7 +12,6 @@ from resources.lib.control import getKodiVersion
 if int(getKodiVersion()) >= 20: from infotagger.listitem import ListItemInfoTag
 
 _params = dict(control.parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
-MAX_SEASON_WORKERS = 4
 
 class seasons:
 	def __init__(self):
@@ -64,8 +63,7 @@ class seasons:
 
 	def worker(self):
 		self.meta = []
-		workers = min(MAX_SEASON_WORKERS, max(1, len(self.list)))
-		with ThreadPoolExecutor(max_workers=workers) as executor:
+		with ThreadPoolExecutor() as executor:
 			executor.map(self.super_meta, self.list)
 
 		self.meta = sorted(self.meta, key=lambda k: k['season'])
@@ -95,7 +93,6 @@ class seasons:
 			)
 			overlay = 7 if playcount > 0 else 6
 			meta.update({'playcount': playcount, 'overlay': overlay})
-			meta.pop('episodes', None)
 			self.meta.append(meta)
 		except:
 			pass
@@ -132,10 +129,9 @@ class seasons:
 				_sysmeta = control.quote_plus(json.dumps(_sysmeta))
 
 				if i.get('is_special') or int(season) == 0:
-					base_label = 'Specials / Pilotfilme - %s' % sysmeta['title']
+					label = 'Specials / Pilotfilme - %s' % sysmeta['title']
 				else:
-					base_label = 'Staffel %s - %s' % (season, sysmeta['title'])
-				label = base_label
+					label = 'Staffel %s - %s' % (season, sysmeta['title'])
 				if i.get('premiered') and datetime.datetime(*(time.strptime(i['premiered'], "%Y-%m-%d")[0:6])) > datetime.datetime.now():
 					label = '[COLOR=red][I]{}[/I][/COLOR]'.format(label) # ffcc0000
 
@@ -173,7 +169,6 @@ class seasons:
 						sysmeta.update({'playcount': 0, 'overlay': 6})
 				except:
 					pass
-				info_meta = self._season_info_meta(meta, sysmeta, i, base_label, plot)
 				try:
 					from resources.lib import trakt
 					rate_item = trakt.context_rate_item(sysaddon, sysmeta)
@@ -187,17 +182,44 @@ class seasons:
 				url = '%s?action=episodes&sysmeta=%s' % (sysaddon, sysmeta)
 
 				aActors = []
+				if 'cast' in meta and meta['cast']: aActors = meta['cast']
 
 				## supported infolabels: https://codedocs.xyz/AlwinEsch/kodi/group__python__xbmcgui__listitem.html#ga0b71166869bda87ad744942888fb5f14
 				# # # remove unsupported InfoLabels
-				meta = info_meta
+				meta.pop('cast', None)  # ersetzt durch item.setCast(i['cast'])
+				meta.pop('fanart', None)
+				meta.pop('poster', None)
+				meta.pop('imdb_id', None)
+				meta.pop('tvdb_id', None)
+				meta.pop('tmdb_id', None)
+				meta.pop('number_of_seasons', None)
+				meta.pop('number_of_episodes', None)
+				meta.pop('originallanguage', None)
+				meta.pop('sysname', None)
+				meta.pop('systitle', None)
+				meta.pop('year', None)
+				meta.pop('aliases', None)
+				meta.pop('backdrop_url', None)
+				meta.pop('cover_url', None)
+
+				# gefakte Video/Audio Infos
+				# video_streaminfo = {'codec': 'h264', "width": 1920, "height": 1080}
+				# audio_streaminfo = {'codec': 'dts', 'channels': 6, 'language': 'de'}
+				video_streaminfo = {}
+				audio_streaminfo = {}
 
 				if int(getKodiVersion()) <= 19:
 					if aActors: item.setCast(aActors)
 					item.setInfo(type='Video', infoLabels=meta)
+					item.addStreamInfo('video', video_streaminfo)
+					item.addStreamInfo('audio', audio_streaminfo)
 				else:
 					info_tag = ListItemInfoTag(item, 'video')
 					info_tag.set_info(meta)
+					stream_details = {
+						'video': [video_streaminfo],
+						'audio': [audio_streaminfo]}
+					info_tag.set_stream_details(stream_details)
 					info_tag.set_cast(aActors)
 
 
@@ -206,33 +228,11 @@ class seasons:
 				#print(e) #TODO LOG
 				pass
 
-		control.content(syshandle, 'videos')
+		control.content(syshandle, 'tvshows')
 		control.plugincategory(syshandle, control.addonVersion)
 		control.endofdirectory(syshandle, cacheToDisc=False)
 
-		# setzt Auswahl nach letzte als gesehen markierte Staffel
+		# setzt Auswahl nach letzte als gesehen markierte Staffel -> Content: 'movies'
 		if control.getSetting('status.position') == 'true':
 			from resources.lib.utils import setPosition
-			setPosition(pos, __name__, 'videos')
-
-	def _season_info_meta(self, meta, sysmeta, season_item, label, plot):
-		info = {
-			'title': label,
-			'tvshowtitle': sysmeta.get('title', ''),
-			'season': season_item.get('season'),
-			'plot': plot or '',
-			'mediatype': 'season',
-			'playcount': meta.get('playcount', season_item.get('playcount', 0)),
-			'overlay': meta.get('overlay', season_item.get('overlay', 6)),
-		}
-		if season_item.get('premiered'):
-			info['premiered'] = season_item.get('premiered')
-			try:
-				info['year'] = int(str(season_item.get('premiered'))[:4])
-			except:
-				pass
-		if sysmeta.get('genre'):
-			info['genre'] = sysmeta.get('genre')
-		if sysmeta.get('studio'):
-			info['studio'] = sysmeta.get('studio')
-		return info
+			setPosition(pos, __name__, 'movies')

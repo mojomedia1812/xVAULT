@@ -2,14 +2,16 @@
 # 2022-10-09
 # edit 2026-06-13
 
-import ast
 import sys, os, threading
-import xml.etree.ElementTree as ET
 from random import choice
+from xbmcaddon import Addon
+# from resources.lib.requestHandler import cRequestHandler
 try:
-    import xbmc
+    from resources.lib.tools import logger
+    isLogger=True
 except:
-    xbmc = None
+    isLogger=False
+    pass
 
 
 is_python2 = sys.version_info.major == 2
@@ -20,109 +22,11 @@ else:
     from xbmcvfs import translatePath
     from urllib.parse import urlparse
 
-addonPath = os.path.dirname(os.path.abspath(__file__))
-_addonInfoCache = None
-
-
-def _log(message, level=None):
-    try:
-        if xbmc:
-            xbmc.log('[xVAULT.service] %s' % message, level or xbmc.LOGINFO)
-    except:
-        pass
-
-
-def _addon_xml_info():
-    global _addonInfoCache
-    if _addonInfoCache is not None:
-        return _addonInfoCache
-    info = {
-        'id': 'plugin.video.xvault',
-        'name': 'xVAULT',
-        'version': '',
-        'path': addonPath,
-    }
-    try:
-        root = ET.parse(os.path.join(addonPath, 'addon.xml')).getroot()
-        for key in ('id', 'name', 'version'):
-            if root.get(key):
-                info[key] = root.get(key)
-    except:
-        pass
-    info['profile'] = 'special://profile/addon_data/%s/' % info['id']
-    _addonInfoCache = info
-    return info
-
-
-def addonInfo(name):
-    return _addon_xml_info().get(name, '')
-
-
-addonId = addonInfo('id')
+addonInfo = Addon().getAddonInfo
+addonPath = translatePath(addonInfo('path'))
 addonVersion = addonInfo('version')
-addonProfilePath = translatePath(addonInfo('profile'))
-settingsFile = os.path.join(addonProfilePath, 'settings.xml')
-
-
-def _setting_node(root, setting_id):
-    for node in root.findall('setting'):
-        if node.get('id') == setting_id:
-            return node
-    return None
-
-
-def _read_settings_root():
-    if os.path.exists(settingsFile):
-        try:
-            return ET.parse(settingsFile).getroot()
-        except:
-            pass
-    return ET.Element('settings', {'version': '2'})
-
-
-def _write_settings_root(root):
-    folder = os.path.dirname(settingsFile)
-    if folder and not os.path.exists(folder):
-        os.makedirs(folder)
-    tree = ET.ElementTree(root)
-    try:
-        ET.indent(tree, space='    ')
-    except:
-        pass
-    tree.write(settingsFile, encoding='utf-8', xml_declaration=False)
-
-
-def _setting_args(*args, **kwargs):
-    setting_id = kwargs.get('id') or kwargs.get('setting_id')
-    if setting_id is None and args:
-        setting_id = args[0]
-    value = kwargs.get('value')
-    if value is None and len(args) > 1:
-        value = args[1]
-    return setting_id, '' if value is None else str(value)
-
-
-def setSetting(*args, **kwargs):
-    setting_id, value = _setting_args(*args, **kwargs)
-    if not setting_id:
-        return None
-    root = _read_settings_root()
-    node = _setting_node(root, setting_id)
-    if node is None:
-        node = ET.SubElement(root, 'setting', {'id': setting_id})
-    node.text = value
-    _write_settings_root(root)
-    return None
-
-
-def _getSetting(setting_id):
-    root = _read_settings_root()
-    node = _setting_node(root, setting_id)
-    if node is None:
-        return ''
-    return (node.text or node.get('value') or '').strip()
-
-
+setSetting = Addon().setSetting
+_getSetting = Addon().getSetting
 _settingsLock = threading.Lock()
 SERIENSTREAM_OLD_DOMAIN = '.'.join(('s', 'to'))
 PROVIDER_DOMAIN_REPLACEMENTS = {
@@ -139,119 +43,47 @@ def getSetting(Name, default=''):
     if result: return result
     else: return default
 
-def _setSettingIfChanged(setting_id, value):
-    current = getSetting(setting_id, '')
-    if current != value:
-        setSetting(setting_id, value)
-
-def _cleanup_service_runtime():
-    try:
-        for module_name, module in list(sys.modules.items()):
-            if not module_name.startswith(('resources.', 'scrapers', 'service')):
-                continue
-            module_dict = getattr(module, '__dict__', {})
-            for name in ('xbmcaddon', 'Addon', '_getSetting'):
-                if name in module_dict:
-                    try:
-                        module_dict[name] = None
-                    except:
-                        pass
-        sys.modules.pop('xbmcaddon', None)
-    except:
-        pass
-    try:
-        import gc
-        gc.collect()
-    except:
-        pass
-
 # Html Cache beim KodiStart loeschen
 def delHtmlCache():
     try:
+        from resources.lib.requestHandler import cRequestHandler
         from time import time
         deltaDay = int(getSetting('cacheDeltaDay', 3))
         deltaTime = 60*60*24*deltaDay # Tage
         currentTime = int(time())
-        should_clear = False
         # einmalig
         if getSetting('delHtmlCache') == 'true':
-            should_clear = True
+            cRequestHandler('').clearCache()
+            setSetting('lastdelhtml', str(currentTime))
             setSetting('delHtmlCache', 'false')
         # alle x Tage
         elif currentTime >= int(getSetting('lastdelhtml', 0)) + deltaTime:
-            should_clear = True
-        if should_clear:
-            cache = os.path.join(addonProfilePath, 'htmlcache')
-            if os.path.isdir(cache):
-                for filename in os.listdir(cache):
-                    try:
-                        os.remove(os.path.join(cache, filename))
-                    except:
-                        pass
+            cRequestHandler('').clearCache()
             setSetting('lastdelhtml', str(currentTime))
     except: pass
 
 # Scraper(Seiten) ein- / ausschalten
 #  [(providername, domainname), ...]     providername identisch mit dateiname
 def _getPluginData():
-    sPluginFolder = _get_provider_folder()
-    aFileNames = _get_provider_module_names(sPluginFolder)
+    import importlib.util
+    from os import path
+    from scrapers import getActiveProviderFolder, getProviderModuleNames
+    sPluginFolder = getActiveProviderFolder()
+    if sPluginFolder not in sys.path:
+        sys.path.append(sPluginFolder)
+    aFileNames = getProviderModuleNames()
     aPluginsData = []
     for fileName in aFileNames:
         try:
-            module_path = os.path.join(sPluginFolder, fileName + '.py')
-            constants = _read_provider_constants(module_path)
-            domain = constants.get('SITE_DOMAIN')
-            provider = constants.get('SITE_IDENTIFIER')
-            if domain and provider:
-                aPluginsData.append({'domain': domain, 'provider': provider})
+            module_path = path.join(sPluginFolder, fileName + '.py')
+            spec = importlib.util.spec_from_file_location('xvault_service_%s' % fileName, module_path)
+            plugin = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(plugin)
+            # print(plugin.SITE_DOMAIN +'  '+ plugin.SITE_IDENTIFIER)
+            aPluginsData.append({'domain': plugin.SITE_DOMAIN, 'provider': plugin.SITE_IDENTIFIER})
         except:
             pass
     return aPluginsData
-
-
-def _folder_has_providers(folder):
-    if not os.path.isdir(folder):
-        return False
-    return any(filename.endswith('.py') and not filename.startswith('__') for filename in os.listdir(folder))
-
-
-def _get_provider_folder():
-    sites = os.path.join(addonPath, 'sites')
-    legacy = os.path.join(addonPath, 'scrapers', 'scrapers_source', 'de')
-    return sites if _folder_has_providers(sites) else legacy
-
-
-def _get_provider_module_names(folder):
-    if not os.path.isdir(folder):
-        return []
-    return sorted(
-        os.path.splitext(filename)[0]
-        for filename in os.listdir(folder)
-        if filename.endswith('.py') and not filename.startswith('__')
-    )
-
-
-def _read_provider_constants(module_path):
-    result = {}
-    with open(module_path, 'r', encoding='utf-8') as handle:
-        tree = ast.parse(handle.read(), filename=module_path)
-    for node in tree.body:
-        targets = []
-        value = None
-        if isinstance(node, ast.Assign):
-            targets = node.targets
-            value = node.value
-        elif hasattr(ast, 'AnnAssign') and isinstance(node, ast.AnnAssign):
-            targets = [node.target]
-            value = node.value
-        for target in targets:
-            if isinstance(target, ast.Name) and target.id in ('SITE_DOMAIN', 'SITE_IDENTIFIER'):
-                try:
-                    result[target.id] = ast.literal_eval(value)
-                except:
-                    pass
-    return result
 
 
 def check_domains():
@@ -261,13 +93,13 @@ def check_domains():
         for item in domains:
             _domain = item['domain']
             _provider = item['provider']
-            t = threading.Thread(target=_checkdomain, args=(_domain, _provider))
+            t = threading.Thread(target=_checkdomain, args=(_domain, _provider), daemon=True)
             threads += [t]
             t.start()
     except:
         pass
     for t in threads:
-        t.join()
+        t.join(timeout=10)
 
 def RandomUA():
     #Random User Agents aktualisiert 08.06.2025
@@ -282,10 +114,23 @@ def RandomUA():
     return choice(_User_Agents)
 
 def _doh_enabled():
-    return getSetting('bypassDNSlock.enabled', getSetting('bypassDNSlock', 'false')) == 'true'
+    return getSetting('bypassDNSlock', 'false') == 'true'
 
 def _checkdomain_with_doh(domain):
-    _log('DoH domain check skipped in service for %s' % domain)
+    try:
+        from resources.lib.requestHandler import cRequestHandler
+        base_link = 'https://' + domain
+        request = cRequestHandler(base_link, caching=False, ignoreErrors=True)
+        content = request.request()
+        status = str(request.getStatus())
+        real_domain = urlparse(request.getRealUrl() or base_link).hostname or domain
+        error_markers = ('SEITE NICHT ERREICHBAR', 'CLOUDFLARE-SCHUTZ AKTIV', 'URL FEHLER', 'TIMEOUT', 'DDOS GUARD SCHUTZ')
+        if not content or content in error_markers:
+            return False, domain, status
+        if status in ('200', '301', '302') or content:
+            return True, real_domain, status
+    except Exception as exc:
+        if isLogger: logger.warning(' -> [service]: DoH domain check failed for %s: %s' % (domain, str(exc)))
     return False, domain, None
 
 def _checkdomain(_domain, _provider):
@@ -320,24 +165,21 @@ def _checkdomain(_domain, _provider):
             #pass
         finally:
             wrongDomain = 'site-maps.cc', 'www.drei.at', 'notice.cuii.info'
-            doh_enabled = _doh_enabled()
-            if doh_enabled and (check != 'true' or domain in wrongDomain):
+            if _doh_enabled() and (check != 'true' or domain in wrongDomain):
                 doh_domain = _domain if domain in wrongDomain else domain
                 doh_check, doh_domain, doh_status = _checkdomain_with_doh(doh_domain)
                 if doh_check and doh_domain not in wrongDomain:
                     check = 'true'
                     domain = doh_domain
                     status_code = 'DoH:%s' % doh_status
-                elif domain not in wrongDomain:
-                    check = ''
             with _settingsLock:
                 if domain in wrongDomain:
-                    _setSettingIfChanged('provider.' + _provider + '.check', '')
-                    _setSettingIfChanged('provider.' + _provider + '.domain', '')
+                    setSetting('provider.' + _provider + '.check', '')
+                    setSetting('provider.' + _provider + '.domain', '')
                 else:
-                    _setSettingIfChanged('provider.' + _provider + '.check', check)
-                    _setSettingIfChanged('provider.' + _provider + '.domain', domain)
-            _log('Provider: %s / Statuscode: %s / Domain: %s, Check: %s' % (_provider, status_code, domain, check))
+                    setSetting('provider.' + _provider + '.check', check)
+                    setSetting('provider.' + _provider + '.domain', domain)
+            if isLogger: logger.info(' -> [service]: Provider: %s / Statuscode: %s / Domain: %s, Check: %s' % (_provider, status_code, domain, check))
     except: pass
 
 def ensure_youtube_api_keys():
@@ -383,13 +225,63 @@ def ensure_youtube_api_keys():
 
         with open(yt_keys_path, 'w') as f:
             json.dump(_resolve(json.loads(_template)), f, indent=4)
-        _log('YouTube api_keys.json written')
+        if isLogger:
+            logger.info('[service]: YouTube api_keys.json written')
     except Exception as e:
-        _log('Failed to write YouTube api_keys.json: %s' % str(e), getattr(xbmc, 'LOGWARNING', None) if xbmc else None)
+        if isLogger:
+            logger.warning('[service]: Failed to write YouTube api_keys.json: %s' % str(e))
 
 
 if __name__ == "__main__":
+	from resources.lib import dependencies
+	dependencies.ensure_all_dependencies()
+	try:
+		from resources.lib import telemetry
+		telemetry.app_start()
+	except Exception:
+		pass
+	try:
+		from resources.lib import first_install
+		first_install.apply_playback_defaults_once()
+	except Exception:
+		pass
+	try:
+		from resources.lib import playback_settings
+		playback_settings.migrate_mode_setting()
+	except Exception:
+		pass
+	try:
+		from resources.lib import tmdbhelper_integration
+		tmdbhelper_integration.ensure_player()
+	except Exception:
+		pass
+	from resources.lib import updater
+	if updater.automatic_updates_enabled():
+		from resources.lib import repository
+		repository.ensure_xvault_repository()
 	check_domains()
 	delHtmlCache()
 	ensure_youtube_api_keys()
-	_cleanup_service_runtime()
+	try:
+		from resources.lib.sync import binge_sync, storage
+		if storage.is_enabled() and storage.is_logged_in():
+			binge_sync.pull_remote(apply_bookmarks=True, silent=True)
+	except Exception:
+		pass
+	try:
+		from resources.lib import trakt
+		trakt.sync_watched(silent=True)
+	except Exception:
+		pass
+	try:
+		from resources.lib.sync import favorites_sync
+		favorites_sync.check_and_push_if_changed(silent=True)
+		favorites_sync.monitor_changes(interval=5)
+	except Exception:
+		pass
+	finally:
+		try:
+			from resources.lib import telemetry
+			telemetry.app_stop()
+		except Exception:
+			pass

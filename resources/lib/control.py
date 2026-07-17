@@ -4,9 +4,7 @@
 #edit 2024-12-04
 
 import os, sys
-import atexit
-import gc
-import xbmc, xbmcplugin, xbmcgui, xbmcvfs
+import xbmc, xbmcplugin, xbmcaddon, xbmcgui, xbmcvfs
 from six import iteritems
 
 is_python2 = sys.version_info.major == 2
@@ -46,101 +44,9 @@ def py2_encode(value):
 ## from six
 ## iteritems = lambda d: ((hasattr(d, 'iteritems') and d.iteritems) or d.items)()
 
-def _addon():
-	import xbmcaddon
-	return xbmcaddon.Addon()
-
-class _AddonProxy(object):
-	def __getattr__(self, name):
-		def _method(*args, **kwargs):
-			addon = _addon()
-			try:
-				return getattr(addon, name)(*args, **kwargs)
-			finally:
-				del addon
-		return _method
-
-def addonInfo(name):
-	addon = _addon()
-	try:
-		return addon.getAddonInfo(name)
-	finally:
-		del addon
-
-def setSetting(*args, **kwargs):
-	addon = _addon()
-	try:
-		return addon.setSetting(*args, **kwargs)
-	finally:
-		del addon
-
-def _getSetting(*args, **kwargs):
-	addon = _addon()
-	try:
-		return addon.getSetting(*args, **kwargs)
-	finally:
-		del addon
-
-class _KodiObjectProxy(object):
-	def __init__(self, factory):
-		self._factory = factory
-
-	def __getattr__(self, name):
-		def _method(*args, **kwargs):
-			target = self._factory()
-			try:
-				return getattr(target, name)(*args, **kwargs)
-			finally:
-				del target
-		return _method
-
-class _ManagedKodiObjectProxy(object):
-	def __init__(self, factory):
-		self._factory = factory
-		self._target = None
-
-	def _ensure(self, reset=False):
-		if reset:
-			self.release(close=True)
-		if self._target is None:
-			self._target = self._factory()
-		return self._target
-
-	def __getattr__(self, name):
-		def _method(*args, **kwargs):
-			if name == 'close':
-				target = self._target
-				if target is None:
-					return None
-				try:
-					return target.close(*args, **kwargs)
-				finally:
-					self.release(close=False)
-			target = self._ensure(reset=(name == 'create'))
-			return getattr(target, name)(*args, **kwargs)
-		return _method
-
-	def release(self, close=True):
-		target = self._target
-		self._target = None
-		if target is not None and close:
-			try:
-				target.close()
-			except:
-				pass
-		return None
-
-class _AbortRequestedProxy(object):
-	def __bool__(self):
-		monitor = xbmc.Monitor()
-		try:
-			return bool(monitor.abortRequested())
-		finally:
-			del monitor
-	__nonzero__ = __bool__
-
 # xbmcaddon
-Addon = _AddonProxy()
+Addon = xbmcaddon.Addon()
+addonInfo = xbmcaddon.Addon().getAddonInfo
 addonId = addonInfo('id')	   # 'plugin.video.xvault'
 addonName = addonInfo('name')   # 'xVAULT'
 addonVersion = addonInfo('version')
@@ -151,6 +57,9 @@ addonProfilePath = translatePath(addonInfo('profile')) # 'C:\\Program Files\\Kod
 
 #cachePath = os.path.join(addonProfilePath, "cache")
 #if not exists(cachePath): os.makedirs(cachePath)
+
+setSetting = xbmcaddon.Addon().setSetting
+_getSetting = xbmcaddon.Addon().getSetting
 
 def getSetting(Name, default=''):
 	result = _getSetting(Name)
@@ -163,11 +72,8 @@ def getSetting(Name, default=''):
 skin = xbmc.getSkinDir()
 infoLabel = xbmc.getInfoLabel
 condVisibility = xbmc.getCondVisibility
-playlist = _KodiObjectProxy(lambda: xbmc.PlayList(xbmc.PLAYLIST_VIDEO))
+playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 keyboard = xbmc.Keyboard
-
-def videoPlaylist():
-	return xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
 
 # kb = xbmc.Keyboard('default', 'heading', True)
@@ -181,13 +87,10 @@ def videoPlaylist():
 
 execute = xbmc.executebuiltin
 executebuiltin  = xbmc.executebuiltin
-player = _KodiObjectProxy(lambda: xbmc.Player())
-abortRequested = _AbortRequestedProxy()
+player = xbmc.Player()
+abortRequested = xbmc.Monitor().abortRequested()
 jsonrpc = xbmc.executeJSONRPC
 getInfoLabel = xbmc.getInfoLabel
-
-def kodiPlayer():
-	return xbmc.Player()
 
 
 # xbmcvfs
@@ -222,12 +125,12 @@ def hasTrailerPlayer():
 	return True
 
 # xbmcgui
-window = _KodiObjectProxy(lambda: xbmcgui.Window(10000))
-currentWindowId = _KodiObjectProxy(lambda: xbmcgui.Window(xbmcgui.getCurrentWindowId()))
+window = xbmcgui.Window(10000)
+currentWindowId = xbmcgui.Window(xbmcgui.getCurrentWindowId())
 item = xbmcgui.ListItem
-dialog = _KodiObjectProxy(lambda: xbmcgui.Dialog())
-progressDialog = _ManagedKodiObjectProxy(lambda: xbmcgui.DialogProgress())
-progressDialogBG = _ManagedKodiObjectProxy(lambda: xbmcgui.DialogProgressBG())
+dialog = xbmcgui.Dialog()
+progressDialog = xbmcgui.DialogProgress()
+progressDialogBG = xbmcgui.DialogProgressBG()
 
 dataPath = py2_decode(translatePath(addonInfo('profile')))
 
@@ -286,19 +189,6 @@ def yesnoDialog(line1, line2, line3, heading=addonInfo('name'), nolabel='', yesl
 def selectDialog(list, heading=addonInfo('name')):
 	return dialog.select(heading, list)
 
-def cleanup_kodi_objects():
-	for obj in (progressDialog, progressDialogBG):
-		try:
-			obj.release(close=True)
-		except:
-			pass
-	try:
-		gc.collect()
-	except:
-		pass
-
-atexit.register(cleanup_kodi_objects)
-
 def showparentdiritems():
 	if not 'false' in xbmc.executeJSONRPC('{"jsonrpc":"2.0", "id":1, "method":"Settings.GetSettingValue", "params":{"setting":"filelists.showparentdiritems"}}'):
 		return True
@@ -308,12 +198,9 @@ def showparentdiritems():
 # Modified `sleep` command that honors a user exit request
 def sleep(time):
 	monitor = xbmc.Monitor()
-	try:
-		while time > 0 and not monitor.abortRequested():
-			monitor.waitForAbort(min(1, time))
-			time = time - 1
-	finally:
-		del monitor
+	while time > 0 and not monitor.abortRequested():
+		monitor.waitForAbort(min(1, time))
+		time = time - 1
 
 def getKodiVersion():
 	return xbmc.getInfoLabel("System.BuildVersion").split(".")[0]
@@ -383,7 +270,7 @@ def resetSettings():
 		trakt_token_expires_at = getSetting('trakt.token_expires_at')
 		fanart = getSetting('api.fanart.tv')
 		debug = getSetting('status.debug')
-		SettingFile = os.path.join(addonProfilePath, "settings.xml")
+		SettingFile = os.path.join(xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')), "settings.xml")
 		if xbmcvfs.exists(SettingFile): xbmcvfs.delete(SettingFile)
 		# PROFIL_RELOAD = os.path.join(xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')).decode('utf-8'), "profil_reload")
 		# open(PROFIL_RELOAD, "w+").write('Profil reload')

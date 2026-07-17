@@ -205,7 +205,8 @@ elif action in ('sendToJD', 'sendToJD2', 'sendToMyJD', 'sendToPyLoad'):
             cPyLoadHandler().sendToPyLoad(name, url)
 
 elif action == 'mediaInfo':
-    dialog = control.progressDialog
+    import xbmcgui
+    dialog = xbmcgui.DialogProgress()
     dialog.create('Medien-Info', 'Löse Stream-URL auf...')
     dialog.update(0)
     from resources.lib import sources

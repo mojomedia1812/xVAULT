@@ -31,8 +31,7 @@ def start(params):
         return
 
     selected = episodes[start_index:]
-    playlist = control.videoPlaylist()
-    playlist.clear()
+    control.playlist.clear()
     plugin_url = 'plugin://%s/' % control.addonId
 
     for offset, episode in enumerate(selected):
@@ -54,11 +53,6 @@ def start(params):
             plugin_url,
             control.quote_plus(json.dumps(meta)),
         )
-        playlist.add(url, item)
+        control.playlist.add(url, item)
 
-    player = control.kodiPlayer()
-    try:
-        player.play(playlist)
-    finally:
-        del player
-        del playlist
+    control.player.play(control.playlist)

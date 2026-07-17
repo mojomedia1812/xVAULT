@@ -21,19 +21,15 @@ import http.client
 from resources.lib.control import dataPath, addonName, getSetting, quote_plus
 
 try:
-    import xbmcgui, xbmc
+    import xbmcgui, xbmc, xbmcaddon
     ADDON_NAME = addonName
     profilePath = dataPath
 except ImportError:
     ADDON_NAME = ''
     profilePath = ''
+    _getSetting = xbmcaddon.Addon().getSetting
     def getSetting(Name, default=''):
-        import xbmcaddon
-        addon = xbmcaddon.Addon()
-        try:
-            result = addon.getSetting(Name)
-        finally:
-            del addon
+        result = _getSetting(Name)
         if result:
             return result
         else:

@@ -9,6 +9,8 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 import xbmc
+import xbmcaddon
+
 try:
     import xbmcvfs
 except:
@@ -25,19 +27,11 @@ except ImportError:
     from urllib2 import Request, urlopen
 
 
-def _addon_info(name):
-    import xbmcaddon
-    addon = xbmcaddon.Addon()
-    try:
-        return addon.getAddonInfo(name)
-    finally:
-        del addon
-
-
-ADDON_ID = _addon_info('id')
-ADDON_NAME = _addon_info('name')
-ADDON_PATH = _addon_info('path')
-ADDON_VERSION = _addon_info('version')
+ADDON = xbmcaddon.Addon()
+ADDON_ID = ADDON.getAddonInfo('id')
+ADDON_NAME = ADDON.getAddonInfo('name')
+ADDON_PATH = ADDON.getAddonInfo('path')
+ADDON_VERSION = ADDON.getAddonInfo('version')
 
 INSTALL_TIMEOUT = 90
 INSTALL_OPTIONAL = False
@@ -193,12 +187,7 @@ def _has_addon(addon_id, min_version=None):
         if not bool(xbmc.getCondVisibility('System.HasAddon(%s)' % addon_id)):
             return False
         if min_version:
-            import xbmcaddon
-            addon = xbmcaddon.Addon(addon_id)
-            try:
-                installed = addon.getAddonInfo('version')
-            finally:
-                del addon
+            installed = xbmcaddon.Addon(addon_id).getAddonInfo('version')
             return _compare_versions(installed, min_version) >= 0
         return True
     except:
@@ -309,31 +298,22 @@ def _install_zip_from_url(url, expected_id, min_version=None):
 def _wait_for_addon(addon_id, min_version=None, timeout=INSTALL_TIMEOUT):
     deadline = time.time() + timeout
     monitor = xbmc.Monitor()
-    try:
-        while time.time() < deadline and not monitor.abortRequested():
-            if _has_addon(addon_id, min_version):
-                return True
-            monitor.waitForAbort(1)
-        return _has_addon(addon_id, min_version)
-    finally:
-        del monitor
+    while time.time() < deadline and not monitor.abortRequested():
+        if _has_addon(addon_id, min_version):
+            return True
+        monitor.waitForAbort(1)
+    return _has_addon(addon_id, min_version)
 
 
 def _accept_install_dialog():
     try:
-        monitor = xbmc.Monitor()
         for i in range(8):
             if xbmc.getCondVisibility('Window.IsActive(yesnoDialog)') or xbmc.getCondVisibility('Window.IsActive(DialogConfirm.xml)'):
                 xbmc.executebuiltin('SendClick(11)')
                 return
-            monitor.waitForAbort(0.25)
+            xbmc.Monitor().waitForAbort(0.25)
     except:
         pass
-    finally:
-        try:
-            del monitor
-        except:
-            pass
 
 
 def _enable_addons(addon_ids):
@@ -361,17 +341,11 @@ def _set_addon_enabled(addon_id):
 def _refresh_addons():
     try:
         xbmc.executebuiltin('UpdateLocalAddons')
-        monitor = xbmc.Monitor()
-        monitor.waitForAbort(1)
+        xbmc.Monitor().waitForAbort(1)
         xbmc.executebuiltin('UpdateAddonRepos')
-        monitor.waitForAbort(2)
+        xbmc.Monitor().waitForAbort(2)
     except:
         pass
-    finally:
-        try:
-            del monitor
-        except:
-            pass
 
 
 def _addon_node_from_metadata(addon_id, metadata_url):
@@ -564,12 +538,8 @@ def _was_checked():
     try:
         if not xbmcgui:
             return False
-        window = xbmcgui.Window(10000)
-        try:
-            value = window.getProperty(_checked_property())
-            return value == ADDON_VERSION
-        finally:
-            del window
+        value = xbmcgui.Window(10000).getProperty(_checked_property())
+        return value == ADDON_VERSION
     except:
         return False
 
@@ -577,11 +547,7 @@ def _was_checked():
 def _mark_checked():
     try:
         if xbmcgui:
-            window = xbmcgui.Window(10000)
-            try:
-                window.setProperty(_checked_property(), ADDON_VERSION)
-            finally:
-                del window
+            xbmcgui.Window(10000).setProperty(_checked_property(), ADDON_VERSION)
     except:
         pass
 
@@ -603,11 +569,7 @@ def _notify(message, icon='INFO', time_ms=5000):
         if not xbmcgui:
             return
         icon_value = getattr(xbmcgui, 'NOTIFICATION_%s' % icon, xbmcgui.NOTIFICATION_INFO)
-        dialog = xbmcgui.Dialog()
-        try:
-            dialog.notification(ADDON_NAME, message, icon_value, time_ms, sound=False)
-        finally:
-            del dialog
+        xbmcgui.Dialog().notification(ADDON_NAME, message, icon_value, time_ms, sound=False)
     except:
         pass
 

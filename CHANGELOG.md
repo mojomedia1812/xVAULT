@@ -1,5 +1,10 @@
 # Changelog
 
+## [2026.07.17.6] - 2026-07-17
+
+- Add-on-Laufzeitcode auf den finalen Stand `2026.07.17.2` zurueckgesetzt und als neue Version veroeffentlicht.
+- Diese Version ersetzt die spaeteren Aenderungen aus `2026.07.17.3` bis `2026.07.17.5`, um den stabileren Stand fuer Fire-TV-Tests wieder bereitzustellen.
+
 ## [2026.07.17.5] - 2026-07-17
 
 - Staffellisten grosser Serien wie Murdoch Mysteries werden auf Fire TV/Android schlanker aufgebaut, damit Kodi beim Scrollen nicht durch schwere TV-Show-InfoTags, Cast-Bilder oder leere Streamdetails belastet wird.
