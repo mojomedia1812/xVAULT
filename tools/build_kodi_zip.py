@@ -299,6 +299,25 @@ def update_download_page(output):
     html_content = _inject_kodi_listing(html_content)
     html_content = _ensure_umami_tracking(html_content)
     page.write_text(html_content, encoding="utf-8", newline="\n")
+    _update_manual_download_links()
+
+
+def _update_manual_download_links():
+    manual = PROJECT_DIR / "docs" / "handbuch" / "index.html"
+    if not manual.exists():
+        return
+    html_content = manual.read_text(encoding="utf-8")
+    html_content = re.sub(
+        r'href="\.\./downloads/plugin\.video\.xvault-[^"]+\.zip"',
+        f'href="../downloads/{ZIP_NAME}"',
+        html_content,
+    )
+    html_content = re.sub(
+        r"plugin\.video\.xvault-[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]+\.zip",
+        ZIP_NAME,
+        html_content,
+    )
+    manual.write_text(html_content, encoding="utf-8", newline="\n")
 
 
 def _ensure_umami_tracking(html_content):

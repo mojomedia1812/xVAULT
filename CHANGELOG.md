@@ -1,5 +1,10 @@
 # Changelog
 
+## [2026.07.17.4] - 2026-07-17
+
+- Provider-Checks auf Fire TV/Android speichern bei aktivem DNS over HTTPS einen fehlgeschlagenen direkten Service-Check nicht mehr als harte Deaktivierung, damit DoH-faehige Indexseiten im Plugin-Aufruf aktiv bleiben.
+- Der Kodi-Service markiert Provider in DNS-gefilterten Netzen nun als unbekannt statt `false`, wenn erst die normale RequestHandler-/DoH-Logik im Scraper eine erreichbare Domain finden kann.
+
 ## [2026.07.17.3] - 2026-07-17
 
 - Kodi-Wrapper-Objekte wie Dialoge, Fenster, Player, Playlists und Addon-Handles werden nicht mehr als langlebige Modul-Globals gehalten, damit CPythonInvoker-Cleanup-Warnungen nach xVAULT-Aufrufen vermieden werden.

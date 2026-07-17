@@ -320,13 +320,16 @@ def _checkdomain(_domain, _provider):
             #pass
         finally:
             wrongDomain = 'site-maps.cc', 'www.drei.at', 'notice.cuii.info'
-            if _doh_enabled() and (check != 'true' or domain in wrongDomain):
+            doh_enabled = _doh_enabled()
+            if doh_enabled and (check != 'true' or domain in wrongDomain):
                 doh_domain = _domain if domain in wrongDomain else domain
                 doh_check, doh_domain, doh_status = _checkdomain_with_doh(doh_domain)
                 if doh_check and doh_domain not in wrongDomain:
                     check = 'true'
                     domain = doh_domain
                     status_code = 'DoH:%s' % doh_status
+                elif domain not in wrongDomain:
+                    check = ''
             with _settingsLock:
                 if domain in wrongDomain:
                     _setSettingIfChanged('provider.' + _provider + '.check', '')
