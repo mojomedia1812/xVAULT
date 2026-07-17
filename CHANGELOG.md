@@ -4,7 +4,6 @@
 
 - Supportfunktion fuer redigierte Diagnosepakete hinzugefuegt: Kodi-/Addon-Kontext, relevante Abhaengigkeiten, redigierte Einstellungen, xVAULT-bezogene Logzeilen sowie Dateilisten werden automatisch gesammelt und als UUID-ZIP gepackt.
 - Supportpakete werden erst nach Nutzerbestaetigung zu `filebin.net` hochgeladen, erhalten eine kurze Service-ID ueber `da.gd` und das lokale ZIP wird nach dem Upload geloescht.
-- Lokale Testversion fuer optionale xVAULT-Nutzungsstatistik vorbereitet: Installation, Sitzung, grobe System-/Hardwareklasse, Laufzeit-Heartbeat, Navigation, Quellen-/Wiedergabe- und Sync-Events werden datensparsam erfasst, wenn die Funktion in den Einstellungen aktiviert ist.
 - Sync-API um Telemetry-Tabellen und einen unauthentifizierten, datensparsam gefilterten Telemetry-Endpunkt erweitert; Installations- und Sitzungs-IDs werden serverseitig gehasht.
 - Datenbank-Backup der bisherigen Sync-Datenbank lokal unter `backups/` abgelegt; `backups/` ist vom Repository ausgeschlossen.
 
