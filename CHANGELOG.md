@@ -1,5 +1,10 @@
 # Changelog
 
+## [2026.07.17.5] - 2026-07-17
+
+- Staffellisten grosser Serien wie Murdoch Mysteries werden auf Fire TV/Android schlanker aufgebaut, damit Kodi beim Scrollen nicht durch schwere TV-Show-InfoTags, Cast-Bilder oder leere Streamdetails belastet wird.
+- Staffel-Metadaten werden nur noch begrenzt parallel geladen und nach der Gesehen-Status-Pruefung ohne Episodenlisten im Staffelcache gehalten; die Staffelliste nutzt einen allgemeinen Videocontent statt `tvshows`.
+
 ## [2026.07.17.4] - 2026-07-17
 
 - Provider-Checks auf Fire TV/Android speichern bei aktivem DNS over HTTPS einen fehlgeschlagenen direkten Service-Check nicht mehr als harte Deaktivierung, damit DoH-faehige Indexseiten im Plugin-Aufruf aktiv bleiben.
