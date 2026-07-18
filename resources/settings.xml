@@ -6,13 +6,6 @@
         <setting id="scrapers.timeout" type="slider" label="Zeitlimit für Indexseiten" default="35" range="10,60" option="int" />
         <setting id="fanart" type="bool" label="Fanart verwenden" default="true" />
         <setting id="search.doku" type="bool" label="Auch nach Dokumentationen suchen" default="false" />
-        <setting type="lsep" label="Nutzungsstatistik" />
-        <setting id="telemetry.enabled" type="bool" label="Anonyme Nutzungsstatistik aktivieren" default="false" />
-        <setting label="Statistikstatus anzeigen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=telemetryStatus)" />
-        <setting id="telemetry.install_id" type="text" label="Statistik Installations-ID" default="" visible="false" />
-        <setting id="telemetry.session_id" type="text" label="Statistik Sitzung" default="" visible="false" />
-        <setting id="telemetry.last_heartbeat" type="text" label="Statistik letzter Heartbeat" default="" visible="false" />
-        <setting id="telemetry.consent_version" type="text" label="Statistik Zustimmungsversion" default="" visible="false" />
         <setting type="lsep" label="Support" />
         <setting label="Supportpaket erstellen und hochladen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=supportUpload)" />
         <setting id="support.upload.provider" type="enum" label="Support-Upload-Dienst" values="filebin.net|file.io|0x0.st" default="0" />
@@ -253,6 +246,15 @@
         <setting type="lsep" label="FANART.TV" />
         <setting id="api.fanart.tv" type="text" label="API-Key" option="hidden" default="e376e8591e1580089d93ab4135fcc082" />
         <setting type="lsep" label="Konto [B]opensubtitles.org[/B]"/>
+    </category>
+    <category label="Statistik">
+        <setting type="lsep" label="Nutzungsstatistik" />
+        <setting id="telemetry.enabled" type="bool" label="Nutzungsstatistik aktivieren" default="true" />
+        <setting label="Statistikstatus anzeigen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=telemetryStatus)" />
+        <setting id="telemetry.install_id" type="text" label="Statistik Installations-ID" default="" visible="false" />
+        <setting id="telemetry.session_id" type="text" label="Statistik Sitzung" default="" visible="false" />
+        <setting id="telemetry.last_heartbeat" type="text" label="Statistik letzter Heartbeat" default="" visible="false" />
+        <setting id="telemetry.consent_version" type="text" label="Statistik Zustimmungsversion" default="" visible="false" />
     </category>
     <category label="Downloads / Untertitel">
         <setting id="downloads" type="bool" label="Herunterladen aktivieren" default="false" />

@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.07.17.9`
+Aktueller Stand: `2026.07.18.1`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.07.17.9.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.07.18.1.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -88,7 +88,17 @@ Der Tracking-Code befindet sich in der bestehenden GitHub-Page-Hauptdatei `docs/
 
 Do Not Track wird respektiert, URL-Suchparameter werden nicht gesammelt und Linkklicks auf Downloads, Repository-Dateien, GitHub-Links und wichtige interne Links werden als Umami-Events erfasst. Event-Namen enthalten keine privaten Nutzerdaten.
 
-Es werden keine Zugangsdaten, Secrets, API-Keys oder personenbezogenen Inhalte ins Repository geschrieben. Falls eine Datenschutzerklärung für die öffentliche Nutzung gepflegt wird, sollte dort die Nutzung von Umami für Seitenstatistik und Linkklicks sachlich ergänzt werden.
+Es werden keine Zugangsdaten, Secrets, geheimen API-Schlüssel oder personenbezogenen Inhalte ins Repository geschrieben. Falls eine Datenschutzerklärung für die öffentliche Nutzung gepflegt wird, sollte dort die Nutzung von Umami für Seitenstatistik und Linkklicks sachlich ergänzt werden.
+
+## Add-on-Nutzungsstatistik
+
+Die optionale xVAULT-Nutzungsstatistik nutzt Supabase als Backend und kann im eigenen Add-on-Einstellungsbereich **Statistik** aktiviert oder deaktiviert werden. Neue Profile starten mit aktivierter Statistik.
+
+Erfasst werden nur technische Lebenszyklusdaten: Installation erstellt, Add-on gestartet, Add-on beendet, Heartbeat alle 10 Minuten, Kodi-Version, xVAULT-Version, OS-Klasse, Geräteklasse, Online-Status und zuletzt gesehen. Das Plugin sendet keine Titel, Suchbegriffe, Stream-URLs, Favoriten, Zugangsdaten, geheimen API-Schlüssel, privaten Pfade oder persönlichen Eingaben.
+
+Die lokale Installation-ID ist eine zufällig erzeugte UUID. In Supabase wird sie über die Ingest-Funktion gehasht gespeichert. Direkte Tabellenzugriffe sind per RLS gesperrt; das Plugin nutzt nur den öffentlichen Supabase-RPC-Endpunkt mit Publishable Key.
+
+Für die lokale Auswertung gibt es `tools/statistics-dashboard.html`. Die Seite ruft nur aggregierte Kennzahlen über die Read-only-RPC-Funktion `xvault_stats_summary` ab und zeigt keine Rohdaten oder Installations-Hashes an.
 
 ## Mitwirken
 

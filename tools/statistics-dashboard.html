@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>xVAULT Statistik-Auswertung</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #11151d;
+      --panel: #171d27;
+      --panel-2: #202838;
+      --border: #2d3748;
+      --text: #f2f5f9;
+      --muted: #a8b3c7;
+      --accent: #4fd1c5;
+      --accent-2: #f6ad55;
+      --danger: #fc8181;
+      --ok: #68d391;
+      --shadow: rgba(0, 0, 0, 0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.45;
+    }
+
+    main {
+      width: min(1280px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 30px;
+      line-height: 1.15;
+    }
+
+    h2 {
+      font-size: 17px;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button,
+    label.toggle {
+      min-height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 8px 12px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:hover,
+    label.toggle:hover {
+      border-color: var(--accent);
+    }
+
+    label.toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+
+    input[type="checkbox"] {
+      accent-color: var(--accent);
+    }
+
+    .status {
+      margin: 0 0 18px;
+      padding: 11px 13px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--muted);
+      box-shadow: 0 10px 28px var(--shadow);
+    }
+
+    .status.error {
+      border-color: rgba(252, 129, 129, 0.6);
+      color: var(--danger);
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .metrics {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 14px;
+    }
+
+    .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card,
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 10px 28px var(--shadow);
+    }
+
+    .metric {
+      padding: 15px;
+    }
+
+    .metric .label {
+      color: var(--muted);
+      font-size: 13px;
+      min-height: 20px;
+    }
+
+    .metric .value {
+      margin-top: 8px;
+      font-size: 30px;
+      font-weight: 700;
+    }
+
+    .metric .hint {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .card {
+      padding: 15px;
+      min-width: 0;
+    }
+
+    .bar-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) minmax(180px, 2fr) 58px;
+      gap: 10px;
+      align-items: center;
+      min-height: 28px;
+    }
+
+    .bar-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
+    }
+
+    .bar-track {
+      height: 10px;
+      border-radius: 999px;
+      background: #0b0f16;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .bar-fill {
+      display: block;
+      height: 100%;
+      width: 0;
+      min-width: 2px;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+
+    .bar-count {
+      color: var(--muted);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .activity {
+      grid-column: 1 / -1;
+    }
+
+    .activity-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .activity-table th,
+    .activity-table td {
+      padding: 8px 7px;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .activity-table th:first-child,
+    .activity-table td:first-child {
+      text-align: left;
+    }
+
+    .activity-table th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 4px 0;
+    }
+
+    footer {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .metrics,
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 620px) {
+      main {
+        width: min(100% - 18px, 1280px);
+        padding-top: 18px;
+      }
+
+      .bar-row {
+        grid-template-columns: 1fr 48px;
+      }
+
+      .bar-track {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+
+      .activity-table {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>xVAULT Statistik-Auswertung</h1>
+        <p class="subtitle">Lokale Auswertung der aggregierten Supabase-Statistikdaten</p>
+      </div>
+      <div class="actions">
+        <button type="button" id="refreshButton">Aktualisieren</button>
+        <label class="toggle">
+          <input type="checkbox" id="autoRefresh" checked>
+          Auto-Refresh
+        </label>
+      </div>
+    </header>
+
+    <div id="status" class="status">Lade Statistikdaten...</div>
+
+    <section class="grid metrics" aria-label="Kennzahlen">
+      <article class="metric">
+        <div class="label">Installationen gesamt</div>
+        <div class="value" id="totalInstallations">-</div>
+        <div class="hint" id="installationsHint">-</div>
+      </article>
+      <article class="metric">
+        <div class="label">Aktuell online</div>
+        <div class="value" id="onlineInstallations">-</div>
+        <div class="hint" id="onlineHint">-</div>
+      </article>
+      <article class="metric">
+        <div class="label">Sitzungen gesamt</div>
+        <div class="value" id="totalSessions">-</div>
+        <div class="hint" id="sessionsHint">-</div>
+      </article>
+      <article class="metric">
+        <div class="label">Ereignisse gesamt</div>
+        <div class="value" id="totalEvents">-</div>
+        <div class="hint" id="eventsHint">-</div>
+      </article>
+    </section>
+
+    <section class="grid cards" aria-label="Verteilungen">
+      <article class="card">
+        <h2>OS-Klassen</h2>
+        <div class="bar-list" id="osClasses"></div>
+      </article>
+      <article class="card">
+        <h2>Geräteklassen</h2>
+        <div class="bar-list" id="deviceClasses"></div>
+      </article>
+      <article class="card">
+        <h2>Kodi-Versionen</h2>
+        <div class="bar-list" id="kodiVersions"></div>
+      </article>
+      <article class="card">
+        <h2>xVAULT-Versionen</h2>
+        <div class="bar-list" id="xvaultVersions"></div>
+      </article>
+      <article class="card">
+        <h2>Ereignisse</h2>
+        <div class="bar-list" id="eventsByType"></div>
+      </article>
+      <article class="card">
+        <h2>Zusammenfassung</h2>
+        <div class="bar-list" id="summaryFacts"></div>
+      </article>
+      <article class="card activity">
+        <h2>Aktivität der letzten 30 Tage</h2>
+        <div id="dailyActivity"></div>
+      </article>
+    </section>
+
+    <footer>
+      Diese Seite ruft nur aggregierte Zahlen über die Supabase-RPC-Funktion ab. Es werden keine Rohdaten, Installations-Hashes oder Nutzereingaben angezeigt.
+    </footer>
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://edluzxyhbmrtardcjqwy.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Vzsxq3UGeHXoOoN5d3ehng_mcOB_pWj";
+    const RPC_URL = `${SUPABASE_URL}/rest/v1/rpc/xvault_stats_summary`;
+    const REFRESH_MS = 60000;
+    let refreshTimer = null;
+
+    const ids = {
+      status: document.getElementById("status"),
+      refreshButton: document.getElementById("refreshButton"),
+      autoRefresh: document.getElementById("autoRefresh"),
+      totalInstallations: document.getElementById("totalInstallations"),
+      installationsHint: document.getElementById("installationsHint"),
+      onlineInstallations: document.getElementById("onlineInstallations"),
+      onlineHint: document.getElementById("onlineHint"),
+      totalSessions: document.getElementById("totalSessions"),
+      sessionsHint: document.getElementById("sessionsHint"),
+      totalEvents: document.getElementById("totalEvents"),
+      eventsHint: document.getElementById("eventsHint"),
+      osClasses: document.getElementById("osClasses"),
+      deviceClasses: document.getElementById("deviceClasses"),
+      kodiVersions: document.getElementById("kodiVersions"),
+      xvaultVersions: document.getElementById("xvaultVersions"),
+      eventsByType: document.getElementById("eventsByType"),
+      summaryFacts: document.getElementById("summaryFacts"),
+      dailyActivity: document.getElementById("dailyActivity"),
+    };
+
+    function number(value) {
+      return new Intl.NumberFormat("de-DE").format(Number(value || 0));
+    }
+
+    function dateTime(value) {
+      if (!value) {
+        return "nie";
+      }
+      return new Intl.DateTimeFormat("de-DE", {
+        dateStyle: "medium",
+        timeStyle: "medium",
+      }).format(new Date(value));
+    }
+
+    function duration(seconds) {
+      const total = Math.max(0, Number(seconds || 0));
+      const hours = Math.floor(total / 3600);
+      const minutes = Math.floor((total % 3600) / 60);
+      if (hours > 0) {
+        return `${hours} h ${minutes} min`;
+      }
+      return `${minutes} min`;
+    }
+
+    function setStatus(text, isError = false) {
+      ids.status.textContent = text;
+      ids.status.classList.toggle("error", isError);
+    }
+
+    function renderBars(target, rows) {
+      target.replaceChildren();
+      if (!rows || rows.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "Keine Daten vorhanden";
+        target.appendChild(empty);
+        return;
+      }
+
+      const max = rows.reduce((value, row) => Math.max(value, Number(row.count || 0)), 0) || 1;
+      rows.forEach((row) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "bar-row";
+
+        const label = document.createElement("div");
+        label.className = "bar-label";
+        label.title = row.label || "unbekannt";
+        label.textContent = row.label || "unbekannt";
+
+        const track = document.createElement("div");
+        track.className = "bar-track";
+
+        const fill = document.createElement("span");
+        fill.className = "bar-fill";
+        fill.style.width = `${Math.max(3, (Number(row.count || 0) / max) * 100)}%`;
+        track.appendChild(fill);
+
+        const count = document.createElement("div");
+        count.className = "bar-count";
+        count.textContent = number(row.count);
+
+        wrapper.append(label, track, count);
+        target.appendChild(wrapper);
+      });
+    }
+
+    function renderFacts(target, facts) {
+      renderBars(target, facts.map((item) => ({
+        label: item.label,
+        count: item.count,
+      })));
+    }
+
+    function renderDaily(rows) {
+      ids.dailyActivity.replaceChildren();
+      if (!rows || rows.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "Keine Aktivität vorhanden";
+        ids.dailyActivity.appendChild(empty);
+        return;
+      }
+
+      const table = document.createElement("table");
+      table.className = "activity-table";
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Tag</th>
+            <th>Neue Installationen</th>
+            <th>Aktive Installationen</th>
+            <th>Starts</th>
+            <th>Stops</th>
+            <th>Heartbeats</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+      const body = table.querySelector("tbody");
+      rows.slice(-30).forEach((row) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.day}</td>
+          <td>${number(row.installations)}</td>
+          <td>${number(row.active_installations)}</td>
+          <td>${number(row.starts)}</td>
+          <td>${number(row.stops)}</td>
+          <td>${number(row.heartbeats)}</td>
+        `;
+        body.appendChild(tr);
+      });
+      ids.dailyActivity.appendChild(table);
+    }
+
+    function render(data) {
+      const totals = data.totals || {};
+      ids.totalInstallations.textContent = number(totals.installations);
+      ids.installationsHint.textContent = `${number(totals.installations_24h)} in 24 h, ${number(totals.installations_7d)} in 7 Tagen`;
+      ids.onlineInstallations.textContent = number(totals.online_installations);
+      ids.onlineHint.textContent = `Fenster: ${number(data.online_window_minutes)} Minuten, gemeldet online: ${number(totals.reported_online_installations)}`;
+      ids.totalSessions.textContent = number(totals.sessions);
+      ids.sessionsHint.textContent = `${number(totals.sessions_24h)} in 24 h, Ø ${duration(totals.average_session_seconds)}`;
+      ids.totalEvents.textContent = number(totals.events);
+      ids.eventsHint.textContent = `${number(totals.events_24h)} in 24 h, Heartbeats 15 min: ${number(totals.heartbeats_15m)}`;
+
+      renderBars(ids.osClasses, data.os_classes);
+      renderBars(ids.deviceClasses, data.device_classes);
+      renderBars(ids.kodiVersions, data.kodi_versions);
+      renderBars(ids.xvaultVersions, data.xvault_versions);
+      renderBars(ids.eventsByType, data.events_by_type);
+      renderFacts(ids.summaryFacts, [
+        { label: "Installationen letzte 30 Tage", count: totals.installations_30d },
+        { label: "Sitzungen aktuell online", count: totals.online_sessions },
+        { label: "Heartbeat-Intervall Minuten", count: data.heartbeat_interval_minutes },
+        { label: "Online-Fenster Minuten", count: data.online_window_minutes },
+      ]);
+      renderDaily(data.daily_activity);
+
+      setStatus(`Aktualisiert: ${dateTime(data.generated_at)} | Zuletzt gesehen: ${dateTime(totals.last_seen)}`);
+    }
+
+    async function loadStats() {
+      ids.refreshButton.disabled = true;
+      setStatus("Lade Statistikdaten...");
+      try {
+        const response = await fetch(RPC_URL, {
+          method: "POST",
+          headers: {
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: "{}",
+        });
+        const text = await response.text();
+        let data = {};
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch (error) {
+          throw new Error(`Supabase lieferte keine gültige JSON-Antwort: ${text.slice(0, 160)}`);
+        }
+        if (!response.ok) {
+          throw new Error(data.message || data.error || `HTTP ${response.status}`);
+        }
+        render(data);
+      } catch (error) {
+        setStatus(`Statistik konnte nicht geladen werden: ${error.message}`, true);
+      } finally {
+        ids.refreshButton.disabled = false;
+      }
+    }
+
+    function scheduleRefresh() {
+      if (refreshTimer) {
+        clearInterval(refreshTimer);
+      }
+      if (ids.autoRefresh.checked) {
+        refreshTimer = setInterval(loadStats, REFRESH_MS);
+      }
+    }
+
+    ids.refreshButton.addEventListener("click", loadStats);
+    ids.autoRefresh.addEventListener("change", scheduleRefresh);
+    scheduleRefresh();
+    loadStats();
+  </script>
+</body>
+</html>

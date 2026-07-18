@@ -60,6 +60,7 @@ EXCLUDED_PARTS = {
     "cookies",
     "scrapers_source",
     "stream-link-auditor",
+    "supabase",
     "tools",
     ".pytest_cache",
     ".venv",
