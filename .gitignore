@@ -15,4 +15,5 @@ api/config.local.php
 cookies/
 stream-link-auditor/
 docs/vavoo2-plugin-analysis.md
+tools/statistics-dashboard.html
 backups/

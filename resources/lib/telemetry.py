@@ -21,9 +21,11 @@ SETTING_INSTALL_ID = 'telemetry.install_id'
 SETTING_SESSION_ID = 'telemetry.session_id'
 SETTING_LAST_HEARTBEAT = 'telemetry.last_heartbeat'
 SETTING_CONSENT_VERSION = 'telemetry.consent_version'
+SETTING_ADDON_VERSION = 'telemetry.addon_version'
 
 ALLOWED_EVENTS = set([
     'installation_created',
+    'addon_updated',
     'app_start',
     'app_stop',
     'heartbeat',
@@ -68,13 +70,14 @@ def app_start():
     global _RUNTIME_INSTALL_ID, _RUNTIME_SESSION_ID
     if not enabled():
         return
-    install_id, should_emit_installation = _ensure_install_id()
+    install_id, created, should_emit_installation = _ensure_install_id()
     _RUNTIME_INSTALL_ID = install_id
     _RUNTIME_SESSION_ID = str(uuid.uuid4())
     control.setSetting(SETTING_SESSION_ID, _RUNTIME_SESSION_ID)
     if should_emit_installation:
         if event('installation_created', 'lifecycle', {'feature': 'service'}, force=True):
             control.setSetting(SETTING_CONSENT_VERSION, CONSENT_VERSION)
+    _emit_update_if_needed(created)
     if event('app_start', 'lifecycle', {'feature': 'service'}, force=True):
         _set_last_heartbeat(int(time.time()))
 
@@ -175,14 +178,28 @@ def _ensure_install_id():
         created = True
     _RUNTIME_INSTALL_ID = install_id
     consent_version = control.getSetting(SETTING_CONSENT_VERSION, '')
-    return install_id, created or consent_version != CONSENT_VERSION
+    return install_id, created, created or consent_version != CONSENT_VERSION
+
+
+def _emit_update_if_needed(created):
+    current_version = _text(control.addonVersion, 32)
+    if not current_version:
+        return
+    stored_version = control.getSetting(SETTING_ADDON_VERSION, '')
+    if created or not stored_version:
+        control.setSetting(SETTING_ADDON_VERSION, current_version)
+        return
+    if stored_version == current_version:
+        return
+    if event('addon_updated', 'lifecycle', {'feature': 'service'}, force=True):
+        control.setSetting(SETTING_ADDON_VERSION, current_version)
 
 
 def _current_install_id():
     global _RUNTIME_INSTALL_ID
     if _RUNTIME_INSTALL_ID:
         return _RUNTIME_INSTALL_ID
-    install_id, _created = _ensure_install_id()
+    install_id, _created, _should_emit_installation = _ensure_install_id()
     return install_id
 
 

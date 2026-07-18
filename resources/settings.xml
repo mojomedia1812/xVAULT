@@ -255,6 +255,7 @@
         <setting id="telemetry.session_id" type="text" label="Statistik Sitzung" default="" visible="false" />
         <setting id="telemetry.last_heartbeat" type="text" label="Statistik letzter Heartbeat" default="" visible="false" />
         <setting id="telemetry.consent_version" type="text" label="Statistik Zustimmungsversion" default="" visible="false" />
+        <setting id="telemetry.addon_version" type="text" label="Statistik Add-on-Version" default="" visible="false" />
     </category>
     <category label="Downloads / Untertitel">
         <setting id="downloads" type="bool" label="Herunterladen aktivieren" default="false" />
