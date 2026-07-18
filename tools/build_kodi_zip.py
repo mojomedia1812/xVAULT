@@ -205,20 +205,39 @@ def sync_browsable_repository_layout():
     REPOSITORY_INDEX_DIR.mkdir(parents=True, exist_ok=True)
     _prune_browsable_archives()
 
-    copy2_retry(REPOSITORY_PLUGIN_OUTPUT, ADDON_INDEX_OUTPUT)
-    validate(ADDON_INDEX_OUTPUT)
+    addon_index_entries = [
+        _entry("addon.xml", ADDON_INDEX_DIR / "addon.xml"),
+        _entry("icon.png", ADDON_INDEX_DIR / "icon.png"),
+        _entry("resources/", ADDON_INDEX_DIR / "resources"),
+    ]
+    zip_index_entries = []
+    for archive in _retained_addon_archives():
+        addon_output = ADDON_INDEX_DIR / archive.name
+        zips_output = PROJECT_DIR / "docs" / "zips" / ADDON_ID / archive.name
+        copy2_retry(archive, addon_output)
+        copy2_retry(archive, zips_output)
+        validate(addon_output)
+        validate(zips_output)
+        addon_index_entries.append(_entry(archive.name, addon_output))
+        zip_index_entries.append(_entry(archive.name, zips_output))
+
     copy2_retry(PROJECT_DIR / "addon.xml", ADDON_INDEX_DIR / "addon.xml")
     copy2_retry(PROJECT_DIR / "resources" / "icon.png", ADDON_INDEX_DIR / "icon.png")
+    _sync_addon_assets()
 
     copy2_retry(REPOSITORY_OUTPUT, REPOSITORY_INDEX_OUTPUT)
     validate_repository_zip(REPOSITORY_INDEX_OUTPUT)
     (REPOSITORY_INDEX_DIR / "addon.xml").write_text(_repository_addon_xml() + "\n", encoding="utf-8", newline="\n")
     copy2_retry(PROJECT_DIR / "resources" / "icon.png", REPOSITORY_INDEX_DIR / "icon.png")
 
-    _write_index(ADDON_INDEX_DIR, "/xVAULT/plugin.video.xvault/", [
-        _entry("addon.xml", ADDON_INDEX_DIR / "addon.xml"),
-        _entry("icon.png", ADDON_INDEX_DIR / "icon.png"),
-        _entry(ZIP_NAME, ADDON_INDEX_OUTPUT),
+    _write_index(ADDON_INDEX_DIR, "/xVAULT/plugin.video.xvault/", addon_index_entries)
+    _write_index(ADDON_INDEX_DIR / "resources", "/xVAULT/plugin.video.xvault/resources/", [
+        _entry("fanart.png", ADDON_INDEX_DIR / "resources" / "fanart.png"),
+        _entry("icon.png", ADDON_INDEX_DIR / "resources" / "icon.png"),
+        _entry("media/", ADDON_INDEX_DIR / "resources" / "media"),
+    ])
+    _write_index(ADDON_INDEX_DIR / "resources" / "media", "/xVAULT/plugin.video.xvault/resources/media/", [
+        _entry("banner.png", ADDON_INDEX_DIR / "resources" / "media" / "banner.png"),
     ])
     _write_index(REPOSITORY_INDEX_DIR, "/xVAULT/repository.xvault/", [
         _entry("addon.xml", REPOSITORY_INDEX_DIR / "addon.xml"),
@@ -229,18 +248,17 @@ def sync_browsable_repository_layout():
         _entry("plugin.video.xvault/", PROJECT_DIR / "docs" / "zips" / ADDON_ID),
         _entry("repository.xvault/", PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID),
     ])
-    _write_index(PROJECT_DIR / "docs" / "zips" / ADDON_ID, "/xVAULT/zips/plugin.video.xvault/", [
-        _entry(ZIP_NAME, REPOSITORY_PLUGIN_OUTPUT),
-    ])
+    _write_index(PROJECT_DIR / "docs" / "zips" / ADDON_ID, "/xVAULT/zips/plugin.video.xvault/", zip_index_entries)
     _write_index(PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID, "/xVAULT/zips/repository.xvault/", [
         _entry(REPOSITORY_ZIP_NAME, REPOSITORY_OUTPUT),
     ])
 
 
 def _prune_browsable_archives():
+    retained_addon_names = _retained_addon_archive_names()
     keep = {
-        ADDON_INDEX_DIR: {ZIP_NAME},
-        PROJECT_DIR / "docs" / "zips" / ADDON_ID: {ZIP_NAME},
+        ADDON_INDEX_DIR: retained_addon_names,
+        PROJECT_DIR / "docs" / "zips" / ADDON_ID: retained_addon_names,
         REPOSITORY_INDEX_DIR: {REPOSITORY_ZIP_NAME},
         PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID: {REPOSITORY_ZIP_NAME},
     }
@@ -250,6 +268,33 @@ def _prune_browsable_archives():
         for archive in directory.glob("*.zip"):
             if archive.name not in keep_names:
                 archive.unlink()
+
+
+def _retained_addon_archive_names():
+    return {path.name for path in _retained_addon_archives()}
+
+
+def _retained_addon_archives():
+    downloads = PROJECT_DIR / "docs" / "downloads"
+    archives = []
+    for path in downloads.glob("plugin.video.xvault-*.zip"):
+        match = re.match(r"plugin\.video\.xvault-(.+)\.zip$", path.name)
+        if match:
+            archives.append((match.group(1), path))
+    archives.sort(key=lambda item: _version_key(item[0]), reverse=True)
+    return [path for _version, path in archives]
+
+
+def _sync_addon_assets():
+    assets = [
+        Path("resources/icon.png"),
+        Path("resources/fanart.png"),
+        Path("resources/media/banner.png"),
+    ]
+    for relative in assets:
+        source = PROJECT_DIR / relative
+        if source.exists():
+            copy2_retry(source, ADDON_INDEX_DIR / relative)
 
 
 def update_kodi_repository_metadata():
