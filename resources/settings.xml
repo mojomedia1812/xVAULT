@@ -28,6 +28,7 @@
         <setting id="status.position" type="bool" label="Status - Bei Serien die erste ungesehene Folge auswählen" default="true" />
         <setting id="status.debug" type="bool" label="Debug" default="false" />
         <setting id="first_install.playback_defaults.applied" type="bool" label="Erstinstallations-Wiedergabevorgaben gesetzt" default="false" visible="false" />
+        <setting id="first_install.telemetry_default.applied" type="bool" label="Erstinstallations-Statistikvorgabe gesetzt" default="false" visible="false" />
     </category>
     <category label="Indexseiten 1 (DE)">
         <setting type="text" label="[COLOR blue]ACHTUNG:  Die folgenden Optionen werden sofort[/COLOR]" />
@@ -249,7 +250,7 @@
     </category>
     <category label="Statistik">
         <setting type="lsep" label="Nutzungsstatistik" />
-        <setting id="telemetry.enabled" type="bool" label="Nutzungsstatistik aktivieren" default="true" />
+        <setting id="telemetry.enabled" type="bool" label="Nutzungsstatistik aktivieren" default="false" />
         <setting label="Statistikstatus anzeigen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=telemetryStatus)" />
         <setting id="telemetry.install_id" type="text" label="Statistik Installations-ID" default="" visible="false" />
         <setting id="telemetry.session_id" type="text" label="Statistik Sitzung" default="" visible="false" />

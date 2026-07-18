@@ -6,6 +6,8 @@ from resources.lib import control, playback_settings
 
 STATE_FILE = os.path.join(control.addonProfilePath, 'startup_info.json')
 APPLIED_SETTING = 'first_install.playback_defaults.applied'
+TELEMETRY_APPLIED_SETTING = 'first_install.telemetry_default.applied'
+TELEMETRY_ENABLED_SETTING = 'telemetry.enabled'
 
 _PROFILE_STATE_FILES = (
     'startup_info.json',
@@ -17,6 +19,27 @@ _PROFILE_STATE_FILES = (
     'sync_binge_state.json',
     'sync_favorites_state.json',
 )
+
+
+def apply_defaults_once():
+    apply_telemetry_default_once()
+    apply_playback_defaults_once()
+
+
+def apply_telemetry_default_once():
+    """Enable telemetry only for a genuinely fresh xVAULT profile."""
+    try:
+        if control.getSetting(TELEMETRY_APPLIED_SETTING) == 'true':
+            return
+
+        if _profile_has_existing_state():
+            control.setSetting(id=TELEMETRY_APPLIED_SETTING, value='true')
+            return
+
+        control.setSetting(id=TELEMETRY_ENABLED_SETTING, value='true')
+        control.setSetting(id=TELEMETRY_APPLIED_SETTING, value='true')
+    except Exception:
+        pass
 
 
 def apply_playback_defaults_once():

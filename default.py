@@ -49,7 +49,7 @@ if action is None or action == 'root':
             sys.exit()
     try:
         from resources.lib import first_install
-        first_install.apply_playback_defaults_once()
+        first_install.apply_defaults_once()
     except Exception:
         pass
     try:

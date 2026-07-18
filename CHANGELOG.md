@@ -5,6 +5,10 @@
 - Handbuch als GitHub-Pages-Wissensdatenbank erweitert: Menüs, Suche, Quellen, Wiedergabe, Sync, Trakt, LiveTV, Downloads, Werkzeuge, Einstellungen und Fehlerhilfe ausführlicher beschrieben.
 - Sichtbare GitHub-Pages-Texte und deutsch benannte Link-Events mit korrekten Umlauten vereinheitlicht.
 
+## [2026.07.18.3] - 2026-07-18
+
+- weitere Quelltextverbesserung.
+
 ## [2026.07.18.2] - 2026-07-18
 
 - weitere Quelltextverbesserung.

@@ -239,13 +239,13 @@ if __name__ == "__main__":
 	from resources.lib import dependencies
 	dependencies.ensure_all_dependencies()
 	try:
-		from resources.lib import telemetry
-		telemetry.app_start()
+		from resources.lib import first_install
+		first_install.apply_defaults_once()
 	except Exception:
 		pass
 	try:
-		from resources.lib import first_install
-		first_install.apply_playback_defaults_once()
+		from resources.lib import telemetry
+		telemetry.app_start()
 	except Exception:
 		pass
 	try:
