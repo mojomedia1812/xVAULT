@@ -1,3 +1,8 @@
+xVAULT 2026.07.19.1
+Entwickler: mojomedia1812
+
+- Vixstream-Quellen über Vixcloud behalten die benötigten Manifest-Header jetzt auch im Kodi-Abspielpfad, damit Kodi die HLS-Playlist nicht mehr mit HTTP 403 ablehnt.
+
 xVAULT 2026.07.18.3
 Entwickler: mojomedia1812
 

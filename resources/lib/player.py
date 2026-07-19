@@ -114,12 +114,13 @@ class player(xbmc.Player):
                     item.setMimeType('application/x-mpegURL')
                 item.setContentLookup(False)
                 if '|' in url:
-                    stream_url, strhdr = url.split('|')
+                    original_url = url
+                    stream_url, strhdr = url.split('|', 1)
                     item.setProperty('inputstream.adaptive.common_headers', strhdr)
                     item.setProperty('inputstream.adaptive.stream_headers', strhdr)
                     if kodiver > 19: item.setProperty('inputstream.adaptive.manifest_headers', strhdr)
-                    #item.setPath(stream_url)
-                    url = stream_url
+                    # Vixcloud lehnt Kodis ersten Manifest-Zugriff ohne die Pipe-Header ab.
+                    url = original_url if self._needsManifestHeadersInPath(stream_url) else stream_url
 
             item.setPath(url)
             try:
@@ -157,6 +158,13 @@ class player(xbmc.Player):
             return ''
         value = re.sub(r'\[[^\]]+\]', '', str(value))
         return re.sub(r'\s+', ' ', value).strip()
+
+
+    def _needsManifestHeadersInPath(self, stream_url):
+        try:
+            return re.search(r'^https?://(?:www\.)?vixcloud\.co/playlist/\d+(?:[/?#]|$)', str(stream_url).lower()) != None
+        except:
+            return False
 
 
     def _telemetryPayload(self, error_group=None):
