@@ -5,6 +5,10 @@
 - Handbuch als GitHub-Pages-Wissensdatenbank erweitert: Menüs, Suche, Quellen, Wiedergabe, Sync, Trakt, LiveTV, Downloads, Werkzeuge, Einstellungen und Fehlerhilfe ausführlicher beschrieben.
 - Sichtbare GitHub-Pages-Texte und deutsch benannte Link-Events mit korrekten Umlauten vereinheitlicht.
 
+## [2026.07.23.1] - 2026-07-23
+
+- Quelltextoptimierung.
+
 ## [2026.07.19.1] - 2026-07-19
 
 - Vixstream-Quellen über Vixcloud behalten die benötigten Manifest-Header jetzt auch im Kodi-Abspielpfad, damit Kodi die HLS-Playlist nicht mehr mit HTTP 403 ablehnt.

@@ -248,6 +248,14 @@
         <setting id="api.fanart.tv" type="text" label="API-Key" option="hidden" default="e376e8591e1580089d93ab4135fcc082" />
         <setting type="lsep" label="Konto [B]opensubtitles.org[/B]"/>
     </category>
+    <category label="Plus">
+        <setting label="Aktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=activatePlus)" />
+        <setting id="plus.enabled" type="bool" label="Plus aktiv" default="false" visible="false" />
+        <setting id="plus.client_id" type="text" label="Plus Client" default="" visible="false" />
+        <setting id="updates.channel" type="text" label="Update-Kanal" default="stable" visible="false" />
+        <setting id="updates.manifest_url" type="text" label="Update-Manifest" default="" visible="false" />
+        <setting id="updates.download_url" type="text" label="Update-Download" default="" visible="false" />
+    </category>
     <category label="Statistik">
         <setting type="lsep" label="Nutzungsstatistik" />
         <setting id="telemetry.enabled" type="bool" label="Nutzungsstatistik aktivieren" default="false" />

@@ -17,6 +17,11 @@ from resources.lib import control, log_utils
 MANIFEST_URL = 'https://raw.githubusercontent.com/mojomedia1812/xVAULT/main/addon.xml'
 DOWNLOAD_URL = 'http://xvault.ddnss.de/downloads/plugin.video.xvault-%s.zip'
 REQUEST_TIMEOUT = 10
+CHANNEL_STABLE = 'stable'
+CHANNEL_EXTERNAL = 'external'
+SETTING_CHANNEL = 'updates.channel'
+SETTING_MANIFEST_URL = 'updates.manifest_url'
+SETTING_DOWNLOAD_URL = 'updates.download_url'
 
 
 class UpdateCancelled(Exception):
@@ -27,9 +32,9 @@ class UpdateError(Exception):
     pass
 
 
-def check_for_update():
+def check_for_update(prompt=True, ignore_disabled=False):
     """Return False when an update was installed and the current plugin run should stop."""
-    if not automatic_updates_enabled():
+    if not ignore_disabled and not automatic_updates_enabled():
         return True
 
     try:
@@ -41,14 +46,16 @@ def check_for_update():
         if compare_versions(latest_version, control.addonVersion) <= 0:
             return True
 
-        yes = control.yesnoDialog(
-            'Eine neue xVAULT-Version ist verfügbar.',
-            'Installiert: %s   Neu: %s' % (control.addonVersion, latest_version),
-            'Jetzt installieren?',
-            heading=control.addonName,
-            nolabel='Nein',
-            yeslabel='Installieren'
-        )
+        yes = True
+        if prompt:
+            yes = control.yesnoDialog(
+                'Eine neue xVAULT-Version ist verfügbar.',
+                'Installiert: %s   Neu: %s' % (control.addonVersion, latest_version),
+                'Jetzt installieren?',
+                heading=control.addonName,
+                nolabel='Nein',
+                yeslabel='Installieren'
+            )
         if not yes:
             return True
 
@@ -64,12 +71,29 @@ def automatic_updates_enabled():
     return control.getSetting('updates.auto', 'true').lower() != 'false'
 
 
+def configure_external_source(manifest_url, download_url):
+    manifest_url = str(manifest_url or '').strip()
+    download_url = str(download_url or '').strip()
+    if not manifest_url or not download_url or '%s' not in download_url:
+        raise UpdateError('Invalid update source')
+    control.setSetting(SETTING_CHANNEL, CHANNEL_EXTERNAL)
+    control.setSetting(SETTING_MANIFEST_URL, manifest_url)
+    control.setSetting(SETTING_DOWNLOAD_URL, download_url)
+
+
+def reset_update_source():
+    control.setSetting(SETTING_CHANNEL, CHANNEL_STABLE)
+    control.setSetting(SETTING_MANIFEST_URL, '')
+    control.setSetting(SETTING_DOWNLOAD_URL, '')
+
+
 def get_latest_release():
     if requests is None:
         raise UpdateError('requests module is not available')
 
+    manifest_url, download_url = _source_urls()
     response = requests.get(
-        MANIFEST_URL,
+        manifest_url,
         headers={'User-Agent': '%s/%s' % (control.addonId, control.addonVersion)},
         timeout=REQUEST_TIMEOUT
     )
@@ -83,8 +107,18 @@ def get_latest_release():
 
     return {
         'version': version,
-        'download_url': DOWNLOAD_URL % version,
+        'download_url': download_url % version,
     }
+
+
+def _source_urls():
+    if control.getSetting(SETTING_CHANNEL, CHANNEL_STABLE) == CHANNEL_EXTERNAL:
+        manifest_url = control.getSetting(SETTING_MANIFEST_URL, '')
+        download_url = control.getSetting(SETTING_DOWNLOAD_URL, '')
+        if manifest_url and download_url and '%s' in download_url:
+            return manifest_url, download_url
+        reset_update_source()
+    return MANIFEST_URL, DOWNLOAD_URL
 
 
 def install_update(version, url):

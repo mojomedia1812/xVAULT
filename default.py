@@ -279,6 +279,11 @@ elif action == 'telemetryStatus':
     except Exception:
         pass
 
+elif action == 'activatePlus':
+    from resources.lib import plus
+    plus.activate()
+    _finish_action()
+
 elif action and action.startswith('sync'):
     from resources.lib.sync import account
     account.dispatch(action)

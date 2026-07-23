@@ -238,6 +238,12 @@ def _android_props():
         'ro.product.brand',
         'ro.product.model',
         'ro.product.device',
+        'ro.product.name',
+        'ro.product.board',
+        'ro.product.vendor.model',
+        'ro.product.system.model',
+        'ro.build.product',
+        'ro.hardware',
         'ro.build.version.release',
         'ro.build.characteristics',
         'ro.build.display.id',
@@ -287,8 +293,44 @@ def _device_class(props, os_class):
             return 'Tablet'
         if 'phone' in characteristics or 'mobile' in characteristics:
             return 'Mobile'
-        return 'unknown'
+        if _is_android_tv(props):
+            return 'Android TV'
+        return 'Android TV'
     return 'unknown'
+
+
+def _is_android_tv(props):
+    values = [
+        props.get('ro.product.manufacturer'),
+        props.get('ro.product.brand'),
+        props.get('ro.product.model'),
+        props.get('ro.product.device'),
+        props.get('ro.product.name'),
+        props.get('ro.product.board'),
+        props.get('ro.product.vendor.model'),
+        props.get('ro.product.system.model'),
+        props.get('ro.build.product'),
+        props.get('ro.hardware'),
+        props.get('ro.build.characteristics'),
+        props.get('ro.build.display.id'),
+    ]
+    text = ' '.join(str(value or '').lower() for value in values)
+    characteristics = str(props.get('ro.build.characteristics') or '').lower()
+    model = ' '.join([
+        str(props.get('ro.product.model') or ''),
+        str(props.get('ro.product.device') or ''),
+        str(props.get('ro.product.name') or ''),
+    ]).lower()
+
+    if re.search(r'(^|[,;\s])(?:tv|box|stb|leanback)([,;\s]|$)', characteristics):
+        return True
+    if re.search(r'\b(?:android\s*tv|google\s*tv|smart\s*tv|set[-\s]?top|stb|tvbox|tv\s*box)\b', text):
+        return True
+    if re.search(r'\b(?:mibox|mi\s*box|mi\s*tv|mdz-|shield|chromecast|bravia|homatics|mecool|formuler|strong|onn\.?|amlogic|s905|s912|s922)\b', text):
+        return True
+    if re.search(r'\b(?:box|tv|atv)\b', model):
+        return True
+    return False
 
 
 def _read_text(path):
