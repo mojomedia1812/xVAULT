@@ -52,6 +52,7 @@ PATH_SETTING_PARTS = ('path', 'folder', 'dir')
 LOG_TOKENS = (
     'xvault',
     'plugin.video.xvault',
+    'plugin.video.xvaultalpha',
     '[ xvault debug ]',
     'resources.lib',
     'scrapers.scrapers_source',

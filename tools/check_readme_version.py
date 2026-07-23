@@ -14,7 +14,11 @@ def main():
     if not README.is_file():
         fail("README.md wurde nicht gefunden.")
 
-    version = ET.parse(str(ADDON_XML)).getroot().attrib.get("version", "").strip()
+    root = ET.parse(str(ADDON_XML)).getroot()
+    addon_id = root.attrib.get("id", "").strip()
+    version = root.attrib.get("version", "").strip()
+    if not addon_id:
+        fail("In addon.xml wurde keine Add-on-ID gefunden.")
     if not version:
         fail("In addon.xml wurde keine Version gefunden.")
 
@@ -22,7 +26,7 @@ def main():
     if version not in readme:
         fail("README.md enthaelt nicht die aktuelle Add-on-Version %s aus addon.xml." % version)
 
-    install_zip = "plugin.video.xvault-%s.zip" % version
+    install_zip = "%s-%s.zip" % (addon_id, version)
     if install_zip not in readme:
         fail("README.md enthaelt nicht den aktuellen Installations-ZIP-Namen %s." % install_zip)
 

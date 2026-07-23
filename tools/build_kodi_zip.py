@@ -15,7 +15,7 @@ LEGACY_SITE_URL = "https://mojomedia1812.github.io/xVAULT/"
 ADDON = ET.parse(PROJECT_DIR / "addon.xml").getroot()
 ADDON_ID = ADDON.attrib["id"]
 VERSION = ADDON.attrib["version"]
-ZIP_NAME = f"plugin.video.xvault-{VERSION}.zip"
+ZIP_NAME = f"{ADDON_ID}-{VERSION}.zip"
 REPOSITORY_TEMPLATE = PROJECT_DIR / "resources" / "repository" / "addon.xml"
 REPOSITORY = ET.parse(REPOSITORY_TEMPLATE).getroot()
 REPOSITORY_ID = REPOSITORY.attrib["id"]
@@ -230,13 +230,13 @@ def sync_browsable_repository_layout():
     (REPOSITORY_INDEX_DIR / "addon.xml").write_text(_repository_addon_xml() + "\n", encoding="utf-8", newline="\n")
     copy2_retry(PROJECT_DIR / "resources" / "icon.png", REPOSITORY_INDEX_DIR / "icon.png")
 
-    _write_index(ADDON_INDEX_DIR, "/xVAULT/plugin.video.xvault/", addon_index_entries)
-    _write_index(ADDON_INDEX_DIR / "resources", "/xVAULT/plugin.video.xvault/resources/", [
+    _write_index(ADDON_INDEX_DIR, f"/xVAULT/{ADDON_ID}/", addon_index_entries)
+    _write_index(ADDON_INDEX_DIR / "resources", f"/xVAULT/{ADDON_ID}/resources/", [
         _entry("fanart.png", ADDON_INDEX_DIR / "resources" / "fanart.png"),
         _entry("icon.png", ADDON_INDEX_DIR / "resources" / "icon.png"),
         _entry("media/", ADDON_INDEX_DIR / "resources" / "media"),
     ])
-    _write_index(ADDON_INDEX_DIR / "resources" / "media", "/xVAULT/plugin.video.xvault/resources/media/", [
+    _write_index(ADDON_INDEX_DIR / "resources" / "media", f"/xVAULT/{ADDON_ID}/resources/media/", [
         _entry("banner.png", ADDON_INDEX_DIR / "resources" / "media" / "banner.png"),
     ])
     _write_index(REPOSITORY_INDEX_DIR, "/xVAULT/repository.xvault/", [
@@ -245,10 +245,10 @@ def sync_browsable_repository_layout():
         _entry(REPOSITORY_ZIP_NAME, REPOSITORY_INDEX_OUTPUT),
     ])
     _write_index(PROJECT_DIR / "docs" / "zips", "/xVAULT/zips/", [
-        _entry("plugin.video.xvault/", PROJECT_DIR / "docs" / "zips" / ADDON_ID),
+        _entry(f"{ADDON_ID}/", PROJECT_DIR / "docs" / "zips" / ADDON_ID),
         _entry("repository.xvault/", PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID),
     ])
-    _write_index(PROJECT_DIR / "docs" / "zips" / ADDON_ID, "/xVAULT/zips/plugin.video.xvault/", zip_index_entries)
+    _write_index(PROJECT_DIR / "docs" / "zips" / ADDON_ID, f"/xVAULT/zips/{ADDON_ID}/", zip_index_entries)
     _write_index(PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID, "/xVAULT/zips/repository.xvault/", [
         _entry(REPOSITORY_ZIP_NAME, REPOSITORY_OUTPUT),
     ])
@@ -277,8 +277,8 @@ def _retained_addon_archive_names():
 def _retained_addon_archives():
     downloads = PROJECT_DIR / "docs" / "downloads"
     archives = []
-    for path in downloads.glob("plugin.video.xvault-*.zip"):
-        match = re.match(r"plugin\.video\.xvault-(.+)\.zip$", path.name)
+    for path in downloads.glob(f"{ADDON_ID}-*.zip"):
+        match = re.match(rf"{re.escape(ADDON_ID)}-(.+)\.zip$", path.name)
         if match:
             archives.append((match.group(1), path))
     archives.sort(key=lambda item: _version_key(item[0]), reverse=True)
@@ -327,7 +327,7 @@ def update_download_page(output):
         flags=re.S,
     )
     html_content = re.sub(
-        r'href="downloads/plugin\.video\.xvault-[^"]+\.zip"',
+        r'href="downloads/plugin\.video\.xvault(?:alpha)?-[^"]+\.zip"',
         f'href="downloads/{ZIP_NAME}"',
         html_content,
     )
@@ -354,13 +354,18 @@ def _update_manual_download_links():
         return
     html_content = manual.read_text(encoding="utf-8")
     html_content = re.sub(
-        r'href="\.\./downloads/plugin\.video\.xvault-[^"]+\.zip"',
+        r'href="\.\./downloads/plugin\.video\.xvault(?:alpha)?-[^"]+\.zip"',
         f'href="../downloads/{ZIP_NAME}"',
         html_content,
     )
     html_content = re.sub(
-        r"plugin\.video\.xvault-[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]+\.zip",
+        r"plugin\.video\.xvault(?:alpha)?-[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]+\.zip",
         ZIP_NAME,
+        html_content,
+    )
+    html_content = re.sub(
+        r"Handbuch zu xVAULT\s+[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]+",
+        "Handbuch zu xVAULT %s" % VERSION,
         html_content,
     )
     manual.write_text(html_content, encoding="utf-8", newline="\n")
@@ -456,8 +461,8 @@ def _release_title(bullets):
 def _archive_downloads_html():
     downloads = PROJECT_DIR / "docs" / "downloads"
     versions = []
-    for path in downloads.glob("plugin.video.xvault-*.zip"):
-        match = re.match(r"plugin\.video\.xvault-(.+)\.zip$", path.name)
+    for path in downloads.glob(f"{ADDON_ID}-*.zip"):
+        match = re.match(rf"{re.escape(ADDON_ID)}-(.+)\.zip$", path.name)
         if not match:
             continue
         version = match.group(1)
@@ -480,8 +485,8 @@ def _archive_downloads_html():
 def prune_download_archives():
     downloads = PROJECT_DIR / "docs" / "downloads"
     versions = []
-    for path in downloads.glob("plugin.video.xvault-*.zip"):
-        match = re.match(r"plugin\.video\.xvault-(.+)\.zip$", path.name)
+    for path in downloads.glob(f"{ADDON_ID}-*.zip"):
+        match = re.match(rf"{re.escape(ADDON_ID)}-(.+)\.zip$", path.name)
         if not match:
             continue
         versions.append((match.group(1), path))
@@ -576,7 +581,7 @@ def _inject_kodi_listing(html_content):
 
 def _kodi_listing_fragment():
     entries = [
-        _entry("plugin.video.xvault/", ADDON_INDEX_DIR),
+        _entry(f"{ADDON_ID}/", ADDON_INDEX_DIR),
         _entry("repository.xvault/", REPOSITORY_INDEX_DIR),
         _entry("addons.xml", ADDONS_XML),
         _entry("addons.xml.md5", ADDONS_XML.with_suffix(ADDONS_XML.suffix + ".md5")),

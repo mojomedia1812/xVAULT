@@ -3,7 +3,7 @@ import json
 from resources.lib import control
 
 
-PROPERTY_PREFIX = 'plugin.video.xvault.seriesqueue.'
+PROPERTY_PREFIX = control.addonId + '.seriesqueue.'
 
 
 def make_key(meta):

@@ -44,7 +44,7 @@ def collect(raw_xml=None, deleted_keys=None, base_keys=None):
                     'label': item['label'],
                     'thumb': item['thumb'],
                     'path': path_text,
-                    'type': 'video' if 'plugin.video.xvault' in path_text else 'unknown',
+                    'type': 'video' if _is_xvault_path(path_text) else 'unknown',
                 })
         except Exception as exc:
             log_utils.log('xVAULT sync: failed to parse favourites.xml: %s' % exc, log_utils.LOGWARNING)
@@ -64,6 +64,10 @@ def collect(raw_xml=None, deleted_keys=None, base_keys=None):
     if base_keys is not None:
         payload['base_keys'] = list(base_keys)
     return payload
+
+
+def _is_xvault_path(path_text):
+    return 'plugin.video.xvault' in path_text or 'plugin.video.xvaultalpha' in path_text
 
 
 def check_and_push_if_changed(silent=True, client=None, require_enabled=True, force=False):

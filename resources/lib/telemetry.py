@@ -22,6 +22,7 @@ SETTING_SESSION_ID = 'telemetry.session_id'
 SETTING_LAST_HEARTBEAT = 'telemetry.last_heartbeat'
 SETTING_CONSENT_VERSION = 'telemetry.consent_version'
 SETTING_ADDON_VERSION = 'telemetry.addon_version'
+ADDON_VARIANT = 'alpha'
 
 ALLOWED_EVENTS = set([
     'installation_created',
@@ -50,6 +51,7 @@ def status_lines():
         'Installations-ID: %s' % (_mask(install_id) if install_id else 'nicht erstellt'),
         'Sitzung: %s' % (_mask(session_id) if session_id else 'nicht gestartet'),
         'xVAULT-Version: %s' % context.get('addon_version', ''),
+        'xVAULT-Kanal: %s' % context.get('addon_variant', 'stable'),
         'Kodi-Version: %s' % (context.get('kodi_version', '') or 'unbekannt'),
         'OS-Klasse: %s' % context.get('os_class', 'unknown'),
         'Geräteklasse: %s' % context.get('device_class', 'unknown'),
@@ -129,7 +131,8 @@ def device_context():
     props = _android_props()
     os_class = _os_class(props)
     return {
-        'addon_version': _text(control.addonVersion, 32),
+        'addon_version': _addon_version(),
+        'addon_variant': _text(ADDON_VARIANT, 16),
         'kodi_version': _text(control.infoLabel('System.BuildVersion') or '', 64),
         'os_class': _text(os_class, 16),
         'device_class': _text(_device_class(props, os_class), 32),
@@ -182,7 +185,7 @@ def _ensure_install_id():
 
 
 def _emit_update_if_needed(created):
-    current_version = _text(control.addonVersion, 32)
+    current_version = _addon_version()
     if not current_version:
         return
     stored_version = control.getSetting(SETTING_ADDON_VERSION, '')
@@ -353,6 +356,16 @@ def _text(value, limit):
     text = str(value or '')
     text = re.sub(r'[\r\n\t]+', ' ', text)
     return text[:limit]
+
+
+def _addon_version():
+    version = _text(control.addonVersion, 32)
+    variant = _text(ADDON_VARIANT, 16).lower()
+    if version and variant and variant != 'stable':
+        suffix = '-' + variant
+        if not version.lower().endswith(suffix):
+            version = version[:max(0, 32 - len(suffix))] + suffix
+    return _text(version, 32)
 
 
 def _mask(value):

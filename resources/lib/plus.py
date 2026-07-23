@@ -20,20 +20,79 @@ def activate():
     code = _password_input()
     if not code:
         return
+
     try:
         data = _unlock(code)
         if not data.get('success'):
             control.infoDialog('Aktivierung nicht moeglich.', icon='WARNING', time=5000)
             return
 
-        from resources.lib import updater
-        updater.configure_external_source(data.get('manifest_url'), data.get('download_url'))
+        from resources.lib import updater as updater_module
+        manifest_url, download_url = _alpha_source(data, updater_module)
         control.setSetting(SETTING_ENABLED, 'true')
-        control.infoDialog('Aktivierung erfolgreich. Aktualisierung wird vorbereitet.', icon='INFO', time=5000)
-        updater.check_for_update(prompt=False, ignore_disabled=True)
+
+        release = updater_module.get_alpha_release(manifest_url, download_url)
+        latest_version = release.get('version')
+        if not latest_version:
+            raise RuntimeError('missing update version')
+
+        log_utils.log(
+            'Update release check: target=%s latest=%s' % (updater_module.ALPHA_ADDON_ID, latest_version),
+            log_utils.LOGINFO
+        )
+        log_utils.log('Update install start: addon=%s target=%s' % (updater_module.ALPHA_ADDON_ID, latest_version), log_utils.LOGINFO)
+        control.infoDialog('Aktivierung erfolgreich. Version %s wird installiert.' % latest_version, icon='INFO', time=5000)
+        if not updater_module.install_update(
+            latest_version,
+            release.get('download_url'),
+            addon_id=updater_module.ALPHA_ADDON_ID,
+            run_after=True
+        ):
+            control.setSetting(SETTING_ENABLED, 'false')
     except Exception as exc:
         log_utils.log('Plus activation failed: %s' % str(exc), log_utils.LOGWARNING)
+        control.setSetting(SETTING_ENABLED, 'false')
         control.infoDialog('Aktivierung fehlgeschlagen.', icon='ERROR', time=5000)
+
+
+def deactivate():
+    if not _confirm_deactivation():
+        return
+
+    try:
+        from resources.lib import updater as updater_module
+        updater = updater_module
+
+        release = updater.get_stable_release()
+        control.setSetting(SETTING_ENABLED, 'false')
+        updater.reset_update_source()
+
+        if not updater.install_update(
+            release['version'],
+            release['download_url'],
+            addon_id=updater.STABLE_ADDON_ID,
+            run_after=True
+        ):
+            control.setSetting(SETTING_ENABLED, 'true')
+    except Exception as exc:
+        log_utils.log('Plus deactivation failed: %s' % str(exc), log_utils.LOGWARNING)
+        control.setSetting(SETTING_ENABLED, 'true')
+        control.infoDialog('Plus-Deaktivierung fehlgeschlagen.', icon='ERROR', time=5000)
+
+
+def _confirm_deactivation():
+    return control.yesnoDialog(
+        'Plus deaktivieren und zu xVAULT wechseln?',
+        'Die aktuelle Standard-Version wird heruntergeladen.',
+        'xVAULT danach bitte erneut oeffnen.',
+        heading=control.addonName,
+        nolabel='Abbrechen',
+        yeslabel='Deaktivieren'
+    )
+
+
+def _alpha_source(data, updater):
+    return updater.ALPHA_MANIFEST_URL, updater.ALPHA_DOWNLOAD_URL
 
 
 def _password_input():

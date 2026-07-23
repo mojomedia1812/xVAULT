@@ -284,6 +284,11 @@ elif action == 'activatePlus':
     plus.activate()
     _finish_action()
 
+elif action == 'deactivatePlus':
+    from resources.lib import plus
+    plus.deactivate()
+    _finish_action()
+
 elif action and action.startswith('sync'):
     from resources.lib.sync import account
     account.dispatch(action)

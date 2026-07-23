@@ -4,6 +4,8 @@ import os
 import re
 import shutil
 import zipfile
+import json
+import time
 from xml.etree import ElementTree
 
 try:
@@ -14,8 +16,14 @@ except:
 from resources.lib import control, log_utils
 
 
-MANIFEST_URL = 'https://raw.githubusercontent.com/mojomedia1812/xVAULT/main/addon.xml'
-DOWNLOAD_URL = 'http://xvault.ddnss.de/downloads/plugin.video.xvault-%s.zip'
+STABLE_ADDON_ID = 'plugin.video.xvault'
+ALPHA_ADDON_ID = 'plugin.video.xvaultalpha'
+STABLE_MANIFEST_URL = 'https://raw.githubusercontent.com/mojomedia1812/xVAULT/main/addon.xml'
+STABLE_DOWNLOAD_URL = 'http://xvault.ddnss.de/downloads/plugin.video.xvault-%s.zip'
+ALPHA_MANIFEST_URL = 'https://raw.githubusercontent.com/mojomedia1812/xvaultalpha/main/addon.xml'
+ALPHA_DOWNLOAD_URL = 'https://raw.githubusercontent.com/mojomedia1812/xvaultalpha/main/docs/downloads/plugin.video.xvaultalpha-%s.zip'
+MANIFEST_URL = STABLE_MANIFEST_URL
+DOWNLOAD_URL = STABLE_DOWNLOAD_URL
 REQUEST_TIMEOUT = 10
 CHANNEL_STABLE = 'stable'
 CHANNEL_EXTERNAL = 'external'
@@ -88,10 +96,32 @@ def reset_update_source():
 
 
 def get_latest_release():
+    try:
+        return _release_from_urls(*_source_urls())
+    except UpdateError:
+        if control.getSetting(SETTING_CHANNEL, CHANNEL_STABLE) == CHANNEL_EXTERNAL:
+            reset_update_source()
+            return _release_from_urls(*_source_urls())
+        raise
+
+
+def get_stable_release():
+    return _release_from_urls(STABLE_MANIFEST_URL, STABLE_DOWNLOAD_URL, STABLE_ADDON_ID)
+
+
+def get_alpha_release(manifest_url=None, download_url=None):
+    return _release_from_urls(manifest_url or ALPHA_MANIFEST_URL, download_url or ALPHA_DOWNLOAD_URL, ALPHA_ADDON_ID)
+
+
+def get_release_from_source(manifest_url, download_url, expected_addon_id=None):
+    return _release_from_urls(manifest_url, download_url, expected_addon_id)
+
+
+def _release_from_urls(manifest_url, download_url, expected_addon_id=None):
     if requests is None:
         raise UpdateError('requests module is not available')
+    expected_addon_id = expected_addon_id or control.addonId
 
-    manifest_url, download_url = _source_urls()
     response = requests.get(
         manifest_url,
         headers={'User-Agent': '%s/%s' % (control.addonId, control.addonVersion)},
@@ -100,7 +130,7 @@ def get_latest_release():
     response.raise_for_status()
 
     addon_id, version = _addon_xml_info(response.text)
-    if addon_id != control.addonId:
+    if addon_id != expected_addon_id:
         raise UpdateError('Unexpected addon id in update manifest: %s' % addon_id)
     if not version:
         raise UpdateError('No version found in update manifest')
@@ -118,17 +148,27 @@ def _source_urls():
         if manifest_url and download_url and '%s' in download_url:
             return manifest_url, download_url
         reset_update_source()
-    return MANIFEST_URL, DOWNLOAD_URL
+    if control.addonId == ALPHA_ADDON_ID:
+        return ALPHA_MANIFEST_URL, ALPHA_DOWNLOAD_URL
+    return STABLE_MANIFEST_URL, STABLE_DOWNLOAD_URL
 
 
-def install_update(version, url):
-    temp_zip = os.path.join(control.translatePath('special://temp/'), 'plugin.video.xvault-%s.zip' % version)
+def install_update(version, url, addon_id=None, run_after=False):
+    target_addon_id = addon_id or control.addonId
+    temp_zip = os.path.join(control.translatePath('special://temp/'), '%s-%s.zip' % (target_addon_id, version))
     try:
         _download(url, temp_zip, version)
-        root = _validate_zip(temp_zip, version)
-        _record_pending_update(version)
-        _extract_zip_root(temp_zip, root, control.addonPath)
+        root = _validate_zip(temp_zip, version, target_addon_id)
+        if target_addon_id == control.addonId:
+            _record_pending_update(version)
+        _extract_zip_root(temp_zip, root, _addon_install_path(target_addon_id))
         control.execute('UpdateLocalAddons')
+        if target_addon_id != control.addonId:
+            _wait_for_addon(target_addon_id)
+            _set_addon_enabled(target_addon_id, True)
+        if run_after:
+            _wait_for_addon(target_addon_id, enabled=True)
+            control.execute('RunAddon("%s")' % target_addon_id)
         control.infoDialog(
             'Version %s wurde installiert. xVAULT bitte erneut öffnen.' % version,
             icon='INFO',
@@ -147,6 +187,58 @@ def install_update(version, url):
         except:
             pass
     return False
+
+
+def _addon_install_path(addon_id):
+    if addon_id == control.addonId:
+        return control.addonPath
+    return os.path.join(control.translatePath('special://home/addons/'), addon_id)
+
+
+def _set_addon_enabled(addon_id, enabled):
+    try:
+        command = {
+            'jsonrpc': '2.0',
+            'id': 1,
+            'method': 'Addons.SetAddonEnabled',
+            'params': {
+                'addonid': addon_id,
+                'enabled': bool(enabled),
+            },
+        }
+        response = json.loads(control.jsonrpc(json.dumps(command)))
+        if response.get('error'):
+            raise UpdateError(response.get('error'))
+    except Exception as exc:
+        log_utils.log('Could not enable addon %s: %s' % (addon_id, str(exc)), log_utils.LOGWARNING)
+
+
+def _wait_for_addon(addon_id, enabled=None, timeout=12):
+    deadline = time.time() + timeout
+    last_error = None
+    while time.time() < deadline:
+        try:
+            command = {
+                'jsonrpc': '2.0',
+                'id': 1,
+                'method': 'Addons.GetAddonDetails',
+                'params': {
+                    'addonid': addon_id,
+                    'properties': ['enabled', 'version'],
+                },
+            }
+            response = json.loads(control.jsonrpc(json.dumps(command)))
+            addon = response.get('result', {}).get('addon')
+            if addon and (enabled is None or bool(addon.get('enabled')) == bool(enabled)):
+                return addon
+            if response.get('error'):
+                last_error = response.get('error')
+        except Exception as exc:
+            last_error = str(exc)
+        time.sleep(0.5)
+    if last_error:
+        log_utils.log('Timed out waiting for addon %s: %s' % (addon_id, last_error), log_utils.LOGWARNING)
+    return None
 
 
 def _record_pending_update(target_version):
@@ -190,15 +282,19 @@ def _download(url, destination, version):
             pass
 
 
-def _validate_zip(path, expected_version):
+def _validate_zip(path, expected_version, expected_addon_id=None):
+    expected_addon_id = expected_addon_id or control.addonId
     with zipfile.ZipFile(path) as archive:
         addon_xml = _find_addon_xml(archive)
         addon_id, version = _addon_xml_info(archive.read(addon_xml).decode('utf-8'))
-        if addon_id != control.addonId:
+        if addon_id != expected_addon_id:
             raise UpdateError('Unexpected addon id in zip: %s' % addon_id)
         if version != expected_version:
             raise UpdateError('Unexpected version in zip: %s' % version)
-        return addon_xml.rsplit('/', 1)[0] if '/' in addon_xml else ''
+        root = addon_xml.rsplit('/', 1)[0] if '/' in addon_xml else ''
+        if root and root != expected_addon_id:
+            raise UpdateError('Unexpected addon root in zip: %s' % root)
+        return root
 
 
 def _find_addon_xml(archive):
