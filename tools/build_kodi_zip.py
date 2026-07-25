@@ -23,7 +23,6 @@ REPOSITORY_VERSION = REPOSITORY.attrib["version"]
 REPOSITORY_ZIP_NAME = f"{REPOSITORY_ID}-{REPOSITORY_VERSION}.zip"
 REPOSITORY_DIRECT_ZIP_NAME = f"{REPOSITORY_ID}.zip"
 DOWNLOAD_OUTPUT = PROJECT_DIR / "docs" / "downloads" / ZIP_NAME
-REPOSITORY_PLUGIN_OUTPUT = PROJECT_DIR / "docs" / "zips" / ADDON_ID / ZIP_NAME
 REPOSITORY_OUTPUT = PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID / REPOSITORY_ZIP_NAME
 REPOSITORY_DIRECT_OUTPUT = PROJECT_DIR / "docs" / REPOSITORY_DIRECT_ZIP_NAME
 REPOSITORY_VERSIONED_DIRECT_OUTPUT = PROJECT_DIR / "docs" / REPOSITORY_ZIP_NAME
@@ -48,7 +47,6 @@ UMAMI_PIXEL_PATTERN = r"\s*<img\b(?=[^>]*cloud\.umami\.is/p/)[^>]*>\s*"
 OUTPUTS = (
     REPO_DIR / ZIP_NAME,
     DOWNLOAD_OUTPUT,
-    REPOSITORY_PLUGIN_OUTPUT,
 )
 
 EXCLUDED_PARTS = {
@@ -210,16 +208,11 @@ def sync_browsable_repository_layout():
         _entry("icon.png", ADDON_INDEX_DIR / "icon.png"),
         _entry("resources/", ADDON_INDEX_DIR / "resources"),
     ]
-    zip_index_entries = []
     for archive in _retained_addon_archives():
         addon_output = ADDON_INDEX_DIR / archive.name
-        zips_output = PROJECT_DIR / "docs" / "zips" / ADDON_ID / archive.name
         copy2_retry(archive, addon_output)
-        copy2_retry(archive, zips_output)
         validate(addon_output)
-        validate(zips_output)
         addon_index_entries.append(_entry(archive.name, addon_output))
-        zip_index_entries.append(_entry(archive.name, zips_output))
 
     copy2_retry(PROJECT_DIR / "addon.xml", ADDON_INDEX_DIR / "addon.xml")
     copy2_retry(PROJECT_DIR / "resources" / "icon.png", ADDON_INDEX_DIR / "icon.png")
@@ -248,7 +241,7 @@ def sync_browsable_repository_layout():
         _entry(f"{ADDON_ID}/", PROJECT_DIR / "docs" / "zips" / ADDON_ID),
         _entry("repository.xvault/", PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID),
     ])
-    _write_index(PROJECT_DIR / "docs" / "zips" / ADDON_ID, f"/xVAULT/zips/{ADDON_ID}/", zip_index_entries)
+    _write_index(PROJECT_DIR / "docs" / "zips" / ADDON_ID, f"/xVAULT/zips/{ADDON_ID}/", [])
     _write_index(PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID, "/xVAULT/zips/repository.xvault/", [
         _entry(REPOSITORY_ZIP_NAME, REPOSITORY_OUTPUT),
     ])
@@ -258,7 +251,7 @@ def _prune_browsable_archives():
     retained_addon_names = _retained_addon_archive_names()
     keep = {
         ADDON_INDEX_DIR: retained_addon_names,
-        PROJECT_DIR / "docs" / "zips" / ADDON_ID: retained_addon_names,
+        PROJECT_DIR / "docs" / "zips" / ADDON_ID: set(),
         REPOSITORY_INDEX_DIR: {REPOSITORY_ZIP_NAME},
         PROJECT_DIR / "docs" / "zips" / REPOSITORY_ID: {REPOSITORY_ZIP_NAME},
     }
