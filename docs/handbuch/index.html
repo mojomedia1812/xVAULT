@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.07.25.2.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.07.25.3.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.07.25.2.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.07.25.3.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -572,7 +572,7 @@
       <h2>Favoriten und Synchronisation</h2>
       <h3>Favoriten</h3>
       <p>Favoriten speichern Filme, Serien oder LiveTV-Sender für den schnellen Zugriff. Bereits vorhandene Favoriten bleiben erhalten, wenn die Synchronisation später aktiviert wird.</p>
-      <p>Film- und Serienfavoriten stammen aus Kodis Favoriten- beziehungsweise xVAULT-Listenlogik. LiveTV-Favoriten werden im LiveTV-Profilbereich gespeichert und können direkt in der Senderliste über das Kontextmenü hinzugefügt oder entfernt werden.</p>
+      <p>Film- und Serienfavoriten stammen aus Kodis Favoriten- beziehungsweise xVAULT-Listenlogik. LiveTV und LiveTV lite speichern TV-Favoriten im jeweiligen xVAULT-Profilbereich. Der Kontextmenüpunkt <strong>Zu TV Favoriten hinzufügen</strong> legt Sender deshalb in den Favoritenordnern der LiveTV-Bereiche ab und nicht in Kodis allgemeinen Favoriten.</p>
       <h3>Synchronisation anmelden</h3>
       <p>Im Bereich Konten kann ein xVAULT-Konto registriert, angemeldet, abgemeldet oder das Passwort zurückgesetzt werden. Nach erfolgreicher Anmeldung ist die erste Synchronisierung sofort verfügbar, ohne die Einstellungen verlassen und erneut öffnen zu müssen.</p>
       <h3>Registrierung und Kennwort</h3>
@@ -665,7 +665,7 @@
         </tbody>
       </table>
       <h3>LiveTV lite</h3>
-      <p>LiveTV lite ist ein zusätzlicher, schlanker Bereich direkt nach LiveTV. Er liest die Gruppen <strong>Deutsche TV</strong>, <strong>Österreichische TV</strong> und <strong>Schweizer TV</strong> aus der 2ix2-Quelle und startet die dort hinterlegten HLS-Streams ohne EPG- und Favoriten-Schicht.</p>
+      <p>LiveTV lite ist ein zusätzlicher, schlanker Bereich direkt nach LiveTV. Er liest die Gruppen <strong>Deutsche TV</strong>, <strong>Österreichische TV</strong> und <strong>Schweizer TV</strong> aus der 2ix2-Quelle, besitzt einen eigenen Favoritenordner und startet die dort hinterlegten HLS-Streams ohne EPG-Schicht.</p>
       <p>Wenn die 2ix2-API vorübergehend nicht erreichbar ist oder ein frisches Kodi-Profil noch keinen Cache besitzt, nutzt xVAULT <strong>Nydus</strong> als Ersatzquelle. Die Nydus-Sender werden in die vorhandenen Ländergruppen einsortiert; echte HLS-Streams werden beim Start dynamisch aus dem Nydus-Player gelesen.</p>
       <p>Einige Nydus-Einträge verweisen nur auf Browser-Embeds oder Cloudflare-geschützte Player. Diese Ziele werden nicht als defekter Kodi-Stream gestartet, sondern mit Hinweis abgefangen.</p>
       <table class="manual-table">
@@ -673,8 +673,8 @@
           <tr><th>Bereich</th><th>Geeignet für</th></tr>
         </thead>
         <tbody>
-          <tr><td>LiveTV</td><td>Deutsche Sender mit Kategorien, EPG, Logos, Favoriten, Cache, Puffer, Senderlisten-Prüfung und stabilisierter Wiedergabe.</td></tr>
-          <tr><td>LiveTV lite</td><td>Schneller Zugriff auf einfache HLS-Senderlisten aus Deutschland, Österreich und der Schweiz.</td></tr>
+          <tr><td>LiveTV</td><td>Deutsche Sender mit Kategorien, EPG, Logos, eigenen TV-Favoriten, Cache, Puffer, Senderlisten-Prüfung und stabilisierter Wiedergabe.</td></tr>
+          <tr><td>LiveTV lite</td><td>Schneller Zugriff auf einfache HLS-Senderlisten aus Deutschland, Österreich und der Schweiz mit eigenem TV-Favoritenordner.</td></tr>
         </tbody>
       </table>
       <h3>Wann welchen Bereich nutzen?</h3>
@@ -847,7 +847,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.07.25.2</span>
+      <span>Handbuch zu xVAULT 2026.07.25.3</span>
     </footer>
   </main>
 </body>

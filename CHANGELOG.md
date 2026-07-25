@@ -5,6 +5,10 @@
 - Handbuch als GitHub-Pages-Wissensdatenbank erweitert: Menüs, Suche, Quellen, Wiedergabe, Sync, Trakt, LiveTV, Downloads, Werkzeuge, Einstellungen und Fehlerhilfe ausführlicher beschrieben.
 - Sichtbare GitHub-Pages-Texte und deutsch benannte Link-Events mit korrekten Umlauten vereinheitlicht.
 
+## [2026.07.25.3] - 2026-07-25
+
+- LiveTV und LiveTV lite trennen TV-Favoriten klar von Kodis eigenen Favoriten; LiveTV lite besitzt jetzt einen eigenen Favoritenordner.
+
 ## [2026.07.25.2] - 2026-07-25
 
 - Filme und Episoden gelten erst als gesehen, wenn höchstens noch zehn Minuten Restlaufzeit übrig sind oder die Wiedergabe regulär endet.

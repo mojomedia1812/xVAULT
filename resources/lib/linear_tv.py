@@ -347,13 +347,13 @@ def add_favorite(channel_id):
     if not _channel_by_id(favorites, channel_id):
         favorites.append(_favorite_record(channel))
         _save_favorites(favorites)
-    control.infoDialog("Favorit gespeichert", icon="INFO")
+    control.infoDialog("TV-Favorit gespeichert", icon="INFO")
 
 
 def remove_favorite(channel_id):
     favorites = [item for item in _load_favorites() if item.get("id") != channel_id]
     _save_favorites(favorites)
-    control.infoDialog("Favorit entfernt", icon="INFO")
+    control.infoDialog("TV-Favorit entfernt", icon="INFO")
     xbmc.executebuiltin("Container.Refresh")
 
 
@@ -408,7 +408,7 @@ def _show_channels(channels, title, favorites=False):
             "mediatype": "video",
         })
         _set_channel_art(item, channel, epg)
-        item.addContextMenuItems(_context_menu(channel, favorites))
+        item.addContextMenuItems(_context_menu(channel, favorites), True)
         url = _url({"action": "liveTVPlay", "id": channel.get("id")})
         try:
             item.setPath(url)
@@ -1101,15 +1101,15 @@ def _context_menu(channel, favorite_context=False):
     check_entry = ("Senderliste auf Funktion pruefen", "RunPlugin(%s)" % _url({"action": "liveTVHealthCheck"}))
     if favorite_context:
         return [
-            ("Aus Favoriten entfernen", "RunPlugin(%s)" % _url({"action": "liveTVFavoriteRemove", "id": channel.get("id")})),
+            ("Aus TV Favoriten entfernen", "RunPlugin(%s)" % _url({"action": "liveTVFavoriteRemove", "id": channel.get("id")})),
             check_entry,
         ]
     favorites = _load_favorites()
     if _channel_by_id(favorites, channel.get("id")):
-        label = "Aus Favoriten entfernen"
+        label = "Aus TV Favoriten entfernen"
         action = "liveTVFavoriteRemove"
     else:
-        label = "Zu Favoriten hinzufuegen"
+        label = "Zu TV Favoriten hinzufügen"
         action = "liveTVFavoriteAdd"
     return [
         (label, "RunPlugin(%s)" % _url({"action": action, "id": channel.get("id")})),

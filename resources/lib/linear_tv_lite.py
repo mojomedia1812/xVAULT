@@ -22,6 +22,7 @@ NYDUS_BASE_URL = "https://nydus.org"
 NYDUS_LIVE_URL = NYDUS_BASE_URL + "/stream/live/"
 NYDUS_EMBED_URL = NYDUS_BASE_URL + "/stream/embedplayer_hq.php?id=%s"
 CACHE_FILE = os.path.join(control.addonProfilePath, "linear-tv-lite-catalog.json")
+FAVORITES_FILE = os.path.join(control.addonProfilePath, "linear-tv-lite-favorites.json")
 CACHE_TTL = 6 * 60 * 60
 BROWSER_USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) "
@@ -41,6 +42,7 @@ NYDUS_SWISS_IDS = {"srf1", "srf2", "srf-info", "srfinfo", "3plus", "4plus", "5pl
 def show_home():
     handle = _handle()
     _add_folder(handle, "Senderliste aktualisieren", {"action": "liveTVLiteRefresh"}, False)
+    _add_folder(handle, "Favoriten", {"action": "liveTVLiteFavorites"}, True)
     for category in CATEGORIES:
         _add_folder(
             handle,
@@ -65,6 +67,34 @@ def show_category(category_slug):
         return
 
     channels = [channel for channel in _catalog() if channel.get("category_slug") == category["slug"]]
+    _show_channels(channels, category["label"])
+
+
+def show_favorites():
+    _show_channels(_load_favorites(), "Favoriten", favorite_context=True)
+
+
+def add_favorite(channel_id):
+    channel = _channel_by_id(_catalog(), channel_id) or _channel_by_id(_load_favorites(), channel_id)
+    if not channel:
+        control.infoDialog("Sender nicht gefunden", icon="WARNING", time=3500)
+        return
+    favorites = _load_favorites()
+    if not _channel_by_id(favorites, channel.get("id")):
+        favorites.append(_favorite_record(channel))
+        _save_favorites(favorites)
+    control.infoDialog("TV-Favorit gespeichert", icon="INFO", time=3000)
+
+
+def remove_favorite(channel_id):
+    channel_id = str(channel_id or "")
+    favorites = [item for item in _load_favorites() if str(item.get("id") or "") != channel_id]
+    _save_favorites(favorites)
+    control.infoDialog("TV-Favorit entfernt", icon="INFO", time=3000)
+    control.execute("Container.Refresh")
+
+
+def _show_channels(channels, category_label, favorite_context=False):
     handle = _handle()
     for channel in sorted(channels, key=lambda item: _sort_key(item.get("name"))):
         item = control.item(channel.get("name") or "LiveTV lite", offscreen=True)
@@ -76,12 +106,13 @@ def show_category(category_slug):
             "mediatype": "video",
         })
         item.setArt(_art(channel))
+        item.addContextMenuItems(_context_menu(channel, favorite_context), True)
         control.addItem(handle, _url({"action": "liveTVLitePlay", "id": channel.get("id")}), item, False)
-    _end(category["label"], cache=False)
+    _end(category_label, cache=False)
 
 
 def play(channel_id):
-    channel = _channel_by_id(_catalog(), channel_id)
+    channel = _channel_by_id(_catalog(), channel_id) or _channel_by_id(_load_favorites(), channel_id)
     if not channel:
         control.infoDialog("Sender nicht gefunden", icon="WARNING", time=3500)
         control.resolveUrl(_handle(), False, control.item("LiveTV lite", offscreen=True))
@@ -354,10 +385,51 @@ def _dedupe_channels(channels):
 
 
 def _channel_by_id(channels, channel_id):
+    channel_id = str(channel_id or "")
     for channel in channels or []:
-        if channel.get("id") == channel_id:
+        if str(channel.get("id") or "") == channel_id:
             return channel
     return None
+
+
+def _context_menu(channel, favorite_context=False):
+    if favorite_context:
+        return [
+            ("Aus TV Favoriten entfernen", "RunPlugin(%s)" % _url({"action": "liveTVLiteFavoriteRemove", "id": channel.get("id")})),
+        ]
+    favorites = _load_favorites()
+    if _channel_by_id(favorites, channel.get("id")):
+        label = "Aus TV Favoriten entfernen"
+        action = "liveTVLiteFavoriteRemove"
+    else:
+        label = "Zu TV Favoriten hinzufügen"
+        action = "liveTVLiteFavoriteAdd"
+    return [
+        (label, "RunPlugin(%s)" % _url({"action": action, "id": channel.get("id")})),
+    ]
+
+
+def _favorite_record(channel):
+    return {
+        "id": channel.get("id"),
+        "name": channel.get("name"),
+        "category": channel.get("category"),
+        "category_slug": channel.get("category_slug"),
+        "page_url": channel.get("page_url"),
+        "stream_url": channel.get("stream_url") or "",
+        "source": channel.get("source") or "2ix2",
+        "nydus_id": channel.get("nydus_id") or "",
+        "logo_url": channel.get("logo_url") or "",
+    }
+
+
+def _load_favorites():
+    data = _read_json(FAVORITES_FILE, [])
+    return data if isinstance(data, list) else []
+
+
+def _save_favorites(favorites):
+    _write_json(FAVORITES_FILE, favorites)
 
 
 def _category(slug):
@@ -438,24 +510,32 @@ def _nydus_headers(referer=None):
 
 
 def _read_cache():
-    try:
-        if not os.path.exists(CACHE_FILE):
-            return {}
-        with open(CACHE_FILE, "r", encoding="utf-8") as handle:
-            return json.load(handle)
-    except Exception:
-        return {}
+    return _read_json(CACHE_FILE, {})
 
 
 def _write_cache(channels):
+    _write_json(CACHE_FILE, {"timestamp": int(time.time()), "channels": channels})
+
+
+def _read_json(path, default):
     try:
-        directory = os.path.dirname(CACHE_FILE)
+        if not os.path.exists(path):
+            return default
+        with open(path, "r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except Exception:
+        return default
+
+
+def _write_json(path, data):
+    try:
+        directory = os.path.dirname(path)
         if directory and not os.path.exists(directory):
             os.makedirs(directory)
-        with open(CACHE_FILE, "w", encoding="utf-8", newline="\n") as handle:
-            json.dump({"timestamp": int(time.time()), "channels": channels}, handle, ensure_ascii=False, indent=2)
+        with open(path, "w", encoding="utf-8", newline="\n") as handle:
+            json.dump(data, handle, ensure_ascii=False, indent=2)
     except Exception as exc:
-        log_utils.log("LiveTV lite cache failed: %s" % str(exc), log_utils.LOGWARNING)
+        log_utils.log("LiveTV lite JSON write failed for %s: %s" % (path, str(exc)), log_utils.LOGWARNING)
 
 
 def _clean_title(value):

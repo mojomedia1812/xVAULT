@@ -1,3 +1,8 @@
+xVAULT 2026.07.25.3
+Entwickler: mojomedia1812
+
+- LiveTV und LiveTV lite trennen TV-Favoriten klar von Kodis eigenen Favoriten; LiveTV lite besitzt jetzt einen eigenen Favoritenordner.
+
 xVAULT 2026.07.25.2
 Entwickler: mojomedia1812
 
