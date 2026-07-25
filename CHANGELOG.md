@@ -5,6 +5,12 @@
 - Handbuch als GitHub-Pages-Wissensdatenbank erweitert: Menüs, Suche, Quellen, Wiedergabe, Sync, Trakt, LiveTV, Downloads, Werkzeuge, Einstellungen und Fehlerhilfe ausführlicher beschrieben.
 - Sichtbare GitHub-Pages-Texte und deutsch benannte Link-Events mit korrekten Umlauten vereinheitlicht.
 
+## [2026.07.25.2] - 2026-07-25
+
+- Filme und Episoden gelten erst als gesehen, wenn höchstens noch zehn Minuten Restlaufzeit übrig sind oder die Wiedergabe regulär endet.
+- Angefangene Filme und Episoden bleiben ungesehen, zeigen in Listen ein Uhrsymbol und die Fortsetzen-Position hinter dem Titel.
+- Fortsetzen-Lesezeichen werden bei fertig gesehenen Titeln entfernt und bei laufenden Titeln beibehalten.
+
 ## [2026.07.25.1] - 2026-07-25
 
 - Quellensuche für Filme und Serien beschleunigt: Quellenlisten werden persistent im Kodi-Profil zwischengespeichert, erfolgreiche Serienanbieter werden bevorzugt und temporär fehlerhafte Indexseiten kurzzeitig übersprungen.

@@ -8,7 +8,7 @@ import hashlib,os,codecs
 from sqlite3 import dbapi2 as database
 import xbmc, xbmcplugin
 from resources.lib.control import py2_encode, translatePath, executebuiltin
-from resources.lib import log_utils, control, playcountDB, playback_settings
+from resources.lib import log_utils, control, playcountDB, playback_settings, watch_progress
 
 try:
     import xmlrpclib as _xmlrpclib
@@ -220,7 +220,7 @@ class player(xbmc.Player):
                 stopped_without_callback = 0
                 self.totalTime = self.getTotalTime()
                 self.currentTime = self.getTime()
-                watcher = self.totalTime > 0 and (self.currentTime / self.totalTime >= .9)
+                watcher = watch_progress.is_completed_position(self.currentTime, self.totalTime)
                 if watcher and not self.watcher_control:
                     playcountDB.updatePlaycount(self.mediatype, self.title, self.name, self.imdb, self.number_of_seasons, self.season, self.number_of_episodes, self.episode, 1)
                     #control.setSetting(id='watcher.control', value='true')
@@ -330,7 +330,7 @@ class player(xbmc.Player):
         if self.watcher_control:
             return True
         try:
-            return bool(self.totalTime and self.currentTime and (float(self.currentTime) / float(self.totalTime) >= .9))
+            return watch_progress.is_completed_position(self.currentTime, self.totalTime)
         except:
             return False
 
@@ -610,9 +610,9 @@ class bookmarks:
                         idFile.update(str(i))
                 idFile = str(idFile.hexdigest())
 
-                if (currentTime / totalTime) >= .92:
+                if watch_progress.is_completed_position(currentTime, totalTime):
                     bookmarkDB.remove_query(idFile, 'bookmarks')
-                else:
+                elif watch_progress.should_store_resume(currentTime, totalTime):
                     bookmarkDB.save_query(idFile, timeInSeconds, 'bookmarks')
 
                 # dbcon = database.connect(control.bookmarksFile)

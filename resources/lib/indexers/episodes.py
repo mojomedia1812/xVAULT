@@ -5,7 +5,7 @@
 
 import sys
 import datetime, json, time
-from resources.lib import control, watched_status
+from resources.lib import control, watched_status, watch_progress
 from resources.lib.tmdb import cTMDB
 from concurrent.futures import ThreadPoolExecutor
 from resources.lib.control import getKodiVersion
@@ -144,6 +144,11 @@ class episodes:
 				meta.update({'fanart': fanart})
 				meta.update({'plot': plot})
 				if 'premiered' in i and i['premiered']: meta.update({'premiered': i['premiered']})
+				display_meta = dict(sysmeta)
+				display_meta['playcount'] = i['playcount'] if sysmeta.get('playcount', 0) == 0 else 1
+				label, resume = watch_progress.apply_resume_label(label, display_meta, systitle)
+				watch_progress.mark_in_progress_meta(meta, resume)
+				watch_progress.mark_in_progress_meta(sysmeta, resume)
 
 				item = control.item(label=label, offscreen=True)
 				item.setArt({'poster': poster, 'banner': addonBanner})
@@ -206,6 +211,8 @@ class episodes:
 				meta.pop('aliases', None)
 				meta.pop('backdrop_url', None)
 				meta.pop('cover_url', None)
+				meta.pop('xvault_watch_state', None)
+				meta.pop('xvault_resume_seconds', None)
 
 				# gefakte Video/Audio Infos
 				# video_streaminfo = {'codec': 'h264', "width": 1920, "height": 1080}

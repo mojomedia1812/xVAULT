@@ -8,7 +8,7 @@ import datetime, time, json
 from concurrent.futures import ThreadPoolExecutor
 from resources.lib.tmdb import cTMDB
 from resources.lib.indexers import navigator
-from resources.lib import searchDB, playcountDB, art, control, log_utils
+from resources.lib import searchDB, playcountDB, art, control, log_utils, watch_progress
 from resources.lib.sync import binge_sync
 from resources.lib.control import getKodiVersion, iteritems
 
@@ -180,6 +180,8 @@ class movies:
 
 				meta = dict((k, v) for k, v in iteritems(i))
 				if not 'duration' in i or i['duration'] == 0: meta.update({'duration': str(120 * 60)})
+				label, resume = watch_progress.apply_resume_label(label, meta, title)
+				watch_progress.mark_in_progress_meta(meta, resume)
 
 				poster = i['poster'] if 'poster' in i and 'http' in i['poster'] else addonPoster
 				fanart = i['fanart'] if 'fanart' in i and 'http' in i['fanart'] else addonFanart
@@ -255,6 +257,8 @@ class movies:
 				meta.pop('aliases', None)
 				meta.pop('backdrop_url', None)
 				meta.pop('cover_url', None)
+				meta.pop('xvault_watch_state', None)
+				meta.pop('xvault_resume_seconds', None)
 # TODO
 				# gefakte Video/Audio Infos
 				# video_streaminfo = {'codec': 'h264', "width": 1920, "height": 1080}

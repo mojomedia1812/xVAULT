@@ -1,3 +1,10 @@
+xVAULT 2026.07.25.2
+Entwickler: mojomedia1812
+
+- Filme und Episoden gelten erst als gesehen, wenn höchstens noch zehn Minuten Restlaufzeit übrig sind oder die Wiedergabe regulär endet.
+- Angefangene Filme und Episoden bleiben ungesehen, zeigen in Listen ein Uhrsymbol und die Fortsetzen-Position hinter dem Titel.
+- Fortsetzen-Lesezeichen werden bei fertig gesehenen Titeln entfernt und bei laufenden Titeln beibehalten.
+
 xVAULT 2026.07.25.1
 Entwickler: mojomedia1812
 

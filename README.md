@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.07.25.1`
+Aktueller Stand: `2026.07.25.2`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.07.25.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.07.25.2.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -58,6 +58,8 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Bei einer frischen Erstinstallation startet xVAULT mit Streamsprache Deutsch und Standard-Aktion Autoplay; bestehende Profile und Updates behalten ihre gewählten Einstellungen.
 - BS.to ist als optionaler Serien-Scraper eingebunden. Serien, Sprachvarianten und Hoster werden aus der aktuellen Seitenstruktur gelesen; CAPTCHA-geschützte Quellen werden ausgeblendet und nicht automatisiert umgangen.
 - Fortsetzen von Wiedergaben und automatische Lesezeichen.
+- Angefangene Filme und Folgen bleiben ungesehen, zeigen ein Uhrsymbol und nennen die Fortsetzen-Position direkt hinter dem Titel.
+- Gesehen-Haken für Filme und Folgen erscheinen erst, wenn höchstens noch zehn Minuten Restlaufzeit übrig sind oder die Wiedergabe regulär endet.
 - Gesehen/Ungesehen-Status für Filme, Folgen, Staffeln und Serien.
 - Nach beendeter Wiedergabe wird der Gesehen-Status aktualisiert, ohne dass die Auswahl mehrfach zwischen alter Position und nächster ungesehener Folge springt.
 - DNS over HTTPS ist standardmäßig aktiv und kann in den allgemeinen Einstellungen deaktiviert werden. xVAULT nutzt Cloudflare für die DNS-Auflösung seiner HTTP-Anfragen; die aktivierten Indexseiten laufen über dieselbe RequestHandler-Logik, feste IPs bleiben nur Rückfall.

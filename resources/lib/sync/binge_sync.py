@@ -1,7 +1,7 @@
 import hashlib
 import time
 
-from resources.lib import bookmarkDB, control, playcountDB
+from resources.lib import bookmarkDB, control, playcountDB, watch_progress
 from resources.lib.sync import device, storage
 from resources.lib.sync.api_client import ApiError, Client
 
@@ -19,7 +19,7 @@ def record_playback(meta, name, year, current_time, total_time, completed=None, 
         return False
     watched_percent = round((float(position) / float(duration)) * 100.0, 2)
     if completed is None:
-        completed = watched_percent >= 92.0
+        completed = watch_progress.is_completed_position(position, duration)
     item = {
         'schema_version': 1,
         'item_key': item_key(meta, name, year),
@@ -495,9 +495,23 @@ def is_season_watched(title, season, number_of_episodes=None):
 def completed_items():
     result = []
     for item in load_items():
-        if item.get('completed') or float(item.get('watched_percent') or 0) >= 92.0:
+        if _item_completed(item):
             result.append(item)
     return result
+
+
+def _item_completed(item):
+    if _is_unwatched_marker(item):
+        return False
+    try:
+        position = int(float(item.get('position_seconds') or 0))
+        duration = int(float(item.get('duration_seconds') or 0))
+    except Exception:
+        position = 0
+        duration = 0
+    if duration > 0 and position > 0:
+        return watch_progress.is_completed_position(position, duration)
+    return bool(item.get('completed') or float(item.get('watched_percent') or 0) >= 100.0)
 
 
 def _item_mediatype(item):
