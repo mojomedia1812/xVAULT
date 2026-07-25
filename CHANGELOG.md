@@ -5,6 +5,12 @@
 - Handbuch als GitHub-Pages-Wissensdatenbank erweitert: Menüs, Suche, Quellen, Wiedergabe, Sync, Trakt, LiveTV, Downloads, Werkzeuge, Einstellungen und Fehlerhilfe ausführlicher beschrieben.
 - Sichtbare GitHub-Pages-Texte und deutsch benannte Link-Events mit korrekten Umlauten vereinheitlicht.
 
+## [2026.07.25.1] - 2026-07-25
+
+- Quellensuche für Filme und Serien beschleunigt: Quellenlisten werden persistent im Kodi-Profil zwischengespeichert, erfolgreiche Serienanbieter werden bevorzugt und temporär fehlerhafte Indexseiten kurzzeitig übersprungen.
+- Autoplay bereitet mehrere Quellen parallel vor, behält aber die bestehende Qualitäts-, Sprach- und Providerreihenfolge bei.
+- Die parallele Scraper-Ausführung passt sich besser an Windows, Linux und Android an.
+
 ## [2026.07.23.3] - 2026-07-23
 
 - Quelltextoptimierung.

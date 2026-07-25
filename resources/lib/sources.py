@@ -3,7 +3,9 @@ import sys
 import base64
 import hashlib
 import inspect
+import os
 import re, json, random, time
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from html import unescape as html_unescape
 from urllib.parse import urlencode, urljoin, urlparse
@@ -15,9 +17,14 @@ from resources.lib.control import getKodiVersion
 
 if int(getKodiVersion()) >= 20: from infotagger.listitem import ListItemInfoTag
 
-SOURCE_CACHE_TTL = 15 * 60
-SOURCE_CACHE_LIMIT = 5
+SOURCE_CACHE_TTL = 30 * 60
+SOURCE_CACHE_STALE_TTL = 6 * 60 * 60
+SOURCE_CACHE_LIMIT = 60
+SERIES_CACHE_LIMIT = 200
+PROVIDER_ERROR_TTL = 5 * 60
+PROVIDER_TIMEOUT_TTL = 10 * 60
 SOURCE_RESOLVE_TIMEOUT = 30
+AUTOPLAY_PREFETCH_LIMIT = 5
 
 # für self.sysmeta - zur späteren verwendung als meta
 _params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
@@ -30,15 +37,28 @@ class sources:
         self.current = int(time.time())
         if 'sysmeta' in _params: self.sysmeta = _params['sysmeta'] # string zur späteren verwendung als meta
         self.watcher = False
-        self.executor = ThreadPoolExecutor(max_workers=20)
+        self.max_workers = self._adaptiveWorkerCount()
+        self.executor = ThreadPoolExecutor(max_workers=self.max_workers)
         self.executor_shutdown = False
         self.url = None
         self.last_source_error = 'no_sources'
 
     def _ensureExecutor(self):
         if getattr(self, 'executor_shutdown', False):
-            self.executor = ThreadPoolExecutor(max_workers=20)
+            self.executor = ThreadPoolExecutor(max_workers=getattr(self, 'max_workers', self._adaptiveWorkerCount()))
             self.executor_shutdown = False
+
+    def _adaptiveWorkerCount(self):
+        try:
+            if control.condVisibility('System.Platform.Android'):
+                return 8
+            if control.condVisibility('System.Platform.Linux'):
+                return 10
+            if control.condVisibility('System.Platform.Windows'):
+                return 18
+        except:
+            pass
+        return 12
 
     def _shutdownExecutor(self):
         try:
@@ -415,8 +435,9 @@ class sources:
             self._shutdownExecutor()
 
 
-    def getSources(self, title, year, imdb, season, episode, originaltitle, premiered, quality='HD', timeout=30, episode_title=None, episode_premiered=None):
+    def getSources(self, title, year, imdb, season, episode, originaltitle, premiered, quality='HD', timeout=30, episode_title=None, episode_premiered=None, force_refresh=False, quiet=False):
 #TODO
+        self.sources = []
         self.hostDict = self._getHostDict()
         sourceDict = self.sourceDict
         sourceDict = [(i[0], i[1], i[1].priority) for i in sourceDict]
@@ -424,17 +445,25 @@ class sources:
         sourceDict = sorted(sourceDict, key=lambda i: i[2])
 
         cache_key = self._sourceCacheKey(title, year, imdb, season, episode, originaltitle, premiered, episode_title, episode_premiered, sourceDict)
-        cached = self._readSourceCache(cache_key)
-        if cached:
+        series_key = self._seriesCacheKey(title, year, imdb, originaltitle, premiered)
+        cached, stale = self._readSourceCache(cache_key, allow_stale=True)
+        if cached and not force_refresh:
             self.sources = cached
-            log_utils.log('Quellen-Cache verwendet: %s Treffer' % len(self.sources), log_utils.LOGINFO)
+            if stale:
+                log_utils.log('Quellen-Cache verwendet (stale): %s Treffer' % len(self.sources), log_utils.LOGINFO)
+                self._scheduleSourceCacheRefresh(cache_key, title, year, imdb, season, episode, originaltitle, premiered, episode_title, episode_premiered)
+            else:
+                log_utils.log('Quellen-Cache verwendet: %s Treffer' % len(self.sources), log_utils.LOGINFO)
             return self.sources
 
-        control.idle() #ok
-        progressDialog = control.progressDialog if control.getSetting('progress.dialog') == '0' else control.progressDialogBG
-        progressDialog.create(control.addonInfo('name'), '')
-        progressDialog.update(0)
-        progressDialog.update(0, "Quellen werden vorbereitet")
+        if not quiet:
+            control.idle() #ok
+            progressDialog = control.progressDialog if control.getSetting('progress.dialog') == '0' else control.progressDialogBG
+            progressDialog.create(control.addonInfo('name'), '')
+            progressDialog.update(0)
+            progressDialog.update(0, "Quellen werden vorbereitet")
+        else:
+            progressDialog = None
 
         content = 'shows' if getattr(self, 'mediatype', None) == 'tvshow' else 'movies' if season == 0 or season == '' or season == None else 'shows'
         aliases, localtitle = utils.getAliases(imdb, content)
@@ -446,9 +475,11 @@ class sources:
                 aliases.append(i)
         titles = utils.get_titles_for_search(title, originaltitle, aliases)
 
+        sourceDict = self._filterTemporarilyBlockedProviders(sourceDict)
+        sourceDict = self._promoteSeriesProviders(sourceDict, series_key)
+
         self._ensureExecutor()
         futures = {self.executor.submit(self._getSource, titles, year, season, episode, imdb, provider[0], provider[1], episode_title, episode_premiered): provider[0] for provider in sourceDict}
-        provider_names = {provider[0].upper() for provider in sourceDict}
 
         string4 = "Total"
 
@@ -528,7 +559,8 @@ class sources:
                     elif len(info) == 1: line = line1 + string % (''.join(info))
                     else: line = line1 + 'Suche beendet!'
 
-                    progressDialog.update(max(1, percent), line)
+                    if progressDialog:
+                        progressDialog.update(max(1, percent), line)
                     if len(info) == 0: break
 
                 except Exception as e:
@@ -540,10 +572,20 @@ class sources:
 
         time.sleep(1)
 
-        try: progressDialog.close()
+        for future, provider_name in futures.items():
+            try:
+                if not future.done():
+                    self._markProviderTemporarilyBlocked(provider_name, 'timeout', PROVIDER_TIMEOUT_TTL)
+            except:
+                pass
+
+        try:
+            if progressDialog:
+                progressDialog.close()
         except: pass
         self.sourcesFilter()
         self._writeSourceCache(cache_key, self.sources)
+        self._updateSeriesCache(series_key, season, episode, self.sources, cache_key)
         return self.sources
 
     def _sourceCacheKey(self, title, year, imdb, season, episode, originaltitle, premiered, episode_title, episode_premiered, sourceDict):
@@ -570,7 +612,7 @@ class sources:
             settings[setting] = control.getSetting(setting)
 
         key = {
-            'version': 1,
+            'version': 2,
             'addon': control.addonVersion,
             'mediatype': getattr(self, 'mediatype', None),
             'title': py2_decode(title),
@@ -589,27 +631,44 @@ class sources:
         raw_key = json.dumps(key, sort_keys=True)
         return hashlib.sha256(raw_key.encode('utf-8')).hexdigest()
 
-    def _readSourceCache(self, cache_key):
+    def _sourceCacheFile(self):
+        return os.path.join(control.dataPath, 'source_cache_v2.json')
+
+    def _seriesCacheKey(self, title, year, imdb, originaltitle, premiered):
+        if getattr(self, 'mediatype', None) != 'tvshow':
+            return None
+        key = {
+            'version': 1,
+            'addon': control.addonVersion,
+            'title': py2_decode(title),
+            'originaltitle': py2_decode(originaltitle),
+            'year': str(year or ''),
+            'imdb': str(imdb or ''),
+            'premiered': str(premiered or '')
+        }
+        raw_key = json.dumps(key, sort_keys=True)
+        return hashlib.sha256(raw_key.encode('utf-8')).hexdigest()
+
+    def _readSourceCache(self, cache_key, allow_stale=False):
         try:
-            raw = control.window.getProperty(self.sourceCacheProperty)
-            if not raw:
-                return None
-            cache = json.loads(raw)
-            if cache.get('key') == cache_key:
-                entry = cache
-            else:
-                entry = (cache.get('entries') or {}).get(cache_key)
+            cache = self._readSourceCachePayload()
+            entry = (cache.get('entries') or {}).get(cache_key)
             if not entry:
-                return None
-            if int(time.time()) - int(entry.get('timestamp', 0)) > SOURCE_CACHE_TTL:
-                return None
+                return None, False
+            age = int(time.time()) - int(entry.get('timestamp', 0))
+            if age > SOURCE_CACHE_TTL:
+                if not allow_stale or age > SOURCE_CACHE_STALE_TTL:
+                    return None, False
+                stale = True
+            else:
+                stale = False
             items = entry.get('items')
             if not isinstance(items, list) or len(items) == 0:
-                return None
-            return items
+                return None, False
+            return items, stale
         except Exception as e:
             log_utils.log('Quellen-Cache konnte nicht gelesen werden: %s' % str(e), log_utils.LOGWARNING)
-            return None
+            return None, False
 
     def _writeSourceCache(self, cache_key, items):
         try:
@@ -621,20 +680,18 @@ class sources:
                 entries = {}
             now = int(time.time())
             entries[cache_key] = {
-                'timestamp': int(time.time()),
+                'timestamp': now,
                 'items': items
             }
             for key, entry in list(entries.items()):
-                if now - int(entry.get('timestamp', 0)) > SOURCE_CACHE_TTL:
+                if now - int(entry.get('timestamp', 0)) > SOURCE_CACHE_STALE_TTL:
                     entries.pop(key, None)
             while len(entries) > SOURCE_CACHE_LIMIT:
                 oldest = sorted(entries.items(), key=lambda item: int(item[1].get('timestamp', 0)))[0][0]
                 entries.pop(oldest, None)
-            payload = {
-                'version': 1,
-                'entries': entries
-            }
-            control.window.setProperty(self.sourceCacheProperty, json.dumps(payload))
+            payload['version'] = 2
+            payload['entries'] = entries
+            self._writeSourceCachePayload(payload)
             log_utils.log('Quellen-Cache gespeichert: %s Treffer' % len(items), log_utils.LOGINFO)
         except Exception as e:
             log_utils.log('Quellen-Cache konnte nicht gespeichert werden: %s' % str(e), log_utils.LOGWARNING)
@@ -642,24 +699,200 @@ class sources:
     def _readSourceCachePayload(self):
         try:
             raw = control.window.getProperty(self.sourceCacheProperty)
-            if not raw:
-                return {'version': 1, 'entries': {}}
-            payload = json.loads(raw)
-            if isinstance(payload.get('entries'), dict):
-                return payload
-            if payload.get('key') and payload.get('items'):
-                return {
-                    'version': 1,
-                    'entries': {
-                        payload.get('key'): {
-                            'timestamp': payload.get('timestamp', 0),
-                            'items': payload.get('items')
-                        }
-                    }
-                }
+            if raw:
+                payload = json.loads(raw)
+                if isinstance(payload.get('entries'), dict):
+                    return self._normalizeSourceCachePayload(payload)
         except:
             pass
-        return {'version': 1, 'entries': {}}
+        try:
+            cache_file = self._sourceCacheFile()
+            if os.path.exists(cache_file):
+                with open(cache_file, 'r', encoding='utf-8') as handle:
+                    payload = json.load(handle)
+                payload = self._normalizeSourceCachePayload(payload)
+                control.window.setProperty(self.sourceCacheProperty, json.dumps(payload))
+                return payload
+        except Exception as e:
+            log_utils.log('Persistenter Quellen-Cache konnte nicht gelesen werden: %s' % str(e), log_utils.LOGWARNING)
+        return self._normalizeSourceCachePayload({})
+
+    def _writeSourceCachePayload(self, payload):
+        payload = self._normalizeSourceCachePayload(payload)
+        try:
+            control.window.setProperty(self.sourceCacheProperty, json.dumps(payload))
+        except:
+            pass
+        try:
+            if not os.path.exists(control.dataPath):
+                os.makedirs(control.dataPath)
+            cache_file = self._sourceCacheFile()
+            tmp_file = cache_file + '.tmp'
+            with open(tmp_file, 'w', encoding='utf-8') as handle:
+                json.dump(payload, handle, ensure_ascii=False)
+            try:
+                os.replace(tmp_file, cache_file)
+            except:
+                if os.path.exists(cache_file):
+                    os.remove(cache_file)
+                os.rename(tmp_file, cache_file)
+        except Exception as e:
+            log_utils.log('Persistenter Quellen-Cache konnte nicht geschrieben werden: %s' % str(e), log_utils.LOGWARNING)
+
+    def _normalizeSourceCachePayload(self, payload):
+        if not isinstance(payload, dict):
+            payload = {}
+        entries = payload.get('entries') if isinstance(payload.get('entries'), dict) else {}
+        if payload.get('key') and payload.get('items'):
+            entries[payload.get('key')] = {
+                'timestamp': payload.get('timestamp', 0),
+                'items': payload.get('items')
+            }
+        series = payload.get('series') if isinstance(payload.get('series'), dict) else {}
+        provider_health = payload.get('provider_health') if isinstance(payload.get('provider_health'), dict) else {}
+        now = int(time.time())
+        for key, entry in list(entries.items()):
+            try:
+                if now - int(entry.get('timestamp', 0)) > SOURCE_CACHE_STALE_TTL:
+                    entries.pop(key, None)
+            except:
+                entries.pop(key, None)
+        for key, entry in list(provider_health.items()):
+            try:
+                if int(entry.get('blocked_until', 0)) <= now:
+                    provider_health.pop(key, None)
+            except:
+                provider_health.pop(key, None)
+        while len(series) > SERIES_CACHE_LIMIT:
+            oldest = sorted(series.items(), key=lambda item: int(item[1].get('timestamp', 0)))[0][0]
+            series.pop(oldest, None)
+        return {
+            'version': 2,
+            'entries': entries,
+            'series': series,
+            'provider_health': provider_health
+        }
+
+    def _filterTemporarilyBlockedProviders(self, sourceDict):
+        payload = self._readSourceCachePayload()
+        provider_health = payload.get('provider_health') or {}
+        now = int(time.time())
+        filtered = []
+        skipped = []
+        for provider in sourceDict:
+            state = provider_health.get(provider[0])
+            if state and int(state.get('blocked_until', 0)) > now:
+                skipped.append(provider[0])
+                continue
+            filtered.append(provider)
+        if skipped:
+            log_utils.log('Temporär gesperrte Indexseiten übersprungen: %s' % ', '.join(skipped), log_utils.LOGINFO)
+        return filtered
+
+    def _markProviderTemporarilyBlocked(self, provider, reason, ttl):
+        try:
+            if not provider:
+                return
+            payload = self._readSourceCachePayload()
+            provider_health = payload.get('provider_health')
+            if not isinstance(provider_health, dict):
+                provider_health = {}
+            provider_health[provider] = {
+                'reason': str(reason or 'error'),
+                'blocked_until': int(time.time()) + int(ttl),
+                'timestamp': int(time.time())
+            }
+            payload['provider_health'] = provider_health
+            self._writeSourceCachePayload(payload)
+            log_utils.log('Indexseite temporär gesperrt: %s (%s)' % (provider, reason), log_utils.LOGWARNING)
+        except:
+            pass
+
+    def _promoteSeriesProviders(self, sourceDict, series_key):
+        if not series_key:
+            return sourceDict
+        try:
+            payload = self._readSourceCachePayload()
+            series = (payload.get('series') or {}).get(series_key) or {}
+            providers = series.get('providers') or {}
+            if not providers:
+                return sourceDict
+            order = {}
+            for provider, state in providers.items():
+                order[provider] = int(state.get('hits', 0)) * 1000000 + int(state.get('timestamp', 0))
+            return sorted(sourceDict, key=lambda item: (-order.get(item[0], 0), item[2], item[0]))
+        except:
+            return sourceDict
+
+    def _updateSeriesCache(self, series_key, season, episode, items, cache_key):
+        if not series_key or not items:
+            return
+        try:
+            payload = self._readSourceCachePayload()
+            series = payload.get('series')
+            if not isinstance(series, dict):
+                series = {}
+            entry = series.get(series_key)
+            if not isinstance(entry, dict):
+                entry = {'providers': {}, 'episodes': {}}
+            providers = entry.get('providers') if isinstance(entry.get('providers'), dict) else {}
+            now = int(time.time())
+            for provider in sorted(set([item.get('provider') for item in items if item.get('provider')])):
+                state = providers.get(provider) if isinstance(providers.get(provider), dict) else {}
+                providers[provider] = {
+                    'hits': int(state.get('hits', 0)) + 1,
+                    'timestamp': now
+                }
+            episodes = entry.get('episodes') if isinstance(entry.get('episodes'), dict) else {}
+            episode_key = 'S%02dE%02d' % (int(season or 0), int(episode or 0))
+            episodes[episode_key] = {
+                'timestamp': now,
+                'cache_key': cache_key,
+                'providers': sorted(set([item.get('provider') for item in items if item.get('provider')]))
+            }
+            entry.update({
+                'timestamp': now,
+                'providers': providers,
+                'episodes': episodes
+            })
+            series[series_key] = entry
+            payload['series'] = series
+            self._writeSourceCachePayload(payload)
+        except Exception as e:
+            log_utils.log('Serien-Cache konnte nicht aktualisiert werden: %s' % str(e), log_utils.LOGWARNING)
+
+    def _scheduleSourceCacheRefresh(self, cache_key, title, year, imdb, season, episode, originaltitle, premiered, episode_title, episode_premiered):
+        try:
+            refresh_property = '%s.refresh.%s' % (self.sourceCacheProperty, cache_key)
+            if control.window.getProperty(refresh_property):
+                return
+            control.window.setProperty(refresh_property, 'true')
+
+            def refresh():
+                try:
+                    worker = sources()
+                    worker.mediatype = getattr(self, 'mediatype', None)
+                    worker.aliases = list(getattr(self, 'aliases', []))
+                    worker.getSources(
+                        title, year, imdb, season, episode, originaltitle, premiered,
+                        episode_title=episode_title,
+                        episode_premiered=episode_premiered,
+                        force_refresh=True,
+                        quiet=True
+                    )
+                except Exception as e:
+                    log_utils.log('Quellen-Cache Hintergrundaktualisierung fehlgeschlagen: %s' % str(e), log_utils.LOGWARNING)
+                finally:
+                    try:
+                        control.window.clearProperty(refresh_property)
+                    except:
+                        pass
+
+            thread = threading.Thread(target=refresh)
+            thread.daemon = True
+            thread.start()
+        except:
+            pass
 
 
     def _getSource(self, titles, year, season, episode, imdb, source, call, episode_title=None, episode_premiered=None):
@@ -674,7 +907,8 @@ class sources:
                 sources = call.run(titles, year, season, episode, imdb, hostDict=self.hostDict)
             else:
                 sources = call.run(titles, year, season, episode, imdb)
-            if sources == None or sources == []: raise Exception()
+            if sources == None or sources == []:
+                return {'provider': source, 'count': 0, 'status': 'empty'}
             sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
             for i in sources:
                 i.update({'provider': source})
@@ -682,8 +916,11 @@ class sources:
                 if not 'priority' in i: i.update({'priority': 100})
                 if not 'prioHoster' in i: i.update({'prioHoster': 100})
             self.sources.extend(sources)
-        except:
-            pass
+            return {'provider': source, 'count': len(sources), 'status': 'ok'}
+        except Exception as e:
+            self._markProviderTemporarilyBlocked(source, 'error', PROVIDER_ERROR_TTL)
+            log_utils.log('Indexseite Fehler: %s / %s' % (source, str(e)), log_utils.LOGWARNING)
+            return {'provider': source, 'count': 0, 'status': 'error'}
 
     def _acceptsHostDict(self, call):
         try:
@@ -939,9 +1176,10 @@ class sources:
         return self.sources
 
 
-    def sourcesResolve(self, item, info=False, check_stream=False):
+    def sourcesResolve(self, item, info=False, check_stream=False, set_url=True):
         try:
-            self.url = None
+            if set_url:
+                self.url = None
             url = item['url']
             direct = item['direct']
             local = item.get('local', False)
@@ -987,7 +1225,8 @@ class sources:
                 raise Exception()
 
             if url:
-                self.url = url
+                if set_url:
+                    self.url = url
                 return url
             else:
                 raise Exception()
@@ -1146,9 +1385,9 @@ class sources:
             log_utils.log('Error %s' % str(e), log_utils.LOGINFO)
 
 
-    def _resolveSourceWithTimeout(self, item, progressDialog=None, timeout=SOURCE_RESOLVE_TIMEOUT):
+    def _resolveSourceWithTimeout(self, item, progressDialog=None, timeout=SOURCE_RESOLVE_TIMEOUT, set_url=True):
         self._ensureExecutor()
-        future = self.executor.submit(self.sourcesResolve, item, False, True)
+        future = self.executor.submit(self.sourcesResolve, item, False, True, set_url)
         waiting_time = timeout
         while waiting_time > 0:
             try:
@@ -1187,6 +1426,98 @@ class sources:
             return None
 
 
+    def _autoplayPrefetchWindow(self, items):
+        try:
+            return max(2, min(AUTOPLAY_PREFETCH_LIMIT, len(items), max(2, int(getattr(self, 'max_workers', 12) / 2))))
+        except:
+            return min(3, len(items))
+
+    def _resolveAutoplayCandidates(self, items, progressDialog=None, header2=''):
+        max_items = min(len(items), 40)
+        prefetch_window = self._autoplayPrefetchWindow(items[:max_items])
+        pending = {}
+        submitted = 0
+
+        def submit_next():
+            nonlocal submitted
+            while submitted < max_items and len(pending) < prefetch_window:
+                item = items[submitted]
+                future = self.executor.submit(self.sourcesResolve, item, False, True, False)
+                pending[submitted] = {
+                    'future': future,
+                    'item': item,
+                    'started': time.time()
+                }
+                submitted += 1
+
+        submit_next()
+
+        for index in range(max_items):
+            submit_next()
+            state = pending.get(index)
+            if not state:
+                continue
+            future = state['future']
+            item = state['item']
+            deadline = time.time() + SOURCE_RESOLVE_TIMEOUT
+
+            while not future.done():
+                try:
+                    if control.abortRequested:
+                        return None, 'abort://'
+                    if progressDialog and progressDialog.iscanceled():
+                        return None, 'close://'
+                except:
+                    pass
+
+                if time.time() >= deadline:
+                    log_utils.log(
+                        'Autoplay Resolve Timeout: Provider %s / Hoster %s nach %s Sekunden' %
+                        (item.get('provider'), item.get('source'), SOURCE_RESOLVE_TIMEOUT),
+                        log_utils.LOGWARNING
+                    )
+                    break
+
+                try:
+                    if progressDialog:
+                        label = str(item.get('label') or '')
+                        percent = int((100 / float(max_items)) * index)
+                        progressDialog.update(percent, label)
+                except:
+                    try:
+                        if progressDialog:
+                            progressDialog.update(int((100 / float(max_items)) * index), str(header2) + str(item.get('label') or ''))
+                    except:
+                        pass
+
+                control.sleep(0.25)
+                if control.condVisibility('Window.IsActive(virtualkeyboard)') or \
+                        control.condVisibility('Window.IsActive(yesnoDialog)'):
+                    deadline += 0.25
+
+            pending.pop(index, None)
+            submit_next()
+
+            if not future.done():
+                continue
+
+            try:
+                url = future.result()
+            except Exception as e:
+                log_utils.log(
+                    'Autoplay Resolve Fehler: Provider %s / Hoster %s / %s' %
+                    (item.get('provider'), item.get('source'), str(e)),
+                    log_utils.LOGWARNING
+                )
+                url = None
+
+            if url:
+                self.url = url
+                return item, url
+
+        return None, None
+
+
     def sourcesAutoplay(self, items, title, meta):
         if not items:
             return False
@@ -1206,55 +1537,49 @@ class sources:
         try:
             from resources.lib.player import player
 
-            for i in range(len(items)):
-                item = items[i]
+            remaining = list(items)
+            while remaining:
+                item, url = self._resolveAutoplayCandidates(remaining, progressDialog, header2)
+                if url == 'close://':
+                    return False
+                if url == 'abort://':
+                    return sys.exit()
+                if not item or not url:
+                    break
+
+                self.selectedSourceItem = item
+                playback_meta = self._mergeSelectedStreamMeta(dict(meta) if isinstance(meta, dict) else meta, item)
+
+                try: progressDialog.close()
+                except: pass
+                progressDialog = None
+
+                log_utils.log(
+                    'Autoplay versucht Quelle: Provider %s / Hoster %s' %
+                    (item.get('provider'), item.get('source')),
+                    log_utils.LOGINFO
+                )
+                if player().run(title, url, playback_meta):
+                    return True
+
+                log_utils.log(
+                    'Autoplay Quelle startete nicht: Provider %s / Hoster %s' %
+                    (item.get('provider'), item.get('source')),
+                    log_utils.LOGWARNING
+                )
+
                 try:
-                    if progressDialog:
-                        try:
-                            if progressDialog.iscanceled():
-                                break
-                            progressDialog.update(int((100 / float(len(items))) * i), str(item['label']))
-                        except:
-                            progressDialog.update(int((100 / float(len(items))) * i), str(header2) + str(item['label']))
-
-                    if control.abortRequested:
-                        return sys.exit()
-
-                    url = self._resolveSourceWithTimeout(item, progressDialog, SOURCE_RESOLVE_TIMEOUT)
-                    if url == 'close://':
-                        return False
-                    if url == None:
-                        continue
-
-                    self.selectedSourceItem = item
-                    playback_meta = self._mergeSelectedStreamMeta(dict(meta) if isinstance(meta, dict) else meta, item)
-
-                    try: progressDialog.close()
-                    except: pass
-                    progressDialog = None
-
-                    log_utils.log(
-                        'Autoplay versucht Quelle: Provider %s / Hoster %s' %
-                        (item.get('provider'), item.get('source')),
-                        log_utils.LOGINFO
-                    )
-                    if player().run(title, url, playback_meta):
-                        return True
-
-                    log_utils.log(
-                        'Autoplay Quelle startete nicht: Provider %s / Hoster %s' %
-                        (item.get('provider'), item.get('source')),
-                        log_utils.LOGWARNING
-                    )
-
-                    try:
-                        progressDialog = control.progressDialog if control.getSetting('progress.dialog') == '0' else control.progressDialogBG
-                        progressDialog.create(header, '')
-                        progressDialog.update(int((100 / float(len(items))) * (i + 1)))
-                    except:
-                        progressDialog = None
+                    index = remaining.index(item)
+                    remaining = remaining[index + 1:]
                 except:
-                    pass
+                    remaining = remaining[1:]
+
+                try:
+                    progressDialog = control.progressDialog if control.getSetting('progress.dialog') == '0' else control.progressDialogBG
+                    progressDialog.create(header, '')
+                    progressDialog.update(0)
+                except:
+                    progressDialog = None
         finally:
             try: progressDialog.close()
             except: pass

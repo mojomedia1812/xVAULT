@@ -22,7 +22,8 @@ SETTING_SESSION_ID = 'telemetry.session_id'
 SETTING_LAST_HEARTBEAT = 'telemetry.last_heartbeat'
 SETTING_CONSENT_VERSION = 'telemetry.consent_version'
 SETTING_ADDON_VERSION = 'telemetry.addon_version'
-ADDON_VARIANT = 'alpha'
+STABLE_ADDON_ID = 'plugin.video.xvault'
+ALPHA_ADDON_ID = 'plugin.video.xvaultalpha'
 
 ALLOWED_EVENTS = set([
     'installation_created',
@@ -130,9 +131,12 @@ def event(name, group='general', payload=None, end_reason=None, force=False):
 def device_context():
     props = _android_props()
     os_class = _os_class(props)
+    addon_id = _addon_id()
+    addon_variant = _addon_variant(addon_id)
     return {
         'addon_version': _addon_version(),
-        'addon_variant': _text(ADDON_VARIANT, 16),
+        'addon_id': addon_id,
+        'addon_variant': addon_variant,
         'kodi_version': _text(control.infoLabel('System.BuildVersion') or '', 64),
         'os_class': _text(os_class, 16),
         'device_class': _text(_device_class(props, os_class), 32),
@@ -359,13 +363,18 @@ def _text(value, limit):
 
 
 def _addon_version():
-    version = _text(control.addonVersion, 32)
-    variant = _text(ADDON_VARIANT, 16).lower()
-    if version and variant and variant != 'stable':
-        suffix = '-' + variant
-        if not version.lower().endswith(suffix):
-            version = version[:max(0, 32 - len(suffix))] + suffix
-    return _text(version, 32)
+    return _text(control.addonVersion, 32)
+
+
+def _addon_id():
+    return _text(getattr(control, 'addonId', '') or STABLE_ADDON_ID, 64)
+
+
+def _addon_variant(addon_id=None):
+    addon_id = _text(addon_id or _addon_id(), 64).lower()
+    if addon_id == ALPHA_ADDON_ID or addon_id.endswith('xvaultalpha'):
+        return 'alpha'
+    return 'stable'
 
 
 def _mask(value):

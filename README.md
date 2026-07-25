@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.07.23.3`
+Aktueller Stand: `2026.07.25.1`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.07.23.3.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.07.25.1.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -42,7 +42,10 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - VOE-Quellen können direkt in xVAULT aufgelöst werden, wenn die installierte ResolveURL-Version die aktuelle VOE-Ausweichdomain noch nicht kennt.
 - Nicht aufgelöste Hoster-Seiten werden nicht mehr als Video an Kodi übergeben; xVAULT versucht stattdessen weitere Quellen oder meldet, dass keine nutzbare Quelle verfügbar ist.
 - Autoplay und manuelle Streamauswahl begrenzen hängende Resolver- und Player-Starts per Timeout; bei Autoplay probiert xVAULT danach weitere gefundene Quellen und beendet die Wiedergabeüberwachung auch ohne Kodi-Stop-Callback sauber.
-- Zuletzt gefundene Quellenlisten für Filme und Serien werden kurz für die aktuelle Kodi-Sitzung zwischengespeichert. Beim erneuten Quellenwechsel für denselben Titel kann xVAULT die Liste wiederverwenden, während Hoster-Links weiterhin frisch aufgelöst und getestet werden.
+- Gefundene Quellenlisten für Filme und Serien werden im Kodi-Profil zwischengespeichert. Beim erneuten Quellenwechsel für denselben Titel kann xVAULT die Liste wiederverwenden, während Hoster-Links weiterhin frisch aufgelöst und getestet werden.
+- Serien merken sich erfolgreiche Anbieter für spätere Folgen derselben Serie, damit passende Indexseiten schneller nach vorne rücken, ohne andere aktive Anbieter dauerhaft auszuschließen.
+- Fehlerhafte oder hängende Indexseiten werden nur kurzzeitig übersprungen, damit ein einzelner Timeout die Suche nicht bei jedem Start erneut ausbremst.
+- Die parallele Quellensuche passt die Thread-Anzahl an die Plattform an und bereitet bei Autoplay mehrere aussichtsreiche Quellen parallel vor, behält aber die bisherige Sortier- und Auswahlreihenfolge bei.
 - Streamquellen für Filme und Serien können nach bevorzugter Sprache sortiert oder gefiltert werden; mehrere Scraper liefern Deutsch/Englisch-Varianten sauber an die Quellenliste, und Autoplay wird bei Sprache `Alle` automatisch in Dialog oder Verzeichnis umgestellt.
 - Die Standard-Aktion `Dialog`, `Verzeichnis` oder `Autoplay` wird beim Start von Filmen und Folgen frisch aus Kodis aktuellem Add-on-Setting gelesen; die Profil-Datei dient als Rückfall. Alte Favoriten oder externe Aufrufe frieren die Auswahl nicht mehr auf einen früheren Wert ein.
 - Die Standard-Aktion wird über einen xVAULT-eigenen Auswahl-Dialog gespeichert und migriert alte `hosts.mode.v2`-/`hosts.mode`-/`default.action`-Werte automatisch, damit Kodi-Defaultwerte die Auswahl nicht mehr auf Autoplay zurücksetzen.

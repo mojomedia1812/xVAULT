@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.07.23.3.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.07.25.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.07.23.3.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.07.25.1.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -430,7 +430,8 @@
       <p class="section-kicker">Quellen</p>
       <h2>Scraper, Sprache und Hoster</h2>
       <p>xVAULT sammelt Quellen über aktivierte Indexseiten und bereitet sie als Kodi-Quellenliste auf. Danach wird der passende Hoster oder Stream an Kodi beziehungsweise an die Resolver-Schicht übergeben.</p>
-      <p>Die zuletzt gefundenen Quellenlisten für Filme und Serien werden kurz in der aktuellen Kodi-Sitzung gehalten. Wenn derselbe Film oder dieselbe Folge direkt erneut gestartet wird, kann xVAULT diese Quellenliste wiederverwenden, statt alle Indexseiten sofort noch einmal abzufragen. Der eigentliche Hoster-Link wird trotzdem jedes Mal frisch aufgelöst und geprüft.</p>
+      <p>Gefundene Quellenlisten für Filme und Serien werden im Kodi-Profil zwischengespeichert. Wenn derselbe Film oder dieselbe Folge direkt erneut gestartet wird, kann xVAULT diese Quellenliste wiederverwenden, statt alle Indexseiten sofort noch einmal abzufragen. Der eigentliche Hoster-Link wird trotzdem jedes Mal frisch aufgelöst und geprüft.</p>
+      <p>Bei Serien merkt sich xVAULT erfolgreiche Anbieter für spätere Folgen derselben Serie. Dadurch rücken passende Indexseiten bei weiteren Episoden schneller nach vorne, ohne dass andere aktive Anbieter dauerhaft ausgeschlossen werden.</p>
       <h3>So entsteht eine Quellenliste</h3>
       <table class="manual-table">
         <thead>
@@ -439,6 +440,7 @@
         <tbody>
           <tr><td>Metadaten vorbereiten</td><td>Titel, Originaltitel, Jahr, IMDB-/TMDB-IDs, Staffel, Episode, Episodentitel und Erstausstrahlung werden gesammelt.</td></tr>
           <tr><td>Indexseiten auswählen</td><td>Nur aktivierte Anbieter werden abgefragt. Serien- und Film-Scraper werden passend zum Medientyp genutzt.</td></tr>
+          <tr><td>Bekannte Serienanbieter bevorzugen</td><td>Wenn xVAULT für eine Serie bereits erfolgreiche Anbieter kennt, werden diese bei späteren Folgen früher abgefragt.</td></tr>
           <tr><td>Hoster prüfen</td><td>xVAULT lädt die aktuelle ResolveURL-Hosterliste und reicht sie an Scraper weiter, die diese Information unterstützen.</td></tr>
           <tr><td>Quellen normalisieren</td><td>Gefundene Einträge erhalten Anbieter, Hoster, Qualität, Sprache, Priorität und eine abspielbare oder auflösbare URL.</td></tr>
           <tr><td>Sprache und Qualität anwenden</td><td>Die Liste wird nach Sprache, Qualität, Providerreihenfolge, Hosterlimit und Ausschlussliste sortiert oder gefiltert.</td></tr>
@@ -503,6 +505,7 @@
       <p>Einige Anbieter teilen Serien anders als TMDB, zum Beispiel in Parts statt in Staffeln. Wenn SerienStream eine Folge unter der direkten SxxExx-Nummer nicht findet oder der Titel der gefundenen Anbieterfolge nicht passt, prüft xVAULT die verfügbaren Anbieter-Staffeln anhand von Episodentitel und Erstausstrahlung und übernimmt nur einen bestätigten Treffer. Der Episodentitel hat Vorrang; ein Datum wird nur als Rückfall genutzt, wenn es genau einen passenden Kandidaten gibt.</p>
       <h3>Scraper-Fallbacks</h3>
       <p>Viele Scraper arbeiten mehrstufig. SerienStream versucht zuerst die IMDB-Suche, fällt bei fehlendem Treffer auf die Titelsuche zurück und prüft danach Episodentitel oder Erstausstrahlung, wenn eine Anbieterfolge nicht eindeutig zur angefragten Folge passt. Andere Anbieter nutzen vergleichbare Titel-, Domain-, API- oder Watch-URL-Rückfälle, damit einzelne Webseitenänderungen nicht sofort die komplette Quelle unbrauchbar machen.</p>
+      <p>Wenn eine Indexseite wiederholt mit Fehler oder Timeout aussteigt, wird sie nur kurzfristig übersprungen. Das verhindert unnötige Wartezeit, ohne die Indexseite dauerhaft zu deaktivieren.</p>
       <h3>Bevorzugte Streamsprache</h3>
       <table class="manual-table">
         <thead>
@@ -543,7 +546,7 @@
       <p>Die Einstellung wird beim normalen Start von Filmen und Folgen zuerst aus Kodis aktuellem Add-on-Setting gelesen; die Profil-Datei dient als Rückfall. Alte Favoriten oder externe Wiedergabe-Links können dadurch nicht mehr unbemerkt einen früher gespeicherten Autoplay-Wert erzwingen. Die Auswahl nutzt Kodis native Enum-Speicherung, versteht alte Textwerte weiterhin und wird bei Plugin-Aufrufen automatisch migriert, damit Änderungen aus den Add-on-Einstellungen auch aus einer aktiven Favoriten- oder Folgenliste heraus für die nächste Wiedergabe gelten.</p>
       <h3>Quelle auswählen und starten</h3>
       <p>Im Dialogmodus beginnt xVAULT bei der ausgewählten Quelle und kann danach weitere Quellen versuchen, wenn eine Quelle nicht nutzbar ist. Im Verzeichnismodus werden die gefundenen Quellen als Kodi-Liste angezeigt. Dort können Quellen erneut geöffnet, per Kontextmenü geprüft, heruntergeladen oder an einen Download-Manager übergeben werden, sofern die jeweiligen Funktionen aktiv sind.</p>
-      <p>Autoplay nutzt die sortierte Quellenliste und versucht die beste passende Quelle automatisch. Wenn ein Resolver hängen bleibt, ein Player-Start keinen aktiven Videoplayer erzeugt oder ein Link nur eine Webseite statt eines echten Streams liefert, bricht xVAULT diesen Versuch zeitlich begrenzt ab und probiert die nächste Quelle.</p>
+      <p>Autoplay nutzt die sortierte Quellenliste und versucht die beste passende Quelle automatisch. xVAULT kann mehrere aussichtsreiche Quellen parallel vorbereiten, spielt aber weiterhin nach der bestehenden Qualitäts-, Sprach- und Providerreihenfolge ab. Wenn ein Resolver hängen bleibt, ein Player-Start keinen aktiven Videoplayer erzeugt oder ein Link nur eine Webseite statt eines echten Streams liefert, bricht xVAULT diesen Versuch zeitlich begrenzt ab und probiert die nächste Quelle.</p>
       <h3>Medien-Info</h3>
       <p>Über das Kontextmenü <strong>Medien-Info</strong> kann xVAULT eine Quelle auflösen und technische Informationen ermitteln. Für HLS und DASH werden Manifeste geprüft; bei Direktdateien versucht xVAULT unter anderem Container-, Video-, Audio-, Auflösungs-, Laufzeit- und Größeninformationen auszulesen.</p>
       <h3>Fortsetzen</h3>
@@ -844,7 +847,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.07.23.3</span>
+      <span>Handbuch zu xVAULT 2026.07.25.1</span>
     </footer>
   </main>
 </body>
