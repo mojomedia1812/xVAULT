@@ -5,6 +5,10 @@
 - Handbuch als GitHub-Pages-Wissensdatenbank erweitert: Menüs, Suche, Quellen, Wiedergabe, Sync, Trakt, LiveTV, Downloads, Werkzeuge, Einstellungen und Fehlerhilfe ausführlicher beschrieben.
 - Sichtbare GitHub-Pages-Texte und deutsch benannte Link-Events mit korrekten Umlauten vereinheitlicht.
 
+## [2026.07.26.1] - 2026-07-26
+
+- Weitere Quelltextoptimierung.
+
 ## [2026.07.25.3] - 2026-07-25
 
 - LiveTV und LiveTV lite trennen TV-Favoriten klar von Kodis eigenen Favoriten; LiveTV lite besitzt jetzt einen eigenen Favoritenordner.

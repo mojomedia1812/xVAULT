@@ -1,5 +1,6 @@
 import json
 import os
+import platform as py_platform
 import re
 import subprocess
 import time
@@ -55,6 +56,7 @@ def status_lines():
         'xVAULT-Kanal: %s' % context.get('addon_variant', 'stable'),
         'Kodi-Version: %s' % (context.get('kodi_version', '') or 'unbekannt'),
         'OS-Klasse: %s' % context.get('os_class', 'unknown'),
+        'OS-Version: %s' % context.get('os_version', 'unbekannt'),
         'Geräteklasse: %s' % context.get('device_class', 'unknown'),
         'Heartbeat: alle 10 Minuten',
         'Letzter Heartbeat: %s' % (control.getSetting(SETTING_LAST_HEARTBEAT, '') or 'nie'),
@@ -139,6 +141,7 @@ def device_context():
         'addon_variant': addon_variant,
         'kodi_version': _text(control.infoLabel('System.BuildVersion') or '', 64),
         'os_class': _text(os_class, 16),
+        'os_version': _text(_os_version(props, os_class), 64),
         'device_class': _text(_device_class(props, os_class), 32),
     }
 
@@ -238,7 +241,7 @@ def _set_last_heartbeat(timestamp):
 
 
 def _android_props():
-    if not control.condVisibility('System.Platform.Android'):
+    if not _is_platform('Android'):
         return {}
     wanted = [
         'ro.product.manufacturer',
@@ -252,8 +255,12 @@ def _android_props():
         'ro.build.product',
         'ro.hardware',
         'ro.build.version.release',
+        'ro.build.version.release_or_codename',
+        'ro.build.version.sdk',
+        'ro.build.version.incremental',
         'ro.build.characteristics',
         'ro.build.display.id',
+        'ro.build.fingerprint',
     ]
     result = {}
     for key in wanted:
@@ -266,17 +273,33 @@ def _android_props():
 
 
 def _os_class(props):
-    if control.condVisibility('System.Platform.Windows'):
-        return 'Windows'
-    if control.condVisibility('System.Platform.Android'):
+    if _is_platform('Android'):
         maker = (props.get('ro.product.manufacturer') or props.get('ro.product.brand') or '').lower()
         model = (props.get('ro.product.model') or props.get('ro.product.device') or '').lower()
         display = (props.get('ro.build.display.id') or '').lower()
-        if maker == 'amazon' or model.startswith('aft') or 'fire os' in display:
+        fingerprint = (props.get('ro.build.fingerprint') or '').lower()
+        if maker == 'amazon' or model.startswith('aft') or 'fire os' in display or 'amazon' in fingerprint:
             return 'FireOS'
         return 'Android'
-    if control.condVisibility('System.Platform.Linux'):
+    if _is_platform('Windows') or _visible('system.platform.uwp'):
+        return 'Windows'
+    if _is_platform('Linux') or _visible('System.HasAddon(service.coreelec.settings)') or _visible('System.HasAddon(service.libreelec.settings)') or _visible('System.HasAddon(service.osmc.settings)'):
         return 'Linux'
+    if _is_platform('OSX') or _visible('system.platform.darwin'):
+        return 'macOS'
+    if _visible('system.platform.ios'):
+        return 'iOS'
+    if _visible('system.platform.atv2'):
+        return 'tvOS'
+    if _visible('system.platform.xbox'):
+        return 'Xbox'
+    fallback = py_platform.system().lower()
+    if fallback == 'windows':
+        return 'Windows'
+    if fallback == 'linux':
+        return 'Linux'
+    if fallback == 'darwin':
+        return 'macOS'
     return 'unknown'
 
 
@@ -290,6 +313,12 @@ def _device_class(props, os_class):
         return 'PC'
     if os_class == 'Windows':
         return 'PC'
+    if os_class == 'macOS':
+        return 'PC'
+    if os_class == 'tvOS':
+        return 'TV Box'
+    if os_class == 'Xbox':
+        return 'Console'
     if os_class == 'Android':
         manufacturer = (props.get('ro.product.manufacturer') or props.get('ro.product.brand') or '').lower()
         model = (props.get('ro.product.model') or props.get('ro.product.device') or '').lower()
@@ -303,7 +332,180 @@ def _device_class(props, os_class):
         if _is_android_tv(props):
             return 'Android TV'
         return 'Android TV'
+    if os_class == 'iOS':
+        machine = py_platform.machine().lower()
+        if 'ipad' in machine:
+            return 'Tablet'
+        if 'iphone' in machine or 'ipod' in machine:
+            return 'Mobile'
+        return 'Mobile'
     return 'unknown'
+
+
+def _os_version(props, os_class):
+    if os_class == 'FireOS':
+        return _fire_os_version(props)
+    if os_class == 'Android':
+        return _android_os_version(props)
+    if os_class == 'Windows':
+        release = py_platform.release()
+        version = py_platform.version()
+        return _join_version('Windows', release, version)
+    if os_class == 'Linux':
+        special = _linux_appliance_version()
+        if special:
+            return special
+        return _linux_os_release()
+    if os_class == 'macOS':
+        version = py_platform.mac_ver()[0] or py_platform.release()
+        return _join_version('macOS', version)
+    if os_class == 'iOS':
+        return _join_version('iOS', _info_label_first(['System.OSVersion', 'System.BuildVersionCode']))
+    if os_class == 'tvOS':
+        return _join_version('tvOS', _info_label_first(['System.OSVersion', 'System.BuildVersionCode']))
+    if os_class == 'Xbox':
+        return _join_version('Xbox', _info_label_first(['System.OSVersion', 'System.BuildVersionCode']))
+    fallback = py_platform.system()
+    release = py_platform.release()
+    return _join_version(fallback or 'unknown', release) if fallback else 'unbekannt'
+
+
+def _fire_os_version(props):
+    values = [
+        props.get('ro.build.display.id'),
+        props.get('ro.build.fingerprint'),
+        props.get('ro.product.name'),
+        props.get('ro.product.device'),
+        props.get('ro.product.model'),
+        props.get('ro.build.version.release_or_codename'),
+        props.get('ro.build.version.release'),
+        props.get('ro.build.version.sdk'),
+    ]
+    text = ' '.join(str(value or '').lower() for value in values)
+    if 'vega' in text:
+        return 'Vega OS'
+    match = re.search(r'fire\s*os\s*(\d+)', text)
+    if match:
+        return 'Fire OS %s' % match.group(1)
+
+    release = _major_number(props.get('ro.build.version.release_or_codename') or props.get('ro.build.version.release'))
+    sdk = _major_number(props.get('ro.build.version.sdk'))
+    mapped = {
+        5: 'Fire OS 5',
+        7: 'Fire OS 6',
+        9: 'Fire OS 7',
+        11: 'Fire OS 8',
+        14: 'Fire OS 14',
+    }.get(release)
+    if mapped:
+        return mapped
+
+    mapped_sdk = {
+        22: 'Fire OS 5',
+        25: 'Fire OS 6',
+        28: 'Fire OS 7',
+        30: 'Fire OS 8',
+        34: 'Fire OS 14',
+    }.get(sdk)
+    if mapped_sdk:
+        return mapped_sdk
+
+    if release:
+        return 'Fire OS (Android %s)' % release
+    return 'Fire OS unbekannt'
+
+
+def _android_os_version(props):
+    release = props.get('ro.build.version.release_or_codename') or props.get('ro.build.version.release')
+    if release:
+        return 'Android %s' % _text(release, 24)
+    sdk = props.get('ro.build.version.sdk')
+    if sdk:
+        return 'Android SDK %s' % _text(sdk, 12)
+    return 'Android unbekannt'
+
+
+def _linux_appliance_version():
+    if _visible('System.HasAddon(service.coreelec.settings)'):
+        return _join_version('CoreELEC', _linux_version_id())
+    if _visible('System.HasAddon(service.libreelec.settings)'):
+        return _join_version('LibreELEC', _linux_version_id())
+    if _visible('System.HasAddon(service.osmc.settings)'):
+        return _join_version('OSMC', _linux_version_id())
+    return ''
+
+
+def _linux_os_release():
+    values = _read_os_release()
+    pretty = values.get('PRETTY_NAME')
+    if pretty:
+        return _text(pretty, 64)
+    name = values.get('NAME') or 'Linux'
+    version = values.get('VERSION_ID') or values.get('VERSION') or py_platform.release()
+    return _join_version(name, version)
+
+
+def _linux_version_id():
+    values = _read_os_release()
+    return values.get('VERSION_ID') or values.get('VERSION') or ''
+
+
+def _read_os_release():
+    result = {}
+    for path in ('/etc/os-release', '/usr/lib/os-release'):
+        try:
+            if not os.path.exists(path):
+                continue
+            with open(path, 'r', encoding='utf-8', errors='ignore') as handle:
+                for line in handle:
+                    if '=' not in line:
+                        continue
+                    key, value = line.rstrip('\n').split('=', 1)
+                    result[key] = value.strip().strip('"')
+            if result:
+                return result
+        except Exception:
+            pass
+    return result
+
+
+def _join_version(name, *parts):
+    values = [str(part or '').strip() for part in parts if str(part or '').strip()]
+    if values:
+        return _text('%s %s' % (name, ' '.join(values)), 64)
+    return _text('%s unbekannt' % name, 64)
+
+
+def _major_number(value):
+    match = re.search(r'\d+', str(value or ''))
+    if not match:
+        return None
+    try:
+        return int(match.group(0))
+    except Exception:
+        return None
+
+
+def _visible(expression):
+    try:
+        return bool(control.condVisibility(expression))
+    except Exception:
+        return False
+
+
+def _is_platform(name):
+    return _visible('System.Platform.%s' % name) or _visible('system.platform.%s' % name.lower())
+
+
+def _info_label_first(labels):
+    for label in labels:
+        try:
+            value = control.infoLabel(label)
+            if value:
+                return value
+        except Exception:
+            pass
+    return ''
 
 
 def _is_android_tv(props):
