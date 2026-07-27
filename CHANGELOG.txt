@@ -1,3 +1,9 @@
+xVAULT 2026.07.27.2
+Entwickler: mojomedia1812
+
+- VIXSTREAM prüft HLS-Audiospuren vor der Quellenanzeige und blendet falsch als Deutsch erkannte Vixcloud-Treffer aus, wenn Deutsch nur als Untertitel vorhanden ist.
+- Alte zwischengespeicherte Quellenlisten werden für diese Sprachprüfung automatisch ignoriert.
+
 xVAULT 2026.07.27.1
 Entwickler: mojomedia1812
 

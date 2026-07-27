@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.07.27.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.07.27.2.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.07.27.1.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.07.27.2.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -558,6 +558,7 @@
       <p>Beim Start einer Serienquelle verwendet xVAULT die vorhandene IMDB-Kennung unabhängig davon, ob sie als <strong>imdb_id</strong> oder <strong>imdbnumber</strong> aus einer Liste, einem Favoriten oder einem Kodi-Profil kommt. Fehlende optionale Metadaten verhindern dadurch nicht mehr, dass Kodi den Player-Eintrag erhält.</p>
       <p>VOE-Quellen können direkt in xVAULT aufgelöst werden, wenn die installierte ResolveURL-Version die aktuelle VOE-Ausweichdomain noch nicht kennt. Dadurch erhalten Windows, Linux und Android wieder einen echten MP4- oder HLS-Link statt nur die Hoster-Webseite.</p>
       <p>VIXSTREAM-Quellen können HLS-Playlistadressen verwenden, die nicht wie klassische <strong>.m3u8</strong>-Dateien aussehen. xVAULT erkennt diese Playlistwege trotzdem als HLS und übergibt die nötigen Header gemeinsam an InputStream Adaptive, damit Manifest, Segmente und Schlüssel erreichbar bleiben.</p>
+      <p>Zusätzlich prüft xVAULT bei VIXSTREAM die in der HLS-Playlist ausgewiesenen Audiospuren. Eine Quelle wird nur dann als Deutsch oder Englisch angezeigt, wenn diese Sprache als echte Tonspur vorhanden ist. Untertitel werden dabei nicht als Streamsprache gewertet.</p>
       <p>Wenn ein Hoster nur eine Webseite, aber keinen echten Direktstream liefert, wird diese Quelle übersprungen. So bekommt Kodi keine HTML-Seite als Video und kann mit weiteren Quellen fortfahren.</p>
       <p>Hängende Resolver- oder Player-Starts werden zeitlich begrenzt. Wenn Autoplay aktiv ist und eine gefundene Quelle nicht wirklich startet, versucht xVAULT danach weitere verfügbare Quellen statt dauerhaft im Ladezustand zu bleiben. Beendet Kodi eine Wiedergabe ohne Stop-Callback an das Add-on, erkennt xVAULT den fehlenden aktiven Videoplayer selbst und schließt die Wiedergabeüberwachung.</p>
       <h3>Wiedergabe ab hier</h3>
@@ -873,7 +874,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.07.27.1</span>
+      <span>Handbuch zu xVAULT 2026.07.27.2</span>
     </footer>
   </main>
 </body>

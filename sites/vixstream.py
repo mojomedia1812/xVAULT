@@ -28,8 +28,11 @@ class source:
         )
         self.sources = []
 
-    def _request(self, url, headers=None, caching=False):
+    def _request(self, url, headers=None, caching=False, preserve_newlines=False):
         request = cRequestHandler(url, caching=caching, ignoreErrors=True)
+        if preserve_newlines:
+            request.removeNewLines(False)
+            request.removeBreakLines(False)
         request.addHeaderEntry('User-Agent', self.ua)
         request.addHeaderEntry('Accept-Language', 'de-DE,de;q=0.9,en;q=0.8')
         for key, value in (headers or {}).items():
@@ -74,6 +77,14 @@ class source:
             return re.sub(r'([?&])lang=[a-z]+', r'\1lang=%s' % language, src)
         separator = '&' if '?' in src else '?'
         return '%s%slang=%s' % (src, separator, language)
+
+    def _language_headers(self, stream_language, referer=''):
+        headers = {
+            'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8' if stream_language == 'de' else 'en-US,en;q=0.9,de;q=0.7',
+        }
+        if referer:
+            headers['Referer'] = referer
+        return headers
 
     def _media_urls(self, tmdb_id, season=0, episode=0):
         is_tvshow = getattr(self, 'mediatype', None) == 'tvshow'
@@ -128,6 +139,117 @@ class source:
         logger.info('[%s] Frischer Embed: type=%s tmdb=%s lang=%s' % (SITE_NAME, media_type, tmdb_id, language))
         return embed_url, page_url
 
+    def _playlist_from_embed(self, embed_url, referer, stream_language):
+        headers = {
+            'Referer': referer,
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        }
+        headers.update(self._language_headers(stream_language))
+
+        html, status, real_url = self._request(embed_url, headers=headers, caching=False)
+        if status not in ['200', '301']:
+            logger.error('[%s] Embed Status: %s' % (SITE_NAME, status))
+            return None, None, None
+
+        token_match = re.search(r"['\"]token['\"]?\s*:\s*['\"]([a-f0-9]+)['\"]", html)
+        expires_match = re.search(r"['\"]expires['\"]?\s*:\s*['\"]?(\d+)['\"]?", html)
+        url_match = re.search(r"url\s*:\s*['\"]([^'\"]+/playlist/\d+)['\"]", html)
+
+        if not (token_match and expires_match and url_match):
+            logger.error('[%s] Playlist-Parameter unvollstaendig: token=%s expires=%s url=%s' % (
+                SITE_NAME, bool(token_match), bool(expires_match), bool(url_match)
+            ))
+            return None, None, None
+
+        playlist_url = '%s?token=%s&expires=%s&h=1&lang=%s' % (
+            url_match.group(1), token_match.group(1), expires_match.group(1), stream_language
+        )
+        playlist_headers = {
+            'User-Agent': self.ua,
+            'Accept': '*/*',
+            'Referer': embed_url,
+            'Origin': 'https://' + VIXCLOUD,
+        }
+        playlist_headers.update(self._language_headers(stream_language))
+
+        playlist, playlist_status, real_playlist_url = self._request(
+            playlist_url,
+            headers=playlist_headers,
+            caching=False,
+            preserve_newlines=True
+        )
+        if playlist_status not in ['200', '301']:
+            logger.error('[%s] Playlist Status: %s' % (SITE_NAME, playlist_status))
+            return playlist_url, playlist_headers, None
+
+        return playlist_url, playlist_headers, playlist
+
+    def _verified_stream_language(self, tmdb_id, season, episode, stream_language):
+        embed_url, referer = self._fresh_embed_url(tmdb_id, season, episode, stream_language)
+        if not embed_url:
+            return None, None, None
+
+        playlist_url, playlist_headers, playlist = self._playlist_from_embed(embed_url, referer, stream_language)
+        if not playlist:
+            logger.warning('[%s] Sprache nicht verifiziert: lang=%s tmdb=%s' % (SITE_NAME, stream_language, tmdb_id))
+            return None, None, None
+
+        audio_languages = self._audio_languages_from_playlist(playlist)
+        if audio_languages and stream_language not in audio_languages:
+            logger.warning('[%s] Sprache verworfen: angefordert=%s, Audio=%s, tmdb=%s' % (
+                SITE_NAME, stream_language, ','.join(sorted(audio_languages)), tmdb_id
+            ))
+            return None, None, None
+
+        if audio_languages:
+            logger.info('[%s] Sprache verifiziert: lang=%s, Audio=%s, tmdb=%s' % (
+                SITE_NAME, stream_language, ','.join(sorted(audio_languages)), tmdb_id
+            ))
+        return embed_url, playlist_url, audio_languages
+
+    def _audio_languages_from_playlist(self, playlist):
+        languages = set()
+        audio_seen = False
+        if isinstance(playlist, bytes):
+            playlist = playlist.decode('utf-8', 'replace')
+        media_lines = re.findall(r'#EXT-X-MEDIA:[^#\r\n]+', playlist or '', flags=re.I)
+        if not media_lines:
+            media_lines = (playlist or '').splitlines()
+        for line in media_lines:
+            if not re.search(r'#EXT-X-MEDIA', line or '', flags=re.I):
+                continue
+            if not re.search(r'TYPE\s*=\s*AUDIO', line or '', flags=re.I):
+                continue
+            audio_seen = True
+            code = self._audio_language_from_values(
+                self._hls_attr(line, 'LANGUAGE'),
+                self._hls_attr(line, 'NAME'),
+                self._hls_attr(line, 'RENDITION')
+            )
+            if code:
+                languages.add(code)
+        if audio_seen and not languages:
+            languages.add('unknown')
+        return languages
+
+    @staticmethod
+    def _hls_attr(line, name):
+        match = re.search(r'%s=(?:"([^"]*)"|([^,]*))' % re.escape(name), line or '', flags=re.I)
+        if not match:
+            return ''
+        return (match.group(1) if match.group(1) is not None else match.group(2) or '').strip()
+
+    @staticmethod
+    def _audio_language_from_values(*values):
+        text = ' '.join([str(value or '') for value in values]).lower()
+        text = re.sub(r'[^a-z0-9]+', ' ', text)
+        tokens = set([token for token in text.split() if token])
+        if tokens.intersection(set(['de', 'deu', 'ger', 'german', 'deutsch'])):
+            return 'de'
+        if tokens.intersection(set(['en', 'eng', 'english', 'englisch'])):
+            return 'en'
+        return ''
+
     def run(self, titles, year, season=0, episode=0, imdb='', hostDict=None):
         try:
             tmdb_id = self._get_tmdb_id(imdb)
@@ -135,12 +257,12 @@ class source:
                 logger.warning('[%s] Keine TMDB-ID gefunden fuer IMDB: %s' % (SITE_NAME, imdb))
                 return self.sources
 
-            embed_url, page_url = self._fresh_embed_url(tmdb_id, season, episode, 'de')
-            if not embed_url:
-                return self.sources
-
             seen_urls = set()
             for language, language_label in self._stream_languages():
+                embed_url, playlist_url, audio_languages = self._verified_stream_language(tmdb_id, season, episode, language)
+                if not embed_url:
+                    continue
+
                 stable_url = self._stable_url(tmdb_id, season, episode, language)
                 if stable_url in seen_urls:
                     continue
@@ -197,61 +319,20 @@ class source:
                     stream_language = 'de'
 
             logger.info('[%s] resolve() - embed_url: %s' % (SITE_NAME, embed_url))
-
-            video_id_match = re.search(r'/embed/(\d+)', embed_url)
-            if not video_id_match:
-                logger.error('[%s] Konnte Video-ID nicht aus embed URL extrahieren' % SITE_NAME)
+            playlist_url, headers_dict, playlist = self._playlist_from_embed(embed_url, referer, stream_language)
+            if not playlist_url or not headers_dict or not playlist:
                 return None
 
-            video_id = video_id_match.group(1)
-            logger.info('[%s] Video-ID: %s' % (SITE_NAME, video_id))
-
-            headers = {
-                'Referer': referer,
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8' if stream_language == 'de' else 'en-US,en;q=0.9,de;q=0.7',
-            }
-
-            logger.info('[%s] Lade embed-Seite: %s' % (SITE_NAME, embed_url))
-            html, status, real_url = self._request(embed_url, headers=headers, caching=False)
-            if status not in ['200', '301']:
-                logger.error('[%s] Embed Status: %s' % (SITE_NAME, status))
+            audio_languages = self._audio_languages_from_playlist(playlist)
+            if audio_languages and stream_language not in audio_languages:
+                logger.error('[%s] Resolve abgebrochen: angefordert=%s, Audio=%s' % (
+                    SITE_NAME, stream_language, ','.join(sorted(audio_languages))
+                ))
                 return None
-            token_match = re.search(r"['\"]token['\"]?\s*:\s*['\"]([a-f0-9]+)['\"]", html)
-            expires_match = re.search(r"['\"]expires['\"]?\s*:\s*['\"]?(\d+)['\"]?", html)
-            url_match = re.search(r"url\s*:\s*['\"]([^'\"]+/playlist/\d+)['\"]", html)
 
-            if not token_match:
-                logger.error('[%s] Token nicht gefunden' % SITE_NAME)
-                snippet = html[:2000] if len(html) > 2000 else html
-                logger.info('[%s] HTML snippet: %s...' % (SITE_NAME, snippet))
-            if not expires_match:
-                logger.error('[%s] Expires nicht gefunden' % SITE_NAME)
-            if not url_match:
-                logger.error('[%s] URL nicht gefunden' % SITE_NAME)
-
-            if token_match and expires_match and url_match:
-                token = token_match.group(1)
-                expires = expires_match.group(1)
-                base_url = url_match.group(1)
-                logger.info('[%s] Extrahiert - Token: %s..., Expires: %s' % (SITE_NAME, token[:16], expires))
-
-                playlist_url = '%s?token=%s&expires=%s&h=1&lang=%s' % (base_url, token, expires, stream_language)
-                logger.info('[%s] Playlist aus masterPlaylist: %s' % (SITE_NAME, playlist_url))
-
-                headers_dict = {
-                    'User-Agent': self.ua,
-                    'Accept': '*/*',
-                    'Accept-Language': 'de-DE,de;q=0.9,en;q=0.8' if stream_language == 'de' else 'en-US,en;q=0.9,de;q=0.7',
-                    'Referer': embed_url,
-                    'Origin': 'https://' + VIXCLOUD,
-                }
-                final_url = '%s|%s' % (playlist_url, urllib.parse.urlencode(headers_dict))
-                logger.info('[%s] Finale URL: %s' % (SITE_NAME, final_url[:150]))
-                return final_url
-
-            logger.error('[%s] Nicht alle Parameter gefunden' % SITE_NAME)
-            return None
+            final_url = '%s|%s' % (playlist_url, urllib.parse.urlencode(headers_dict))
+            logger.info('[%s] Finale URL: %s' % (SITE_NAME, final_url[:150]))
+            return final_url
 
         except Exception as exc:
             logger.error('[%s] resolve() Fehler: %s' % (SITE_NAME, str(exc)))

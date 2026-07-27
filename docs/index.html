@@ -40,12 +40,12 @@
         <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
         <tr><th colspan="4"><hr></th></tr>
         <tr><td>[PARENTDIR]</td><td><a href="../" data-umami-event="Verzeichnisnavigation geöffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">27.Jul.2026 07:25:04</td><td align="right">-</td></tr>
+        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">27.Jul.2026 12:25:02</td><td align="right">-</td></tr>
         <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geöffnet">repository.xvault/</a></td><td align="right">24.Jul.2026 07:17:45</td><td align="right">-</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">27.Jul.2026 07:25:04</td><td align="right">2.57 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">27.Jul.2026 07:25:04</td><td align="right">32.00 B</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">27.Jul.2026 07:25:04</td><td align="right">1.96 MB</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">27.Jul.2026 07:25:04</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">27.Jul.2026 12:25:02</td><td align="right">2.57 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">27.Jul.2026 12:25:02</td><td align="right">32.00 B</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">27.Jul.2026 12:25:01</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">27.Jul.2026 12:25:01</td><td align="right">1.96 MB</td></tr>
         <tr><th colspan="4"><hr></th></tr>
       </tbody>
     </table>
@@ -61,10 +61,10 @@
 
         <div class="release">
           <span>Aktuelle Version</span>
-          <strong>2026.07.27.1</strong>
+          <strong>2026.07.27.2</strong>
         </div>
 
-        <a class="download" href="downloads/plugin.video.xvault-2026.07.27.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
+        <a class="download" href="downloads/plugin.video.xvault-2026.07.27.2.zip" download data-umami-event="Add-on ZIP heruntergeladen">
           Installations-ZIP herunterladen
         </a>
 
@@ -129,6 +129,15 @@
     </section>
     <!-- release-notes:start -->
     <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.07.27.2</p>
+      <h2>Änderungen im Überblick</h2>
+      <ul class="update-list">
+        <li>VIXSTREAM prüft HLS-Audiospuren vor der Quellenanzeige und blendet falsch als Deutsch erkannte Vixcloud-Treffer aus, wenn Deutsch nur als Untertitel vorhanden ist.</li>
+        <li>Alte zwischengespeicherte Quellenlisten werden für diese Sprachprüfung automatisch ignoriert.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
       <p class="section-kicker">Neu in 2026.07.27.1</p>
       <h2>Änderungen im Überblick</h2>
       <ul class="update-list">
@@ -161,16 +170,6 @@
         <li>Filme und Episoden gelten erst als gesehen, wenn höchstens noch zehn Minuten Restlaufzeit übrig sind oder die Wiedergabe regulär endet.</li>
         <li>Angefangene Filme und Episoden bleiben ungesehen, zeigen in Listen ein Uhrsymbol und die Fortsetzen-Position hinter dem Titel.</li>
         <li>Fortsetzen-Lesezeichen werden bei fertig gesehenen Titeln entfernt und bei laufenden Titeln beibehalten.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.07.25.1</p>
-      <h2>Änderungen im Überblick</h2>
-      <ul class="update-list">
-        <li>Quellensuche für Filme und Serien beschleunigt: Quellenlisten werden persistent im Kodi-Profil zwischengespeichert, erfolgreiche Serienanbieter werden bevorzugt und temporär fehlerhafte Indexseiten kurzzeitig übersprungen.</li>
-        <li>Autoplay bereitet mehrere Quellen parallel vor, behält aber die bestehende Qualitäts-, Sprach- und Providerreihenfolge bei.</li>
-        <li>Die parallele Scraper-Ausführung passt sich besser an Windows, Linux und Android an.</li>
       </ul>
     </section>
     <!-- release-notes:end -->
@@ -217,15 +216,15 @@
     <section class="panel checksum">
       <h2>Dateiprüfung</h2>
       <p>SHA-256</p>
-      <code>42FE37EF3A93C9A3CD5F4269948264A114509CC6B66C19F1DDA14E283443C889</code>
+      <code>63357663096DA4E9395E65DF3CFC42DBFB55D77504B6E9E6BDC1008C4EC0B4F9</code>
     </section>
 
     <section class="panel archive">
       <h2>Vorherige Versionen</h2>
       <ul class="archive-list">
         <!-- previous-downloads:start -->
+        <li><a href="downloads/plugin.video.xvault-2026.07.27.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.27.1 herunterladen</a><span>33,9 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.07.26.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.26.1 herunterladen</a><span>33,9 MB</span></li>
-        <li><a href="downloads/plugin.video.xvault-2026.07.25.3.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.07.25.3 herunterladen</a><span>33,9 MB</span></li>
         <!-- previous-downloads:end -->
       </ul>
     </section>
@@ -233,7 +232,7 @@
     <footer>
       <a href="handbuch/" data-umami-event="Handbuch geöffnet">Handbuch</a>
       <a href="https://github.com/mojomedia1812/xVAULT" data-umami-event="GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Version 2026.07.27.1</span>
+      <span>Version 2026.07.27.2</span>
     </footer>
   </main>
 </body>

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2026.07.27.2] - 2026-07-27
+
+- VIXSTREAM prüft HLS-Audiospuren vor der Quellenanzeige und blendet falsch als Deutsch erkannte Vixcloud-Treffer aus, wenn Deutsch nur als Untertitel vorhanden ist.
+- Alte zwischengespeicherte Quellenlisten werden für diese Sprachprüfung automatisch ignoriert.
+
 ## [2026.07.27.1] - 2026-07-27
 
 - Handbuch als GitHub-Pages-Wissensdatenbank erweitert: Menüs, Suche, Quellen, Wiedergabe, Sync, Trakt, LiveTV, Downloads, Werkzeuge, Einstellungen und Fehlerhilfe ausführlicher beschrieben.
