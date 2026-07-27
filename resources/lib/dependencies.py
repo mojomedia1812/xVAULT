@@ -37,13 +37,22 @@ INSTALL_TIMEOUT = 90
 INSTALL_OPTIONAL = False
 DOWNLOAD_TIMEOUT = 20
 
-# Kodi cannot resolve these dependencies from its official repository during a
-# direct "install from zip" flow, so xVAULT bootstraps them from their upstream
-# Kodi repositories after xVAULT itself has been installed.
-REQUIRED_EXTERNAL_ADDONS = set(['script.module.resolveurl'])
+# Some Kodi installations abort direct ZIP installs when a dependency is not
+# already indexed locally. xVAULT declares runtime modules as optional in
+# addon.xml, then enforces and installs the real runtime requirements here.
+REQUIRED_EXTERNAL_ADDONS = set([
+    'script.module.requests',
+    'script.module.six',
+    'script.module.pyaes',
+    'script.module.infotagger',
+    'script.module.resolveurl',
+])
 AUTO_INSTALL_OPTIONAL_EXTERNALS = set([
     'script.module.download-m3u8',
     'inputstream.adaptive',
+    'inputstream.ffmpegdirect',
+    'inputstream.rtmp',
+    'pvr.iptvsimple',
 ])
 EXTERNAL_ADDON_SOURCES = {
     'script.module.resolveurl': {
@@ -97,7 +106,7 @@ def ensure_all_dependencies():
             _mark_checked()
             return True
 
-        _notify('Installiere Abhaengigkeiten...', 'INFO', 3000)
+        _notify('Installiere Abhängigkeiten...', 'INFO', 3000)
         for addon_id, optional, version in missing:
             _install_addon(addon_id, version)
 
@@ -112,7 +121,7 @@ def ensure_all_dependencies():
 
         if still_missing:
             _log('Missing dependencies after install: %s' % ', '.join(still_missing), xbmc.LOGWARNING)
-            _notify('Abhaengigkeiten fehlen: %s' % ', '.join(still_missing[:3]), 'WARNING', 7000)
+            _notify('Abhängigkeiten fehlen: %s' % ', '.join(still_missing[:3]), 'WARNING', 7000)
 
         success = len(missing_required) == 0
         if success:
@@ -539,7 +548,7 @@ def _was_checked():
         if not xbmcgui:
             return False
         value = xbmcgui.Window(10000).getProperty(_checked_property())
-        return value == ADDON_VERSION
+        return value == _checked_value()
     except:
         return False
 
@@ -547,13 +556,25 @@ def _was_checked():
 def _mark_checked():
     try:
         if xbmcgui:
-            xbmcgui.Window(10000).setProperty(_checked_property(), ADDON_VERSION)
+            xbmcgui.Window(10000).setProperty(_checked_property(), _checked_value())
     except:
         pass
 
 
 def _checked_property():
     return '%s.dependencies.checked' % ADDON_ID
+
+
+def _checked_value():
+    try:
+        dependencies = [
+            '%s:%s:%s' % (addon_id, '1' if optional else '0', version or '')
+            for addon_id, optional, version in _dependencies_from_manifest()
+            if _should_install(addon_id, optional)
+        ]
+        return '%s|%s' % (ADDON_VERSION, ','.join(dependencies))
+    except:
+        return ADDON_VERSION
 
 
 def _translate_path(path):

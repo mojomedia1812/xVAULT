@@ -1,0 +1,5 @@
+{
+  "playlist": "plugin://$ID/?action=liveTVPvrPlaylist&output=$FILE",
+  "epg": "plugin://$ID/?action=liveTVPvrEpg&output=$FILE",
+  "configure": "plugin://$ID/?action=liveTVPvrConfigure"
+}

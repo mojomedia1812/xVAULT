@@ -1,3 +1,10 @@
+xVAULT 2026.07.27.1
+Entwickler: mojomedia1812
+
+- Abhängigkeitsprüfung für direkte ZIP-Installationen stabilisiert: xVAULT installiert und aktiviert benötigte Laufzeitmodule nach dem ersten Start selbst.
+- Kodi-TV-Integration für LiveTV ergänzt: xVAULT erzeugt M3U- und XMLTV-Dateien und konfiguriert IPTV Simple automatisch, wenn das PVR-Modul verfügbar ist.
+- Handbuch um eine ausführliche Erststart-Anleitung für IPTV Simple erweitert.
+
 xVAULT 2026.07.26.1
 Entwickler: mojomedia1812
 

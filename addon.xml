@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.xvault" version="2026.07.26.1" name="[B]xVAULT[/B]" provider-name="xVAULT">
+<addon id="plugin.video.xvault" version="2026.07.27.1" name="[B]xVAULT[/B]" provider-name="xVAULT">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
-        <import addon="script.module.requests"/>
+        <import addon="script.module.requests" optional="true"/>
         <import addon="script.module.download-m3u8" optional="true"/>
-        <import addon="script.module.six"/>
-        <import addon="script.module.kodi-six"/>
-        <import addon="script.module.pyaes"/>
-        <import addon="script.module.infotagger"/>
+        <import addon="script.module.six" optional="true"/>
+        <import addon="script.module.pyaes" optional="true"/>
+        <import addon="script.module.infotagger" optional="true"/>
         <import addon="script.module.resolveurl" version="5.1.100" optional="true"/>
         <import addon="inputstream.adaptive" optional="true"/>
         <import addon="inputstream.ffmpegdirect" optional="true"/>
+        <import addon="inputstream.rtmp" optional="true"/>
+        <import addon="pvr.iptvsimple" optional="true"/>
         <import addon="plugin.video.youtube" optional="true"/>
         <!-- for remote debug -->
         <import addon="script.module.pydevd" optional="true"/>

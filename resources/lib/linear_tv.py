@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 from urllib.parse import urlencode, urljoin
 
 import xbmc
+import xbmcaddon
 
 try:
     import requests
@@ -35,6 +36,8 @@ FAVORITES_FILE = os.path.join(control.addonProfilePath, "linear-tv-favorites.jso
 EPG_FILE = os.path.join(control.addonProfilePath, "linear-tv-epg.json")
 LOGOS_FILE = os.path.join(control.addonProfilePath, "linear-tv-logos.json")
 HEALTH_FILE = os.path.join(control.addonProfilePath, "linear-tv-health-session.json")
+PVR_PLAYLIST_FILE = os.path.join(control.addonProfilePath, "xvault-livetv.m3u8")
+PVR_EPG_FILE = os.path.join(control.addonProfilePath, "xvault-livetv.xml")
 SIGNATURE_TTL = 7 * 60
 DEFAULT_CACHE_HOURS = 1
 DEFAULT_EPG_CACHE_HOURS = 6
@@ -165,7 +168,8 @@ def show_home():
 
     handle = _handle()
     _add_folder(handle, "Senderliste aktualisieren", {"action": "liveTVRefresh"}, False)
-    _add_folder(handle, "Senderliste auf Funktion pruefen", {"action": "liveTVHealthCheck"}, True, "Prueft alle aktuell sichtbaren Sender und blendet nicht erreichbare Sender bis zum naechsten xVAULT-Hauptstart aus.")
+    _add_folder(handle, "Senderliste auf Funktion prüfen", {"action": "liveTVHealthCheck"}, True, "Prüft alle aktuell sichtbaren Sender und blendet nicht erreichbare Sender bis zum nächsten xVAULT-Hauptstart aus.")
+    _add_folder(handle, "Kodi-TV Integration aktualisieren", {"action": "liveTVPvrExport"}, False, "Erzeugt lokale M3U- und XMLTV-Dateien für IPTV Simple oder IPTV Merge.")
     _add_folder(handle, "Favoriten", {"action": "liveTVFavorites"}, True, "Favoriten")
     _add_folder(handle, "Suche", {"action": "liveTVSearch"}, True, "Suche")
     _add_folder(handle, "Alle Sender", {"action": "liveTVCategory", "category": "Alle Sender"}, True, "Alle Sender")
@@ -188,19 +192,19 @@ def refresh():
 
 def check_channel_health():
     if requests is None:
-        control.infoDialog("Streampruefung nicht moeglich: requests fehlt.", icon="ERROR", time=5000)
+        control.infoDialog("Streamprüfung nicht möglich: requests fehlt.", icon="ERROR", time=5000)
         _end("LiveTV", cache=False)
         return
 
     if not _confirm_health_check():
-        control.infoDialog("LiveTV-Senderpruefung abgebrochen.", icon="INFO", time=3000)
+        control.infoDialog("LiveTV-Senderprüfung abgebrochen.", icon="INFO", time=3000)
         _end("LiveTV", cache=False)
         return
 
     clear_session_health()
     channels = _catalog()
     if not channels:
-        control.infoDialog("Keine LiveTV-Sender zum Pruefen gefunden.", icon="WARNING", time=4000)
+        control.infoDialog("Keine LiveTV-Sender zum Prüfen gefunden.", icon="WARNING", time=4000)
         _end("LiveTV", cache=False)
         return
 
@@ -210,7 +214,7 @@ def check_channel_health():
     checked = 0
     cancelled = False
     progress = control.progressDialog
-    progress.create(control.addonName, "LiveTV-Sender werden geprueft")
+    progress.create(control.addonName, "LiveTV-Sender werden geprüft")
     progress.update(0, "Vorbereitung")
 
     try:
@@ -231,7 +235,7 @@ def check_channel_health():
                 percent = min(99, int(checked * 100 / total))
                 progress.update(
                     percent,
-                    "Geprueft %d/%d: %s" % (checked, total, _truncate(name, 60)),
+                    "Geprüft %d/%d: %s" % (checked, total, _truncate(name, 60)),
                 )
                 try:
                     result = future.result()
@@ -263,21 +267,21 @@ def check_channel_health():
 
     hidden = len(blocked)
     if cancelled:
-        message = "Pruefung abgebrochen: %d geprueft, %d funktionieren, %d temporaer gesperrt." % (
+        message = "Prüfung abgebrochen: %d geprüft, %d funktionieren, %d temporär gesperrt." % (
             checked,
             reachable,
             hidden,
         )
         icon = "WARNING"
     else:
-        message = "Pruefung abgeschlossen: %d geprueft, %d funktionieren, %d temporaer gesperrt." % (
+        message = "Prüfung abgeschlossen: %d geprüft, %d funktionieren, %d temporär gesperrt." % (
             checked,
             reachable,
             hidden,
         )
         icon = "INFO"
     try:
-        control.dialog.ok("LiveTV-Senderpruefung", message)
+        control.dialog.ok("LiveTV-Senderprüfung", message)
     except Exception:
         control.infoDialog(message, icon=icon, time=6000)
     xbmc.executebuiltin("Container.Refresh")
@@ -294,11 +298,11 @@ def clear_session_health():
 
 def _confirm_health_check():
     message = (
-        "Die Pruefung der kompletten LiveTV-Senderliste kann je nach System bis zu 30 Minuten dauern. "
-        "Fuer schwache Systeme wird der Vorgang nicht empfohlen. Jetzt trotzdem starten?"
+        "Die Prüfung der kompletten LiveTV-Senderliste kann je nach System bis zu 30 Minuten dauern. "
+        "Für schwache Systeme wird der Vorgang nicht empfohlen. Jetzt trotzdem starten?"
     )
     try:
-        return bool(control.dialog.yesno("LiveTV-Senderliste pruefen", message))
+        return bool(control.dialog.yesno("LiveTV-Senderliste prüfen", message))
     except Exception as exc:
         log_utils.log("LiveTV health confirmation failed: %s" % str(exc), log_utils.LOGWARNING)
         return True
@@ -357,7 +361,7 @@ def remove_favorite(channel_id):
     xbmc.executebuiltin("Container.Refresh")
 
 
-def play(channel_id):
+def play(channel_id, pvr=False):
     catalog = _catalog()
     channel = _channel_by_id(catalog, channel_id) or _channel_by_id(_load_favorites(), channel_id)
     if not channel:
@@ -366,11 +370,12 @@ def play(channel_id):
         return
 
     programmes = _programme_pair(channel, refresh=True)
-    _show_programme_before_play(channel, programmes[0])
+    if not pvr:
+        _show_programme_before_play(channel, programmes[0])
 
     stream_url, playback_channel = _select_live_stream(channel, catalog)
     if not stream_url:
-        control.infoDialog("Stream konnte nicht aufgeloest werden", icon="WARNING", time=4000)
+        control.infoDialog("Stream konnte nicht aufgelöst werden", icon="WARNING", time=4000)
         control.resolveUrl(_handle(), False, control.item(channel.get("name") or "LiveTV", offscreen=True))
         return
 
@@ -391,11 +396,326 @@ def play(channel_id):
     control.resolveUrl(_handle(), True, item)
 
 
+def export_pvr_files(interactive=False):
+    playlist_path = export_pvr_playlist()
+    epg_path = export_pvr_epg()
+    pvr_ready = _configure_iptv_simple(playlist_path, epg_path)
+    if interactive:
+        pvr_text = (
+            "IPTV Simple wurde installiert/aktiviert und auf xVAULT konfiguriert."
+            if pvr_ready else
+            "IPTV Simple ist noch nicht verfügbar. Kodi kann die erzeugten Dateien trotzdem manuell verwenden."
+        )
+        control.dialog.ok(
+            "Kodi-TV Integration",
+            "Die lokalen PVR-Dateien wurden aktualisiert:\n\n"
+            "M3U:\n%s\n\n"
+            "XMLTV:\n%s\n\n"
+            "%s\n\n"
+            "IPTV Merge kann xVAULT außerdem über die mitgelieferte .iptv_merge-Datei als Add-on-Quelle erkennen."
+            % (playlist_path, epg_path, pvr_text),
+        )
+    return playlist_path, epg_path, pvr_ready
+
+
+def configure_pvr_integration():
+    export_pvr_files(interactive=True)
+
+
+def export_pvr_playlist(output=None):
+    output_path = _pvr_output_path(output, PVR_PLAYLIST_FILE)
+    epg = _epg_data(refresh=True) if _epg_enabled() else {}
+    channels = _pvr_channels(epg)
+    _write_text(output_path, _pvr_playlist(channels, epg))
+    log_utils.log("LiveTV PVR playlist exported: %s (%d Sender)" % (output_path, len(channels)), log_utils.LOGINFO)
+    return output_path
+
+
+def export_pvr_epg(output=None):
+    output_path = _pvr_output_path(output, PVR_EPG_FILE)
+    epg = _epg_data(refresh=True) if _epg_enabled() else {}
+    channels = _pvr_channels(epg)
+    programme_count = _write_pvr_epg(output_path, channels, epg)
+    log_utils.log("LiveTV PVR EPG exported: %s (%d Programme)" % (output_path, programme_count), log_utils.LOGINFO)
+    return output_path
+
+
+def _configure_iptv_simple(playlist_path, epg_path):
+    if not _ensure_pvr_dependencies():
+        return False
+
+    try:
+        addon = xbmcaddon.Addon("pvr.iptvsimple")
+        profile = control.translatePath(addon.getAddonInfo("profile"))
+        _write_iptv_simple_instance(profile, playlist_path, epg_path)
+        _set_addon_settings(addon, playlist_path, epg_path)
+        _enable_kodi_addon("pvr.iptvsimple")
+        xbmc.executebuiltin("UpdateLocalAddons")
+        log_utils.log("LiveTV PVR client configured for IPTV Simple", log_utils.LOGINFO)
+        return True
+    except Exception as exc:
+        log_utils.log("LiveTV PVR client configuration failed: %s" % str(exc), log_utils.LOGWARNING)
+        return False
+
+
+def _ensure_pvr_dependencies():
+    try:
+        from resources.lib import dependencies
+        addon_ids = (
+            "inputstream.adaptive",
+            "inputstream.ffmpegdirect",
+            "inputstream.rtmp",
+            "pvr.iptvsimple",
+        )
+        success = True
+        for addon_id in addon_ids:
+            if not dependencies.install_addon(addon_id):
+                success = False
+        return success and _addon_available("pvr.iptvsimple")
+    except Exception as exc:
+        log_utils.log("LiveTV PVR dependency install failed: %s" % str(exc), log_utils.LOGWARNING)
+        return _addon_available("pvr.iptvsimple")
+
+
+def _write_iptv_simple_instance(profile, playlist_path, epg_path):
+    if not profile:
+        return
+    if not os.path.exists(profile):
+        os.makedirs(profile)
+
+    instance_path = _iptv_simple_instance_path(profile, playlist_path)
+    content = (
+        '<settings version="1">\n'
+        '  <setting id="kodi_addon_instance_name">xVAULT LiveTV</setting>\n'
+        '  <setting id="m3uPathType">0</setting>\n'
+        '  <setting id="m3uPath">%s</setting>\n'
+        '  <setting id="m3uUrl"></setting>\n'
+        '  <setting id="m3uCache">false</setting>\n'
+        '  <setting id="startNum">1</setting>\n'
+        '  <setting id="numberByOrder">false</setting>\n'
+        '  <setting id="m3uRefreshMode">1</setting>\n'
+        '  <setting id="m3uRefreshIntervalMins">60</setting>\n'
+        '  <setting id="m3uRefreshHour">4</setting>\n'
+        '  <setting id="epgPathType">0</setting>\n'
+        '  <setting id="epgPath">%s</setting>\n'
+        '  <setting id="epgUrl"></setting>\n'
+        '  <setting id="epgCache">false</setting>\n'
+        '  <setting id="epgTimeShift">0</setting>\n'
+        '  <setting id="epgTSOverride">false</setting>\n'
+        '  <setting id="epgIgnoreCaseForChannelIds">true</setting>\n'
+        '  <setting id="logoPathType">1</setting>\n'
+        '  <setting id="logoPath"></setting>\n'
+        '  <setting id="logoBaseUrl"></setting>\n'
+        '  <setting id="useLogosLocalPathOnly">false</setting>\n'
+        '  <setting id="logoFromEpg">1</setting>\n'
+        '  <setting id="tvGroupMode">0</setting>\n'
+        '  <setting id="radioGroupMode">0</setting>\n'
+        '  <setting id="defaultProviderName">xVAULT</setting>\n'
+        '  <setting id="enableProviderMappings">false</setting>\n'
+        '  <setting id="connectioncheckinterval">10</setting>\n'
+        '  <setting id="connectionchecktimeout">20</setting>\n'
+        '</settings>\n'
+    ) % (_xml_escape(playlist_path), _xml_escape(epg_path))
+    _write_text(instance_path, content)
+
+
+def _iptv_simple_instance_path(profile, playlist_path):
+    marker = "xVAULT LiveTV"
+    for name in os.listdir(profile):
+        if not name.startswith("instance-settings-") or not name.endswith(".xml"):
+            continue
+        path = os.path.join(profile, name)
+        try:
+            content = open(path, "r", encoding="utf-8").read()
+            if marker in content or playlist_path in content:
+                return path
+        except Exception:
+            continue
+    return os.path.join(profile, "instance-settings-1.xml")
+
+
+def _set_addon_settings(addon, playlist_path, epg_path):
+    settings = {
+        "m3uPathType": "0",
+        "m3uPath": playlist_path,
+        "m3uUrl": "",
+        "m3uCache": "false",
+        "m3uRefreshMode": "1",
+        "m3uRefreshIntervalMins": "60",
+        "epgPathType": "0",
+        "epgPath": epg_path,
+        "epgUrl": "",
+        "epgCache": "false",
+        "defaultProviderName": "xVAULT",
+    }
+    for key, value in settings.items():
+        try:
+            addon.setSetting(key, value)
+        except Exception:
+            pass
+
+
+def _enable_kodi_addon(addon_id):
+    try:
+        payload = json.dumps({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "Addons.SetAddonEnabled",
+            "params": {"addonid": addon_id, "enabled": True},
+        })
+        xbmc.executeJSONRPC(payload)
+    except Exception:
+        pass
+
+
+def _addon_available(addon_id):
+    try:
+        return bool(xbmc.getCondVisibility("System.HasAddon(%s)" % addon_id))
+    except Exception:
+        return False
+
+
+def _pvr_channels(epg=None):
+    channels = _catalog()
+    if epg:
+        channels = _enrich_channel_logos(channels, epg)
+    return sorted(channels, key=lambda item: _sort_key(item.get("name")))
+
+
+def _pvr_playlist(channels, epg=None):
+    lines = ["#EXTM3U"]
+    for index, channel in enumerate(channels, 1):
+        name = channel.get("name") or "LiveTV"
+        logo = _channel_logo(channel, epg) or channel.get("logo") or ""
+        group = channel.get("category") or "LiveTV"
+        lines.append(
+            '#EXTINF:-1 tvg-id="%s" tvg-chno="%d" tvg-name="%s" tvg-logo="%s" group-title="%s",%s'
+            % (
+                _m3u_attr(_pvr_channel_id(channel)),
+                index,
+                _m3u_attr(name),
+                _m3u_attr(logo),
+                _m3u_attr(group),
+                _m3u_label(name),
+            )
+        )
+        lines.append(_pvr_play_url(channel))
+    return "\n".join(lines) + "\n"
+
+
+def _write_pvr_epg(output_path, channels, epg):
+    root = ET.Element("tv", {
+        "generator-info-name": "xVAULT",
+        "generator-info-url": "plugin://%s" % control.addonId,
+    })
+    programme_count = 0
+
+    for channel in channels:
+        channel_id = _pvr_channel_id(channel)
+        channel_elem = ET.SubElement(root, "channel", {"id": channel_id})
+        display_name = ET.SubElement(channel_elem, "display-name")
+        display_name.text = _xml_text(channel.get("name") or "LiveTV")
+        logo = _channel_logo(channel, epg)
+        if logo:
+            ET.SubElement(channel_elem, "icon", {"src": logo})
+
+    for channel in channels:
+        source_id = _epg_channel_id(channel, epg) if epg else ""
+        if not source_id:
+            continue
+        channel_id = _pvr_channel_id(channel)
+        for programme in epg.get("programmes", {}).get(source_id, []):
+            start = int(programme.get("start") or 0)
+            stop = int(programme.get("stop") or 0)
+            if not start or not stop:
+                continue
+            programme_elem = ET.SubElement(root, "programme", {
+                "start": _xmltv_local_time(start),
+                "stop": _xmltv_local_time(stop),
+                "channel": channel_id,
+            })
+            title = ET.SubElement(programme_elem, "title")
+            title.text = _xml_text(programme.get("title") or "Unbekannte Sendung")
+            subtitle = programme.get("subtitle") or ""
+            if subtitle:
+                sub_title = ET.SubElement(programme_elem, "sub-title")
+                sub_title.text = _xml_text(subtitle)
+            desc = programme.get("desc") or ""
+            if desc:
+                desc_elem = ET.SubElement(programme_elem, "desc")
+                desc_elem.text = _xml_text(desc)
+            programme_count += 1
+
+    xml_data = ET.tostring(root, encoding="utf-8", xml_declaration=True)
+    _write_bytes(output_path, xml_data)
+    return programme_count
+
+
+def _pvr_play_url(channel):
+    return "plugin://%s/?%s" % (
+        control.addonId,
+        urlencode({"action": "liveTVPlay", "id": channel.get("id"), "pvr": "1"}),
+    )
+
+
+def _pvr_channel_id(channel):
+    raw = str(channel.get("id") or _normalize(channel.get("name")) or uuid.uuid5(uuid.NAMESPACE_URL, channel.get("name") or "livetv"))
+    safe = re.sub(r"[^A-Za-z0-9_.:-]+", "_", raw).strip("._")
+    return "xvault.%s" % (safe or "livetv")
+
+
+def _m3u_attr(value):
+    return re.sub(r"[\r\n]+", " ", str(value or "")).replace('"', "'").strip()
+
+
+def _m3u_label(value):
+    return re.sub(r"[\r\n]+", " ", str(value or "LiveTV")).strip()
+
+
+def _xml_text(value):
+    return re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", str(value or ""))
+
+
+def _xml_escape(value):
+    return (
+        str(value or "")
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&apos;")
+    )
+
+
+def _xmltv_local_time(timestamp):
+    return time.strftime("%Y%m%d%H%M%S %z", time.localtime(int(timestamp)))
+
+
+def _pvr_output_path(output, default_path):
+    _ensure_profile()
+    path = output or default_path
+    if path.startswith("special://"):
+        path = control.translatePath(path)
+    return path
+
+
+def _write_text(path, content):
+    _write_bytes(path, content.encode("utf-8"))
+
+
+def _write_bytes(path, content):
+    parent = os.path.dirname(path)
+    if parent and not os.path.exists(parent):
+        os.makedirs(parent)
+    with open(path, "wb") as handle:
+        handle.write(content)
+
+
 def _show_channels(channels, title, favorites=False):
     handle = _handle()
     epg = _epg_data(refresh=True) if _epg_enabled() else {}
     channels = _enrich_channel_logos(channels, epg)
-    _add_folder(handle, "Senderliste auf Funktion pruefen", {"action": "liveTVHealthCheck"}, True, "Prueft alle aktuell sichtbaren Sender und blendet nicht erreichbare Sender bis zum naechsten xVAULT-Hauptstart aus.")
+    _add_folder(handle, "Senderliste auf Funktion prüfen", {"action": "liveTVHealthCheck"}, True, "Prüft alle aktuell sichtbaren Sender und blendet nicht erreichbare Sender bis zum nächsten xVAULT-Hauptstart aus.")
     for channel in sorted(channels, key=lambda item: _sort_key(item.get("name"))):
         programmes = _programme_pair(channel, epg=epg)
         plot = _plot(channel, programmes, include_empty_epg=_epg_enabled())
@@ -694,13 +1014,13 @@ def _configure_stream(item, stream_url):
     if engine == PLAYBACK_ENGINE_ADAPTIVE:
         if _configure_adaptive_stream(item):
             return
-        control.infoDialog("InputStream Adaptive ist nicht verfuegbar. Kodi intern wird genutzt.", icon="WARNING", time=4000)
+        control.infoDialog("InputStream Adaptive ist nicht verfügbar. Kodi intern wird genutzt.", icon="WARNING", time=4000)
         return
 
     if engine == PLAYBACK_ENGINE_FFMPEG_DIRECT:
         if _configure_ffmpeg_direct_stream(item):
             return
-        control.infoDialog("FFmpeg Direct ist nicht verfuegbar. Kodi intern wird genutzt.", icon="WARNING", time=4000)
+        control.infoDialog("FFmpeg Direct ist nicht verfügbar. Kodi intern wird genutzt.", icon="WARNING", time=4000)
         return
 
     if engine == PLAYBACK_ENGINE_AUTO and _configure_ffmpeg_direct_stream(item):
@@ -742,13 +1062,10 @@ def _addon_enabled(addon_id):
         })
         response = json.loads(xbmc.executeJSONRPC(payload))
         if response.get("error"):
-            return False
+            return _addon_available(addon_id)
         return bool(response.get("result", {}).get("addon", {}).get("enabled"))
     except Exception:
-        try:
-            return bool(xbmc.getCondVisibility("System.HasAddon(%s)" % addon_id))
-        except Exception:
-            return False
+        return _addon_available(addon_id)
 
 
 def _select_live_stream(channel, catalog):
@@ -1098,7 +1415,7 @@ def _visible_channels(channels):
 
 
 def _context_menu(channel, favorite_context=False):
-    check_entry = ("Senderliste auf Funktion pruefen", "RunPlugin(%s)" % _url({"action": "liveTVHealthCheck"}))
+    check_entry = ("Senderliste auf Funktion prüfen", "RunPlugin(%s)" % _url({"action": "liveTVHealthCheck"}))
     if favorite_context:
         return [
             ("Aus TV Favoriten entfernen", "RunPlugin(%s)" % _url({"action": "liveTVFavoriteRemove", "id": channel.get("id")})),

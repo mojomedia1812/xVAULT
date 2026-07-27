@@ -130,7 +130,27 @@ elif action == 'liveTVFavoriteRemove':
 
 elif action == 'liveTVPlay':
     from resources.lib import linear_tv
-    linear_tv.play(params.get('id'))
+    linear_tv.play(params.get('id'), pvr=params.get('pvr') == '1')
+
+elif action == 'liveTVPvrExport':
+    from resources.lib import linear_tv
+    linear_tv.export_pvr_files(interactive=True)
+    _finish_action()
+
+elif action == 'liveTVPvrPlaylist':
+    from resources.lib import linear_tv
+    linear_tv.export_pvr_playlist(params.get('output'))
+    _finish_action()
+
+elif action == 'liveTVPvrEpg':
+    from resources.lib import linear_tv
+    linear_tv.export_pvr_epg(params.get('output'))
+    _finish_action()
+
+elif action == 'liveTVPvrConfigure':
+    from resources.lib import linear_tv
+    linear_tv.configure_pvr_integration()
+    _finish_action()
 
 elif action == 'liveTVLiteNavigator':
     _track_menu('livetv_lite')

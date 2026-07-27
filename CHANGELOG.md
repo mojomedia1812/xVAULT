@@ -2,8 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.07.27.1] - 2026-07-27
+
 - Handbuch als GitHub-Pages-Wissensdatenbank erweitert: Menüs, Suche, Quellen, Wiedergabe, Sync, Trakt, LiveTV, Downloads, Werkzeuge, Einstellungen und Fehlerhilfe ausführlicher beschrieben.
 - Sichtbare GitHub-Pages-Texte und deutsch benannte Link-Events mit korrekten Umlauten vereinheitlicht.
+- Abhängigkeitsprüfung für direkte ZIP-Installationen stabilisiert: xVAULT installiert und aktiviert benötigte Laufzeitmodule nach dem ersten Start selbst.
+- Kodi-TV-Integration für LiveTV ergänzt: xVAULT erzeugt M3U- und XMLTV-Dateien und konfiguriert IPTV Simple automatisch, wenn das PVR-Modul verfügbar ist.
+- Handbuch um eine ausführliche Erststart-Anleitung für IPTV Simple erweitert.
 
 ## [2026.07.26.1] - 2026-07-26
 
