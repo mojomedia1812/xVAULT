@@ -53,6 +53,11 @@ LOG_TOKENS = (
     'xvault',
     'plugin.video.xvault',
     'plugin.video.xvaultalpha',
+    'plugin.video.themoviedb.helper',
+    'tmdbhelper',
+    'the movie db helper',
+    'x-directory/normal',
+    'plugin.video.xstream',
     '[ xvault debug ]',
     'resources.lib',
     'scrapers.scrapers_source',
@@ -143,6 +148,9 @@ def pluginInfo():
     ]
 
     lines.extend(_addon_info_lines('script.module.resolveurl', 'ResolveURL'))
+    lines.extend([''])
+    lines.extend(_addon_info_lines('plugin.video.themoviedb.helper', 'TMDbHelper'))
+    lines.extend(_tmdbhelper_status_lines())
     lines.extend([
         '',
         'aktiver DNS Nameserver1: %s' % getDNS('Network.DNS1Address'),
@@ -236,10 +244,13 @@ def _build_support_workspace(workspace, support_uuid, zip_name, created_at):
         'contains': [
             'Addon-/Kodi-/Python-Versionen',
             'relevante Abhaengigkeiten',
+            'TMDbHelper-Integrationsstatus inklusive xVAULT-Player-Datei',
             'redigierte Plugin-Einstellungen',
             'xVAULT-bezogene Kodi-Logzeilen',
+            'TMDbHelper- und alte xStream-bezogene Kodi-Logzeilen',
             'Dateiliste mit Groessen und SHA256 fuer Addon-Quelldateien',
             'Profil-Dateiliste ohne Datenbankinhalte',
+            'Dateistatus verwandter Addon-Profile ohne Inhalte',
         ],
         'excluded': [
             'Passwoerter, Tokens, API-Keys, Cookies',
@@ -248,6 +259,7 @@ def _build_support_workspace(workspace, support_uuid, zip_name, created_at):
             'lokale Datenbanken selbst',
             'Screenshots, Caches, Downloads',
             'vollstaendige Kodi-Systemlogs',
+            'vollstaendige TMDbHelper-/xStream-Profile',
         ],
     }
 
@@ -255,10 +267,12 @@ def _build_support_workspace(workspace, support_uuid, zip_name, created_at):
         'addon': _addon_context(),
         'system': _system_context(),
         'dependencies': _dependency_context(),
+        'integrations': _integration_context(),
     })
     _write_json(os.path.join(workspace, 'settings_redacted.json'), _settings_context())
     _write_json(os.path.join(workspace, 'addon_files.json'), _addon_files_context())
     _write_json(os.path.join(workspace, 'profile_files.json'), _profile_files_context())
+    _write_json(os.path.join(workspace, 'related_profile_files.json'), _related_profile_files_context())
     _write_text(os.path.join(workspace, 'recent_xvault_log.txt'), _recent_xvault_log())
 
     manifest['package_files'] = _workspace_file_summary(workspace)
@@ -305,6 +319,9 @@ def _dependency_context():
         'inputstream.adaptive',
         'inputstream.ffmpegdirect',
         'plugin.video.youtube',
+        'plugin.video.themoviedb.helper',
+        'plugin.video.xstream',
+        'repository.xvault',
     ]
     result = []
     for addon_id in addon_ids:
@@ -321,6 +338,38 @@ def _dependency_context():
                 pass
         result.append(item)
     return result
+
+
+def _integration_context():
+    return {
+        'tmdbhelper': _tmdbhelper_diagnostics(),
+    }
+
+
+def _tmdbhelper_diagnostics():
+    try:
+        from resources.lib import tmdbhelper_integration
+        data = tmdbhelper_integration.diagnostics()
+        if data.get('target_path'):
+            data['target_path'] = _redact_path(data.get('target_path'))
+        if data.get('legacy_target_path'):
+            data['legacy_target_path'] = _redact_path(data.get('legacy_target_path'))
+        return data
+    except Exception as exc:
+        return {'error': str(exc)}
+
+
+def _tmdbhelper_status_lines():
+    data = _tmdbhelper_diagnostics()
+    if data.get('error'):
+        return ['TMDbHelper Status: Fehler: %s' % data.get('error')]
+    return [
+        'TMDbHelper Status: %s' % data.get('state', 'unknown'),
+        'TMDbHelper aktiviert: %s' % data.get('enabled'),
+        'TMDbHelper Version: %s' % (data.get('version') or 'unbekannt'),
+        'xVAULT-Player vorhanden: %s' % data.get('target_exists'),
+        'xVAULT-Player aktuell: %s' % data.get('target_matches_source'),
+    ]
 
 
 def _settings_context():
@@ -396,6 +445,58 @@ def _profile_files_context():
             except Exception:
                 pass
     return {'files': sorted(result, key=lambda item: item['path'])}
+
+
+def _related_profile_files_context():
+    return {
+        'addons': [
+            _addon_profile_context('plugin.video.themoviedb.helper', include_dirs=('players', 'log_library', 'timer_report')),
+            _addon_profile_context('plugin.video.xstream', include_dirs=()),
+        ]
+    }
+
+
+def _addon_profile_context(addon_id, include_dirs=()):
+    base = os.path.abspath(translatePath('special://profile/addon_data/%s/' % addon_id))
+    item = {
+        'id': addon_id,
+        'profile_exists': os.path.isdir(base),
+        'profile_path': _redact_path(base),
+        'files': [],
+        'directories': {},
+    }
+    for directory in include_dirs:
+        item['directories'][directory] = os.path.isdir(os.path.join(base, directory))
+    if not os.path.isdir(base):
+        return item
+
+    result = []
+    for root, dirs, files in os.walk(base):
+        dirs[:] = [d for d in dirs if d.lower() not in ('cache', 'htmlcache', '__pycache__')]
+        rel_root = os.path.relpath(root, base).replace('\\', '/')
+        if include_dirs and rel_root != '.' and not any(
+            rel_root == directory or rel_root.startswith(directory.rstrip('/') + '/')
+            for directory in include_dirs
+        ):
+            dirs[:] = []
+            continue
+        for filename in files:
+            full_path = os.path.join(root, filename)
+            try:
+                rel = os.path.relpath(full_path, base).replace('\\', '/')
+                stat = os.stat(full_path)
+                result.append({
+                    'path': rel,
+                    'extension': os.path.splitext(filename)[1].lower(),
+                    'size': stat.st_size,
+                    'modified': int(stat.st_mtime),
+                    'content_included': False,
+                })
+            except Exception:
+                pass
+    item['files'] = sorted(result, key=lambda value: value['path'])[:300]
+    item['truncated'] = len(result) > 300
+    return item
 
 
 def _recent_xvault_log():

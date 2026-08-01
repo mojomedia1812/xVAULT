@@ -40,7 +40,7 @@ _RUNTIME_LAST_HEARTBEAT = 0
 
 
 def enabled():
-    return control.getSetting(SETTING_ENABLED, 'false') == 'true'
+    return control.getSetting(SETTING_ENABLED, 'true').lower() != 'false'
 
 
 def status_lines():

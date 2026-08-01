@@ -27,16 +27,10 @@ def apply_defaults_once():
 
 
 def apply_telemetry_default_once():
-    """Enable telemetry only for a genuinely fresh xVAULT profile."""
+    """Keep telemetry enabled by default while preserving a user opt-out."""
     try:
-        if control.getSetting(TELEMETRY_APPLIED_SETTING) == 'true':
-            return
-
-        if _profile_has_existing_state():
-            control.setSetting(id=TELEMETRY_APPLIED_SETTING, value='true')
-            return
-
-        control.setSetting(id=TELEMETRY_ENABLED_SETTING, value='true')
+        if control.getSetting(TELEMETRY_ENABLED_SETTING, 'true').lower() != 'false':
+            control.setSetting(id=TELEMETRY_ENABLED_SETTING, value='true')
         control.setSetting(id=TELEMETRY_APPLIED_SETTING, value='true')
     except Exception:
         pass

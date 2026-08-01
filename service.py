@@ -255,7 +255,7 @@ if __name__ == "__main__":
 		pass
 	try:
 		from resources.lib import tmdbhelper_integration
-		tmdbhelper_integration.ensure_player()
+		tmdbhelper_integration.ensure_player(retries=3, delay=2, log_unchanged=True)
 	except Exception:
 		pass
 	from resources.lib import updater

@@ -2,9 +2,26 @@
 
 ## [Unreleased]
 
+## [2026.08.01.2] - 2026-08-01
+
+- Erststart robuster gemacht: Fehler in Bootstrap-Nebentasks blockieren den Aufbau des xVAULT-Root-Menues nicht mehr.
+- TMDbHelper-Integration repariert die xVAULT-Player-Datei jetzt selbst, legt fehlende Player-Ordner an und prueft den Zielstatus.
+- Die stabile TMDbHelper-Player-Datei nutzt einen eigenen Dateinamen, damit parallel installierte Alpha-/Testversionen sie nicht ueberschreiben.
+- Supportpakete enthalten nun den TMDbHelper-Status, xVAULT-Player-Dateistatus und relevante TMDbHelper-/xStream-Logzeilen.
+
 ## [2026.08.01.1] - 2026-08-01
 
 - LiveTV bietet zusätzlich eine reine M3U/XMLTV-Erstellung an, ohne IPTV Simple automatisch zu installieren, zu aktivieren oder neu zu konfigurieren.
+
+## [2026.07.31.2] - 2026-07-31
+
+- Nutzungsstatistik ist standardmaessig aktiv und bleibt aktiv, solange der Nutzer sie nicht deaktiviert.
+- Eine bewusste Deaktivierung in den Einstellungen wird weiterhin respektiert.
+
+## [2026.07.31.1] - 2026-07-31
+
+- Einstellungsmenue neu strukturiert: Allgemein, Wiedergabe, Suche & Metadaten, Quellen & Scraper, Konten & Synchronisation, LiveTV, Downloads & Untertitel, Datenschutz & Statistik, Wartung & Support sowie Erweitert / Entwickler sind klarer getrennt.
+- Bestehende Setting-IDs bleiben erhalten, damit vorhandene Nutzerkonfigurationen weiterverwendet werden.
 
 ## [2026.07.27.2] - 2026-07-27
 

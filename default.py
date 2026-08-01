@@ -40,38 +40,62 @@ def _finish_action():
         pass
 
 
+def _log_startup_warning(message):
+    try:
+        from resources.lib import log_utils
+        log_utils.log('Startup task failed: %s' % message, log_utils.LOGWARNING)
+    except Exception:
+        pass
+
+
 if action is None or action == 'root':
-    from resources.lib import updater
-    if updater.automatic_updates_enabled():
-        from resources.lib import repository
-        repository.ensure_xvault_repository()
-        if not updater.check_for_update():
-            sys.exit()
+    try:
+        from resources.lib import updater
+        if updater.automatic_updates_enabled():
+            from resources.lib import repository
+            repository.ensure_xvault_repository()
+            if not updater.check_for_update():
+                _finish_action()
+                sys.exit()
+    except Exception as exc:
+        _log_startup_warning('update/bootstrap: %s' % str(exc))
     try:
         from resources.lib import first_install
         first_install.apply_defaults_once()
-    except Exception:
-        pass
+    except Exception as exc:
+        _log_startup_warning('first install defaults: %s' % str(exc))
     try:
         from resources.lib import tmdbhelper_integration
-        tmdbhelper_integration.ensure_player()
-    except Exception:
-        pass
-    from resources.lib import startup_info
-    startup_info.show_pending_startup_info()
+        tmdbhelper_integration.ensure_player(retries=2, delay=1)
+    except Exception as exc:
+        _log_startup_warning('tmdbhelper player: %s' % str(exc))
+    try:
+        from resources.lib import startup_info
+        startup_info.show_pending_startup_info()
+    except Exception as exc:
+        _log_startup_warning('startup info: %s' % str(exc))
     try:
         from resources.lib.sync import favorites_sync
         favorites_sync.check_and_push_if_changed(silent=True)
-    except Exception:
-        pass
+    except Exception as exc:
+        _log_startup_warning('favorites sync: %s' % str(exc))
     try:
         from resources.lib import linear_tv
         linear_tv.clear_session_health()
+    except Exception as exc:
+        _log_startup_warning('livetv session health: %s' % str(exc))
+    _track_menu('root')
+    try:
+        control.idle()
     except Exception:
         pass
-    _track_menu('root')
-    from resources.lib.indexers import navigator
-    navigator.navigator().root()
+    try:
+        from resources.lib.indexers import navigator
+        navigator.navigator().root()
+    except Exception as exc:
+        _log_startup_warning('root navigator: %s' % str(exc))
+        control.infoDialog('Startmenue konnte nicht geladen werden', icon='ERROR', time=4000)
+        _finish_action()
 
 elif action == 'pluginInfo':
     from resources.lib import supportinfo
