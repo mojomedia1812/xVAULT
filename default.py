@@ -137,6 +137,11 @@ elif action == 'liveTVPvrExport':
     linear_tv.export_pvr_files(interactive=True)
     _finish_action()
 
+elif action == 'liveTVPvrFiles':
+    from resources.lib import linear_tv
+    linear_tv.export_pvr_files_only(interactive=True)
+    _finish_action()
+
 elif action == 'liveTVPvrPlaylist':
     from resources.lib import linear_tv
     linear_tv.export_pvr_playlist(params.get('output'))

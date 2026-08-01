@@ -169,7 +169,8 @@ def show_home():
     handle = _handle()
     _add_folder(handle, "Senderliste aktualisieren", {"action": "liveTVRefresh"}, False)
     _add_folder(handle, "Senderliste auf Funktion prüfen", {"action": "liveTVHealthCheck"}, True, "Prüft alle aktuell sichtbaren Sender und blendet nicht erreichbare Sender bis zum nächsten xVAULT-Hauptstart aus.")
-    _add_folder(handle, "Kodi-TV Integration aktualisieren", {"action": "liveTVPvrExport"}, False, "Erzeugt lokale M3U- und XMLTV-Dateien für IPTV Simple oder IPTV Merge.")
+    _add_folder(handle, "M3U/XMLTV-Dateien erstellen", {"action": "liveTVPvrFiles"}, False, "Erzeugt nur die lokalen M3U- und XMLTV-Dateien, ohne IPTV Simple automatisch zu konfigurieren.")
+    _add_folder(handle, "Kodi-TV Integration aktualisieren", {"action": "liveTVPvrExport"}, False, "Erzeugt lokale M3U- und XMLTV-Dateien und richtet IPTV Simple automatisch ein, wenn das PVR-Modul verfügbar ist.")
     _add_folder(handle, "Favoriten", {"action": "liveTVFavorites"}, True, "Favoriten")
     _add_folder(handle, "Suche", {"action": "liveTVSearch"}, True, "Suche")
     _add_folder(handle, "Alle Sender", {"action": "liveTVCategory", "category": "Alle Sender"}, True, "Alle Sender")
@@ -396,18 +397,23 @@ def play(channel_id, pvr=False):
     control.resolveUrl(_handle(), True, item)
 
 
-def export_pvr_files(interactive=False):
+def export_pvr_files(interactive=False, configure=True):
     playlist_path = export_pvr_playlist()
     epg_path = export_pvr_epg()
-    pvr_ready = _configure_iptv_simple(playlist_path, epg_path)
+    pvr_ready = _configure_iptv_simple(playlist_path, epg_path) if configure else False
     if interactive:
-        pvr_text = (
-            "IPTV Simple wurde installiert/aktiviert und auf xVAULT konfiguriert."
-            if pvr_ready else
-            "IPTV Simple ist noch nicht verfügbar. Kodi kann die erzeugten Dateien trotzdem manuell verwenden."
-        )
+        if configure:
+            pvr_text = (
+                "IPTV Simple wurde installiert/aktiviert und auf xVAULT konfiguriert."
+                if pvr_ready else
+                "IPTV Simple ist noch nicht verfügbar. Kodi kann die erzeugten Dateien trotzdem manuell verwenden."
+            )
+            title = "Kodi-TV Integration"
+        else:
+            pvr_text = "IPTV Simple wurde nicht verändert. Die Dateien können manuell in IPTV Simple, IPTV Merge oder einer anderen PVR-Lösung verwendet werden."
+            title = "M3U/XMLTV-Dateien"
         control.dialog.ok(
-            "Kodi-TV Integration",
+            title,
             "Die lokalen PVR-Dateien wurden aktualisiert:\n\n"
             "M3U:\n%s\n\n"
             "XMLTV:\n%s\n\n"
@@ -416,6 +422,10 @@ def export_pvr_files(interactive=False):
             % (playlist_path, epg_path, pvr_text),
         )
     return playlist_path, epg_path, pvr_ready
+
+
+def export_pvr_files_only(interactive=True):
+    return export_pvr_files(interactive=interactive, configure=False)
 
 
 def configure_pvr_integration():

@@ -1,3 +1,8 @@
+xVAULT 2026.08.01.1
+Entwickler: mojomedia1812
+
+- LiveTV bietet zusätzlich eine reine M3U/XMLTV-Erstellung an, ohne IPTV Simple automatisch zu installieren, zu aktivieren oder neu zu konfigurieren.
+
 xVAULT 2026.07.27.2
 Entwickler: mojomedia1812
 

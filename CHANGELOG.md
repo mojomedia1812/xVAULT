@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [2026.08.01.1] - 2026-08-01
+
+- LiveTV bietet zusätzlich eine reine M3U/XMLTV-Erstellung an, ohne IPTV Simple automatisch zu installieren, zu aktivieren oder neu zu konfigurieren.
+
 ## [2026.07.27.2] - 2026-07-27
 
 - VIXSTREAM prüft HLS-Audiospuren vor der Quellenanzeige und blendet falsch als Deutsch erkannte Vixcloud-Treffer aus, wenn Deutsch nur als Untertitel vorhanden ist.
