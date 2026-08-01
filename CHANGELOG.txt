@@ -1,3 +1,8 @@
+xVAULT 2026.08.01.3
+Entwickler: mojomedia1812
+
+- Versionsnummer angehoben, damit Kodi das neu strukturierte Einstellungsmenue als Update erkennt.
+
 xVAULT 2026.08.01.2
 Entwickler: mojomedia1812
 
