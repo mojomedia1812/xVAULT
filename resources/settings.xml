@@ -1,172 +1,137 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
-    <category label="Allgemein">
-        <setting label="Standard-Aktion ändern" type="action" action="RunPlugin(&quot;plugin://plugin.video.xvault/?action=setPlaybackMode&quot;)" />
-        <setting id="updates.auto" type="bool" label="Automatische Updates aktivieren" default="true" />
-        <setting id="fanart" type="bool" label="Fanart verwenden" default="true" />
-    </category>
-    <category label="Wiedergabe">
+    <category label="Schnellstart">
+        <setting label="Standard-Aktion für Streams wählen" type="action" action="RunPlugin(&quot;plugin://plugin.video.xvault/?action=setPlaybackMode&quot;)" />
         <setting id="progress.dialog" type="enum" label="Fortschrittsdialog" values="Vordergrund|Hintergrund" default="1" />
-        <setting type="lsep" label="Dateinanbieter-Filter" />
+        <setting id="fanart" type="bool" label="Fanart verwenden" default="true" />
+        <setting id="updates.auto" type="bool" label="Automatische Updates aktivieren" default="true" />
+    </category>
+
+    <category label="Wiedergabe">
+        <setting type="lsep" label="Fortsetzen" />
+        <setting id="bookmarks" type="bool" label="Wiedergabeposition speichern" default="true" />
+        <setting id="bookmarks.auto" type="bool" label="Automatisch an letzter Position fortsetzen" default="true" enable="!eq(-1,false)" />
+        <setting type="lsep" label="Gesehen-Status" />
+        <setting type="text" label="[COLOR blue]Auf leistungsschwachen Geräten kann die Statusanzeige etwas mehr Zeit benötigen.[/COLOR]" />
+        <setting id="status.refresh.movies" type="bool" label="Filme: Gesehen-Status aktualisieren" default="true" />
+        <setting id="status.refresh.episodes" type="bool" label="Episoden: Gesehen-Status aktualisieren" default="true" />
+        <setting id="status.position" type="bool" label="Serien: erste ungesehene Folge automatisch auswählen" default="true" />
+        <setting id="status.refresh" type="text" label="Status aktualisieren (intern)" default="" visible="false" />
+    </category>
+
+    <category label="Suche &amp; Quellen">
+        <setting type="lsep" label="Quellensuche" />
+        <setting id="scrapers.timeout" type="slider" label="Zeitlimit für Indexseiten in Sekunden" default="35" range="10,60" option="int" />
+        <setting id="search.doku" type="bool" label="Auch nach Dokumentationen suchen" default="false" />
+        <setting id="hosts.sort.priority" type="bool" label="Serienquellen nach Priorität sortieren" default="true" />
+        <setting id="hosts.sort.provider" type="bool" label="Quellen nach Anbieter sortieren" default="true" />
+        <setting id="hosts.refresh" type="text" label="Quellenstatus aktualisieren (intern)" default="" visible="true" />
+        <setting type="lsep" label="Qualität &amp; Trefferliste" />
         <setting id="hosts.quality" type="enum" label="Höchste Qualität" values="4K|1440p|1080p|720p|480p" default="0" />
-        <setting id="hosts.sort.priority" type="bool" label="Indexseiten bei Serien nach Priorität sortieren" default="true" />
-        <setting id="hosts.sort.provider" type="bool" label="Indexseiten nach Anbieter sortieren" default="true" />
-        <setting id="hosts.refresh" type="text" label="Status aktualisieren (refresh)" default="" visible="true" />
-        <setting id="hosts.limit" type="bool" label="Limit Hosteranzahl" default="False" />
-        <setting id="hosts.limit.num" type="slider" label="Liste begrenzen auf:" default="15" range="5,50" option="int" visible="eq(-1,true)" />
-        <setting id="hosts.filter" type="text" label="Hoster ausschließen (Liste)" default="" />
-        <setting type="lsep" label="Stream-Sprache fuer Filme &amp; Serien" />
+        <setting id="hosts.limit" type="bool" label="Trefferliste begrenzen" default="false" />
+        <setting id="hosts.limit.num" type="slider" label="Maximale Trefferanzahl" default="15" range="5,50" option="int" visible="eq(-1,true)" />
+        <setting id="hosts.filter" type="text" label="Hoster ausschließen (Komma-Liste)" default="" />
+        <setting type="lsep" label="Sprache" />
         <setting id="hosts.language" type="enum" label="Bevorzugte Stream-Sprache" values="Alle|Deutsch|Englisch|Mehrsprachig" default="0" />
-        <setting id="hosts.language.mode" type="enum" label="Sprachfilter-Modus" values="Sprache bevorzugen|Nur passende Sprache anzeigen" default="0" />
+        <setting id="hosts.language.mode" type="enum" label="Sprachfilter" values="Sprache bevorzugen|Nur passende Sprache anzeigen" default="0" />
         <setting id="hosts.language.unknown" type="bool" label="Streams mit unbekannter Sprache anzeigen" default="true" />
         <setting id="hosts.language.multi" type="bool" label="Mehrsprachige Streams bei Deutsch/Englisch erlauben" default="true" />
-        <setting type="lsep" label="Bei Wiedergabe-Start..." />
-        <setting id="bookmarks" type="bool" label="Fortsetzen" default="true" />
-        <setting id="bookmarks.auto" type="bool" label="Automatisch Fortsetzen" default="true" enable="!eq(-1,false)" />
-        <setting type="lsep" label="Status - gesehen / ungesehen" />
-        <setting type="text" label="[COLOR blue]Auf leistungsschwachen Geräten benötigt diese [CR]Komfortfunktion etwas mehr Zeit![/COLOR]" />
-        <setting id="status.refresh" type="text" label="Status aktualisieren (refresh)" default="" visible="false" />
-        <setting id="status.refresh.movies" type="bool" label="Filme - Status aktualisieren (refresh)" default="true" />
-        <setting id="status.refresh.episodes" type="bool" label="Episoden - Status aktualisieren (refresh)" default="true" />
-        <setting id="status.position" type="bool" label="Status - Bei Serien die erste ungesehene Folge auswählen" default="true" />
-    </category>
-    <category label="Suche &amp; Metadaten">
-        <setting id="scrapers.timeout" type="slider" label="Zeitlimit für Indexseiten" default="35" range="10,60" option="int" />
-        <setting id="search.doku" type="bool" label="Auch nach Dokumentationen suchen" default="false" />
-        <setting type="lsep" label="TMDb" />
-        <setting id="api.tmdb" type="text" option="hidden" label="API-Key" default="0b529d296545c2545a68db5cb903cd94" />
-        <setting type="lsep" label="FANART.TV" />
-        <setting id="api.fanart.tv" type="text" label="API-Key" option="hidden" default="e376e8591e1580089d93ab4135fcc082" />
-        <setting id="trakt.aliases.enabled" type="bool" label="Alias-Suche ueber Trakt aktivieren" default="true" />
+        <setting type="lsep" label="Alias-Suche" />
+        <setting id="trakt.aliases.enabled" type="bool" label="Alias-Suche über Trakt aktivieren" default="true" />
         <setting id="trakt.alias.timeout" type="slider" label="Alias-Timeout in Sekunden" default="5" range="1,1,20" option="int" />
         <setting id="trakt.alias.cache.hours" type="slider" label="Alias-Cache in Stunden" default="168" range="1,1,720" option="int" />
     </category>
-    <category label="Quellen &amp; Scraper 1 (DE)">
-        <setting type="text" label="[COLOR blue]ACHTUNG:  Die folgenden Optionen werden sofort[/COLOR]" />
-        <setting type="text" label="[COLOR blue]und für [B]alle[/B] Indexseiten ausgeführt![/COLOR]" />
-        <setting type="sep" />
+
+    <category label="Quellen verwalten">
+        <setting type="text" label="[COLOR blue]Diese Optionen wirken sofort auf die Quellensuche.[/COLOR]" />
         <setting label="Alle Quellen aktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=toggleGerman&amp;setting=true)" option="" />
         <setting label="Alle Quellen deaktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=toggleGerman&amp;setting=false)" option="" />
-        <setting type="sep" />
-        <setting id="provider.einschalten" type="bool" label="EINSCHALTEN   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.einschalten.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.einschalten.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.filmpalast" type="bool" label="FILMPALAST   |  [B][COLOR blue] Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.filmpalast.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.filmpalast.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.filmpro" type="bool" label="FILMPRO   |  [B][COLOR blue] Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.filmpro.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.filmpro.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.hdfilme" type="bool" label="HDFILME   |  [B][COLOR blue] Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.hdfilme.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.hdfilme.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.fhdfilme" type="bool" label="FHDFILME   |  [B][COLOR blue] Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.fhdfilme.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.fhdfilme.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.huhu" type="bool" label="HUHU  |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.huhu.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.huhu.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.kinoger" type="bool" label="KINOGER   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.kinoger.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.kinoger.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.kinokiste" type="bool" label="KINOKISTE   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.kinokiste.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.kinokiste.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.kinox" type="bool" label="KINOX   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.kinox.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.kinox.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.kkiste" type="bool" label="KKISTE   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.kkiste.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.kkiste.check" label="Check" type="bool" default="true" visible="false" />
-        <setting id="provider.kkiste.checkHoster" type="bool" label="Streams auf Verfügbarkeit überprüfen (langsamer)" default="true" visible="eq(-2,true)" />
+
+        <setting type="lsep" label="Filme &amp; Serien" />
+        <setting id="provider.einschalten" type="bool" label="Einschalten" default="true" />
+        <setting id="provider.einschalten.domain" label="[B][COLOR red]Einschalten: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.einschalten.check" label="Einschalten Check" type="bool" default="true" visible="false" />
+        <setting id="provider.filmpalast" type="bool" label="Filmpalast" default="true" />
+        <setting id="provider.filmpalast.domain" label="[B][COLOR red]Filmpalast: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.filmpalast.check" label="Filmpalast Check" type="bool" default="true" visible="false" />
+        <setting id="provider.filmpro" type="bool" label="Filmpro" default="true" />
+        <setting id="provider.filmpro.domain" label="[B][COLOR red]Filmpro: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.filmpro.check" label="Filmpro Check" type="bool" default="true" visible="false" />
+        <setting id="provider.hdfilme" type="bool" label="HDFilme" default="true" />
+        <setting id="provider.hdfilme.domain" label="[B][COLOR red]HDFilme: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.hdfilme.check" label="HDFilme Check" type="bool" default="true" visible="false" />
+        <setting id="provider.fhdfilme" type="bool" label="FHD Filme" default="true" />
+        <setting id="provider.fhdfilme.domain" label="[B][COLOR red]FHD Filme: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.fhdfilme.check" label="FHD Filme Check" type="bool" default="true" visible="false" />
+        <setting id="provider.huhu" type="bool" label="Huhu" default="true" />
+        <setting id="provider.huhu.domain" label="[B][COLOR red]Huhu: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.huhu.check" label="Huhu Check" type="bool" default="true" visible="false" />
+        <setting id="provider.kinoger" type="bool" label="KinoGer" default="true" />
+        <setting id="provider.kinoger.domain" label="[B][COLOR red]KinoGer: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.kinoger.check" label="KinoGer Check" type="bool" default="true" visible="false" />
+        <setting id="provider.kinokiste" type="bool" label="Kinokiste" default="true" />
+        <setting id="provider.kinokiste.domain" label="[B][COLOR red]Kinokiste: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.kinokiste.check" label="Kinokiste Check" type="bool" default="true" visible="false" />
+        <setting id="provider.kinox" type="bool" label="Kinox" default="true" />
+        <setting id="provider.kinox.domain" label="[B][COLOR red]Kinox: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.kinox.check" label="Kinox Check" type="bool" default="true" visible="false" />
+        <setting id="provider.kkiste" type="bool" label="KKiste" default="true" />
+        <setting id="provider.kkiste.checkHoster" type="bool" label="KKiste: Streams auf Verfügbarkeit prüfen (langsamer)" default="true" enable="!eq(-1,false)" />
+        <setting id="provider.kkiste.domain" label="[B][COLOR red]KKiste: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.kkiste.check" label="KKiste Check" type="bool" default="true" visible="false" />
+        <setting id="provider.megakino" type="bool" label="Megakino" default="true" />
+        <setting id="provider.megakino.domain" label="[B][COLOR red]Megakino: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.megakino.check" label="Megakino Check" type="bool" default="true" visible="false" />
+        <setting id="provider.movie2k" type="bool" label="Movie2k" default="true" />
+        <setting id="provider.movie2k.domain" label="[B][COLOR red]Movie2k: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.movie2k.check" label="Movie2k Check" type="bool" default="true" visible="false" />
+        <setting id="provider.movie2k2" type="bool" label="Movie2k2" default="true" />
+        <setting id="provider.movie2k2.domain" label="[B][COLOR red]Movie2k2: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.movie2k2.check" label="Movie2k2 Check" type="bool" default="true" visible="false" />
+        <setting id="provider.movie4k" type="bool" label="Movie4k" default="true" />
+        <setting id="provider.movie4k.checkHoster" type="bool" label="Movie4k: Streams auf Verfügbarkeit prüfen" default="true" enable="!eq(-1,false)" />
+        <setting id="provider.movie4k.domain" label="[B][COLOR red]Movie4k: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.movie4k.check" label="Movie4k Check" type="bool" default="true" visible="false" />
+        <setting id="provider.nox" type="bool" label="Nox" default="true" />
+        <setting id="provider.nox.domain" label="[B][COLOR red]Nox: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.nox.check" label="Nox Check" type="bool" default="true" visible="false" />
+        <setting id="provider.streamcloud" type="bool" label="Streamcloud" default="true" />
+        <setting id="provider.streamcloud.domain" label="[B][COLOR red]Streamcloud: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.streamcloud.check" label="Streamcloud Check" type="bool" default="true" visible="false" />
+        <setting id="provider.streamcloudforum" type="bool" label="Streamcloud Forum" default="true" />
+        <setting id="provider.streamcloudforum.domain" label="[B][COLOR red]Streamcloud Forum: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.streamcloudforum.check" label="Streamcloud Forum Check" type="bool" default="true" visible="false" />
+        <setting id="provider.topstreamfilm" type="bool" label="Topstreamfilm" default="true" />
+        <setting id="provider.topstreamfilm.domain" label="[B][COLOR red]Topstreamfilm: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.topstreamfilm.check" label="Topstreamfilm Check" type="bool" default="true" visible="false" />
+        <setting id="provider.vixstream" type="bool" label="Vixstream" default="true" />
+        <setting id="provider.vixstream.domain" label="[B][COLOR red]Vixstream: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.vixstream.check" label="Vixstream Check" type="bool" default="true" visible="false" />
+
+        <setting type="lsep" label="Nur Filme" />
+        <setting id="provider.cineto" type="bool" label="Cine.to" default="true" />
+        <setting id="provider.cineto.domain" label="[B][COLOR red]Cine.to: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.cineto.check" label="Cine.to Check" type="bool" default="true" visible="false" />
+        <setting id="provider.filmfans" type="bool" label="Filmfans" default="true" />
+        <setting id="provider.filmfans.domain" label="[B][COLOR red]Filmfans: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.filmfans.check" label="Filmfans Check" type="bool" default="true" visible="false" />
+        <setting id="provider.netzkino" type="bool" label="Netzkino" default="false" />
+        <setting id="provider.netzkino.domain" label="[B][COLOR red]Netzkino: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.netzkino.check" label="Netzkino Check" type="bool" default="true" visible="false" />
+
+        <setting type="lsep" label="Nur Serien" />
+        <setting id="provider.bsto" type="bool" label="BS.to" default="true" />
+        <setting id="provider.bsto.domain" label="[B][COLOR red]BS.to: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.bsto.check" label="BS.to Check" type="bool" default="true" visible="false" />
+        <setting id="provider.serienstream" type="bool" label="SerienStream.to" default="true" />
+        <setting id="provider.serienstream.domain" label="[B][COLOR red]SerienStream.to: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.serienstream.check" label="SerienStream.to Check" type="bool" default="true" visible="false" />
+        <setting id="provider.serienfans" type="bool" label="Serienfans" default="true" />
+        <setting id="provider.serienfans.domain" label="[B][COLOR red]Serienfans: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.serienfans.check" label="Serienfans Check" type="bool" default="true" visible="false" />
     </category>
-    <category label="Quellen &amp; Scraper 2 (DE)">
-        <setting type="text" label="[COLOR blue]ACHTUNG:  Die folgenden Optionen werden sofort[/COLOR]" />
-        <setting type="text" label="[COLOR blue]und für [B]alle[/B] Indexseiten ausgeführt![/COLOR]" />
-        <setting type="sep" />
-        <setting label="Alle Quellen aktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=toggleGerman&amp;setting=true)" option="" />
-        <setting label="Alle Quellen deaktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=toggleGerman&amp;setting=false)" option="" />
-        <setting type="sep" />
-        <setting id="provider.megakino" type="bool" label="MEGAKINO   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.megakino.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.megakino.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.movie2k" type="bool" label="MOVIE2k   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.movie2k.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.movie2k.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.movie2k2" type="bool" label="MOVIE2k2   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.movie2k2.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.movie2k2.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.movie4k" type="bool" label="MOVIE4k   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.movie4k.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.movie4k.check" label="Check" type="bool" default="true" visible="false" />
-        <setting id="provider.movie4k.checkHoster" type="bool" label="Streams auf Verfügbarkeit überprüfen" default="true" visible="eq(-2,true)" />
-        <setting type="sep" />
-        <setting id="provider.netzkino" type="bool" label="NETZKINO   |   [B][COLOR red]Filme[/COLOR][/B]" default="false" />
-        <setting id="provider.netzkino.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.netzkino.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.bsto" type="bool" label="BS.TO   |   [B][COLOR green]Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.bsto.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.bsto.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.serienstream" type="bool" label="SERIENSTREAM   |   [B][COLOR green]Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.serienstream.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.serienstream.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.streamcloud" type="bool" label="STREAMCLOUD   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.streamcloud.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.streamcloud.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.topstreamfilm" type="bool" label="TOPSTREAMFILM   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.topstreamfilm.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.topstreamfilm.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.vixstream" type="bool" label="VIXSTREAM   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.vixstream.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.vixstream.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-    </category>
-    <category label="Quellen &amp; Scraper 3 (DE)">
-        <setting type="text" label="[COLOR blue]ACHTUNG:  Die folgenden Optionen werden sofort[/COLOR]" />
-        <setting type="text" label="[COLOR blue]und für [B]alle[/B] Indexseiten ausgeführt![/COLOR]" />
-        <setting type="sep" />
-        <setting label="Alle Quellen aktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=toggleGerman&amp;setting=true)" option="" />
-        <setting label="Alle Quellen deaktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=toggleGerman&amp;setting=false)" option="" />
-        <setting type="sep" />
-        <setting id="provider.cineto" type="bool" label="CINE.TO   |   [B][COLOR red]Filme[/COLOR][/B]" default="true" />
-        <setting id="provider.cineto.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.cineto.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.filmfans" type="bool" label="FILMFANS   |   [B][COLOR red]Filme[/COLOR][/B]" default="true" />
-        <setting id="provider.filmfans.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.filmfans.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.nox" type="bool" label="NOX   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.nox.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.nox.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.serienfans" type="bool" label="SERIENFANS   |   [B][COLOR green]Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.serienfans.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.serienfans.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-        <setting id="provider.streamcloudforum" type="bool" label="STREAMCLOUD.FORUM   |   [B][COLOR blue]Filme &amp; Serien[/COLOR][/B]" default="true" />
-        <setting id="provider.streamcloudforum.domain" label="[B][COLOR red]PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.streamcloudforum.check" label="Check" type="bool" default="true" visible="false" />
-        <setting type="sep" />
-    </category>
-    <category label="Konten &amp; Synchronisation">
+
+    <category label="Konten &amp; Sync">
         <setting type="lsep" label="xVAULT Synchronisation" />
         <setting id="sync.enabled" type="bool" label="Synchronisation aktivieren" default="false" />
         <setting id="sync.email" type="text" label="E-Mail-Adresse" default="" />
@@ -184,93 +149,110 @@
         <setting id="sync.logged_in" type="bool" label="Angemeldet" default="false" visible="false" />
         <setting id="sync.device_id" type="text" label="Geräte-ID" default="" visible="false" />
         <setting id="sync.last_favorites_hash" type="text" label="Favoriten-Hash" default="" visible="false" />
-        <setting type="sep" />
-        <setting type="lsep" label="Konto [B]BS.to[/B]" />
-        <setting id="bsto.user" type="text" label="Username" default="" />
-        <setting id="bsto.pass" type="text" option="hidden" label="Password" default="" />
-        <setting type="sep" />
-        <setting type="lsep" label="Konto [B]SerienStream.to[/B]" />
-        <setting id="serienstream.user" type="text" label="Email" default="" />
-        <setting id="serienstream.pass" type="text" option="hidden" label="Password" default="" />
-        <setting type="lsep" label="Konto [B]FlimmerStube.com[/B]" />
-        <setting id="flimmerstube.user" type="text" label="Email" default="" />
-        <setting id="flimmerstube.pass" type="text" option="hidden" label="Password" default="" />
-        <setting type="lsep" label="Konto [B]Aniworld.io[/B]" />
-        <setting id="aniworld.user" type="text" label="Email" default="" />
-        <setting id="aniworld.pass" type="text" option="hidden" label="Password" default="" />
-        <setting type="lsep" label="TRAKT" />
-        <setting type="text" label="[COLOR blue]Trakt verbindet xVAULT per Geräte-Code-OAuth.[CR]Du brauchst keine API-Keys einzutragen.[/COLOR]" />
+    </category>
+
+    <category label="Trakt">
+        <setting type="text" label="[COLOR blue]Trakt verbindet xVAULT per Geräte-Code-OAuth. Du brauchst keine API-Keys einzutragen.[/COLOR]" />
         <setting id="trakt.enabled" type="bool" label="Trakt-Konto verwenden" default="false" />
-        <setting id="trakt.sync.watched" type="bool" label="Gesehen-Status mit Trakt synchronisieren" default="false" />
-        <setting id="trakt.scrobble.enabled" type="bool" label="Wiedergabe an Trakt scrobbeln" default="false" />
-        <setting id="trakt.watchlist.menu" type="bool" label="Trakt-Watchlist im Menue anzeigen" default="true" />
-        <setting id="trakt.collection.menu" type="bool" label="Trakt-Collection im Menue anzeigen" default="true" />
-        <setting id="trakt.ratings.enabled" type="bool" label="Trakt-Bewertungen im Kontextmenue anzeigen" default="false" />
+        <setting id="trakt.status" type="text" label="Trakt-Status" default="Nicht verbunden" enable="false" />
+        <setting id="trakt.last_sync_at" type="text" label="Letzter Trakt-Sync" default="" enable="false" />
         <setting label="Trakt verbinden" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=traktAuthorize)" />
         <setting label="Trakt jetzt synchronisieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=traktSyncNow)" />
         <setting label="Trakt-Gesehen importieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=traktImportWatched)" />
         <setting label="Lokalen Gesehen-Status zu Trakt senden" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=traktExportWatched)" />
         <setting label="Trakt-Status anzeigen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=traktStatus)" />
         <setting label="Trakt trennen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=traktLogout)" />
-        <setting id="trakt.status" type="text" label="Trakt-Status" default="Nicht verbunden" enable="false" />
-        <setting id="trakt.last_sync_at" type="text" label="Letzter Trakt-Sync" default="" enable="false" />
+        <setting type="lsep" label="Trakt-Funktionen" />
+        <setting id="trakt.sync.watched" type="bool" label="Gesehen-Status mit Trakt synchronisieren" default="false" />
+        <setting id="trakt.scrobble.enabled" type="bool" label="Wiedergabe an Trakt scrobbeln" default="false" />
+        <setting id="trakt.watchlist.menu" type="bool" label="Watchlist im Menü anzeigen" default="true" />
+        <setting id="trakt.collection.menu" type="bool" label="Collection im Menü anzeigen" default="true" />
+        <setting id="trakt.ratings.enabled" type="bool" label="Bewertungen im Kontextmenü anzeigen" default="false" />
         <setting id="trakt.username" type="text" label="Trakt-Benutzer" default="" visible="false" />
         <setting id="trakt.access_token" type="text" option="hidden" label="Trakt Access Token" default="" visible="false" />
         <setting id="trakt.refresh_token" type="text" option="hidden" label="Trakt Refresh Token" default="" visible="false" />
         <setting id="trakt.token_expires_at" type="text" label="Trakt Token Ablauf" default="" visible="false" />
     </category>
-    <category label="LiveTV">
-        <setting id="livetv.enabled" type="bool" label="LiveTV aktivieren" default="true" />
-        <setting id="livetv.cache.hours" type="slider" label="Senderliste zwischenspeichern (Stunden)" default="1" range="1,1,24" option="int" enable="!eq(-1,false)" />
-        <setting id="livetv.show.special" type="bool" label="Backup- und Event-Sender anzeigen" default="true" enable="!eq(-2,false)" />
-        <setting id="livetv.playback.engine" type="enum" label="LiveTV-Wiedergabe-Engine" values="Automatisch|Kodi intern|FFmpeg Direct|InputStream Adaptive" default="0" enable="!eq(-3,false)" />
-        <setting id="livetv.preflight" type="bool" label="Streamsegmente vor dem Start pruefen" default="true" enable="!eq(-4,false)" />
-        <setting type="lsep" label="Stream-Puffer" />
-        <setting id="livetv.buffer.mb" type="slider" label="LiveTV-Puffergroesse (MB, 0 = Kodi-Standard)" default="0" range="0,5,200" option="int" />
-        <setting type="lsep" label="Elektronischer Programmfuehrer" />
+
+    <category label="Anbieter-Logins">
+        <setting type="lsep" label="BS.to" />
+        <setting id="bsto.user" type="text" label="Benutzername" default="" />
+        <setting id="bsto.pass" type="text" option="hidden" label="Passwort" default="" />
+        <setting type="lsep" label="SerienStream.to" />
+        <setting id="serienstream.user" type="text" label="E-Mail" default="" />
+        <setting id="serienstream.pass" type="text" option="hidden" label="Passwort" default="" />
+        <setting type="lsep" label="FlimmerStube.com" />
+        <setting id="flimmerstube.user" type="text" label="E-Mail" default="" />
+        <setting id="flimmerstube.pass" type="text" option="hidden" label="Passwort" default="" />
+        <setting type="lsep" label="Aniworld.io" />
+        <setting id="aniworld.user" type="text" label="E-Mail" default="" />
+        <setting id="aniworld.pass" type="text" option="hidden" label="Passwort" default="" />
+        <setting type="lsep" label="OpenSubtitles.org" />
+        <setting id="subtitles.os_user" type="text" label="Benutzername" default="" />
+        <setting id="subtitles.os_pass" type="text" option="hidden" label="Passwort" default="" />
+    </category>
+
+    <category label="Live-TV">
+        <setting id="livetv.enabled" type="bool" label="Live-TV aktivieren" default="true" />
+        <setting id="livetv.show.special" type="bool" label="Backup- und Event-Sender anzeigen" default="true" />
+        <setting type="text" label="[COLOR blue]LiveTV Lite bleibt im Hauptmenü verfügbar.[/COLOR]" />
+        <setting type="lsep" label="Wiedergabe" />
+        <setting id="livetv.playback.engine" type="enum" label="Wiedergabe-Engine" values="Automatisch|Kodi intern|FFmpeg Direct|InputStream Adaptive" default="0" />
+        <setting id="livetv.preflight" type="bool" label="Streamsegmente vor dem Start prüfen" default="true" />
+        <setting id="livetv.buffer.mb" type="slider" label="Puffergröße (MB, 0 = Kodi-Standard)" default="0" range="0,5,200" option="int" />
+        <setting type="lsep" label="Cache &amp; EPG" />
+        <setting id="livetv.cache.hours" type="slider" label="Senderliste zwischenspeichern (Stunden)" default="1" range="1,1,24" option="int" />
         <setting id="livetv.epg.enabled" type="bool" label="EPG vor Wiedergabe anzeigen" default="true" />
-        <setting id="livetv.epg.dialog" type="bool" label="EPG als bestaetigten Dialog anzeigen" default="false" />
+        <setting id="livetv.epg.dialog" type="bool" label="EPG als bestätigten Dialog anzeigen" default="false" />
         <setting id="livetv.epg.cache.hours" type="slider" label="EPG zwischenspeichern (Stunden)" default="6" range="1,1,24" option="int" />
     </category>
-    <category label="Downloads &amp; Untertitel">
-        <setting id="downloads" type="bool" label="Herunterladen aktivieren" default="false" />
-        <setting type="lsep" label="Bitte Ordnerpfade eingeben" />
-        <setting label="[COLOR blue]Hier Hilfe zum Syntax für den Ordnerpfad[/COLOR]" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=downloadInfo)" option="" />
-        <setting id="download.movie.path" type="text" label="Filme" enable="!eq(-3,false)" default="" />
-        <setting id="download.tv.path" type="text" label="TV-Serien" enable="!eq(-4,false)" default="" />
-        <setting type="lsep" label="[CR]" />
-        <setting type="sep" />
+
+    <category label="Downloads">
+        <setting id="downloads" type="bool" label="Downloads aktivieren" default="false" />
+        <setting id="download.movie.path" type="text" label="Download-Ordner für Filme" enable="!eq(-1,false)" default="" />
+        <setting id="download.tv.path" type="text" label="Download-Ordner für TV-Serien" enable="!eq(-2,false)" default="" />
+        <setting label="Hilfe zum Ordnerpfad anzeigen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=downloadInfo)" option="" />
+    </category>
+
+    <category label="Untertitel">
         <setting id="subtitles" type="bool" label="Untertitel aktivieren" default="false" />
-        <setting type="text" label="[COLOR blue]Konto auf [B]opensubtitles.org[/B] einrichten und[CR]die Zugandsdaten unter Einstellungen / Konten eintragen![CR][/COLOR]" visible="!eq(-1,false)" />
-        <setting type="lsep" label="Konto [B]opensubtitles.org[/B]" />
-        <setting id="subtitles.os_user" type="text" label="UserName" default="" />
-        <setting id="subtitles.os_pass" type="text" option="hidden" label="Password" default="" />
-        <setting type="sep" />
-        <setting id="subtitles.lang.1" type="select" label="Hauptsprache" values="Afrikaans|Albanian|Arabic|Armenian|Basque|Bengali|Bosnian|Breton|Bulgarian|Burmese|Catalan|Chinese|Croatian|Czech|Danish|Dutch|English|Esperanto|Estonian|Finnish|French|Galician|Georgian|German|Greek|Hebrew|Hindi|Hungarian|Icelandic|Indonesian|Italian|Japanese|Kazakh|Khmer|Korean|Latvian|Lithuanian|Luxembourgish|Macedonian|Malay|Malayalam|Manipuri|Mongolian|Montenegrin|Norwegian|Occitan|Persian|Polish|Portuguese|Portuguese(Brazil)|Romanian|Russian|Serbian|Sinhalese|Slovak|Slovenian|Spanish|Swahili|Swedish|Syriac|Tagalog|Tamil|Telugu|Thai|Turkish|Ukrainian|Urdu" enable="!eq(-3,false)" default="German" />
-        <setting id="subtitles.lang.2" type="select" label="Zweitsprache" values="Afrikaans|Albanian|Arabic|Armenian|Basque|Bengali|Bosnian|Breton|Bulgarian|Burmese|Catalan|Chinese|Croatian|Czech|Danish|Dutch|English|Esperanto|Estonian|Finnish|French|Galician|Georgian|German|Greek|Hebrew|Hindi|Hungarian|Icelandic|Indonesian|Italian|Japanese|Kazakh|Khmer|Korean|Latvian|Lithuanian|Luxembourgish|Macedonian|Malay|Malayalam|Manipuri|Mongolian|Montenegrin|Norwegian|Occitan|Persian|Polish|Portuguese|Portuguese(Brazil)|Romanian|Russian|Serbian|Sinhalese|Slovak|Slovenian|Spanish|Swahili|Swedish|Syriac|Tagalog|Tamil|Telugu|Thai|Turkish|Ukrainian|Urdu" enable="!eq(-4,false)" default="English" />
-        <setting id="subtitles.utf" type="bool" label="Untertitel nach UTF-8 umwandeln" enable="!eq(-5,false)" default="false" />
-        <setting type="lsep" label="Download-Manager" />
+        <setting id="subtitles.lang.1" type="select" label="Hauptsprache" values="Afrikaans|Albanian|Arabic|Armenian|Basque|Bengali|Bosnian|Breton|Bulgarian|Burmese|Catalan|Chinese|Croatian|Czech|Danish|Dutch|English|Esperanto|Estonian|Finnish|French|Galician|Georgian|German|Greek|Hebrew|Hindi|Hungarian|Icelandic|Indonesian|Italian|Japanese|Kazakh|Khmer|Korean|Latvian|Lithuanian|Luxembourgish|Macedonian|Malay|Malayalam|Manipuri|Mongolian|Montenegrin|Norwegian|Occitan|Persian|Polish|Portuguese|Portuguese(Brazil)|Romanian|Russian|Serbian|Sinhalese|Slovak|Slovenian|Spanish|Swahili|Swedish|Syriac|Tagalog|Tamil|Telugu|Thai|Turkish|Ukrainian|Urdu" enable="!eq(-1,false)" default="German" />
+        <setting id="subtitles.lang.2" type="select" label="Zweitsprache" values="Afrikaans|Albanian|Arabic|Armenian|Basque|Bengali|Bosnian|Breton|Bulgarian|Burmese|Catalan|Chinese|Croatian|Czech|Danish|Dutch|English|Esperanto|Estonian|Finnish|French|Galician|Georgian|German|Greek|Hebrew|Hindi|Hungarian|Icelandic|Indonesian|Italian|Japanese|Kazakh|Khmer|Korean|Latvian|Lithuanian|Luxembourgish|Macedonian|Malay|Malayalam|Manipuri|Mongolian|Montenegrin|Norwegian|Occitan|Persian|Polish|Portuguese|Portuguese(Brazil)|Romanian|Russian|Serbian|Sinhalese|Slovak|Slovenian|Spanish|Swahili|Swedish|Syriac|Tagalog|Tamil|Telugu|Thai|Turkish|Ukrainian|Urdu" enable="!eq(-2,false)" default="English" />
+        <setting id="subtitles.utf" type="bool" label="Untertitel nach UTF-8 umwandeln" enable="!eq(-3,false)" default="false" />
+        <setting type="text" label="[COLOR blue]OpenSubtitles-Zugangsdaten findest du unter Anbieter-Logins.[/COLOR]" />
+    </category>
+
+    <category label="Download-Manager">
+        <setting type="lsep" label="JDownloader" />
         <setting id="jd_enabled" type="bool" label="JDownloader aktivieren" default="false" />
         <setting id="jd_host" type="text" label="Host" default="127.0.0.1" enable="!eq(-1,false)" />
         <setting id="jd_port" type="number" label="Port" default="10025" enable="!eq(-2,false)" />
         <setting id="jd_automatic_start" type="bool" label="Automatischer Start" default="false" enable="!eq(-3,false)" />
         <setting id="jd_grabber" type="bool" label="LinkGrabber verwenden" default="true" enable="!eq(-4,false)" />
-        <setting type="sep" />
+        <setting type="lsep" label="JDownloader 2" />
         <setting id="jd2_enabled" type="bool" label="JDownloader 2 aktivieren" default="false" />
         <setting id="jd2_host" type="text" label="Host" default="127.0.0.1" enable="!eq(-1,false)" />
         <setting id="jd2_port" type="number" label="Port" default="9666" enable="!eq(-2,false)" />
-        <setting type="sep" />
+        <setting type="lsep" label="My.JDownloader" />
         <setting id="myjd_enabled" type="bool" label="My.JDownloader aktivieren" default="false" />
         <setting id="myjd_device" type="text" label="Gerätename" default="JDownloader@Device" enable="!eq(-1,false)" />
         <setting id="myjd_user" type="text" label="E-Mail" default="" enable="!eq(-2,false)" />
         <setting id="myjd_pass" type="text" label="Passwort" option="hidden" default="" enable="!eq(-3,false)" />
-        <setting type="sep" />
+        <setting type="lsep" label="PyLoad" />
         <setting id="pyload_enabled" type="bool" label="PyLoad aktivieren" default="false" />
         <setting id="pyload_host" type="text" label="Host" default="127.0.0.1" enable="!eq(-1,false)" />
         <setting id="pyload_port" type="number" label="Port" default="8000" enable="!eq(-2,false)" />
         <setting id="pyload_user" type="text" label="Benutzername" default="" enable="!eq(-3,false)" />
         <setting id="pyload_passwd" type="text" label="Passwort" option="hidden" default="" enable="!eq(-4,false)" />
     </category>
+
+    <category label="Metadaten &amp; APIs">
+        <setting type="lsep" label="TMDb" />
+        <setting id="api.tmdb" type="text" option="hidden" label="TMDb API-Key" default="0b529d296545c2545a68db5cb903cd94" />
+        <setting type="lsep" label="Fanart.TV" />
+        <setting id="api.fanart.tv" type="text" label="Fanart.TV API-Key" option="hidden" default="e376e8591e1580089d93ab4135fcc082" />
+    </category>
+
     <category label="Datenschutz &amp; Statistik">
         <setting type="lsep" label="Nutzungsstatistik" />
         <setting id="telemetry.enabled" type="bool" label="Nutzungsstatistik aktivieren" default="true" />
@@ -281,26 +263,30 @@
         <setting id="telemetry.consent_version" type="text" label="Statistik Zustimmungsversion" default="" visible="false" />
         <setting id="telemetry.addon_version" type="text" label="Statistik Add-on-Version" default="" visible="false" />
     </category>
+
     <category label="Wartung &amp; Support">
         <setting type="lsep" label="Support" />
         <setting label="Supportpaket erstellen und hochladen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=supportUpload)" />
         <setting id="support.upload.provider" type="enum" label="Support-Upload-Dienst" values="filebin.net|file.io|0x0.st" default="0" />
-        <setting id="support.upload.expiry" type="enum" label="Supportpaket automatisch loeschen nach" values="1 Tag|7 Tage|14 Tage" default="1" />
+        <setting id="support.upload.expiry" type="enum" label="Supportpaket automatisch löschen nach" values="1 Tag|7 Tage|14 Tage" default="1" />
         <setting id="support.last_uuid" type="text" label="Letzte Support UUID" default="" visible="false" />
         <setting id="support.last_link" type="text" label="Letzter Support Link" default="" visible="false" />
-        <setting id="delHtmlCache" label="[B][COLOR red]Html Cache einmalig bei Neustart löschen[/COLOR][/B]" type="bool" default="false" />
+        <setting type="lsep" label="Cache &amp; Reparatur" />
+        <setting id="delHtmlCache" label="HTML-Cache beim nächsten Neustart löschen" type="bool" default="false" />
     </category>
-    <category label="Erweitert / Entwickler">
-        <setting type="lsep" label="Einstellungen RequestHandler" />
+
+    <category label="Erweitert">
+        <setting type="lsep" label="Netzwerk &amp; Cache" />
         <setting default="10" id="requestTimeout" label="Timeout für HTTP-Anfragen in Sekunden" option="int" range="1,1,60" type="slider" />
-        <setting default="true" id="bypassDNSlock.enabled" label="DNS over HTTPS ueber Cloudflare verwenden" type="bool" />
-        <setting default="600" id="cacheTime" label="Cachezeit für Webseiten (HtmlCache) in Sekunden" option="int" range="0,60,1800" type="slider" />
-        <setting default="true" id="volatileHtmlCache" type="bool" label="HTML Inhalte werden nur im RAM zwischengespeichert" visible="true" />
-        <setting default="2" id="cacheDeltaDay" label="Html Cache nach Tage löschen" option="int" range="1,1,7" type="slider" />
-        <setting id="status.debug" type="bool" label="Debug" default="false" />
+        <setting default="true" id="bypassDNSlock.enabled" label="DNS over HTTPS über Cloudflare verwenden" type="bool" />
+        <setting default="600" id="cacheTime" label="Cachezeit für Webseiten in Sekunden" option="int" range="0,60,1800" type="slider" />
+        <setting default="true" id="volatileHtmlCache" type="bool" label="HTML-Inhalte nur im RAM zwischenspeichern" visible="true" />
+        <setting default="2" id="cacheDeltaDay" label="HTML-Cache nach Tagen löschen" option="int" range="1,1,7" type="slider" />
+        <setting type="lsep" label="Entwickler" />
+        <setting id="status.debug" type="bool" label="Debug aktivieren" default="false" />
+        <setting label="Plus aktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=activatePlus)" />
         <setting id="first_install.playback_defaults.applied" type="bool" label="Erstinstallations-Wiedergabevorgaben gesetzt" default="false" visible="false" />
         <setting id="first_install.telemetry_default.applied" type="bool" label="Erstinstallations-Statistikvorgabe gesetzt" default="false" visible="false" />
-        <setting label="Aktivieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=activatePlus)" />
         <setting id="plus.enabled" type="bool" label="Plus aktiv" default="false" visible="false" />
         <setting id="plus.client_id" type="text" label="Plus Client" default="" visible="false" />
         <setting id="updates.channel" type="text" label="Update-Kanal" default="stable" visible="false" />
