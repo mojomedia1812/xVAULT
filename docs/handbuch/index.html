@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.08.02.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.08.02.2.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -336,7 +336,7 @@
         </article>
         <article>
           <h3>Fehler eingrenzen</h3>
-          <p>Werkzeuge zeigen Systeminformationen, ResolveURL-Details und optionale Supportpakete mit redigierten Diagnosedaten an.</p>
+          <p>Werkzeuge zeigen Systeminformationen, ResolveURL-Details, Einstellungsreparatur und optionale Supportpakete mit redigierten Diagnosedaten an.</p>
         </article>
       </div>
     </section>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.08.02.1.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.08.02.2.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -387,7 +387,7 @@
           <tr><td>LiveTV</td><td>Öffnet den deutschen LiveTV-Bereich mit Kategorien, Logos, EPG-Vorschau, Favoriten und stabilisierter HLS-Wiedergabe.</td></tr>
           <tr><td>LiveTV lite</td><td>Öffnet eine schlanke Senderliste für Deutsche TV, Österreichische TV und Schweizer TV auf Basis der 2ix2-Quelle.</td></tr>
           <tr><td>Stream-URL abspielen</td><td>Spielt eine direkt eingegebene oder übergebene Stream-Adresse ab.</td></tr>
-          <tr><td>Werkzeuge</td><td>Öffnet Support-Informationen, xVAULT-Einstellungen und Resolver-Einstellungen.</td></tr>
+          <tr><td>Werkzeuge</td><td>Öffnet Support-Informationen, die Einstellungsreparatur, xVAULT-Einstellungen und Resolver-Einstellungen.</td></tr>
         </tbody>
       </table>
       <h3>Seitliches Menü und Kontextmenü</h3>
@@ -742,6 +742,7 @@
           <li><strong>Scraper-Timeout:</strong> Begrenzt, wie lange xVAULT auf Indexseiten wartet.</li>
           <li><strong>Fanart und Doku-Suche:</strong> Steuern zusätzliche Darstellung und Suchoptionen.</li>
           <li><strong>Support:</strong> Bietet Aktionen für Supportpaket-Erstellung sowie Auswahl von Upload-Dienst und Ablaufzeit.</li>
+          <li><strong>Cache &amp; Reparatur:</strong> Prüft die gespeicherte xVAULT-settings.xml, bietet bei beschädigter Datei ein Backup mit anschließendem Zurücksetzen an und kann den HTML-Cache beim nächsten Neustart löschen.</li>
           <li><strong>DNS over HTTPS:</strong> Aktiviert Cloudflare-DoH für Seitenabrufe der Indexseiten. Standardmäßig aktiv; bei Bedarf kann die Option deaktiviert werden.</li>
           <li><strong>RequestHandler-Cache:</strong> Timeout, Cachezeit, volatiler HTML-Cache, Tagesdelta und Cache-Löschung für Seitenabrufe.</li>
           <li><strong>Status:</strong> Aktualisierung von Gesehen/Ungesehen für Filme, Episoden, Staffeln und Serien.</li>
@@ -810,6 +811,8 @@
         </tbody>
       </table>
       <p>Als Upload-Dienste stehen je nach Einstellung filebin.net, file.io oder 0x0.st zur Verfügung. Die Ablaufzeit kann auf 1 Tag, 7 Tage oder 14 Tage gesetzt werden. Nach erfolgreichem Upload zeigt xVAULT eine Service-ID beziehungsweise Kurz-URL an.</p>
+      <h3>Einstellungen prüfen und reparieren</h3>
+      <p>Wenn Kodi meldet, dass <strong>special://profile/addon_data/plugin.video.xvault/settings.xml</strong> nicht geladen werden kann, ist meistens die gespeicherte Einstellungsdatei leer, unvollständig oder kein gültiges XML mehr. xVAULT prüft diese Datei beim Pluginstart und bietet bei einem Fehler an, sie zuerst als Backup zu sichern und danach zu entfernen. Beim nächsten Kodi-Start erzeugt Kodi die Einstellungen aus der Add-on-Vorlage neu. Favoriten, Wiedergabestände, Cachedateien und andere Profildaten werden dabei nicht gelöscht.</p>
       <h3>Resolver-Einstellungen</h3>
       <p>Die Resolver-Einstellungen betreffen Hosterauflösung und Wiedergabevorbereitung. Wenn einzelne Hoster nicht funktionieren, sollte dort geprüft werden, ob der Resolver aktiv und aktuell ist.</p>
       <h3>Stream-URL abspielen</h3>
@@ -836,6 +839,7 @@
           <tr><td>Gesehen-Status wirkt verzögert</td><td>Zur Liste zurückkehren und Status-Aktualisierung aktiv lassen. Der Status wird aus Playcount und bekannten Episoden abgeleitet.</td></tr>
           <tr><td>Synchronisation wirkt unvollständig</td><td>Anmeldung prüfen, manuell synchronisieren, danach Favoriten und Wiedergabestände erneut öffnen.</td></tr>
           <tr><td>Standard-Aktion wird nicht übernommen</td><td>Einstellungen mit OK schließen, danach denselben Film oder dieselbe Folge neu starten. Bei Sprache Alle muss Dialog oder Verzeichnis gewählt werden.</td></tr>
+          <tr><td>Kodi meldet, dass plugin.video.xvault/settings.xml nicht geladen werden kann</td><td>xVAULT starten und die angebotene Reparatur ausführen oder unter Werkzeuge die Einstellungsprüfung öffnen. Die defekte Datei wird lokal gesichert und danach zurückgesetzt.</td></tr>
           <tr><td>Quelle lädt dauerhaft</td><td>Autoplay versucht weitere Quellen nach Timeout. Bei wiederholtem Hängen Dialog oder Verzeichnis wählen und einen anderen Hoster testen.</td></tr>
           <tr><td>Serienfolge startet falsch</td><td>Bei abweichender Anbieter-Staffelung prüft xVAULT Episodentitel und Erstausstrahlung. Wenn es weiter falsch ist, Titel, Staffel, Folge und Anbieter im Fehlerbericht nennen.</td></tr>
           <tr><td>SerienStream nicht erreichbar</td><td>DNS over HTTPS aktiv lassen, SerienStream-Domain nicht manuell auf alte Werte setzen und bei Login-Problemen Zugangsdaten prüfen.</td></tr>
@@ -875,7 +879,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.08.02.1</span>
+      <span>Handbuch zu xVAULT 2026.08.02.2</span>
     </footer>
   </main>
 </body>

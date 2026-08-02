@@ -1,6 +1,16 @@
 import json
 import sys
 from urllib.parse import parse_qs, urlsplit
+
+try:
+    _early_query = sys.argv[2] if len(sys.argv) > 2 else ''
+    _early_action = parse_qs(urlsplit(_early_query).query).get('action', [''])[0]
+    from resources.lib import settings_repair
+    if _early_action != 'repairSettings' and settings_repair.check_and_offer_repair(interactive=True, source='plugin-start'):
+        sys.exit()
+except Exception:
+    pass
+
 from resources.lib import dependencies
 
 if not dependencies.ensure_all_dependencies():
@@ -105,6 +115,14 @@ elif action == 'pluginInfo':
 elif action == 'supportUpload':
     from resources.lib import supportinfo
     supportinfo.createSupportPackageAndUpload()
+    _finish_action()
+
+elif action == 'repairSettings':
+    from resources.lib import settings_repair
+    repaired = settings_repair.manual_check()
+    if repaired:
+        _finish_action()
+        sys.exit()
     _finish_action()
 
 elif action == 'movieNavigator':

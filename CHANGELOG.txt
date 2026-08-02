@@ -1,3 +1,9 @@
+xVAULT 2026.08.02.2
+Entwickler: mojomedia1812
+
+- Beschädigte xVAULT-settings.xml wird beim Pluginstart erkannt; der Nutzer kann die Datei sichern und zurücksetzen lassen.
+- Neuer Reparaturpunkt unter Werkzeuge und Wartung & Support prüft die gespeicherten xVAULT-Einstellungen manuell.
+
 xVAULT 2026.08.02.1
 Entwickler: mojomedia1812
 

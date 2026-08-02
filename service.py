@@ -236,6 +236,11 @@ def ensure_youtube_api_keys():
 
 
 if __name__ == "__main__":
+	try:
+		from resources.lib import settings_repair
+		settings_repair.check_and_offer_repair(interactive=False, source='service-start')
+	except Exception:
+		pass
 	from resources.lib import dependencies
 	dependencies.ensure_all_dependencies()
 	try:

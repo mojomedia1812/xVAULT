@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2026.08.02.2] - 2026-08-02
+
+- Beschädigte xVAULT-settings.xml wird beim Pluginstart erkannt; der Nutzer kann die Datei sichern und zurücksetzen lassen.
+- Neuer Reparaturpunkt unter Werkzeuge und Wartung & Support prüft die gespeicherten xVAULT-Einstellungen manuell.
+
 ## [2026.08.02.1] - 2026-08-02
 
 - IPTV Simple wird beim xVAULT-Start und nach Updates nicht mehr automatisch installiert oder aktiviert.

@@ -272,6 +272,7 @@
         <setting id="support.last_uuid" type="text" label="Letzte Support UUID" default="" visible="false" />
         <setting id="support.last_link" type="text" label="Letzter Support Link" default="" visible="false" />
         <setting type="lsep" label="Cache &amp; Reparatur" />
+        <setting label="xVAULT-Einstellungen prüfen/reparieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=repairSettings)" />
         <setting id="delHtmlCache" label="HTML-Cache beim nächsten Neustart löschen" type="bool" default="false" />
     </category>
 
