@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.08.02.1] - 2026-08-02
+
+- IPTV Simple wird beim xVAULT-Start und nach Updates nicht mehr automatisch installiert oder aktiviert.
+- Die Kodi-TV-Integration fragt vor Installation oder Aktivierung von IPTV Simple nach und respektiert bewusst deaktivierte PVR-Clients.
+- LiveTV schreibt M3U- und XMLTV-Dateien nur noch neu, wenn sich der Inhalt geändert hat, damit PVR-Clients nicht unnötig neu einlesen.
+
 ## [2026.08.01.2] - 2026-08-01
 
 - Erststart robuster gemacht: Fehler in Bootstrap-Nebentasks blockieren den Aufbau des xVAULT-Root-Menues nicht mehr.

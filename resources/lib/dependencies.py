@@ -52,8 +52,9 @@ AUTO_INSTALL_OPTIONAL_EXTERNALS = set([
     'inputstream.adaptive',
     'inputstream.ffmpegdirect',
     'inputstream.rtmp',
-    'pvr.iptvsimple',
 ])
+# PVR clients are user-controlled Kodi components. xVAULT must not install or
+# enable them during the general startup/update dependency pass.
 EXTERNAL_ADDON_SOURCES = {
     'script.module.resolveurl': {
         'repository_id': 'repository.resolveurl',

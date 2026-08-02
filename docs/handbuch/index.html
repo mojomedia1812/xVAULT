@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.08.01.3.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.08.02.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.08.01.3.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.08.02.1.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -365,7 +365,7 @@
       <p>Bei einer wirklich frischen Installation setzt xVAULT die bevorzugte Streamsprache einmalig auf <strong>Deutsch</strong> und die Standard-Aktion auf <strong>Autoplay</strong>. Bestehende Profile und spätere Updates behalten ihre gewählten Wiedergabeeinstellungen, damit persönliche Einstellungen nicht überschrieben werden.</p>
       <h3>Abhängigkeiten</h3>
       <p>xVAULT benötigt Kodi mit Python 3 und installiert die offiziellen Pflichtmodule über Kodis Add-on-System. ResolveURL ist als optionale, aber praktisch wichtige Hoster-Schicht eingebunden. Für LiveTV können je nach gewählter Wiedergabe-Engine Kodis interne HLS-Wiedergabe, InputStream Adaptive oder InputStream FFmpeg Direct genutzt werden.</p>
-      <p>Beim Start prüft xVAULT die bekannten Abhängigkeiten und kann fehlende Module nachinstallieren, wenn sie aus den hinterlegten Quellen erreichbar sind. Wenn eine Abhängigkeit fehlt, lohnt sich ein Blick in <strong>Werkzeuge</strong> und in Kodis Add-on-Bereich.</p>
+      <p>Beim Start prüft xVAULT die bekannten Laufzeitabhängigkeiten und kann fehlende Module nachinstallieren, wenn sie aus den hinterlegten Quellen erreichbar sind. Der IPTV Simple Client wird dabei nicht automatisch installiert oder aktiviert, weil er ein eigener Kodi-PVR-Client mit eigener Nutzerkonfiguration ist. Wenn eine Abhängigkeit fehlt, lohnt sich ein Blick in <strong>Werkzeuge</strong> und in Kodis Add-on-Bereich.</p>
       <h3>Updates</h3>
       <p>Wenn automatische Updates aktiv sind, prüft xVAULT beim Öffnen des Hauptmenüs, ob über das Repository eine neuere Version bereitsteht. Ist die automatische Prüfung deaktiviert, bleibt die Installation unverändert, bis Kodi oder der Nutzer manuell aktualisiert.</p>
     </section>
@@ -642,22 +642,23 @@
       <p>Bei ausgewähltem Sender nutzt xVAULT die EPG-Daten für eine Vorschau im Informationsfeld: <strong>Aktuell</strong> zeigt die laufende Sendung, <strong>Gleich</strong> zeigt die folgende Sendung. So lässt sich vor dem Start erkennen, was gerade läuft.</p>
       <h3>LiveTV im Kodi-Hauptmenü TV nutzen</h3>
       <p>xVAULT kann seine LiveTV-Sender zusätzlich für Kodis eigenes TV-Menü vorbereiten. Dafür wird in Kodi der <strong>IPTV Simple Client</strong> benötigt. Das ist kein zusätzlicher xVAULT-Bereich, sondern Kodis PVR-Komponente, die eine M3U-Senderliste und eine XMLTV-EPG-Datei einliest.</p>
-      <p>Beim ersten Start prüft xVAULT die benötigten Abhängigkeiten. Wenn Kodi den IPTV Simple Client in seinem Add-on-Repository findet, kann xVAULT ihn installieren beziehungsweise aktivieren. Die Dateierstellung und die automatische IPTV-Simple-Konfiguration sind getrennt nutzbar.</p>
+      <p>xVAULT trennt die reine Dateierstellung und die Kodi-TV-Integration bewusst. Beim normalen xVAULT-Start und nach Updates wird der IPTV Simple Client nicht automatisch installiert, aktiviert oder neu konfiguriert. Nur wenn <strong>Kodi-TV Integration aktualisieren</strong> ausdrücklich ausgewählt wird, fragt xVAULT bei Bedarf nach, ob IPTV Simple installiert oder aktiviert werden soll.</p>
       <ol>
         <li>xVAULT nach der Installation einmal normal starten und kurz warten, bis die Abhängigkeitsprüfung abgeschlossen ist.</li>
         <li>Im xVAULT-Hauptmenü <strong>LiveTV</strong> öffnen.</li>
         <li>Für eine reine Dateiausgabe <strong>M3U/XMLTV-Dateien erstellen</strong> auswählen. xVAULT erzeugt dann nur die lokale M3U-Datei und die lokale XMLTV-Datei, ohne IPTV Simple zu installieren, zu aktivieren oder umzuschreiben.</li>
-        <li>Für Kodis TV-Hauptmenü stattdessen <strong>Kodi-TV Integration aktualisieren</strong> auswählen. xVAULT erzeugt ebenfalls die Dateien und trägt sie zusätzlich automatisch in IPTV Simple ein, wenn das PVR-Modul verfügbar ist.</li>
+        <li>Für Kodis TV-Hauptmenü stattdessen <strong>Kodi-TV Integration aktualisieren</strong> auswählen. xVAULT erzeugt ebenfalls die Dateien und trägt sie zusätzlich in IPTV Simple ein, wenn das PVR-Modul aktiv ist oder die angefragte Installation beziehungsweise Aktivierung bestätigt wurde.</li>
         <li>Nach der Erfolgsmeldung zu Kodis Hauptmenü wechseln und dort <strong>TV</strong> öffnen.</li>
         <li>Falls Kodi noch keine Sender zeigt, Kodi einmal neu starten oder im TV-Bereich die PVR-Daten aktualisieren lassen.</li>
       </ol>
-      <p>Die erzeugten Dateien liegen im Kodi-Profil von xVAULT. Die M3U-Datei enthält die Senderliste, die XMLTV-Datei enthält die Programmdaten. Wer nur die Dateien erstellt, kann diese Pfade manuell in IPTV Simple, IPTV Merge oder einer anderen PVR-Lösung eintragen. Normale Nutzer müssen die Pfade nicht selbst eintragen, solange die automatische IPTV-Simple-Konfiguration genutzt wird.</p>
+      <p>Die erzeugten Dateien liegen im Kodi-Profil von xVAULT. Die M3U-Datei enthält die Senderliste, die XMLTV-Datei enthält die Programmdaten. Wer nur die Dateien erstellt, kann diese Pfade manuell in IPTV Simple, IPTV Merge oder einer anderen PVR-Lösung eintragen. xVAULT schreibt M3U und XMLTV nur neu, wenn sich der Inhalt geändert hat, damit ein PVR-Client nicht unnötig durch einen neuen Dateizeitstempel zum erneuten Einlesen gebracht wird.</p>
       <table class="manual-table">
         <thead>
           <tr><th>Meldung oder Situation</th><th>Was zu tun ist</th></tr>
         </thead>
         <tbody>
           <tr><td>Kodi meldet, dass ein PVR-Addon installiert, aktiviert und konfiguriert werden muss.</td><td>xVAULT öffnen, <strong>LiveTV</strong> starten und <strong>Kodi-TV Integration aktualisieren</strong> ausführen. Danach Kodi neu starten, wenn die TV-Sender nicht sofort erscheinen.</td></tr>
+          <tr><td>IPTV Simple wurde bewusst deaktiviert.</td><td>xVAULT respektiert diese Kodi-Einstellung. Der Client wird beim Start oder nach Updates nicht mehr automatisch reaktiviert. Nur die ausdrücklich ausgeführte Kodi-TV-Integration fragt nach, ob IPTV Simple aktiviert werden soll.</td></tr>
           <tr><td>IPTV Simple ist nicht verfügbar.</td><td>Prüfen, ob Kodis offizielles Add-on-Repository aktiv ist und das Gerät Internetzugriff hat. Auf Android, Windows und Linux muss Kodi die passende PVR-Version selbst aus seinem Repository installieren können.</td></tr>
           <tr><td>Sender erscheinen, aber EPG fehlt.</td><td>Die Kodi-TV Integration erneut aktualisieren. Wenn die externe EPG-Quelle kurzfristig nicht erreichbar ist, später erneut versuchen.</td></tr>
           <tr><td>Senderliste ist leer oder veraltet.</td><td>In xVAULT <strong>LiveTV</strong> öffnen, zuerst <strong>Senderliste aktualisieren</strong> und danach je nach Bedarf <strong>M3U/XMLTV-Dateien erstellen</strong> oder <strong>Kodi-TV Integration aktualisieren</strong> auswählen.</td></tr>
@@ -874,7 +875,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.08.01.3</span>
+      <span>Handbuch zu xVAULT 2026.08.02.1</span>
     </footer>
   </main>
 </body>

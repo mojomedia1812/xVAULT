@@ -400,13 +400,13 @@ def play(channel_id, pvr=False):
 def export_pvr_files(interactive=False, configure=True):
     playlist_path = export_pvr_playlist()
     epg_path = export_pvr_epg()
-    pvr_ready = _configure_iptv_simple(playlist_path, epg_path) if configure else False
+    pvr_ready = _configure_iptv_simple(playlist_path, epg_path, interactive=interactive) if configure else False
     if interactive:
         if configure:
             pvr_text = (
-                "IPTV Simple wurde installiert/aktiviert und auf xVAULT konfiguriert."
+                "IPTV Simple wurde auf xVAULT konfiguriert."
                 if pvr_ready else
-                "IPTV Simple ist noch nicht verfügbar. Kodi kann die erzeugten Dateien trotzdem manuell verwenden."
+                "IPTV Simple wurde nicht verändert. Kodi kann die erzeugten Dateien trotzdem manuell verwenden."
             )
             title = "Kodi-TV Integration"
         else:
@@ -414,7 +414,7 @@ def export_pvr_files(interactive=False, configure=True):
             title = "M3U/XMLTV-Dateien"
         control.dialog.ok(
             title,
-            "Die lokalen PVR-Dateien wurden aktualisiert:\n\n"
+            "Die lokalen PVR-Dateien stehen bereit:\n\n"
             "M3U:\n%s\n\n"
             "XMLTV:\n%s\n\n"
             "%s\n\n"
@@ -436,8 +436,9 @@ def export_pvr_playlist(output=None):
     output_path = _pvr_output_path(output, PVR_PLAYLIST_FILE)
     epg = _epg_data(refresh=True) if _epg_enabled() else {}
     channels = _pvr_channels(epg)
-    _write_text(output_path, _pvr_playlist(channels, epg))
-    log_utils.log("LiveTV PVR playlist exported: %s (%d Sender)" % (output_path, len(channels)), log_utils.LOGINFO)
+    changed = _write_text(output_path, _pvr_playlist(channels, epg))
+    action = "exported" if changed else "unchanged"
+    log_utils.log("LiveTV PVR playlist %s: %s (%d Sender)" % (action, output_path, len(channels)), log_utils.LOGINFO)
     return output_path
 
 
@@ -445,13 +446,14 @@ def export_pvr_epg(output=None):
     output_path = _pvr_output_path(output, PVR_EPG_FILE)
     epg = _epg_data(refresh=True) if _epg_enabled() else {}
     channels = _pvr_channels(epg)
-    programme_count = _write_pvr_epg(output_path, channels, epg)
-    log_utils.log("LiveTV PVR EPG exported: %s (%d Programme)" % (output_path, programme_count), log_utils.LOGINFO)
+    programme_count, changed = _write_pvr_epg(output_path, channels, epg)
+    action = "exported" if changed else "unchanged"
+    log_utils.log("LiveTV PVR EPG %s: %s (%d Programme)" % (action, output_path, programme_count), log_utils.LOGINFO)
     return output_path
 
 
-def _configure_iptv_simple(playlist_path, epg_path):
-    if not _ensure_pvr_dependencies():
+def _configure_iptv_simple(playlist_path, epg_path, interactive=True):
+    if not _ensure_pvr_dependencies(interactive=interactive):
         return False
 
     try:
@@ -468,23 +470,73 @@ def _configure_iptv_simple(playlist_path, epg_path):
         return False
 
 
-def _ensure_pvr_dependencies():
+def _ensure_pvr_dependencies(interactive=True):
     try:
         from resources.lib import dependencies
         addon_ids = (
             "inputstream.adaptive",
             "inputstream.ffmpegdirect",
             "inputstream.rtmp",
-            "pvr.iptvsimple",
         )
         success = True
         for addon_id in addon_ids:
             if not dependencies.install_addon(addon_id):
                 success = False
-        return success and _addon_available("pvr.iptvsimple")
+        return success and _ensure_iptv_simple(interactive=interactive)
     except Exception as exc:
         log_utils.log("LiveTV PVR dependency install failed: %s" % str(exc), log_utils.LOGWARNING)
         return _addon_available("pvr.iptvsimple")
+
+
+def _ensure_iptv_simple(interactive=True):
+    addon_id = "pvr.iptvsimple"
+    details = _addon_details(addon_id)
+    if not details:
+        if not interactive or not _confirm_pvr_change(
+            "IPTV Simple ist nicht installiert.",
+            "Soll Kodi den IPTV Simple Client jetzt installieren und aktivieren?",
+            "Das passiert nur für die ausgewählte Kodi-TV Integration.",
+        ):
+            log_utils.log("LiveTV PVR setup skipped: IPTV Simple is not installed", log_utils.LOGINFO)
+            return False
+        try:
+            from resources.lib import dependencies
+            if not dependencies.install_addon(addon_id):
+                return False
+        except Exception as exc:
+            log_utils.log("LiveTV PVR install failed: %s" % str(exc), log_utils.LOGWARNING)
+            return False
+        details = _addon_details(addon_id)
+
+    if details and not bool(details.get("enabled")):
+        if not interactive or not _confirm_pvr_change(
+            "IPTV Simple ist installiert, aber deaktiviert.",
+            "Soll xVAULT den IPTV Simple Client jetzt aktivieren?",
+            "Eine bewusst deaktivierte PVR-Einstellung wird ohne Zustimmung nicht geändert.",
+        ):
+            log_utils.log("LiveTV PVR setup skipped: IPTV Simple is disabled", log_utils.LOGINFO)
+            return False
+        _enable_kodi_addon(addon_id)
+        try:
+            xbmc.Monitor().waitForAbort(1)
+        except Exception:
+            pass
+
+    return _addon_enabled(addon_id) or _addon_available(addon_id)
+
+
+def _confirm_pvr_change(line1, line2, line3):
+    try:
+        return control.yesnoDialog(
+            line1,
+            line2,
+            line3,
+            heading="Kodi-TV Integration",
+            nolabel="Abbrechen",
+            yeslabel="Fortfahren",
+        )
+    except Exception:
+        return False
 
 
 def _write_iptv_simple_instance(profile, playlist_path, epg_path):
@@ -578,6 +630,28 @@ def _enable_kodi_addon(addon_id):
         pass
 
 
+def _addon_details(addon_id):
+    try:
+        payload = json.dumps({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "Addons.GetAddonDetails",
+            "params": {
+                "addonid": addon_id,
+                "properties": ["enabled", "version"],
+            },
+        })
+        response = json.loads(xbmc.executeJSONRPC(payload) or "{}")
+        return response.get("result", {}).get("addon")
+    except Exception:
+        return None
+
+
+def _addon_enabled(addon_id):
+    details = _addon_details(addon_id)
+    return bool(details and details.get("enabled"))
+
+
 def _addon_available(addon_id):
     try:
         return bool(xbmc.getCondVisibility("System.HasAddon(%s)" % addon_id))
@@ -657,8 +731,8 @@ def _write_pvr_epg(output_path, channels, epg):
             programme_count += 1
 
     xml_data = ET.tostring(root, encoding="utf-8", xml_declaration=True)
-    _write_bytes(output_path, xml_data)
-    return programme_count
+    changed = _write_bytes(output_path, xml_data)
+    return programme_count, changed
 
 
 def _pvr_play_url(channel):
@@ -710,15 +784,23 @@ def _pvr_output_path(output, default_path):
 
 
 def _write_text(path, content):
-    _write_bytes(path, content.encode("utf-8"))
+    return _write_bytes(path, content.encode("utf-8"))
 
 
 def _write_bytes(path, content):
     parent = os.path.dirname(path)
     if parent and not os.path.exists(parent):
         os.makedirs(parent)
+    try:
+        if os.path.exists(path):
+            with open(path, "rb") as handle:
+                if handle.read() == content:
+                    return False
+    except Exception:
+        pass
     with open(path, "wb") as handle:
         handle.write(content)
+    return True
 
 
 def _show_channels(channels, title, favorites=False):

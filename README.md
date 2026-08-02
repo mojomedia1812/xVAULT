@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.08.01.1`
+Aktueller Stand: `2026.08.02.1`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.08.01.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.08.02.1.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -70,7 +70,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - `Jetzt synchronisieren` bereinigt doppelte lokale Fortsetzen-Einträge und bricht dadurch nicht mehr mit einem PluginError ab, wenn alte Bookmark-Daten mehrfach vorhanden sind.
 - Über **Werkzeuge > Support** kann ein redigiertes Diagnosepaket erstellt, nach Bestätigung hochgeladen und über eine kurze Service-ID weitergegeben werden; lokale ZIP-Dateien werden nach dem Upload gelöscht.
 - Automatische Updateprüfung kann in den allgemeinen Einstellungen aktiviert oder deaktiviert werden.
-- LiveTV-Senderliste mit lokalem Cache, Kategorien, Suche, eigenen TV-Favoriten, Senderlogos, einstellbarer Stream-Puffergröße, plattformneutraler HLS-Wiedergabe-Engine, wahlweiser reiner M3U/XMLTV-Erstellung, Kodi-TV/IPTV-Simple-Integration, wiederholter HLS-Stabilitätsprüfung, passendem Ersatzstream-Fallback, EPG-Vorschau für aktuell laufende und folgende Sendungen sowie einer Senderlisten-Prüfung, die vor dem Start warnt, am Ende per Ergebnisdialog geprüfte, funktionierende und temporär gesperrte Sender zählt und nicht erreichbare Sender temporär bis zum nächsten xVAULT-Hauptstart ausblendet.
+- LiveTV-Senderliste mit lokalem Cache, Kategorien, Suche, eigenen TV-Favoriten, Senderlogos, einstellbarer Stream-Puffergröße, plattformneutraler HLS-Wiedergabe-Engine, wahlweiser reiner M3U/XMLTV-Erstellung, nutzergesteuerter Kodi-TV/IPTV-Simple-Integration, wiederholter HLS-Stabilitätsprüfung, passendem Ersatzstream-Fallback, EPG-Vorschau für aktuell laufende und folgende Sendungen sowie einer Senderlisten-Prüfung, die vor dem Start warnt, am Ende per Ergebnisdialog geprüfte, funktionierende und temporär gesperrte Sender zählt und nicht erreichbare Sender temporär bis zum nächsten xVAULT-Hauptstart ausblendet.
 - LiveTV lite liest Deutsche TV-, Österreichische TV- und Schweizer TV-Sender direkt aus der 2ix2-WordPress-API, besitzt einen eigenen TV-Favoritenordner und startet die dort hinterlegten HLS-Streams schlank ohne EPG-Schicht; wenn 2ix2 temporär nicht erreichbar ist, nutzt xVAULT Nydus als Ersatzquelle und löst dort echte HLS-Streams beim Start dynamisch auf.
 - Download-, Untertitel- und externe Download-Manager-Optionen.
 
@@ -117,7 +117,7 @@ Bei Änderungen an Version, Einstellungen oder Funktionen muss diese README gepr
 
 ## Kompatibilität
 
-xVAULT ist ein Kodi-Python-3-Add-on und deklariert in [`addon.xml`](addon.xml) `xbmc.python` ab Version `3.0.0`. Die Python-Laufzeitmodule, ResolveURL, Inputstream-Komponenten und die optionale IPTV-Simple-PVR-Komponente werden beim Start geprüft und bei Bedarf über Kodi beziehungsweise die hinterlegten offiziellen Quellen installiert und aktiviert. LiveTV-HLS funktioniert plattformneutral auf Windows, Linux und Android: xVAULT nutzt automatisch FFmpeg Direct, wenn es auf der Plattform installiert und aktiviert ist, und fällt sonst auf Kodis interne HLS-Wiedergabe zurück. InputStream Adaptive bleibt als manuell auswählbare Alternative erhalten.
+xVAULT ist ein Kodi-Python-3-Add-on und deklariert in [`addon.xml`](addon.xml) `xbmc.python` ab Version `3.0.0`. Die Python-Laufzeitmodule, ResolveURL und Inputstream-Komponenten werden beim Start geprüft und bei Bedarf über Kodi beziehungsweise die hinterlegten offiziellen Quellen installiert und aktiviert. Der IPTV Simple Client wird nicht mehr beim xVAULT-Start oder nach Updates automatisch installiert oder aktiviert; xVAULT fragt nur bei der ausdrücklich ausgewählten Kodi-TV-Integration nach. LiveTV-HLS funktioniert plattformneutral auf Windows, Linux und Android: xVAULT nutzt automatisch FFmpeg Direct, wenn es auf der Plattform installiert und aktiviert ist, und fällt sonst auf Kodis interne HLS-Wiedergabe zurück. InputStream Adaptive bleibt als manuell auswählbare Alternative erhalten.
 
 Für Android-basierte Fire-TV-Stick-Tests gibt es einen Profil-Simulator unter [`docs/firetv-stick-simulator.md`](docs/firetv-stick-simulator.md). Er ersetzt keinen echten FireOS-ROM-Emulator, hilft aber beim Prüfen von Fire OS, Android-API-Level, RAM, Codec-Klasse und Kodi-Risiken und kann Android-TV-AVD-Testprofile nach dem Amazon-AVD-Vorgehen skizzieren.
 
