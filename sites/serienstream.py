@@ -2,6 +2,7 @@
 import re
 import sys
 import datetime
+from urllib.parse import urlparse
 from resources.lib.control import getSetting, urljoin, setSetting
 from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import cleantitle, dom_parser
@@ -469,6 +470,7 @@ class source:
                     except:
                         pass
 
+                    protected_hoster = provider_name.lower() in ('doodstream', 'dood')
                     self.sources.append({
                         'source': provider_name,
                         'quality': quality,
@@ -478,7 +480,7 @@ class source:
                         'direct': False,
                         'debridonly': False,
                         'priority': self.priority,
-                        'prioHoster': 0
+                        'prioHoster': 999 if protected_hoster else 0
                     })
 
                     if log_utils:
@@ -823,22 +825,87 @@ class source:
             return 'en', language_label or 'Ger-Sub'
         return '', language_label
 
+    def _is_serienstream_url(self, url):
+        try:
+            parsed = urlparse(str(url).split('|', 1)[0])
+            host = (parsed.netloc or '').split(':', 1)[0].lower()
+            domains = set([SITE_DOMAIN, (self.domain or SITE_DOMAIN).lower()])
+            return host in domains or any(host.endswith('.' + domain) for domain in domains)
+        except:
+            return False
+
+    def _is_internal_redirect_url(self, url):
+        try:
+            parsed = urlparse(str(url).split('|', 1)[0])
+            return self._is_serienstream_url(url) and parsed.path.rstrip('/') == '/r'
+        except:
+            return False
+
+    @staticmethod
+    def _is_frame_bridge(html):
+        if not html:
+            return False
+        text = str(html)
+        return 'frameBridge' in text and 'window.parent.postMessage' in text
+
+    def _external_redirect_target(self, base_url, location):
+        if not location:
+            return None
+        try:
+            target = urljoin(base_url, html_unescape(location).replace('\\/', '/'))
+            if target and not self._is_serienstream_url(target):
+                return target
+        except:
+            pass
+        return None
+
+    def _resolve_http_redirect(self, url, referer):
+        try:
+            import requests
+            requests.packages.urllib3.disable_warnings()
+
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Referer': referer,
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            }
+            response = requests.get(url, headers=headers, allow_redirects=False, verify=False, timeout=10)
+            if response.status_code in (301, 302, 303, 307, 308):
+                target = self._external_redirect_target(response.url, response.headers.get('Location'))
+                if target:
+                    if log_utils:
+                        logger.info('SerienStream - Resolved redirect location: %s' % target[:80])
+                    return target
+        except:
+            pass
+        return None
+
     def resolve(self, url):
         try:
             if log_utils:
                 logger.info('SerienStream - Resolving: %s' % url[:80])
 
+            referer = getattr(self, 'episode_referer', self.base_link)
+            internal_redirect = self._is_internal_redirect_url(url)
+            bridge_seen = False
+
+            redirect_url = self._resolve_http_redirect(url, referer)
+            if redirect_url:
+                return redirect_url
+
             try:
-                oRequest = cRequestHandler(url, ignoreErrors=True)
+                oRequest = cRequestHandler(url, caching=False, ignoreErrors=True)
                 oRequest.addHeaderEntry('User-Agent', 'Mozilla/5.0')
-                oRequest.addHeaderEntry('Referer', getattr(self, 'episode_referer', self.base_link))
-                oRequest.request()
+                oRequest.addHeaderEntry('Referer', referer)
+                response_html = oRequest.request()
                 final_url = oRequest.getRealUrl()
 
                 if final_url and final_url != url:
                     if log_utils:
                         logger.info('SerienStream - Resolved via cRequestHandler: %s' % final_url[:80])
                     return final_url
+                if self._is_frame_bridge(response_html):
+                    bridge_seen = True
             except:
                 pass
 
@@ -850,7 +917,7 @@ class source:
                     session = requests.Session()
                     session.headers.update({
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                        'Referer': getattr(self, 'episode_referer', self.base_link),
+                        'Referer': referer,
                         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
                     })
 
@@ -862,9 +929,20 @@ class source:
 
                     if final_url and final_url != url and len(final_url) > 20:
                         return final_url
+                    if self._is_frame_bridge(response.text):
+                        bridge_seen = True
 
                 except:
                     pass
+
+            if bridge_seen:
+                if log_utils:
+                    logger.info('SerienStream - Frame bridge detected, no playable redirect available')
+                return None
+            if internal_redirect:
+                if log_utils:
+                    logger.info('SerienStream - Internal redirect unresolved, skipping source')
+                return None
 
             if log_utils:
                 logger.info('SerienStream - Could not resolve, returning original URL')
@@ -873,7 +951,7 @@ class source:
         except Exception as e:
             if log_utils:
                 logger.info('SerienStream - Resolve error: %s' % str(e))
-            return url
+            return None if self._is_internal_redirect_url(url) else url
 
     @staticmethod
     def _getLogin():

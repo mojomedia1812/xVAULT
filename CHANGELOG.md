@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [2026.08.04.1] - 2026-08-04
+
+- Neuer TV-Serien-Menuepunkt zeigt Serien, deren Serienstart in Deutschland innerhalb der letzten 30 Tage liegt.
+- Trakt-Watchlist und Trakt-Collection fuer Serien werden nur angezeigt, wenn Trakt verbunden ist.
+- Serienlisten reagieren robuster auf leere oder unvollstaendige TMDB-Antworten.
+- SerienStream-Redirects werden sauberer aufgeloest; unspielbare interne Bridge-URLs werden verworfen.
+- Doodstream wird als geschuetzter Hoster markiert und nachrangig behandelt, damit Autoplay auf funktionierende Alternativen ausweichen kann.
+
 ## [2026.08.02.2] - 2026-08-02
 
 - Beschädigte xVAULT-settings.xml wird beim Pluginstart erkannt; der Nutzer kann die Datei sichern und zurücksetzen lassen.

@@ -39,16 +39,17 @@ class tvshows:
 
 	def getDirectory(self, params):
 		try:
+			self.allow_incomplete_meta = params.get('url') == 'new_tv_de'
 			if params.get('next_pages'): self.next_pages = params.get('next_pages')
 			if params.get('total_pages'): self.total_pages = params.get('total_pages')
 			if params.get('list'): self.list = params.get('list')
 			self.worker()
 			if self.list == None or len(self.list) == 0:	#nichts gefunden
-				return control.infoDialog("Nichts gefunden", time=2000)
+				return self._emptyDirectory("Nichts gefunden")
 			self.Directory(self.list)
 			return self.list
 		except:
-			return
+			return self._emptyDirectory("Serien konnten nicht geladen werden")
 
 	def search(self):
 		# TODO different search providers
@@ -100,8 +101,7 @@ class tvshows:
 
 	def Directory(self, items):
 		if items is None or len(items) == 0:
-			control.idle()
-			sys.exit()
+			return self._emptyDirectory("Nichts gefunden")
 		sysaddon = sys.argv[0]
 		syshandle = int(sys.argv[1])
 
@@ -268,9 +268,26 @@ class tvshows:
 		with ThreadPoolExecutor() as executor:
 			executor.map(self.super_meta, self.list)
 
-		self.meta = sorted(self.meta, key=lambda k: k['title'])
+		self.meta = sorted(self.meta, key=lambda k: k.get('title') or k.get('originaltitle') or '')
 		self.list = [i for i in self.meta] # falls noch eine Filterfunktion kommt
-		self.list = [i for i in self.list if not i['plot'].strip() == '' and not i['poster'] == control.addonPoster()]  # - Filter
+		if getattr(self, 'allow_incomplete_meta', False):
+			self.list = [i for i in self.list if i.get('title') or i.get('originaltitle')]
+		else:
+			self.list = [i for i in self.list if (i.get('plot') or '').strip() and i.get('poster') != control.addonPoster()]  # - Filter
+
+	def _emptyDirectory(self, message):
+		try:
+			control.infoDialog(message, icon='WARNING', time=3000)
+		except:
+			pass
+		try:
+			syshandle = int(sys.argv[1])
+			control.content(syshandle, 'tvshows')
+			control.plugincategory(syshandle, control.addonVersion)
+			control.endofdirectory(syshandle, cacheToDisc=False)
+		except:
+			pass
+		return []
 
 
 	def super_meta(self, id):

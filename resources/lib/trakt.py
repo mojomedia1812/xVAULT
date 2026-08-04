@@ -236,6 +236,10 @@ def is_authorized():
     return bool(_access_token() or _refresh_token())
 
 
+def is_connected():
+    return _trakt_enabled() and is_authorized()
+
+
 def sync_watched(silent=True):
     changed = False
     if not _bool('trakt.sync.watched', 'false'):

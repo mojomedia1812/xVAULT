@@ -39,13 +39,15 @@ class navigator:
 		self._endDirectory()
 
 	def tvshows(self):
+		self.addDirectoryItem("[B]Serien[/B] - Neue Serien", 'listings&media_type=tv&url=new_tv_de', '05_tv_serien.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("[B]Serien[/B] - Genres", 'tvGenres', '05_01_serien_genres.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("[B]Serien[/B] - Am populärsten", 'listings&media_type=tv&url=sort_by=popularity.desc', '05_02_serien_am_populaersten.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("[B]Serien[/B] - Am besten bewertet", 'listings&media_type=tv&url=sort_by=vote_average.desc', '05_03_serien_am_besten_bewertet.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("[B]Serien[/B] - Meist bewertet", 'listings&media_type=tv&url=sort_by=vote_count.desc', '05_04_serien_meist_bewertet.png', 'DefaultTVShows.png')
-		if control.getSetting('trakt.watchlist.menu', 'true') == 'true':
+		trakt_connected = self._traktConnected()
+		if trakt_connected and control.getSetting('trakt.watchlist.menu', 'true') == 'true':
 			self.addDirectoryItem("[B]Trakt[/B] - Watchlist Serien", 'traktList&type=watchlist&media_type=tv', '05_tv_serien.png', 'DefaultTVShows.png')
-		if control.getSetting('trakt.collection.menu', 'true') == 'true':
+		if trakt_connected and control.getSetting('trakt.collection.menu', 'true') == 'true':
 			self.addDirectoryItem("[B]Trakt[/B] - Collection Serien", 'traktList&type=collection&media_type=tv', '05_tv_serien.png', 'DefaultTVShows.png')
 		self._endDirectory()
 
@@ -85,6 +87,13 @@ class navigator:
 			listitem.setProperty('IsPlayable', 'false')
 		self.addFanart(listitem, query)
 		control.addItem(syshandle, url, listitem, isFolder)
+
+	def _traktConnected(self):
+		try:
+			from resources.lib import trakt
+			return trakt.is_connected()
+		except:
+			return False
 
 	def _endDirectory(self, content='', cache=True):
 		control.content(syshandle, content)

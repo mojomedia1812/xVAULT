@@ -1,3 +1,12 @@
+xVAULT 2026.08.04.1
+Entwickler: mojomedia1812
+
+- Neuer TV-Serien-Menuepunkt zeigt Serien, deren Serienstart in Deutschland innerhalb der letzten 30 Tage liegt.
+- Trakt-Watchlist und Trakt-Collection fuer Serien werden nur angezeigt, wenn Trakt verbunden ist.
+- Serienlisten reagieren robuster auf leere oder unvollstaendige TMDB-Antworten.
+- SerienStream-Redirects werden sauberer aufgeloest; unspielbare interne Bridge-URLs werden verworfen.
+- Doodstream wird als geschuetzter Hoster markiert und nachrangig behandelt, damit Autoplay auf funktionierende Alternativen ausweichen kann.
+
 xVAULT 2026.08.02.2
 Entwickler: mojomedia1812
 

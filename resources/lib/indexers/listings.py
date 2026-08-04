@@ -6,7 +6,7 @@
 import sys, os, datetime
 import json
 from resources.lib.requestHandler import cRequestHandler
-from resources.lib import control
+from resources.lib import control, log_utils
 
 _params = dict(control.parse_qsl(sys.argv[2].replace('?', ''))) if len(sys.argv) > 1 else dict()
 
@@ -47,14 +47,20 @@ class listings:
 			self.media_type = params.get('media_type')
 			url = params.get('url')
 			if url == 'kino':
-				from datetime import datetime, timedelta
-				today = datetime.today() - timedelta(days=21)
-				fromday = datetime.today() - timedelta(days=90)
+				today = datetime.datetime.today() - datetime.timedelta(days=21)
+				fromday = datetime.datetime.today() - datetime.timedelta(days=90)
 				_today = today.strftime('%Y-%m-%d')
 				_fromday = fromday.strftime('%Y-%m-%d')
 				url = 'primary_release_date.gte=%s&primary_release_date.lte=%s' % (_fromday, _today)
+			elif url == 'new_tv_de':
+				today = self._germany_today()
+				fromday = today - datetime.timedelta(days=30)
+				url = 'first_air_date.gte=%s&first_air_date.lte=%s&sort_by=first_air_date.desc&timezone=Europe/Berlin&include_null_first_air_dates=false' % (fromday.strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d'))
 
 			list, total_pages = self._call(url, append_to_response=append_to_response)
+			if not list:
+				label = 'Neue Serien konnten nicht geladen werden.' if params.get('url') == 'new_tv_de' else 'Nichts gefunden.'
+				return self._emptyDirectory(label, media_type=self.media_type)
 			params.update({'list': list})
 			params.update({'next_pages': next_pages})
 			params.update({'total_pages': total_pages})
@@ -66,8 +72,9 @@ class listings:
 				from resources.lib.indexers import tvshows
 				tvshows.tvshows().getDirectory(params)
 			return self.list
-		except:
-			pass
+		except Exception as exc:
+			log_utils.log('Listing fehlgeschlagen (%s): %s' % (params.get('url'), exc), log_utils.LOGWARNING)
+			return self._emptyDirectory('Liste konnte nicht geladen werden.', media_type=params.get('media_type'))
 
 	def movieYears(self):
 		year = (self.datetime.strftime('%Y'))
@@ -95,6 +102,27 @@ class listings:
 			self.list.append({'name': i['name'], 'url': 'with_genres=%s&without_genres=%s&sort_by=vote_count.desc' % (str(i['id']), without), 'image': 'genres.png', 'action': 'listings'})
 		self.addDirectory(self.list)
 		return self.list
+
+	def _germany_today(self):
+		try:
+			from zoneinfo import ZoneInfo
+			return datetime.datetime.now(ZoneInfo('Europe/Berlin')).date()
+		except:
+			return datetime.datetime.now().date()
+
+	def _emptyDirectory(self, message, media_type=''):
+		try:
+			control.infoDialog(message, icon='WARNING', time=4000)
+		except:
+			pass
+		try:
+			syshandle = int(sys.argv[1])
+			control.content(syshandle, 'tvshows' if media_type == 'tv' else 'movies')
+			control.plugincategory(syshandle, control.addonVersion)
+			control.endofdirectory(syshandle, cacheToDisc=False)
+		except Exception as exc:
+			log_utils.log('Leeres Listing konnte nicht beendet werden: %s' % exc, log_utils.LOGWARNING)
+		return []
 
 
 	def _call(self, url, append_to_response=''):

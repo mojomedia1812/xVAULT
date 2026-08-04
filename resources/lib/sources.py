@@ -1195,8 +1195,9 @@ class sources:
                     resolved = True
                 else:
                     try:
-                        hmf = resolver.HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=False)
-                        if not hmf.valid_url():
+                        include_popups = item.get('prioHoster', 0) >= 999
+                        hmf = resolver.HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=include_popups)
+                        if not hmf.valid_url() and not include_popups:
                             hmf = resolver.HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=True)
                         if hmf.valid_url():
                             url = hmf.resolve()
