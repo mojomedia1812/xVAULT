@@ -50,6 +50,26 @@ def _finish_action():
         pass
 
 
+def _addon_enabled(addon_id):
+    try:
+        import xbmc
+        payload = json.dumps({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "Addons.GetAddonDetails",
+            "params": {"addonid": addon_id, "properties": ["enabled"]},
+        })
+        response = json.loads(xbmc.executeJSONRPC(payload) or "{}")
+        if response.get("error"):
+            return bool(control.condVisibility('System.HasAddon(%s)' % addon_id))
+        return bool(response.get("result", {}).get("addon", {}).get("enabled"))
+    except Exception:
+        try:
+            return bool(control.condVisibility('System.HasAddon(%s)' % addon_id))
+        except Exception:
+            return False
+
+
 def _log_startup_warning(message):
     try:
         from resources.lib import log_utils
@@ -334,16 +354,21 @@ elif action == 'playURL':
         item = xbmcgui.ListItem('URL-direkt')
         kodiver = int(xbmc.getInfoLabel("System.BuildVersion").split(".")[0])
         if ".m3u8" in url or '.mpd' in url:
-            item.setProperty("inputstream", "inputstream.adaptive")
-            if '.mpd' in url:
-                if kodiver < 21: item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
-                item.setMimeType('application/dash+xml')
+            adaptive_enabled = _addon_enabled("inputstream.adaptive")
+            is_dash = '.mpd' in url
+            if adaptive_enabled:
+                item.setProperty("inputstream", "inputstream.adaptive")
+                if is_dash:
+                    if kodiver < 21: item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+                    item.setMimeType('application/dash+xml')
+                else:
+                    if kodiver < 21: item.setProperty('inputstream.adaptive.manifest_type', 'hls')
+                    item.setMimeType("application/vnd.apple.mpegurl")
             else:
-                if kodiver < 21: item.setProperty('inputstream.adaptive.manifest_type', 'hls')
-                item.setMimeType("application/vnd.apple.mpegurl")
+                item.setMimeType('application/dash+xml' if is_dash else "application/vnd.apple.mpegurl")
             item.setContentLookup(False)
-            if '|' in url:
-                stream_url, strhdr = url.split('|')
+            if adaptive_enabled and '|' in url:
+                stream_url, strhdr = url.split('|', 1)
                 item.setProperty('inputstream.adaptive.stream_headers', strhdr)
                 if kodiver > 19: item.setProperty('inputstream.adaptive.manifest_headers', strhdr)
                 url = stream_url

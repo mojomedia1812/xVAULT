@@ -1,6 +1,6 @@
 # xVAULT-Abhängigkeiten
 
-Geprüfter Stand: 2026-07-27
+Geprüfter Stand: 2026-08-05
 
 ## Kodi-Grundlage
 
@@ -30,13 +30,19 @@ bereitsteht.
 
 ## Optionale Funktionen
 
+Optionale binäre Kodi-Komponenten werden nicht beim allgemeinen xVAULT-Start
+automatisch nachinstalliert. Sie sind plattformabhängig und können zum Beispiel
+auf einzelnen webOS-/Embedded-Kodi-Builds fehlen. xVAULT nutzt sie nur, wenn sie
+auf dem jeweiligen System installiert und aktiviert sind, und fällt für LiveTV
+sonst auf Kodis interne HLS-Wiedergabe zurück.
+
 | Kodi-ID / Komponente | Lokal installiert | Wann benötigt | Installation / Original-Repository |
 |---|---:|---|---|
 | `script.module.download-m3u8` | Bootstrap | Nur für direkte HLS-/M3U8-Downloads | Kodi-Paket: https://github.com/chrisklietsch/repository.kc-kodi/tree/main/repo/script.module.download-m3u8 — Upstream: https://github.com/hwaves/m3u8_To_MP4 (Weiterleitung zu https://github.com/tysoong/m3u8_To_MP4) |
-| `inputstream.ffmpegdirect` | 22.2.6 | Bevorzugte optionale HLS-LiveTV-Wiedergabe im automatischen Modus, wenn auf der Kodi-Plattform verfügbar; sonst fällt xVAULT auf Kodis interne HLS-Wiedergabe zurück | https://github.com/xbmc/inputstream.ffmpegdirect |
-| `inputstream.adaptive` | 22.3.19 | Optionale HLS-/DASH-Wiedergabe; für LiveTV nur noch bei manueller Auswahl der Wiedergabe-Engine | https://github.com/xbmc/inputstream.adaptive |
-| `inputstream.rtmp` | 22.1.2 | Optionale RTMP-Wiedergabe, wenn Kodi oder eine Plattformquelle sie für einen Stream benötigt | https://github.com/xbmc/inputstream.rtmp |
-| `pvr.iptvsimple` | 22.6.4 | Optionale Kodi-TV/PVR-Integration für die von xVAULT erzeugte LiveTV-M3U- und XMLTV-Ausgabe | https://github.com/kodi-pvr/pvr.iptvsimple |
+| `inputstream.ffmpegdirect` | optional | Bevorzugte optionale HLS-LiveTV-Wiedergabe im automatischen Modus, wenn auf der Kodi-Plattform verfügbar; sonst fällt xVAULT auf Kodis interne HLS-Wiedergabe zurück | https://github.com/xbmc/inputstream.ffmpegdirect |
+| `inputstream.adaptive` | optional | Optionale HLS-/DASH-Wiedergabe; für LiveTV nur noch bei manueller Auswahl der Wiedergabe-Engine | https://github.com/xbmc/inputstream.adaptive |
+| `inputstream.rtmp` | optional | Optionale RTMP-Wiedergabe, wenn Kodi oder eine Plattformquelle sie für einen Stream benötigt | https://github.com/xbmc/inputstream.rtmp |
+| `pvr.iptvsimple` | nutzergesteuert | Optionale Kodi-TV/PVR-Integration für die von xVAULT erzeugte LiveTV-M3U- und XMLTV-Ausgabe | https://github.com/kodi-pvr/pvr.iptvsimple |
 | `plugin.video.youtube` | Nein | Trailer-Wiedergabe; ohne Add-on wird die Trailer-Funktion ausgeblendet | https://github.com/anxdpanic/plugin.video.youtube |
 | `script.module.pydevd` | Nein | Nur Entwickler-Debugging; aktive Nutzung wurde nicht gefunden | Kodi-Modul: https://github.com/powlo/script.module.pydevd — Upstream: https://github.com/fabioz/PyDev.Debugger |
 
@@ -46,6 +52,10 @@ bereitsteht.
 |---|---|
 | `script.module.resolveurl` | Repository-ZIP: https://gujal00.github.io/repository.resolveurl-1.0.0.zip; Metadaten/Fallback: https://raw.githubusercontent.com/Gujal00/smrzips/master/addons.xml |
 | `script.module.download-m3u8` | Metadaten/Fallback: https://raw.githubusercontent.com/chrisklietsch/repository.kc-kodi/main/repo/addons.xml |
+
+InputStream-Komponenten und PVR-Clients werden nicht über diese Bootstrap-
+Quellen ausgeliefert. Kodi muss dafür die zur Plattform passende Add-on-Version
+bereitstellen.
 
 ## Externe Dienste und Programme
 

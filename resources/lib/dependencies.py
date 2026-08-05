@@ -49,6 +49,11 @@ REQUIRED_EXTERNAL_ADDONS = set([
 ])
 AUTO_INSTALL_OPTIONAL_EXTERNALS = set([
     'script.module.download-m3u8',
+])
+# Binary inputstream add-ons are platform packages. Some Kodi builds, for
+# example webOS ports, cannot provide every package. They remain optional and
+# are never installed during the general startup bootstrap.
+OPTIONAL_BINARY_ADDONS = set([
     'inputstream.adaptive',
     'inputstream.ffmpegdirect',
     'inputstream.rtmp',
@@ -184,6 +189,8 @@ def _is_required(addon_id, optional):
 
 def _should_install(addon_id, optional):
     if optional and addon_id in SKIP_OPTIONAL_INSTALL:
+        return False
+    if optional and addon_id in OPTIONAL_BINARY_ADDONS:
         return False
     if addon_id in REQUIRED_EXTERNAL_ADDONS or addon_id in AUTO_INSTALL_OPTIONAL_EXTERNALS:
         return True

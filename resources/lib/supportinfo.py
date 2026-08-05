@@ -63,6 +63,9 @@ LOG_TOKENS = (
     'scrapers.scrapers_source',
     'resolveurl',
     'inputstream.adaptive',
+    'inputstream.ffmpegdirect',
+    'inputstream.rtmp',
+    'pvr.iptvsimple',
 )
 
 
@@ -318,6 +321,8 @@ def _dependency_context():
         'script.module.resolveurl',
         'inputstream.adaptive',
         'inputstream.ffmpegdirect',
+        'inputstream.rtmp',
+        'pvr.iptvsimple',
         'plugin.video.youtube',
         'plugin.video.themoviedb.helper',
         'plugin.video.xstream',

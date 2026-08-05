@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.08.04.1`
+Aktueller Stand: `2026.08.05.1`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,12 +12,12 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.08.04.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.08.05.1.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
 
-Kodi installiert die offiziellen Abhängigkeiten aus den konfigurierten Repositorys. Damit eine direkte ZIP-Installation nicht an noch fehlenden Modulen scheitert, installiert und aktiviert xVAULT seine benötigten Laufzeitmodule beim ersten Start zusätzlich selbst. Nicht im offiziellen Kodi-Repo verfügbare Module wie ResolveURL werden dabei aus ihren offiziellen Quellen nachinstalliert.
+Kodi installiert die offiziellen Abhängigkeiten aus den konfigurierten Repositorys. Damit eine direkte ZIP-Installation nicht an noch fehlenden Modulen scheitert, installiert und aktiviert xVAULT seine benötigten Laufzeitmodule beim ersten Start zusätzlich selbst. Nicht im offiziellen Kodi-Repo verfügbare Module wie ResolveURL werden dabei aus ihren offiziellen Quellen nachinstalliert. Optionale binäre InputStream-Komponenten werden nicht beim Pluginstart erzwungen, weil sie je nach Kodi-Plattform nicht immer verfügbar sind.
 
 Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.md).
 
@@ -54,6 +54,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Die Standard-Aktion `Verzeichnis` liefert Quellenlisten auch aus Favoriten, RPC- und externen Aufrufen wieder als Kodi-Verzeichnis, statt ungewollt in den Dialog zurückzufallen.
 - VIXSTREAM-Playlist-Streams ohne `.m3u8`-Endung werden als HLS erkannt und behalten die benötigten Vixcloud-Header beim Kodi-Start im Abspielpfad, damit Manifest, Segmente und AES-Schlüssel erreichbar bleiben.
 - VIXSTREAM prüft die tatsächlichen HLS-Audiospuren und zeigt eine Quelle nur als Deutsch oder Englisch an, wenn die angeforderte Sprache als Tonspur vorhanden ist; Untertitel zählen nicht als Streamsprache.
+- Optionale InputStream-Komponenten werden beim Pluginstart, bei Film-/Serien-HLS und bei der Kodi-TV-/IPTV-Simple-Integration nicht mehr erzwungen; xVAULT nutzt vorhandene Engines oder fällt auf Kodis interne Wiedergabe zurück.
 - Movie4k nutzt die aktuelle API-Struktur über `movie4k.sx`; alte Movie4k-Domainwerte werden beim Providercheck automatisch auf die funktionierende Domain migriert.
 - Neuer Einstellungsbereich `Indexseiten 3 (DE)` für CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM; der bisherige Bereich `Indexseiten (DE)` heißt jetzt `Indexseiten 1 (DE)`.
 - Bei einer frischen Erstinstallation startet xVAULT mit Streamsprache Deutsch und Standard-Aktion Autoplay; bestehende Profile und Updates behalten ihre gewählten Einstellungen.
@@ -118,7 +119,7 @@ Bei Änderungen an Version, Einstellungen oder Funktionen muss diese README gepr
 
 ## Kompatibilität
 
-xVAULT ist ein Kodi-Python-3-Add-on und deklariert in [`addon.xml`](addon.xml) `xbmc.python` ab Version `3.0.0`. Die Python-Laufzeitmodule, ResolveURL und Inputstream-Komponenten werden beim Start geprüft und bei Bedarf über Kodi beziehungsweise die hinterlegten offiziellen Quellen installiert und aktiviert. Der IPTV Simple Client wird nicht mehr beim xVAULT-Start oder nach Updates automatisch installiert oder aktiviert; xVAULT fragt nur bei der ausdrücklich ausgewählten Kodi-TV-Integration nach. LiveTV-HLS funktioniert plattformneutral auf Windows, Linux und Android: xVAULT nutzt automatisch FFmpeg Direct, wenn es auf der Plattform installiert und aktiviert ist, und fällt sonst auf Kodis interne HLS-Wiedergabe zurück. InputStream Adaptive bleibt als manuell auswählbare Alternative erhalten.
+xVAULT ist ein Kodi-Python-3-Add-on und deklariert in [`addon.xml`](addon.xml) `xbmc.python` ab Version `3.0.0`. Die Python-Laufzeitmodule und ResolveURL werden beim Start geprüft und bei Bedarf über Kodi beziehungsweise die hinterlegten offiziellen Quellen installiert und aktiviert. Optionale binäre InputStream-Komponenten werden beim Start nicht erzwungen, weil sie plattformabhängig sind und auf einzelnen Kodi-Ports fehlen können. Der IPTV Simple Client wird nicht mehr beim xVAULT-Start oder nach Updates automatisch installiert oder aktiviert; xVAULT fragt nur bei der ausdrücklich ausgewählten Kodi-TV-Integration nach. LiveTV-HLS funktioniert plattformneutral: xVAULT nutzt automatisch FFmpeg Direct, wenn es auf der Plattform installiert und aktiviert ist, und fällt sonst auf Kodis interne HLS-Wiedergabe zurück. InputStream Adaptive bleibt als manuell auswählbare Alternative erhalten.
 
 Für Android-basierte Fire-TV-Stick-Tests gibt es einen Profil-Simulator unter [`docs/firetv-stick-simulator.md`](docs/firetv-stick-simulator.md). Er ersetzt keinen echten FireOS-ROM-Emulator, hilft aber beim Prüfen von Fire OS, Android-API-Level, RAM, Codec-Klasse und Kodi-Risiken und kann Android-TV-AVD-Testprofile nach dem Amazon-AVD-Vorgehen skizzieren.
 

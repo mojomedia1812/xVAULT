@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.08.04.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.08.05.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.08.04.1.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.08.05.1.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -365,7 +365,7 @@
       <p>Bei einer wirklich frischen Installation setzt xVAULT die bevorzugte Streamsprache einmalig auf <strong>Deutsch</strong> und die Standard-Aktion auf <strong>Autoplay</strong>. Bestehende Profile und spätere Updates behalten ihre gewählten Wiedergabeeinstellungen, damit persönliche Einstellungen nicht überschrieben werden.</p>
       <h3>Abhängigkeiten</h3>
       <p>xVAULT benötigt Kodi mit Python 3 und installiert die offiziellen Pflichtmodule über Kodis Add-on-System. ResolveURL ist als optionale, aber praktisch wichtige Hoster-Schicht eingebunden. Für LiveTV können je nach gewählter Wiedergabe-Engine Kodis interne HLS-Wiedergabe, InputStream Adaptive oder InputStream FFmpeg Direct genutzt werden.</p>
-      <p>Beim Start prüft xVAULT die bekannten Laufzeitabhängigkeiten und kann fehlende Module nachinstallieren, wenn sie aus den hinterlegten Quellen erreichbar sind. Der IPTV Simple Client wird dabei nicht automatisch installiert oder aktiviert, weil er ein eigener Kodi-PVR-Client mit eigener Nutzerkonfiguration ist. Wenn eine Abhängigkeit fehlt, lohnt sich ein Blick in <strong>Werkzeuge</strong> und in Kodis Add-on-Bereich.</p>
+      <p>Beim Start prüft xVAULT die bekannten Laufzeitabhängigkeiten und kann fehlende Pflichtmodule nachinstallieren, wenn sie aus den hinterlegten Quellen erreichbar sind. Optionale binäre InputStream-Komponenten werden beim Start nicht erzwungen, weil sie je nach Kodi-Plattform nicht immer verfügbar sind. Der IPTV Simple Client wird dabei nicht automatisch installiert oder aktiviert, weil er ein eigener Kodi-PVR-Client mit eigener Nutzerkonfiguration ist. Wenn eine Abhängigkeit fehlt, lohnt sich ein Blick in <strong>Werkzeuge</strong> und in Kodis Add-on-Bereich.</p>
       <h3>Updates</h3>
       <p>Wenn automatische Updates aktiv sind, prüft xVAULT beim Öffnen des Hauptmenüs, ob über das Repository eine neuere Version bereitsteht. Ist die automatische Prüfung deaktiviert, bleibt die Installation unverändert, bis Kodi oder der Nutzer manuell aktualisiert.</p>
     </section>
@@ -664,7 +664,7 @@
           <tr><td>Senderliste ist leer oder veraltet.</td><td>In xVAULT <strong>LiveTV</strong> öffnen, zuerst <strong>Senderliste aktualisieren</strong> und danach je nach Bedarf <strong>M3U/XMLTV-Dateien erstellen</strong> oder <strong>Kodi-TV Integration aktualisieren</strong> auswählen.</td></tr>
         </tbody>
       </table>
-      <p>Wichtig: IPTV Simple und Inputstream-Module sind plattformabhängige Kodi-Komponenten. Sie werden nicht in das xVAULT-ZIP hineinkopiert. xVAULT fordert sie über Kodi an, damit Windows, Linux und Android jeweils die passende Version erhalten.</p>
+      <p>Wichtig: IPTV Simple und InputStream-Module sind plattformabhängige Kodi-Komponenten. Sie werden nicht in das xVAULT-ZIP hineinkopiert. xVAULT fordert nur IPTV Simple bei ausdrücklich ausgewählter Kodi-TV-Integration an. InputStream-Module bleiben optional; fehlen sie auf einem Gerät, nutzt xVAULT für LiveTV Kodis interne HLS-Wiedergabe.</p>
       <h3>Kategorien und Senderlogos</h3>
       <p>Sender werden anhand ihrer Namen und bekannter Muster in Kategorien wie Öffentlich-rechtlich, Private, Nachrichten, Doku, Sport, Kinder, Musik, Regional, Österreich, Schweiz und weitere Gruppen einsortiert. Bekannte Sonderfälle werden gezielt überschrieben, damit beispielsweise Fußball- oder Vereinskanäle in Sport landen.</p>
       <p>Logos kommen zuerst aus der Senderliste, danach aus EPG-Daten und zuletzt aus einem gecachten Logo-Katalog. Platzhalter- oder unbrauchbare Logos werden ersetzt, wenn ein besseres Logo über Aliasnamen gefunden wird.</p>
@@ -678,7 +678,7 @@
       <p>Vor dem Start prüft xVAULT HLS-Streams mehrfach. Tote, leere oder instabile Manifeste werden abgefangen, bevor Kodi sie als Wiedergabefehler meldet. Wenn ein eng passender Ersatzstream verfügbar ist, kann xVAULT auf diesen ausweichen.</p>
       <p>Die Ersatzsuche vergleicht Sendernamen normalisiert und bevorzugt Kandidaten, die möglichst eng zum ursprünglichen Sender passen. xVAULT prüft mehrere Kandidaten, bewertet die Preflight-Ergebnisse und startet den besten bestätigten Stream.</p>
       <h3>Puffer und Wiedergabe-Engine</h3>
-      <p>Die Puffergröße für LiveTV-Streams ist einstellbar. Zusätzlich kann die Wiedergabe-Engine auf Automatisch, Kodi intern, FFmpeg Direct oder InputStream Adaptive gesetzt werden. Die automatische Auswahl ist für Windows, Linux und Android gedacht.</p>
+      <p>Die Puffergröße für LiveTV-Streams ist einstellbar. Zusätzlich kann die Wiedergabe-Engine auf Automatisch, Kodi intern, FFmpeg Direct oder InputStream Adaptive gesetzt werden. Die automatische Auswahl bevorzugt vorhandene Komponenten und fällt auf Kodis interne HLS-Wiedergabe zurück, wenn eine InputStream-Komponente auf dem Gerät fehlt oder deaktiviert ist.</p>
       <table class="manual-table">
         <thead>
           <tr><th>Engine</th><th>Hinweis</th></tr>
@@ -879,7 +879,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.08.04.1</span>
+      <span>Handbuch zu xVAULT 2026.08.05.1</span>
     </footer>
   </main>
 </body>

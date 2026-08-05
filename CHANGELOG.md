@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.08.05.1] - 2026-08-05
+
+- Abhängigkeitsprüfung für webOS- und Android-Kodi gehärtet: optionale InputStream-Komponenten werden beim Pluginstart nicht mehr automatisch nachinstalliert.
+- Kodi-TV-/IPTV-Simple-Integration setzt nicht mehr FFmpeg Direct, InputStream Adaptive oder RTMP voraus und nutzt bei fehlenden Modulen Kodis interne HLS-Wiedergabe.
+- Film- und Serienstreams verweisen nur noch dann auf InputStream Adaptive, wenn das Modul auf der Kodi-Plattform wirklich aktiviert ist.
+- Supportinformationen zeigen zusätzlich den Status der optionalen InputStream- und PVR-Komponenten.
+
 ## [2026.08.04.1] - 2026-08-04
 
 - Neuer TV-Serien-Menuepunkt zeigt Serien, deren Serienstart in Deutschland innerhalb der letzten 30 Tage liegt.

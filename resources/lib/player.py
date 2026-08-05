@@ -3,7 +3,7 @@
 #2021-11-22
 #edit 2025-03-02
 
-import sys, re
+import sys, re, json
 import hashlib,os,codecs
 from sqlite3 import dbapi2 as database
 import xbmc, xbmcplugin
@@ -21,6 +21,26 @@ except:
 #_params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
 
 PLAYBACK_START_TIMEOUT = 45
+
+
+def _addon_enabled(addon_id):
+    try:
+        payload = json.dumps({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "Addons.GetAddonDetails",
+            "params": {"addonid": addon_id, "properties": ["enabled"]},
+        })
+        response = json.loads(xbmc.executeJSONRPC(payload) or "{}")
+        if response.get("error"):
+            return bool(control.condVisibility('System.HasAddon(%s)' % addon_id))
+        return bool(response.get("result", {}).get("addon", {}).get("enabled"))
+    except Exception:
+        try:
+            return bool(control.condVisibility('System.HasAddon(%s)' % addon_id))
+        except Exception:
+            return False
+
 
 class player(xbmc.Player):
     def __init__(self, *args, **kwargs):
@@ -104,16 +124,22 @@ class player(xbmc.Player):
             is_hls_manifest = ".m3u" in stream_probe_url or re.search(r'/playlist/\d+(?:/|$)', stream_probe_url) != None
             is_dash_manifest = '.mpd' in stream_probe_url
             if is_hls_manifest or is_dash_manifest:
-                item.setProperty("inputstream", "inputstream.adaptive")
-                if is_dash_manifest:
-                    if kodiver < 21: item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
-                    item.setMimeType('application/dash+xml')
+                adaptive_enabled = _addon_enabled("inputstream.adaptive")
+                if not adaptive_enabled and is_dash_manifest:
+                    log_utils.log('DASH playback requested without enabled InputStream Adaptive', log_utils.LOGWARNING)
+                if adaptive_enabled:
+                    item.setProperty("inputstream", "inputstream.adaptive")
+                    if is_dash_manifest:
+                        if kodiver < 21: item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+                        item.setMimeType('application/dash+xml')
+                    else:
+                        if kodiver < 21: item.setProperty('inputstream.adaptive.manifest_type', 'hls')
+                        # item.setMimeType("application/vnd.apple.mpegurl")
+                        item.setMimeType('application/x-mpegURL')
                 else:
-                    if kodiver < 21: item.setProperty('inputstream.adaptive.manifest_type', 'hls')
-                    # item.setMimeType("application/vnd.apple.mpegurl")
-                    item.setMimeType('application/x-mpegURL')
+                    item.setMimeType('application/dash+xml' if is_dash_manifest else 'application/x-mpegURL')
                 item.setContentLookup(False)
-                if '|' in url:
+                if adaptive_enabled and '|' in url:
                     original_url = url
                     stream_url, strhdr = url.split('|', 1)
                     item.setProperty('inputstream.adaptive.common_headers', strhdr)

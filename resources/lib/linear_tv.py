@@ -472,20 +472,24 @@ def _configure_iptv_simple(playlist_path, epg_path, interactive=True):
 
 def _ensure_pvr_dependencies(interactive=True):
     try:
-        from resources.lib import dependencies
-        addon_ids = (
-            "inputstream.adaptive",
-            "inputstream.ffmpegdirect",
-            "inputstream.rtmp",
-        )
-        success = True
-        for addon_id in addon_ids:
-            if not dependencies.install_addon(addon_id):
-                success = False
-        return success and _ensure_iptv_simple(interactive=interactive)
+        _log_optional_inputstream_state()
+        return _ensure_iptv_simple(interactive=interactive)
     except Exception as exc:
-        log_utils.log("LiveTV PVR dependency install failed: %s" % str(exc), log_utils.LOGWARNING)
+        log_utils.log("LiveTV PVR dependency check failed: %s" % str(exc), log_utils.LOGWARNING)
         return _addon_available("pvr.iptvsimple")
+
+
+def _log_optional_inputstream_state():
+    addon_ids = (
+        "inputstream.adaptive",
+        "inputstream.ffmpegdirect",
+        "inputstream.rtmp",
+    )
+    states = []
+    for addon_id in addon_ids:
+        state = "enabled" if _addon_enabled(addon_id) else "missing-or-disabled"
+        states.append("%s=%s" % (addon_id, state))
+    log_utils.log("LiveTV optional inputstream state: %s" % ", ".join(states), log_utils.LOGINFO)
 
 
 def _ensure_iptv_simple(interactive=True):
@@ -1106,13 +1110,13 @@ def _configure_stream(item, stream_url):
     if engine == PLAYBACK_ENGINE_ADAPTIVE:
         if _configure_adaptive_stream(item):
             return
-        control.infoDialog("InputStream Adaptive ist nicht verfügbar. Kodi intern wird genutzt.", icon="WARNING", time=4000)
+        control.infoDialog("InputStream Adaptive ist auf dieser Kodi-Plattform nicht verfügbar oder deaktiviert. Kodi intern wird genutzt.", icon="WARNING", time=5000)
         return
 
     if engine == PLAYBACK_ENGINE_FFMPEG_DIRECT:
         if _configure_ffmpeg_direct_stream(item):
             return
-        control.infoDialog("FFmpeg Direct ist nicht verfügbar. Kodi intern wird genutzt.", icon="WARNING", time=4000)
+        control.infoDialog("FFmpeg Direct ist auf dieser Kodi-Plattform nicht verfügbar oder deaktiviert. Kodi intern wird genutzt.", icon="WARNING", time=5000)
         return
 
     if engine == PLAYBACK_ENGINE_AUTO and _configure_ffmpeg_direct_stream(item):
