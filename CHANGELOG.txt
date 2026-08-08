@@ -1,3 +1,9 @@
+xVAULT 2026.08.08.7
+Entwickler: mojomedia1812
+
+- Filmo als aktivierbare Filmquelle in die normale Quellensuche eingebunden.
+- Filmo-Suche, Filmseiten und Providerchips werden ausgewertet; Deutsch-/Englisch-Hoster werden über den Filmo-Mint-Endpunkt in echte Hoster-Weiterleitungen überführt.
+
 xVAULT 2026.08.08.6
 Entwickler: mojomedia1812
 

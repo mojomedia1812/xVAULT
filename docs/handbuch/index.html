@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.08.08.6.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.08.08.7.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.08.08.6.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.08.08.7.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -456,6 +456,7 @@
       <ul class="tag-list" aria-label="Indexseiten">
         <li>Einschalten</li>
         <li>Filmpalast</li>
+        <li>Filmo</li>
         <li>Filmpro</li>
         <li>HDFilme</li>
         <li>FHDFilme</li>
@@ -488,13 +489,15 @@
           <tr><th>Bereich</th><th>Anbieter</th></tr>
         </thead>
         <tbody>
-          <tr><td>Indexseiten 1 (DE)</td><td>Einschalten, Filmpalast, Filmpro, HDFilme, FHDFilme, Huhu, KinoGer, KinoKiste, Kinox und KKiste.</td></tr>
+          <tr><td>Indexseiten 1 (DE)</td><td>Einschalten, Filmpalast, Filmo, Filmpro, HDFilme, FHDFilme, Huhu, KinoGer, KinoKiste, Kinox und KKiste.</td></tr>
           <tr><td>Indexseiten 2 (DE)</td><td>Megakino, Movie2k, Movie2k2, Movie4k, Netzkino, BS.to, SerienStream, AniWorld, StreamCloud, TopStreamFilm und VixStream.</td></tr>
           <tr><td>Indexseiten 3 (DE)</td><td>CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM.</td></tr>
         </tbody>
       </table>
       <h3>Filmpalast</h3>
       <p>Filmpalast wird für Filme und Serien als normale Indexseite geführt. xVAULT berücksichtigt die aktuelle Such- und Quellenstruktur der Seite, schützt korrekt kodierte Suchpfade vor Doppel-Kodierung und übernimmt erkannte Hoster in die Quellenliste, bevor die Resolver-Schicht den eigentlichen Abspiellink vorbereitet.</p>
+      <h3>Filmo</h3>
+      <p>Filmo wird zusätzlich zu den Collections auch als normale Filmquelle genutzt. Bei der Quellensuche liest xVAULT die Filmo-Suche, öffnet passende Filmseiten, übernimmt Deutsch- und Englisch-Providerchips und löst sie vor der Quellenanzeige über den Filmo-Mint-Endpunkt in echte Hoster-Weiterleitungen auf. Andere Sprachvarianten werden nicht als eigene xVAULT-Sprache geführt.</p>
       <h3>Movie4k</h3>
       <p>Movie4k nutzt die aktuelle API-Struktur der erreichbaren Domain. Alte gespeicherte Movie4k-Domainwerte werden beim Providercheck auf die funktionierende Domain migriert, damit die Indexseite nicht durch veraltete Einstellungen als nicht erreichbar markiert wird.</p>
       <h3>BS.to</h3>
@@ -888,7 +891,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.08.08.6</span>
+      <span>Handbuch zu xVAULT 2026.08.08.7</span>
     </footer>
   </main>
 </body>

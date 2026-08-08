@@ -54,6 +54,9 @@
         <setting id="provider.filmpalast" type="bool" label="Filmpalast" default="true" />
         <setting id="provider.filmpalast.domain" label="[B][COLOR red]Filmpalast: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.filmpalast.check" label="Filmpalast Check" type="bool" default="true" visible="false" />
+        <setting id="provider.filmo" type="bool" label="Filmo" default="true" />
+        <setting id="provider.filmo.domain" label="[B][COLOR red]Filmo: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.filmo.check" label="Filmo Check" type="bool" default="true" visible="false" />
         <setting id="provider.filmpro" type="bool" label="Filmpro" default="true" />
         <setting id="provider.filmpro.domain" label="[B][COLOR red]Filmpro: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.filmpro.check" label="Filmpro Check" type="bool" default="true" visible="false" />

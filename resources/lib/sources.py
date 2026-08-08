@@ -967,11 +967,13 @@ class sources:
         value = re.sub(r'\s+', ' ', value).strip()
         known = {
             'voe': 'VOE',
+            'voe.sx': 'VOE',
             'vivo': 'VIVO',
             'vidoza': 'Vidoza',
             'doodstream': 'DoodStream',
             'serienstream': 'SerienStream',
-            'filmpalast': 'Filmpalast'
+            'filmpalast': 'Filmpalast',
+            'filmo': 'Filmo'
         }
         return known.get(value.lower(), value)
 

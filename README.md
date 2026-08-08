@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.08.08.6`
+Aktueller Stand: `2026.08.08.7`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.08.08.6.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.08.08.7.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -51,6 +51,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Die Standard-Aktion `Dialog`, `Verzeichnis` oder `Autoplay` wird beim Start von Filmen und Folgen frisch aus Kodis aktuellem Add-on-Setting gelesen; die Profil-Datei dient als Rückfall. Alte Favoriten oder externe Aufrufe frieren die Auswahl nicht mehr auf einen früheren Wert ein.
 - Die Standard-Aktion wird über einen xVAULT-eigenen Auswahl-Dialog gespeichert und migriert alte `hosts.mode.v2`-/`hosts.mode`-/`default.action`-Werte automatisch, damit Kodi-Defaultwerte die Auswahl nicht mehr auf Autoplay zurücksetzen.
 - Filmpalast liest die aktuelle Such- und Quellenstruktur, schützt bereits korrekt kodierte Suchpfade vor Doppel-Kodierung und übernimmt erkannte Hoster erst ohne vorzeitige ResolveURL-Filterung in die Quellenliste.
+- Filmo ist als aktivierbare Filmquelle in die normale Quellensuche eingebunden; xVAULT liest Filmo-Suche und Filmseiten, löst Providerchips über den Filmo-Mint-Endpunkt auf und übernimmt Deutsch-/Englisch-Hoster in die Quellenliste.
 - Scraper erhalten die aktuelle ResolveURL-Hosterliste, damit Quellen von FHDFilme, HDfilme, Megakino, StreamCloud, TopStreamFilm und ähnlichen Anbietern nicht mehr vorzeitig ausgefiltert werden.
 - Die Standard-Aktion `Verzeichnis` liefert Quellenlisten auch aus Favoriten, RPC- und externen Aufrufen wieder als Kodi-Verzeichnis, statt ungewollt in den Dialog zurückzufallen.
 - VIXSTREAM-Playlist-Streams ohne `.m3u8`-Endung werden als HLS erkannt und behalten die benötigten Vixcloud-Header beim Kodi-Start im Abspielpfad, damit Manifest, Segmente und AES-Schlüssel erreichbar bleiben.
