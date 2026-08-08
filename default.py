@@ -150,6 +150,20 @@ elif action == 'movieNavigator':
     from resources.lib.indexers import navigator
     navigator.navigator().movies()
 
+elif action == 'collectionsNavigator':
+    _track_menu('collections')
+    from resources.lib.indexers import collections
+    collections.collections().root(params)
+
+elif action == 'collectionMovies':
+    _track_menu('collection_movies')
+    from resources.lib.indexers import collections
+    collections.collections().movies(params)
+
+elif action == 'collectionPlay':
+    from resources.lib.indexers import collections
+    collections.collections().play(params)
+
 elif action == 'tvNavigator':
     _track_menu('tvshows')
     from resources.lib.indexers import navigator

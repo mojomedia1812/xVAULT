@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.08.05.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.08.08.6.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.08.05.1.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.08.08.6.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -382,6 +382,7 @@
           <tr><td>Suche Filme</td><td>Startet eine Filmsuche über die aktivierten Film-Indexseiten. Gesuchte Begriffe werden für spätere Wiederholung gespeichert.</td></tr>
           <tr><td>Suche TV-Serien</td><td>Sucht Serien und führt anschließend zu Staffeln, Episoden und Quellen.</td></tr>
           <tr><td>Suche nach Person / Darsteller</td><td>Sucht nach Personen und zeigt passende Film- oder Serienbezüge an, wenn Metadaten verfügbar sind.</td></tr>
+          <tr><td>Collections</td><td>Öffnet Filmreihen und Sammlungen. Die Übersicht wird zwischengespeichert, Detailansichten werden chronologisch sortiert und über TMDb-Filmreihen gegen erkennbare Fremdtreffer abgeglichen.</td></tr>
           <tr><td>Filme</td><td>Öffnet Filmrubriken wie Neu, Jahr, Genres, populär, bestbewertet, meistbewertet und bestes Einspielergebnis.</td></tr>
           <tr><td>TV-Serien</td><td>Öffnet Serienrubriken wie Genres, populär, bestbewertet und meistbewertet.</td></tr>
           <tr><td>LiveTV</td><td>Öffnet den deutschen LiveTV-Bereich mit Kategorien, Logos, EPG-Vorschau, Favoriten und stabilisierter HLS-Wiedergabe.</td></tr>
@@ -409,6 +410,9 @@
       <p>Staffel-0-Folgen bleiben beim Abspielen echte Serienfolgen. Dadurch werden sie nicht versehentlich als Filme an die Quellen-Scraper übergeben und Anbieter wie SerienStream, BS.to und Vixstream können Sonderfolgen gezielt behandeln.</p>
       <h3>Personensuche</h3>
       <p>Die Personensuche ist für Darsteller, Regie und ähnliche Metadaten gedacht. Je nach Datenlage führt sie zu zugeordneten Titeln oder weiterführenden Übersichten.</p>
+      <h3>Collections</h3>
+      <p>Collections zeigen Filmreihen und Sammlungen aus Filmo. xVAULT speichert die Übersicht und die Detailseiten für 24 Stunden im Cache, lädt für die enthaltenen Filme zusätzliche Metadaten und sortiert die Filme chronologisch nach Veröffentlichungsdatum beziehungsweise Erscheinungsjahr.</p>
+      <p>Damit reine Anbieterlisten nicht ungeprüft übernommen werden, gleicht xVAULT die Detailansicht mit TMDb-Filmreihen ab. Bei Reihen mit mehreren offiziellen Unterreihen, zum Beispiel Batman oder Alien, werden erkannte Fremdtreffer herausgefiltert. Die Collections-Übersicht zeigt bewusst nur den Reihennamen und keine rohe Anbieter-Filmzahl.</p>
       <h3>Rubriken statt Suche</h3>
       <p>Wer nicht nach einem konkreten Titel sucht, kann über Filme und TV-Serien stöbern. Die Rubriken nutzen Metadatenlisten und führen danach wieder in den normalen Quellenablauf.</p>
       <table class="manual-table">
@@ -418,6 +422,7 @@
         <tbody>
           <tr><td>Neue Suche</td><td>Öffnet die Kodi-Tastatur und speichert den Suchbegriff im passenden Suchverlauf.</td></tr>
           <tr><td>Suchverlauf</td><td>Öffnet frühere Suchbegriffe erneut. Einzelne Begriffe können entfernt oder der Verlauf kann komplett geleert werden.</td></tr>
+          <tr><td>Collections</td><td>Listet Filmreihen, sortiert enthaltene Filme chronologisch und nutzt TMDb-Filmreihen zur Plausibilitätsprüfung.</td></tr>
           <tr><td>Filmrubriken</td><td>Listet Filme nach Jahr, Genre, Popularität, Bewertung, Stimmenzahl oder Einspielergebnis.</td></tr>
           <tr><td>Serienrubriken</td><td>Listet Serien nach Genre, Popularität, Bewertung oder Stimmenzahl.</td></tr>
           <tr><td>Personen</td><td>Führt von einem Namen zu bekannten Film- und Serienrollen, sofern Metadaten vorhanden sind.</td></tr>
@@ -466,6 +471,7 @@
         <li>Netzkino</li>
         <li>BS.to</li>
         <li>SerienStream</li>
+        <li>AniWorld</li>
         <li>StreamCloud</li>
         <li>CINE.TO</li>
         <li>FILMFANS</li>
@@ -483,7 +489,7 @@
         </thead>
         <tbody>
           <tr><td>Indexseiten 1 (DE)</td><td>Einschalten, Filmpalast, Filmpro, HDFilme, FHDFilme, Huhu, KinoGer, KinoKiste, Kinox und KKiste.</td></tr>
-          <tr><td>Indexseiten 2 (DE)</td><td>Megakino, Movie2k, Movie2k2, Movie4k, Netzkino, BS.to, SerienStream, StreamCloud, TopStreamFilm und VixStream.</td></tr>
+          <tr><td>Indexseiten 2 (DE)</td><td>Megakino, Movie2k, Movie2k2, Movie4k, Netzkino, BS.to, SerienStream, AniWorld, StreamCloud, TopStreamFilm und VixStream.</td></tr>
           <tr><td>Indexseiten 3 (DE)</td><td>CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM.</td></tr>
         </tbody>
       </table>
@@ -494,6 +500,9 @@
       <h3>BS.to</h3>
       <p>BS.to ist als optionaler Serien-Scraper eingebunden. Der Anbieter kann Serien, Staffeln, Episoden, Sprachvarianten und Hoster liefern. Erkannte Sprachen wie Deutsch, Englisch und deutsch untertitelte Varianten werden an die zentrale Sprachsteuerung weitergegeben.</p>
       <p>Der BS.to-Login in den Konten-Einstellungen ist freiwillig. Ohne Zugangsdaten sucht xVAULT weiter nach Quellen, die ohne Anmeldung und ohne CAPTCHA erreichbar sind. Quellen, die eine CAPTCHA-Prüfung benötigen, werden nicht angezeigt und nicht automatisiert umgangen.</p>
+      <h3>AniWorld</h3>
+      <p>AniWorld.to ist als optionaler Serienanbieter eingebunden. Der Anbieter kann über die Indexseiten aktiviert oder deaktiviert werden und nutzt die Serien-/Episodenlogik von xVAULT mit Titelabgleich, Staffel-/Episodenpfaden und Sprachkennzeichnung.</p>
+      <p>Zugangsdaten können im Kontenbereich hinterlegt werden, sind aber nicht zwingend erforderlich. Ohne Zugangsdaten sucht xVAULT nach erreichbaren Quellen, die ohne Anmeldung nutzbar sind.</p>
       <h3>Indexseiten 3 (DE)</h3>
       <p>CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM werden wie die anderen Indexseiten über eigene Schalter aktiviert oder deaktiviert. xVAULT übernimmt nur Quellen, die sich sinnvoll an Kodi oder die Resolver-Schicht übergeben lassen; interne Hilfslinks, reine Containerwege oder nicht abspielbare Einträge werden ausgefiltert.</p>
       <h3>Serien-Specials in Quellen</h3>
@@ -750,7 +759,7 @@
       </div>
       <div class="setting-group">
         <h3>Indexseiten</h3>
-        <p>Hier werden einzelne Anbieter für Filme und Serien aktiviert oder deaktiviert. Die Bereiche heißen <strong>Indexseiten 1 (DE)</strong>, <strong>Indexseiten 2 (DE)</strong> und <strong>Indexseiten 3 (DE)</strong>. Weniger aktivierte Indexseiten können schneller sein, mehr aktivierte Indexseiten erhöhen die Chance auf Treffer. BS.to besitzt zusätzlich optionale Zugangsdaten im Kontenbereich; CAPTCHA-pflichtige Quellen werden ausgeblendet.</p>
+        <p>Hier werden einzelne Anbieter für Filme und Serien aktiviert oder deaktiviert. Die Bereiche heißen <strong>Indexseiten 1 (DE)</strong>, <strong>Indexseiten 2 (DE)</strong> und <strong>Indexseiten 3 (DE)</strong>. Weniger aktivierte Indexseiten können schneller sein, mehr aktivierte Indexseiten erhöhen die Chance auf Treffer. BS.to und AniWorld besitzen zusätzlich optionale Zugangsdaten im Kontenbereich; CAPTCHA-pflichtige Quellen werden ausgeblendet.</p>
         <p>Die versteckten Domain- und Check-Felder zeigen Providerstatus an oder speichern intern erkannte Domains. Sie sind nicht als normale Bedienfelder gedacht.</p>
       </div>
       <div class="setting-group">
@@ -879,7 +888,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.08.05.1</span>
+      <span>Handbuch zu xVAULT 2026.08.08.6</span>
     </footer>
   </main>
 </body>

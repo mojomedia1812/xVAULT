@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.08.05.1`
+Aktueller Stand: `2026.08.08.6`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.08.05.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.08.08.6.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -34,6 +34,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 
 - Suche und Wiedergabe von Filmen, TV-Serien und LiveTV.
 - xVAULT kann als Player für TMDbHelper genutzt werden, ohne die eigene Quellenlogik, Resolver-Auswahl und Wiedergabeüberwachung zu verlieren.
+- Der Hauptmenüpunkt `Collections` zeigt Filmreihen aus Filmo, speichert die Übersichten 24 Stunden im Cache, sortiert enthaltene Filme chronologisch und filtert die Detailansicht über TMDb-Filmreihen gegen offensichtliche Fremdtreffer.
 - Das Playback-Label zeigt beim laufenden Stream Hoster und Indexseite an, z.B. `VOE @ SerienStream`.
 - Serien zeigen vorhandene Specials aus TMDB-Staffel 0 als eigenen Staffel-Eintrag an; Sonderfolgen bleiben beim Abspielen echte Serienfolgen.
 - SerienStream verwendet `serienstream.to`; alte gespeicherte Domainwerte werden automatisch auf diese Domain migriert.
@@ -59,6 +60,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Neuer Einstellungsbereich `Indexseiten 3 (DE)` für CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM; der bisherige Bereich `Indexseiten (DE)` heißt jetzt `Indexseiten 1 (DE)`.
 - Bei einer frischen Erstinstallation startet xVAULT mit Streamsprache Deutsch und Standard-Aktion Autoplay; bestehende Profile und Updates behalten ihre gewählten Einstellungen.
 - BS.to ist als optionaler Serien-Scraper eingebunden. Serien, Sprachvarianten und Hoster werden aus der aktuellen Seitenstruktur gelesen; CAPTCHA-geschützte Quellen werden ausgeblendet und nicht automatisiert umgangen.
+- AniWorld.to ist als optionaler Serienanbieter eingebunden und kann in den Indexseiten aktiviert oder deaktiviert werden; Zugangsdaten sind optional im Kontenbereich hinterlegbar.
 - Fortsetzen von Wiedergaben und automatische Lesezeichen.
 - Angefangene Filme und Folgen bleiben ungesehen, zeigen ein Uhrsymbol und nennen die Fortsetzen-Position direkt hinter dem Titel.
 - Gesehen-Haken für Filme und Folgen erscheinen erst, wenn höchstens noch zehn Minuten Restlaufzeit übrig sind oder die Wiedergabe regulär endet.

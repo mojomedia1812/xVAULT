@@ -126,6 +126,9 @@
         <setting id="provider.serienstream" type="bool" label="SerienStream.to" default="true" />
         <setting id="provider.serienstream.domain" label="[B][COLOR red]SerienStream.to: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.serienstream.check" label="SerienStream.to Check" type="bool" default="true" visible="false" />
+        <setting id="provider.aniworld" type="bool" label="AniWorld.to" default="true" />
+        <setting id="provider.aniworld.domain" label="[B][COLOR red]AniWorld.to: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.aniworld.check" label="AniWorld.to Check" type="bool" default="true" visible="false" />
         <setting id="provider.serienfans" type="bool" label="Serienfans" default="true" />
         <setting id="provider.serienfans.domain" label="[B][COLOR red]Serienfans: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.serienfans.check" label="Serienfans Check" type="bool" default="true" visible="false" />
@@ -184,7 +187,7 @@
         <setting type="lsep" label="FlimmerStube.com" />
         <setting id="flimmerstube.user" type="text" label="E-Mail" default="" />
         <setting id="flimmerstube.pass" type="text" option="hidden" label="Passwort" default="" />
-        <setting type="lsep" label="Aniworld.io" />
+        <setting type="lsep" label="AniWorld.to" />
         <setting id="aniworld.user" type="text" label="E-Mail" default="" />
         <setting id="aniworld.pass" type="text" option="hidden" label="Passwort" default="" />
         <setting type="lsep" label="OpenSubtitles.org" />

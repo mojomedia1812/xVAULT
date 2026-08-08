@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.08.08.6] - 2026-08-08
+
+- Neuer Hauptmenüpunkt Collections zeigt Filmreihen aus Filmo an, speichert die Übersichten 24 Stunden im Cache und sortiert enthaltene Filme chronologisch.
+- Collections werden mit TMDb-Filmreihen abgeglichen, damit Fremdtreffer wie falsche Batman- oder Alien-Zuordnungen aus der Detailansicht herausgefiltert werden.
+- Die Collections-Übersicht zeigt nur noch den Reihennamen ohne rohe Anbieter-Filmzahl.
+- AniWorld.to als optionaler Serienanbieter mit eigener Aktivierung und optionalen Zugangsdaten vorbereitet.
+
 ## [2026.08.05.1] - 2026-08-05
 
 - Abhängigkeitsprüfung für webOS- und Android-Kodi gehärtet: optionale InputStream-Komponenten werden beim Pluginstart nicht mehr automatisch nachinstalliert.

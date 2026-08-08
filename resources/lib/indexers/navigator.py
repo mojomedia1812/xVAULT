@@ -16,6 +16,7 @@ class navigator:
 		self.addDirectoryItem("Suche Filme", 'moviesSearch', '01_suche_filme.png', 'DefaultAddonsSearch.png')
 		self.addDirectoryItem("Suche TV-Serien", 'tvshowsSearch', '02_suche_tv_serien.png', 'DefaultAddonsSearch.png')
 		self.addDirectoryItem("Suche nach Person / Darsteller", 'personSearch', '03_darsteller_suche_nach_person.png', 'DefaultAddonsSearch.png')
+		self.addDirectoryItem("Collections", 'collectionsNavigator', '04_filme.png', 'DefaultMovies.png')
 		self.addDirectoryItem("Filme", 'movieNavigator', '04_filme.png', 'DefaultMovies.png')
 		self.addDirectoryItem("TV-Serien", 'tvNavigator', '05_tv_serien.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("LIVE-TV", 'liveTVNavigator', 'DefaultTVShows.png', 'DefaultTVShows.png')
