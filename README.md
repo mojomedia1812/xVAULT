@@ -95,6 +95,10 @@ Gute Fehlermeldungen enthalten:
 
 Sicherheitslücken bitte nicht öffentlich in Issues, Diskussionen oder Foren melden. Die Meldewege, unterstützten Versionen und der Umfang sicherheitsrelevanter Meldungen stehen in [`SECURITY.md`](SECURITY.md).
 
+## Verhaltenskodex
+
+Für Issues, Pull Requests, Diskussionen und Projektkommunikation gilt der [`Code of Conduct`](CODE_OF_CONDUCT.md).
+
 ## Lizenz
 
 xVAULT wird unter der GNU General Public License Version 3 only (`GPL-3.0-only`) veröffentlicht. Der vollständige Lizenztext steht in [`LICENSE`](LICENSE).

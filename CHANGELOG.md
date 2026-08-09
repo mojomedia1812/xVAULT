@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Code of Conduct für Issues, Pull Requests, Diskussionen und Projektkommunikation ergänzt.
 - Projektlizenz als GPL-3.0-only ergänzt und Drittanbieter-Hinweise dokumentiert.
 
 ## [2026.08.08.6] - 2026-08-08

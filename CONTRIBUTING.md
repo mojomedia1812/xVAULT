@@ -2,6 +2,10 @@
 
 Vielen Dank fuer deine Unterstuetzung.
 
+## Verhaltenskodex
+
+Für alle Beiträge, Issues, Pull Requests und Diskussionen gilt der [`Code of Conduct`](CODE_OF_CONDUCT.md).
+
 ## Fehler melden
 
 Bitte nutze GitHub Issues und die Vorlage **Fehler melden**.
