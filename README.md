@@ -91,6 +91,10 @@ Gute Fehlermeldungen enthalten:
 - erwartetes und tatsächliches Verhalten
 - Screenshots oder Logs, falls vorhanden
 
+## Sicherheit
+
+Sicherheitslücken bitte nicht öffentlich in Issues, Diskussionen oder Foren melden. Die Meldewege, unterstützten Versionen und der Umfang sicherheitsrelevanter Meldungen stehen in [`SECURITY.md`](SECURITY.md).
+
 ## Umami Analytics
 
 Umami wird zur datenschutzfreundlichen Besuchsstatistik der GitHub Page genutzt. Die Website-ID kommt aus Umami und ist im Tracking-Code der HTML-Seiten unter `docs/` eingetragen.
