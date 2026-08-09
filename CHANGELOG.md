@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Projektlizenz als GPL-3.0-only ergänzt und Drittanbieter-Hinweise dokumentiert.
+
 ## [2026.08.08.6] - 2026-08-08
 
 - Neuer Hauptmenüpunkt Collections zeigt Filmreihen aus Filmo an, speichert die Übersichten 24 Stunden im Cache und sortiert enthaltene Filme chronologisch.

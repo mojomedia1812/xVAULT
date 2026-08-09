@@ -95,6 +95,12 @@ Gute Fehlermeldungen enthalten:
 
 Sicherheitslücken bitte nicht öffentlich in Issues, Diskussionen oder Foren melden. Die Meldewege, unterstützten Versionen und der Umfang sicherheitsrelevanter Meldungen stehen in [`SECURITY.md`](SECURITY.md).
 
+## Lizenz
+
+xVAULT wird unter der GNU General Public License Version 3 only (`GPL-3.0-only`) veröffentlicht. Der vollständige Lizenztext steht in [`LICENSE`](LICENSE).
+
+Im Repository enthaltene Drittkomponenten behalten ihre jeweiligen Lizenz- und Copyright-Hinweise. Eine kurze Übersicht steht in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
 ## Umami Analytics
 
 Umami wird zur datenschutzfreundlichen Besuchsstatistik der GitHub Page genutzt. Die Website-ID kommt aus Umami und ist im Tracking-Code der HTML-Seiten unter `docs/` eingetragen.

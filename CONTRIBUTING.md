@@ -25,6 +25,12 @@ Beschreibe moeglichst konkret:
 - welches Problem damit geloest wird
 - welche Einstellungen oder Bereiche betroffen sind
 
+## Lizenz von Beiträgen
+
+Mit dem Einreichen eines Beitrags bestätigst du, dass dein Beitrag unter der Projektlizenz `GPL-3.0-only` veröffentlicht werden darf.
+
+Wenn du Code aus anderen Projekten übernimmst oder darauf aufbaust, müssen die jeweiligen Lizenz- und Copyright-Hinweise erhalten bleiben. Ergänze bei im Repository gespeichertem Drittcode bei Bedarf [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
 ## README aktuell halten
 
 Wenn du die Plugin-Version in `addon.xml` aenderst, musst du auch `README.md` pruefen und bei Bedarf aktualisieren.
