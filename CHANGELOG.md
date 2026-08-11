@@ -7,7 +7,7 @@
 
 ## [2026.08.11.2] - 2026-08-11
 
-- Öffentliche Statistiktexte und Supportinformationen wurden neutral formuliert.
+- Quelltextoptimierung.
 
 ## [2026.08.11.1] - 2026-08-11
 
