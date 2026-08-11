@@ -58,8 +58,7 @@ def status_lines():
         'OS-Klasse: %s' % context.get('os_class', 'unknown'),
         'OS-Version: %s' % context.get('os_version', 'unbekannt'),
         'Geräteklasse: %s' % context.get('device_class', 'unknown'),
-        'Heartbeat: stuendlich',
-        'Letzter Heartbeat: %s' % (control.getSetting(SETTING_LAST_HEARTBEAT, '') or 'nie'),
+        'Letzte Statistik-Aktivität: %s' % (control.getSetting(SETTING_LAST_HEARTBEAT, '') or 'nie'),
     ]
 
 

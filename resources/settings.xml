@@ -275,7 +275,7 @@
         <setting label="Statistikstatus anzeigen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=telemetryStatus)" />
         <setting id="telemetry.install_id" type="text" label="Statistik Installations-ID" default="" visible="false" />
         <setting id="telemetry.session_id" type="text" label="Statistik Sitzung" default="" visible="false" />
-        <setting id="telemetry.last_heartbeat" type="text" label="Statistik letzter Heartbeat" default="" visible="false" />
+        <setting id="telemetry.last_heartbeat" type="text" label="Statistik letzter Hintergrundlauf" default="" visible="false" />
         <setting id="telemetry.consent_version" type="text" label="Statistik Zustimmungsversion" default="" visible="false" />
         <setting id="telemetry.addon_version" type="text" label="Statistik Add-on-Version" default="" visible="false" />
     </category>

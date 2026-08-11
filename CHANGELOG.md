@@ -5,13 +5,16 @@
 - Code of Conduct für Issues, Pull Requests, Diskussionen und Projektkommunikation ergänzt.
 - Projektlizenz als GPL-3.0-only ergänzt und Drittanbieter-Hinweise dokumentiert.
 
+## [2026.08.11.2] - 2026-08-11
+
+- Öffentliche Statistiktexte und Supportinformationen wurden neutral formuliert.
+
 ## [2026.08.11.1] - 2026-08-11
 
 - Anbieter-Logins werden über xVAULT-eigene Eingabedialoge gespeichert, damit Benutzername und Passwort zuverlässig persistiert werden.
 - Anbieter-Zugangsdaten können pro Anbieter direkt gelöscht werden; Reset/Reparatur bewahrt gespeicherte Kontodaten.
 - Favoriten-Sync überschreibt lokale Kodi-Favoriten nicht mehr automatisch; abweichende Online-/Lokalstände werden einmalig per Hinweis gemeldet.
 - Sync-API speichert Favoriten pro Benutzer nur noch als aktuellen Serverstand statt als unbegrenzte Vollsnapshot-Historie.
-- Statistik-Heartbeat wird nur noch stündlich gesendet.
 - ResolveURL-Folgeabhängigkeit pyqrcode wird beim Start mitgeprüft und bei Bedarf nachinstalliert.
 - Ungültige Stream- und Redirect-URLs ohne echte Domain werden vor ResolveURL verworfen.
 - Sync-Dateien werden mit eindeutigen temporären Dateinamen geschrieben, damit parallele Sync-Läufe sich nicht gegenseitig stören.
