@@ -1,6 +1,8 @@
 import json
 import os
+import threading
 import time
+import uuid
 
 from resources.lib import control, log_utils
 
@@ -109,8 +111,11 @@ def read_json(filename, default=None):
 
 def write_json(filename, data):
     path = profile_path(filename)
-    tmp = path + '.tmp'
+    tmp = '%s.%s.%s.%s.tmp' % (path, os.getpid(), threading.current_thread().ident, uuid.uuid4().hex)
     try:
+        directory = os.path.dirname(path)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory)
         with open(tmp, 'w', encoding='utf-8') as handle:
             json.dump(data, handle, ensure_ascii=False, indent=2, sort_keys=True)
         os.replace(tmp, path)

@@ -5,6 +5,24 @@
 - Code of Conduct für Issues, Pull Requests, Diskussionen und Projektkommunikation ergänzt.
 - Projektlizenz als GPL-3.0-only ergänzt und Drittanbieter-Hinweise dokumentiert.
 
+## [2026.08.11.1] - 2026-08-11
+
+- Anbieter-Logins werden über xVAULT-eigene Eingabedialoge gespeichert, damit Benutzername und Passwort zuverlässig persistiert werden.
+- Anbieter-Zugangsdaten können pro Anbieter direkt gelöscht werden; Reset/Reparatur bewahrt gespeicherte Kontodaten.
+- Favoriten-Sync überschreibt lokale Kodi-Favoriten nicht mehr automatisch; abweichende Online-/Lokalstände werden einmalig per Hinweis gemeldet.
+- Sync-API speichert Favoriten pro Benutzer nur noch als aktuellen Serverstand statt als unbegrenzte Vollsnapshot-Historie.
+- Statistik-Heartbeat wird nur noch stündlich gesendet.
+- ResolveURL-Folgeabhängigkeit pyqrcode wird beim Start mitgeprüft und bei Bedarf nachinstalliert.
+- Ungültige Stream- und Redirect-URLs ohne echte Domain werden vor ResolveURL verworfen.
+- Sync-Dateien werden mit eindeutigen temporären Dateinamen geschrieben, damit parallele Sync-Läufe sich nicht gegenseitig stören.
+- Sync-API-Endpunkte mit Verbindungsfehlern werden vorübergehend gebremst, damit Hintergrund-Sync nicht dieselben Serverfehler wiederholt.
+- VIXSTREAM bereitet bei verschlüsselten HLS-Streams eine lokale Playlist mit lokal abgelegtem AES-Key vor, wenn der Key mit den Stream-Headern erreichbar ist.
+
+## [2026.08.08.7] - 2026-08-08
+
+- Filmo als aktivierbare Filmquelle in die normale Quellensuche eingebunden.
+- Filmo-Suche, Filmseiten und Providerchips werden ausgewertet; Deutsch-/Englisch-Hoster werden über den Filmo-Mint-Endpunkt in echte Hoster-Weiterleitungen überführt.
+
 ## [2026.08.08.6] - 2026-08-08
 
 - Neuer Hauptmenüpunkt Collections zeigt Filmreihen aus Filmo an, speichert die Übersichten 24 Stunden im Cache und sortiert enthaltene Filme chronologisch.

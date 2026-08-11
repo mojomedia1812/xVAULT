@@ -1219,6 +1219,10 @@ class sources:
                 except:
                     url = None
 
+            if not self._isUsableResolvedUrl(url, local):
+                log_utils.log('Ungueltige Stream-URL verworfen: Provider %s / %s / %s' % (item['provider'], item['source'], str(url)), log_utils.LOGWARNING)
+                url = None
+
             if url == None or (not '://' in str(url) and not local):
                 log_utils.log('Kein Video Link gefunden: Provider %s / %s / %s ' % (item['provider'], item['source'] , str(item['source'])), log_utils.LOGERROR)
                 raise Exception()
@@ -1236,6 +1240,25 @@ class sources:
         except:
             if info: self.errorForSources()
             return
+
+    def _isUsableResolvedUrl(self, url, local=False):
+        try:
+            if local:
+                return True
+            raw_url = str(url or '').split('|', 1)[0].strip()
+            if not raw_url:
+                return False
+            parsed = urlparse(raw_url)
+            if parsed.scheme in ['http', 'https']:
+                host = (parsed.hostname or '').lower()
+                if not host or host in ['redirect']:
+                    return False
+                return True
+            if parsed.scheme in ['plugin', 'rtmp', 'rtsp', 'udp', 'pvr', 'file']:
+                return True
+            return '://' in raw_url
+        except:
+            return False
 
     def _looksLikeDirectMediaUrl(self, url):
         try:

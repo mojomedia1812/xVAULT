@@ -44,6 +44,7 @@ REQUIRED_EXTERNAL_ADDONS = set([
     'script.module.requests',
     'script.module.six',
     'script.module.pyaes',
+    'script.module.pyqrcode',
     'script.module.infotagger',
     'script.module.resolveurl',
 ])
@@ -62,6 +63,15 @@ OPTIONAL_BINARY_ADDONS = set([
 # enable them during the general startup/update dependency pass.
 EXTERNAL_ADDON_SOURCES = {
     'script.module.resolveurl': {
+        'repository_id': 'repository.resolveurl',
+        'repository_zip_urls': [
+            'https://gujal00.github.io/repository.resolveurl-1.0.0.zip',
+            'https://raw.githubusercontent.com/Gujal00/smrzips/master/zips/repository.resolveurl/repository.resolveurl-1.0.0.zip',
+        ],
+        'metadata_url': 'https://raw.githubusercontent.com/Gujal00/smrzips/master/addons.xml',
+        'datadir': 'https://raw.githubusercontent.com/Gujal00/smrzips/master/zips/',
+    },
+    'script.module.pyqrcode': {
         'repository_id': 'repository.resolveurl',
         'repository_zip_urls': [
             'https://gujal00.github.io/repository.resolveurl-1.0.0.zip',

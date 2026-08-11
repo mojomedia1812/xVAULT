@@ -30,11 +30,18 @@ def isBlockedHoster(url, isResolve=True):
     requests.packages.urllib3.disable_warnings()
     from resources.lib.requestHandler import cRequestHandler
     if url.startswith("//"): url = 'http:%s' % url
+    parsed = urlparse(url)
+    if parsed.scheme in ['http', 'https'] and not parsed.hostname:
+        log_utils.log('Ungueltige Stream-URL ohne Domain verworfen: %s' % url, log_utils.LOGWARNING)
+        return True, '', url, 100
+    if parsed.hostname and parsed.hostname.lower() in ['redirect']:
+        log_utils.log('Ungueltige Redirect-URL verworfen: %s' % url, log_utils.LOGWARNING)
+        return True, parsed.hostname, url, 100
 
-    if urlparse(url).hostname and urlparse(url).scheme:
+    if parsed.hostname and parsed.scheme:
         UA = cRequestHandler.RandomUA()
         headers = {
-            "referer": urlparse(url).scheme +'://' + urlparse(url).hostname + '/',
+            "referer": parsed.scheme +'://' + parsed.hostname + '/',
             "user-agent": UA,
         }
         try:
@@ -45,6 +52,13 @@ def isBlockedHoster(url, isResolve=True):
         status_code = r.status_code
         if 300 <= status_code <= 400:
             url = r.headers['Location']
+            parsed = urlparse(url)
+            if parsed.scheme in ['http', 'https'] and not parsed.hostname:
+                log_utils.log('Ungueltige Redirect-Ziel-URL verworfen: %s' % url, log_utils.LOGWARNING)
+                return True, '', url, 100
+            if parsed.hostname and parsed.hostname.lower() in ['redirect']:
+                log_utils.log('Ungueltige Redirect-Ziel-URL verworfen: %s' % url, log_utils.LOGWARNING)
+                return True, parsed.hostname, url, 100
         
         ## TODO moflix, fileions etc 404
         # elif status_code != 200:

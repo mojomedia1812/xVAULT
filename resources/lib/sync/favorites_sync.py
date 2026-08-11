@@ -12,6 +12,8 @@ from resources.lib.sync.api_client import ApiError, Client
 
 STATE_FILE = 'sync_favorites_state.json'
 REMOTE_PULL_INTERVAL = 45
+REMOTE_DIFFERENCE_NOTICE = 'remote_difference_notice'
+REMOTE_DIFFERENCE_NOTICE_AT = 'remote_difference_notice_at'
 
 
 def favourites_path():
@@ -92,26 +94,25 @@ def check_and_push_if_changed(silent=True, client=None, require_enabled=True, fo
                 control.infoDialog(str(exc), icon='WARNING')
             return False
 
+    server_hash = favorites_hash(server_raw) if server_available else ''
+    if server_available and server_hash != local_hash:
+        notify_remote_difference_once(local_hash, server_hash)
+
     merged_raw, deleted_keys = merge_favorites_with_deleted(local_raw, server_raw, deletion_aware=True)
     merged_hash = favorites_hash(merged_raw)
-    local_needs_update = merged_hash != local_hash
 
-    if local_needs_update:
-        write_favourites(merged_raw, backup=True)
-
-    server_hash = favorites_hash(server_raw) if server_available else ''
-    if not force and not local_needs_update and merged_hash == storage.get_setting(storage.LAST_FAVORITES_HASH) and (not server_available or merged_hash == server_hash):
+    if not force and local_hash == storage.get_setting(storage.LAST_FAVORITES_HASH) and (not server_available or merged_hash == server_hash):
         return False
 
     if server_available and merged_hash == server_hash:
-        mark_synced(merged_raw)
+        mark_local_synced(local_raw, server_raw)
         storage.update_last_sync(iso_now())
         storage.set_status('Angemeldet als %s' % storage.email())
-        return local_needs_update
+        return False
 
     try:
         client.push_favorites(collect(merged_raw, deleted_keys=deleted_keys))
-        mark_synced(merged_raw)
+        mark_local_synced(local_raw, merged_raw)
         storage.update_last_sync(iso_now())
         storage.set_status('Angemeldet als %s' % storage.email())
         if not silent:
@@ -272,6 +273,22 @@ def load_state():
     return data if isinstance(data, dict) else {}
 
 
+def notify_remote_difference_once(local_hash, server_hash):
+    notice_key = hashlib.sha256(('%s:%s' % (local_hash, server_hash)).encode('utf-8')).hexdigest()
+    state = load_state()
+    if state.get(REMOTE_DIFFERENCE_NOTICE) == notice_key:
+        return False
+    state[REMOTE_DIFFERENCE_NOTICE] = notice_key
+    state[REMOTE_DIFFERENCE_NOTICE_AT] = iso_now()
+    storage.write_json(STATE_FILE, state)
+    control.infoDialog(
+        'Favoriten unterscheiden sich zwischen diesem Gerät und dem xVAULT-Server. Lokal wurde nichts geändert.',
+        icon='INFO',
+        time=7000,
+    )
+    return True
+
+
 def mark_synced(raw_xml):
     entries = _dedupe_entries(_parse_entries(raw_xml))
     keys = [_entry_key(item) for item in entries if _entry_key(item)]
@@ -281,6 +298,26 @@ def mark_synced(raw_xml):
         'keys': keys,
         'updated_at': iso_now(),
     })
+    storage.set_setting(storage.LAST_FAVORITES_HASH, digest)
+
+
+def mark_local_synced(local_xml, server_xml=''):
+    state = load_state()
+    entries = _dedupe_entries(_parse_entries(local_xml))
+    keys = [_entry_key(item) for item in entries if _entry_key(item)]
+    digest = favorites_hash(local_xml)
+    server_hash = favorites_hash(server_xml) if server_xml else ''
+    data = {
+        'favorites_hash': digest,
+        'keys': keys,
+        'updated_at': iso_now(),
+    }
+    if server_hash:
+        data['server_favorites_hash'] = server_hash
+    if server_hash and server_hash != digest and state.get(REMOTE_DIFFERENCE_NOTICE):
+        data[REMOTE_DIFFERENCE_NOTICE] = state.get(REMOTE_DIFFERENCE_NOTICE)
+        data[REMOTE_DIFFERENCE_NOTICE_AT] = state.get(REMOTE_DIFFERENCE_NOTICE_AT, '')
+    storage.write_json(STATE_FILE, data)
     storage.set_setting(storage.LAST_FAVORITES_HASH, digest)
 
 

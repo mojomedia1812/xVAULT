@@ -25,7 +25,7 @@ Wenn URL-Rewriting aktiv ist, funktionieren auch die entsprechenden `/api/...`-P
 ## Datenbanktabellen
 
 - `users`: Benutzerkonto, Passwort-Hash, API-Key-Hash, Login-Metadaten.
-- `favorites_backups`: versionierte Favoriten-Backups pro Benutzer. Neue Backups werden serverseitig mit dem aktuellen Serverstand zusammengefuehrt; explizite `deleted_keys` verhindern, dass entfernte Favoriten durch ein anderes Geraet wieder auftauchen.
+- `favorites_backups`: aktueller Favoritenstand pro Benutzer. Neue Pushes werden serverseitig mit dem aktuellen Serverstand zusammengefuehrt, ersetzen danach die vorherige Zeile dieses Benutzers und verhindern damit eine unbegrenzte Vollsnapshot-Historie. Explizite `deleted_keys` verhindern, dass entfernte Favoriten durch ein anderes Geraet wieder auftauchen.
 - `binge_state`: aktueller Wiedergabe-/Binge-Stand pro stabilem `item_key`. Eintraege werden pro Film/Folge per Upsert zusammengefuehrt; der neuere Fortschritt gewinnt, bereits abgeschlossene Eintraege bleiben gesehen.
 - `sync_log`: technische Sync-Historie ohne sensible Inhalte.
 

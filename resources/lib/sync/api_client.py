@@ -1,6 +1,7 @@
 import json
 import re
 import ssl
+import time
 import urllib.error
 import urllib.request
 
@@ -10,9 +11,11 @@ from resources.lib.sync import storage
 
 HTTPS_BASE = 'https://xvault-sql.ddnss.de/index.php?action='
 HTTP_BASE = 'http://xvault-sql.ddnss.de/index.php?action='
-TIMEOUT = 15
+TIMEOUT = 10
+BASE_RETRY_DELAY = 5 * 60
 USER_AGENT = 'Mozilla/5.0 (Kodi; xVAULT Sync)'
 CHALLENGE_RE = re.compile(r'toNumbers\("([0-9a-f]+)"\)')
+_BASE_FAILURES = {}
 
 
 class ApiError(Exception):
@@ -88,15 +91,17 @@ class Client(object):
             if auth and key:
                 headers['Authorization'] = 'Bearer %s' % key
                 headers['X-API-Key'] = key
-            for base in (HTTP_BASE, HTTPS_BASE):
+            for base in _candidate_bases():
                 try:
                     raw = self._open(base, action, method, body, headers)
                     data = json.loads(raw)
                     if not data.get('success'):
                         raise ApiError(data.get('message', 'Synchronisation fehlgeschlagen'), data.get('error_code', 'SYNC_FAILED'))
+                    _clear_base_failure(base)
                     self.api_key = key or ''
                     return data.get('data', {})
                 except urllib.error.HTTPError as exc:
+                    _clear_base_failure(base)
                     raw = exc.read().decode('utf-8', 'ignore')
                     try:
                         data = json.loads(raw)
@@ -114,7 +119,8 @@ class Client(object):
                     raise
                 except Exception as exc:
                     last_error = exc
-                    log_utils.log('xVAULT sync: API call %s via %s failed: %s' % (action, base.split(':', 1)[0], _safe_error(exc)), log_utils.LOGWARNING)
+                    if _mark_base_failure(base, exc):
+                        log_utils.log('xVAULT sync: API call %s via %s failed: %s' % (action, base.split(':', 1)[0], _safe_error(exc)), log_utils.LOGWARNING)
                     continue
         raise ApiError('Synchronisation fehlgeschlagen. Bitte später erneut versuchen.', 'SYNC_FAILED')
 
@@ -159,6 +165,34 @@ def _solve_hosting_challenge(raw):
     except Exception as exc:
         log_utils.log('xVAULT sync: hosting challenge failed: %s' % _safe_error(exc), log_utils.LOGWARNING)
         raise ApiError('Synchronisation fehlgeschlagen: Hosting-Challenge konnte nicht geloest werden.', 'SYNC_HOST_CHALLENGE')
+
+
+def _candidate_bases():
+    bases = (HTTP_BASE, HTTPS_BASE)
+    now = time.time()
+    return [
+        base for base in bases
+        if float((_BASE_FAILURES.get(base) or {}).get('retry_at', 0)) <= now
+    ]
+
+
+def _mark_base_failure(base, exc):
+    now = time.time()
+    previous = _BASE_FAILURES.get(base) or {}
+    should_log = float(previous.get('log_after', 0)) <= now
+    _BASE_FAILURES[base] = {
+        'retry_at': now + BASE_RETRY_DELAY,
+        'log_after': now + BASE_RETRY_DELAY,
+        'error': _safe_error(exc),
+    }
+    return should_log
+
+
+def _clear_base_failure(base):
+    try:
+        _BASE_FAILURES.pop(base, None)
+    except:
+        pass
 
 
 def _safe_error(exc):

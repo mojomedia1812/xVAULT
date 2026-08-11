@@ -411,6 +411,16 @@ elif action == 'deactivatePlus':
     plus.deactivate()
     _finish_action()
 
+elif action == 'providerLogin':
+    from resources.lib import provider_logins
+    provider_logins.configure(params.get('provider'))
+    _finish_action()
+
+elif action == 'providerLoginClear':
+    from resources.lib import provider_logins
+    provider_logins.clear(params.get('provider'))
+    _finish_action()
+
 elif action and action.startswith('sync'):
     from resources.lib.sync import account
     account.dispatch(action)

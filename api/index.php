@@ -402,6 +402,30 @@ function latest_favorites_payload(PDO $pdo, int $userId): ?array
     return is_array($payload) ? $payload : null;
 }
 
+function replace_favorites_payload(PDO $pdo, int $userId, ?string $deviceId, array $payload, string $now): array
+{
+    $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $hash = hash('sha256', $json);
+
+    $pdo->beginTransaction();
+    try {
+        $delete = $pdo->prepare('DELETE FROM favorites_backups WHERE user_id = ?');
+        $delete->execute([$userId]);
+
+        $insert = $pdo->prepare('INSERT INTO favorites_backups (user_id, device_id, data_json, data_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)');
+        $insert->execute([$userId, $deviceId, $json, $hash, $now, $now]);
+
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
+
+    return ['data_hash' => $hash, 'updated_at' => $now];
+}
+
 function merge_favorites_payload(?array $serverPayload, array $incomingPayload, array $deletedKeys, ?string $deviceId): array
 {
     $removed = array_fill_keys($deletedKeys, true);
@@ -559,13 +583,10 @@ function favorites_push(PDO $pdo, array $user, array $data): void
         deleted_favorite_keys($data, $payload),
         $deviceId
     );
-    $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    $hash = hash('sha256', $json);
     $now = now();
-    $stmt = $pdo->prepare('INSERT INTO favorites_backups (user_id, device_id, data_json, data_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)');
-    $stmt->execute([$user['id'], $deviceId, $json, $hash, $now, $now]);
-    log_sync($pdo, (int)$user['id'], $deviceId, 'favorites', 'push', 'ok', 'backup saved');
-    respond(true, 'Favoriten wurden gesichert', ['data_hash' => $hash, 'updated_at' => $now]);
+    $result = replace_favorites_payload($pdo, (int)$user['id'], $deviceId, $payload, $now);
+    log_sync($pdo, (int)$user['id'], $deviceId, 'favorites', 'push', 'ok', 'current saved');
+    respond(true, 'Favoriten wurden gesichert', $result);
 }
 
 function favorites_pull(PDO $pdo, array $user): void
@@ -670,12 +691,9 @@ function sync_push(PDO $pdo, array $user, array $data): void
             deleted_favorite_keys($data, $payload),
             $deviceId
         );
-        $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        $hash = hash('sha256', $json);
         $now = now();
-        $stmt = $pdo->prepare('INSERT INTO favorites_backups (user_id, device_id, data_json, data_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)');
-        $stmt->execute([$user['id'], $deviceId, $json, $hash, $now, $now]);
-        $result['favorites_hash'] = $hash;
+        $favoritesResult = replace_favorites_payload($pdo, (int)$user['id'], $deviceId, $payload, $now);
+        $result['favorites_hash'] = $favoritesResult['data_hash'];
     }
     if (isset($data['binge_items']) && is_array($data['binge_items'])) {
         $deviceId = short_text($data['device_id'] ?? null, 128);

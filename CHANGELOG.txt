@@ -1,3 +1,17 @@
+xVAULT 2026.08.11.1
+Entwickler: mojomedia1812
+
+- Anbieter-Logins werden ueber xVAULT-eigene Eingabedialoge gespeichert, damit Benutzername und Passwort zuverlaessig persistiert werden.
+- Anbieter-Zugangsdaten koennen pro Anbieter direkt geloescht werden; Reset/Reparatur bewahrt gespeicherte Kontodaten.
+- Favoriten-Sync ueberschreibt lokale Kodi-Favoriten nicht mehr automatisch; abweichende Online-/Lokalstaende werden einmalig per Hinweis gemeldet.
+- Sync-API speichert Favoriten pro Benutzer nur noch als aktuellen Serverstand statt als unbegrenzte Vollsnapshot-Historie.
+- Statistik-Heartbeat wird nur noch stuendlich gesendet.
+- ResolveURL-Folgeabhaengigkeit pyqrcode wird beim Start mitgeprueft und bei Bedarf nachinstalliert.
+- Ungueltige Stream- und Redirect-URLs ohne echte Domain werden vor ResolveURL verworfen.
+- Sync-Dateien werden mit eindeutigen temporaeren Dateinamen geschrieben, damit parallele Sync-Laeufe sich nicht gegenseitig stoeren.
+- Sync-API-Endpunkte mit Verbindungsfehlern werden voruebergehend gebremst, damit Hintergrund-Sync nicht dieselben Serverfehler wiederholt.
+- VIXSTREAM bereitet bei verschluesselten HLS-Streams eine lokale Playlist mit lokal abgelegtem AES-Key vor, wenn der Key mit den Stream-Headern erreichbar ist.
+
 xVAULT 2026.08.08.7
 Entwickler: mojomedia1812
 

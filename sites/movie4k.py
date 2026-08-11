@@ -149,8 +149,12 @@ class source:
             return ''
         url = str(url).strip()
         if url.startswith('https:///'):
+            if url[9:].lower().startswith('redirect/'):
+                return ''
             return 'https://' + url[9:]
         if url.startswith('http:///'):
+            if url[8:].lower().startswith('redirect/'):
+                return ''
             return 'http://' + url[8:]
         if url.startswith('//'):
             return 'https:' + url

@@ -182,20 +182,30 @@
 
     <category label="Anbieter-Logins">
         <setting type="lsep" label="BS.to" />
-        <setting id="bsto.user" type="text" label="Benutzername" default="" />
-        <setting id="bsto.pass" type="text" option="hidden" label="Passwort" default="" />
+        <setting label="BS.to-Zugangsdaten eingeben / ändern" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLogin&amp;provider=bsto)" />
+        <setting label="BS.to-Zugangsdaten löschen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLoginClear&amp;provider=bsto)" />
+        <setting id="bsto.user" type="text" label="Benutzername" default="" visible="false" />
+        <setting id="bsto.pass" type="text" option="hidden" label="Passwort" default="" visible="false" />
         <setting type="lsep" label="SerienStream.to" />
-        <setting id="serienstream.user" type="text" label="E-Mail" default="" />
-        <setting id="serienstream.pass" type="text" option="hidden" label="Passwort" default="" />
+        <setting label="SerienStream.to-Zugangsdaten eingeben / ändern" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLogin&amp;provider=serienstream)" />
+        <setting label="SerienStream.to-Zugangsdaten löschen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLoginClear&amp;provider=serienstream)" />
+        <setting id="serienstream.user" type="text" label="E-Mail" default="" visible="false" />
+        <setting id="serienstream.pass" type="text" option="hidden" label="Passwort" default="" visible="false" />
         <setting type="lsep" label="FlimmerStube.com" />
-        <setting id="flimmerstube.user" type="text" label="E-Mail" default="" />
-        <setting id="flimmerstube.pass" type="text" option="hidden" label="Passwort" default="" />
+        <setting label="FlimmerStube.com-Zugangsdaten eingeben / ändern" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLogin&amp;provider=flimmerstube)" />
+        <setting label="FlimmerStube.com-Zugangsdaten löschen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLoginClear&amp;provider=flimmerstube)" />
+        <setting id="flimmerstube.user" type="text" label="E-Mail" default="" visible="false" />
+        <setting id="flimmerstube.pass" type="text" option="hidden" label="Passwort" default="" visible="false" />
         <setting type="lsep" label="AniWorld.to" />
-        <setting id="aniworld.user" type="text" label="E-Mail" default="" />
-        <setting id="aniworld.pass" type="text" option="hidden" label="Passwort" default="" />
+        <setting label="AniWorld.to-Zugangsdaten eingeben / ändern" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLogin&amp;provider=aniworld)" />
+        <setting label="AniWorld.to-Zugangsdaten löschen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLoginClear&amp;provider=aniworld)" />
+        <setting id="aniworld.user" type="text" label="E-Mail" default="" visible="false" />
+        <setting id="aniworld.pass" type="text" option="hidden" label="Passwort" default="" visible="false" />
         <setting type="lsep" label="OpenSubtitles.org" />
-        <setting id="subtitles.os_user" type="text" label="Benutzername" default="" />
-        <setting id="subtitles.os_pass" type="text" option="hidden" label="Passwort" default="" />
+        <setting label="OpenSubtitles.org-Zugangsdaten eingeben / ändern" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLogin&amp;provider=opensubtitles)" />
+        <setting label="OpenSubtitles.org-Zugangsdaten löschen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLoginClear&amp;provider=opensubtitles)" />
+        <setting id="subtitles.os_user" type="text" label="Benutzername" default="" visible="false" />
+        <setting id="subtitles.os_pass" type="text" option="hidden" label="Passwort" default="" visible="false" />
     </category>
 
     <category label="Live-TV">

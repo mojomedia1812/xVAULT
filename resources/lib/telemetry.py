@@ -14,7 +14,7 @@ from resources.lib import control, log_utils
 SUPABASE_RPC_URL = 'https://edluzxyhbmrtardcjqwy.supabase.co/rest/v1/rpc/xvault_ingest'
 SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Vzsxq3UGeHXoOoN5d3ehng_mcOB_pWj'
 TIMEOUT = 5
-HEARTBEAT_INTERVAL = 600
+HEARTBEAT_INTERVAL = 60 * 60
 CONSENT_VERSION = '2'
 
 SETTING_ENABLED = 'telemetry.enabled'
@@ -58,7 +58,7 @@ def status_lines():
         'OS-Klasse: %s' % context.get('os_class', 'unknown'),
         'OS-Version: %s' % context.get('os_version', 'unbekannt'),
         'Geräteklasse: %s' % context.get('device_class', 'unknown'),
-        'Heartbeat: alle 10 Minuten',
+        'Heartbeat: stuendlich',
         'Letzter Heartbeat: %s' % (control.getSetting(SETTING_LAST_HEARTBEAT, '') or 'nie'),
     ]
 

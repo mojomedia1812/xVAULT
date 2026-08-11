@@ -1,8 +1,12 @@
 # -*- coding: UTF-8 -*-
 import base64
+import hashlib
 import json
+import os
 import re
+import time
 import urllib.parse
+import urllib.request
 
 from resources.lib.control import getSetting
 from resources.lib.requestHandler import cRequestHandler
@@ -13,6 +17,7 @@ SITE_DOMAIN = 'vixsrc.to'
 SITE_NAME = SITE_IDENTIFIER.upper()
 VIXCLOUD = 'vixcloud.co'
 _K = base64.b64decode('ZWRkZTZiNWU0MTI0NmFiNzlhMjY5N2NkMTI1ZTE3ODE=').decode()
+KEY_URI_RE = re.compile(r'URI=(?:"([^"]+)"|([^,\s]+))', flags=re.I)
 
 
 class source:
@@ -50,6 +55,11 @@ class source:
         except Exception as exc:
             logger.error('[%s] JSON-Fehler: %s' % (SITE_NAME, str(exc)))
             return None
+
+    def _request_bytes(self, url, headers=None, timeout=12):
+        request = urllib.request.Request(url, headers=headers or {})
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return response.read()
 
     def _get_tmdb_id(self, imdb_id):
         try:
@@ -330,6 +340,7 @@ class source:
                 ))
                 return None
 
+            playlist_url = self._local_hls_playlist_url(playlist_url, headers_dict, playlist) or playlist_url
             final_url = '%s|%s' % (playlist_url, urllib.parse.urlencode(headers_dict))
             logger.info('[%s] Finale URL: %s' % (SITE_NAME, final_url[:150]))
             return final_url
@@ -339,3 +350,95 @@ class source:
             import traceback
             logger.debug('[%s] Traceback: %s' % (SITE_NAME, traceback.format_exc()))
             return None
+
+    def _local_hls_playlist_url(self, playlist_url, headers_dict, playlist):
+        try:
+            if not playlist or '#EXT-X-KEY' not in playlist:
+                return None
+
+            cache_dir = self._hls_cache_dir()
+            self._cleanup_hls_cache(cache_dir)
+
+            key_files = {}
+            for key_uri in self._key_uris_from_playlist(playlist):
+                key_url = urllib.parse.urljoin(playlist_url, key_uri)
+                key_data = self._request_bytes(key_url, headers=headers_dict)
+                if not key_data:
+                    return None
+                key_name = 'key_%s.bin' % hashlib.sha256(key_url.encode('utf-8')).hexdigest()[:20]
+                key_path = os.path.join(cache_dir, key_name)
+                with open(key_path, 'wb') as handle:
+                    handle.write(key_data)
+                key_files[key_uri] = self._file_url(key_path)
+
+            rewritten = self._rewrite_hls_playlist(playlist_url, playlist, key_files)
+            playlist_name = 'playlist_%s.m3u8' % hashlib.sha256((playlist_url + str(time.time())).encode('utf-8')).hexdigest()[:20]
+            playlist_path = os.path.join(cache_dir, playlist_name)
+            with open(playlist_path, 'w', encoding='utf-8', newline='\n') as handle:
+                handle.write(rewritten)
+            logger.info('[%s] Lokale HLS-Playlist vorbereitet' % SITE_NAME)
+            return self._file_url(playlist_path)
+        except Exception as exc:
+            logger.warning('[%s] Lokale HLS-Playlist nicht nutzbar: %s' % (SITE_NAME, str(exc)))
+            return None
+
+    def _hls_cache_dir(self):
+        try:
+            from resources.lib import control
+            base = control.addonProfilePath
+        except:
+            base = os.path.join(os.getcwd(), 'xvault_profile')
+        cache_dir = os.path.join(base, 'vixstream_hls')
+        if not os.path.exists(cache_dir):
+            os.makedirs(cache_dir)
+        return cache_dir
+
+    def _cleanup_hls_cache(self, cache_dir, max_age=6 * 60 * 60):
+        try:
+            now = time.time()
+            for name in os.listdir(cache_dir):
+                path = os.path.join(cache_dir, name)
+                if os.path.isfile(path) and now - os.path.getmtime(path) > max_age:
+                    os.remove(path)
+        except:
+            pass
+
+    def _key_uris_from_playlist(self, playlist):
+        uris = []
+        for line in playlist.splitlines():
+            if not line.startswith('#EXT-X-KEY'):
+                continue
+            match = KEY_URI_RE.search(line)
+            if not match:
+                continue
+            uri = match.group(1) if match.group(1) is not None else match.group(2)
+            if uri and uri not in uris:
+                uris.append(uri)
+        return uris
+
+    def _rewrite_hls_playlist(self, playlist_url, playlist, key_files):
+        lines = []
+        for line in playlist.splitlines():
+            stripped = line.strip()
+            if stripped.startswith('#EXT-X-KEY'):
+                line = self._rewrite_hls_uri_attr(line, playlist_url, key_files)
+            elif stripped.startswith('#EXT-X-MEDIA') and 'URI=' in stripped:
+                line = self._rewrite_hls_uri_attr(line, playlist_url, key_files)
+            elif stripped and not stripped.startswith('#'):
+                line = urllib.parse.urljoin(playlist_url, stripped)
+            lines.append(line)
+        return '\n'.join(lines) + '\n'
+
+    def _rewrite_hls_uri_attr(self, line, playlist_url, key_files):
+        def repl(match):
+            uri = match.group(1) if match.group(1) is not None else match.group(2)
+            target = key_files.get(uri) or urllib.parse.urljoin(playlist_url, uri)
+            return 'URI="%s"' % target
+        return KEY_URI_RE.sub(repl, line)
+
+    @staticmethod
+    def _file_url(path):
+        path = os.path.abspath(path).replace('\\', '/')
+        if re.match(r'^[A-Za-z]:/', path):
+            return 'file:///' + path
+        return 'file://' + path
