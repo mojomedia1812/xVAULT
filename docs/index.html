@@ -40,12 +40,12 @@
         <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
         <tr><th colspan="4"><hr></th></tr>
         <tr><td>[PARENTDIR]</td><td><a href="../" data-umami-event="Verzeichnisnavigation geöffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">12.Aug.2026 07:11:17</td><td align="right">-</td></tr>
+        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">12.Aug.2026 20:08:13</td><td align="right">-</td></tr>
         <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geöffnet">repository.xvault/</a></td><td align="right">11.Aug.2026 22:13:48</td><td align="right">-</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">12.Aug.2026 07:11:17</td><td align="right">2.57 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">12.Aug.2026 07:11:17</td><td align="right">32.00 B</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">12.Aug.2026 07:11:17</td><td align="right">1.96 MB</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">12.Aug.2026 07:11:17</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">12.Aug.2026 20:08:13</td><td align="right">2.57 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">12.Aug.2026 20:08:13</td><td align="right">32.00 B</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">12.Aug.2026 20:08:13</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">12.Aug.2026 20:08:13</td><td align="right">1.96 MB</td></tr>
         <tr><th colspan="4"><hr></th></tr>
       </tbody>
     </table>
@@ -61,10 +61,10 @@
 
         <div class="release">
           <span>Aktuelle Version</span>
-          <strong>2026.08.12.1</strong>
+          <strong>2026.08.12.2</strong>
         </div>
 
-        <a class="download" href="downloads/plugin.video.xvault-2026.08.12.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
+        <a class="download" href="downloads/plugin.video.xvault-2026.08.12.2.zip" download data-umami-event="Add-on ZIP heruntergeladen">
           Installations-ZIP herunterladen
         </a>
 
@@ -109,6 +109,16 @@
 
     <!-- release-notes:start -->
     <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.08.12.2</p>
+      <h2>Änderungen im Überblick</h2>
+      <ul class="update-list">
+        <li>Anbieter-Zugangsdaten werden zusaetzlich in einem xVAULT-Profil-Fallback gespeichert, wenn Kodi Add-on-Settings auf Android direkt nach dem Speichern wieder leer zurueckliefert.</li>
+        <li>SerienStream.to, BS.to, AniWorld.to und OpenSubtitles lesen Anbieter-Logins aus Kodi-Settings oder dem xVAULT-Fallback.</li>
+        <li>Supportpakete enthalten nun einen redigierten Status, ob der Anbieter-Login-Fallback Eintraege enthaelt.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
       <p class="section-kicker">Neu in 2026.08.12.1</p>
       <h2>Änderungen im Überblick</h2>
       <ul class="update-list">
@@ -144,17 +154,6 @@
       <ul class="update-list">
         <li>Filmo als aktivierbare Filmquelle in die normale Quellensuche eingebunden.</li>
         <li>Filmo-Suche, Filmseiten und Providerchips werden ausgewertet; Deutsch-/Englisch-Hoster werden über den Filmo-Mint-Endpunkt in echte Hoster-Weiterleitungen überführt.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.08.08.6</p>
-      <h2>Änderungen im Überblick</h2>
-      <ul class="update-list">
-        <li>Neuer Hauptmenüpunkt Collections zeigt Filmreihen aus Filmo an, speichert die Übersichten 24 Stunden im Cache und sortiert enthaltene Filme chronologisch.</li>
-        <li>Collections werden mit TMDb-Filmreihen abgeglichen, damit Fremdtreffer wie falsche Batman- oder Alien-Zuordnungen aus der Detailansicht herausgefiltert werden.</li>
-        <li>Die Collections-Übersicht zeigt nur noch den Reihennamen ohne rohe Anbieter-Filmzahl.</li>
-        <li>AniWorld.to als optionaler Serienanbieter mit eigener Aktivierung und optionalen Zugangsdaten vorbereitet.</li>
       </ul>
     </section>
     <!-- release-notes:end -->
@@ -221,15 +220,15 @@
     <section class="panel checksum">
       <h2>Dateiprüfung</h2>
       <p>SHA-256</p>
-      <code>FF36F9F8FCE5BE94ED5C5075537294F7E61C1CE54A7AE723997E91BC7EB076BB</code>
+      <code>90A6FA63C34668AB580926314F48AB2685C767D97ABD42C20785EADBFAC553DF</code>
     </section>
 
     <section class="panel archive">
       <h2>Vorherige Versionen</h2>
       <ul class="archive-list">
         <!-- previous-downloads:start -->
+        <li><a href="downloads/plugin.video.xvault-2026.08.12.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.08.12.1 herunterladen</a><span>35,9 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.08.11.2.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.08.11.2 herunterladen</a><span>35,9 MB</span></li>
-        <li><a href="downloads/plugin.video.xvault-2026.08.11.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.08.11.1 herunterladen</a><span>35,9 MB</span></li>
         <!-- previous-downloads:end -->
       </ul>
     </section>
@@ -237,7 +236,7 @@
     <footer>
       <a href="handbuch/" data-umami-event="Handbuch geöffnet">Handbuch</a>
       <a href="https://github.com/mojomedia1812/xVAULT" data-umami-event="GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Version 2026.08.12.1</span>
+      <span>Version 2026.08.12.2</span>
     </footer>
   </main>
 </body>

@@ -380,6 +380,7 @@ def _tmdbhelper_status_lines():
 def _settings_context():
     settings_file = os.path.join(control.addonPath, 'resources', 'settings.xml')
     entries = []
+    provider_fallback = {}
     try:
         import xml.etree.ElementTree as ET
 
@@ -398,9 +399,31 @@ def _settings_context():
                 'value': redacted_value,
                 'redacted': redacted,
             })
+        provider_fallback = _provider_login_fallback_context()
     except Exception as exc:
         return {'error': str(exc)}
-    return {'settings': entries}
+    return {'provider_login_fallback': provider_fallback, 'settings': entries}
+
+
+def _provider_login_fallback_context():
+    result = {
+        'exists': False,
+        'path': _redact_path(os.path.join(control.addonProfilePath, 'provider_logins.json')),
+        'providers': {},
+    }
+    try:
+        from resources.lib import provider_logins
+        store = provider_logins._load_store()
+        result['exists'] = os.path.exists(os.path.join(control.addonProfilePath, 'provider_logins.json'))
+        for provider_id in provider_logins.PROVIDERS:
+            entry = store.get(provider_id) or {}
+            result['providers'][provider_id] = {
+                'username_present': bool(entry.get('username')),
+                'password_present': bool(entry.get('password')),
+            }
+    except Exception as exc:
+        result['error'] = _short_error(exc)
+    return result
 
 
 def _addon_files_context():

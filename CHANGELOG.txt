@@ -1,3 +1,10 @@
+xVAULT 2026.08.12.2
+Entwickler: mojomedia1812
+
+- Anbieter-Zugangsdaten werden zusaetzlich in einem xVAULT-Profil-Fallback gespeichert, wenn Kodi Add-on-Settings auf Android direkt nach dem Speichern wieder leer zurueckliefert.
+- SerienStream.to, BS.to, AniWorld.to und OpenSubtitles lesen Anbieter-Logins aus Kodi-Settings oder dem xVAULT-Fallback.
+- Supportpakete enthalten nun einen redigierten Status, ob der Anbieter-Login-Fallback Eintraege enthaelt.
+
 xVAULT 2026.08.12.1
 Entwickler: mojomedia1812
 

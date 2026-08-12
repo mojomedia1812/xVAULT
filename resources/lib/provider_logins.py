@@ -1,7 +1,13 @@
+import json
+import os
+
 import xbmc
 
 from resources.lib import control
 from resources.lib.tools import logger
+
+
+STORE_FILE = 'provider_logins.json'
 
 
 PROVIDERS = {
@@ -49,7 +55,20 @@ def is_configured(provider_id):
     provider = PROVIDERS.get(provider_id or '')
     if not provider:
         return False
-    return bool(control.getSetting(provider['user_setting']) and control.getSetting(provider['pass_setting']))
+    username, password = get_credentials(provider_id)
+    return bool(username and password)
+
+
+def get_credentials(provider_id):
+    provider = PROVIDERS.get(provider_id or '')
+    if not provider:
+        return '', ''
+    username = control.getSetting(provider['user_setting'])
+    password = control.getSetting(provider['pass_setting'])
+    if username and password:
+        return username, password
+    fallback = _load_store().get(provider_id) or {}
+    return fallback.get('username') or '', fallback.get('password') or ''
 
 
 def configure(provider_id):
@@ -93,34 +112,45 @@ def configure(provider_id):
         )
         return False
 
-    if not _set(provider['user_setting'], username) or not _set(provider['pass_setting'], password):
+    settings_write_ok = _set(provider['user_setting'], username) and _set(provider['pass_setting'], password)
+    fallback_write_ok = _store_credentials(provider_id, username, password)
+
+    if not settings_write_ok and not fallback_write_ok:
         _log('configure setSetting failed provider=%s' % provider_id, warning=True)
         control.infoDialog('%s-Zugangsdaten konnten nicht gespeichert werden.' % provider['name'], icon='ERROR', time=5000)
         return False
 
-    if not _verify(provider, username, password):
+    settings_verified = _verify_settings(provider, username, password)
+    fallback_verified = _verify_fallback(provider_id, username, password)
+    if not settings_verified and not fallback_verified:
         user_match = control.getSetting(provider['user_setting']) == username
         pass_match = control.getSetting(provider['pass_setting']) == password
         _log(
-            'configure persist verify failed provider=%s user_present=%s pass_present=%s user_match=%s pass_match=%s'
+            'configure persist verify failed provider=%s user_present=%s pass_present=%s user_match=%s pass_match=%s fallback_match=%s'
             % (
                 provider_id,
                 bool(control.getSetting(provider['user_setting'])),
                 bool(control.getSetting(provider['pass_setting'])),
                 user_match,
                 pass_match,
+                fallback_verified,
             ),
             warning=True,
         )
         control.infoDialog(
-            '%s-Zugangsdaten wurden von Kodi nicht dauerhaft gespeichert. Bitte Supportpaket erstellen.'
+            '%s-Zugangsdaten konnten nicht dauerhaft gespeichert werden. Bitte Supportpaket erstellen.'
             % provider['name'],
             icon='ERROR',
             time=7000,
         )
         return False
 
-    _log('configure saved provider=%s configured_after=True' % provider_id)
+    if not settings_verified and fallback_verified:
+        _log('configure saved provider=%s storage=fallback kodi_settings=False' % provider_id, warning=True)
+        control.infoDialog('%s-Zugangsdaten gespeichert. Kodi-Settings-Fallback aktiv.' % provider['name'], icon='INFO', time=5000)
+        return True
+
+    _log('configure saved provider=%s storage=kodi_settings fallback=%s' % (provider_id, fallback_verified))
     control.infoDialog('%s-Zugangsdaten gespeichert.' % provider['name'], icon='INFO')
     return True
 
@@ -143,7 +173,9 @@ def clear(provider_id):
         return False
     _set(provider['user_setting'], '')
     _set(provider['pass_setting'], '')
-    if control.getSetting(provider['user_setting']) or control.getSetting(provider['pass_setting']):
+    _clear_store(provider_id)
+    fallback_username, fallback_password = get_credentials(provider_id)
+    if control.getSetting(provider['user_setting']) or control.getSetting(provider['pass_setting']) or fallback_username or fallback_password:
         _log('clear persist verify failed provider=%s' % provider_id, warning=True)
         control.infoDialog('%s-Zugangsdaten konnten nicht vollstaendig geloescht werden.' % provider['name'], icon='WARNING')
         return False
@@ -173,7 +205,7 @@ def _set(setting_id, value):
         return False
 
 
-def _verify(provider, username, password):
+def _verify_settings(provider, username, password):
     for _attempt in range(4):
         if control.getSetting(provider['user_setting']) == username and control.getSetting(provider['pass_setting']) == password:
             return True
@@ -182,6 +214,60 @@ def _verify(provider, username, password):
         except Exception:
             pass
     return False
+
+
+def _verify_fallback(provider_id, username, password):
+    fallback = _load_store().get(provider_id) or {}
+    return fallback.get('username') == username and fallback.get('password') == password
+
+
+def _store_credentials(provider_id, username, password):
+    try:
+        store = _load_store()
+        store[provider_id] = {'username': username, 'password': password}
+        _write_store(store)
+        return _verify_fallback(provider_id, username, password)
+    except Exception as exc:
+        _log('fallback store exception provider=%s error=%s' % (provider_id, _short_error(exc)), warning=True)
+        return False
+
+
+def _clear_store(provider_id):
+    try:
+        store = _load_store()
+        if provider_id in store:
+            del store[provider_id]
+            _write_store(store)
+        return True
+    except Exception as exc:
+        _log('fallback clear exception provider=%s error=%s' % (provider_id, _short_error(exc)), warning=True)
+        return False
+
+
+def _load_store():
+    path = _store_path()
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, 'r', encoding='utf-8') as handle:
+            data = json.load(handle)
+        return data if isinstance(data, dict) else {}
+    except Exception as exc:
+        _log('fallback load exception error=%s' % _short_error(exc), warning=True)
+        return {}
+
+
+def _write_store(store):
+    directory = control.addonProfilePath
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory)
+    with open(_store_path(), 'w', encoding='utf-8') as handle:
+        json.dump(store, handle, ensure_ascii=True, indent=2, sort_keys=True)
+        handle.write('\n')
+
+
+def _store_path():
+    return os.path.join(control.addonProfilePath, STORE_FILE)
 
 
 def _log(message, warning=False):

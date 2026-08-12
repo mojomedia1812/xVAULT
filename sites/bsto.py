@@ -4,6 +4,7 @@ import re
 import unicodedata
 
 from resources.lib.control import getSetting, urljoin
+from resources.lib import provider_logins
 from resources.lib.requestHandler import cRequestHandler
 from resources.lib.tools import logger
 from scrapers.modules import cleantitle
@@ -350,8 +351,7 @@ class source:
             return
         self.login_checked = True
 
-        login = getSetting(SITE_IDENTIFIER + '.user')
-        password = getSetting(SITE_IDENTIFIER + '.pass')
+        login, password = provider_logins.get_credentials(SITE_IDENTIFIER)
         if not login or not password:
             return
 

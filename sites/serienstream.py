@@ -4,6 +4,7 @@ import sys
 import datetime
 from urllib.parse import urlparse
 from resources.lib.control import getSetting, urljoin, setSetting
+from resources.lib import provider_logins
 from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import cleantitle, dom_parser
 from resources.lib.utils import isBlockedHoster
@@ -965,8 +966,7 @@ class source:
             setSetting('serienstream.user', login)
             setSetting('serienstream.pass', password)
         except:
-            login = getSetting(SITE_IDENTIFIER + '.user')
-            password = getSetting(SITE_IDENTIFIER + '.pass')
+            login, password = provider_logins.get_credentials(SITE_IDENTIFIER)
 
         if not login or not password:
             return '', ''

@@ -8,7 +8,7 @@ import hashlib,os,codecs
 from sqlite3 import dbapi2 as database
 import xbmc, xbmcplugin
 from resources.lib.control import py2_encode, translatePath, executebuiltin
-from resources.lib import log_utils, control, playcountDB, playback_settings, watch_progress
+from resources.lib import log_utils, control, playcountDB, playback_settings, provider_logins, watch_progress
 
 try:
     import xmlrpclib as _xmlrpclib
@@ -481,7 +481,8 @@ class subtitles:
         BASE_URL_XMLRPC = u"http://api.opensubtitles.org/xml-rpc"
 
         self.server = _xmlrpclib.ServerProxy(BASE_URL_XMLRPC, verbose=0)
-        login = self.server.LogIn(Addon().getSetting('subtitles.os_user'), Addon().getSetting('subtitles.os_pass'), "en", "%s_v%s" % (__scriptname__.replace(" ", "_"), __version__))
+        os_user, os_pass = provider_logins.get_credentials('opensubtitles')
+        login = self.server.LogIn(os_user, os_pass, "en", "%s_v%s" % (__scriptname__.replace(" ", "_"), __version__))
         if login["status"] == "200 OK":
             self.osdb_token = login["token"]
 
@@ -493,8 +494,7 @@ class subtitles:
             codePageDict = {'ara': 'cp1256', 'ar': 'cp1256', 'ell': 'cp1253', 'el': 'cp1253', 'heb': 'cp1255', 'he': 'cp1255', 'tur': 'cp1254', 'tr': 'cp1254', 'rus': 'cp1251', 'ru': 'cp1251'}
 
             # opensubtitles.org
-            os_user = control.getSetting('subtitles.os_user')
-            os_pass = control.getSetting('subtitles.os_pass')
+            os_user, os_pass = provider_logins.get_credentials('opensubtitles')
             os_useragent = 'TemporaryUserAgent'
 
             langs = []
