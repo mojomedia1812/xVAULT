@@ -421,6 +421,11 @@ elif action == 'providerLoginClear':
     provider_logins.clear(params.get('provider'))
     _finish_action()
 
+elif action == 'providerLoginsNavigator':
+    _track_menu('provider_logins')
+    from resources.lib.indexers import navigator
+    navigator.navigator().provider_logins()
+
 elif action and action.startswith('sync'):
     from resources.lib.sync import account
     account.dispatch(action)

@@ -1011,7 +1011,7 @@ def _sha256_file(filename):
 def _redact_setting(setting_id, value):
     lower_id = setting_id.lower()
     if any(part in lower_id for part in SENSITIVE_SETTING_PARTS):
-        return ('<redacted>', bool(value))
+        return ('<redacted>', True) if value else ('', False)
     if any(part in lower_id for part in PATH_SETTING_PARTS):
         return (_redact_path(value), bool(value))
     return (_redact_text(value), False)

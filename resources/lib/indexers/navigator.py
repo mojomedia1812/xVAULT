@@ -56,8 +56,29 @@ class navigator:
 		self.addDirectoryItem("[B]Support[/B]: Information anzeigen", 'pluginInfo', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False)
 		self.addDirectoryItem("[B]Support[/B]: Paket erstellen und hochladen", 'supportUpload', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False)
 		self.addDirectoryItem("[B]Reparatur[/B]: Einstellungen prüfen", 'repairSettings', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
+		self.addDirectoryItem("[B]Anbieter[/B]: Zugangsdaten", 'providerLoginsNavigator', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png')
 		self.addDirectoryItem(control.addonName +": EINSTELLUNGEN", 'addonSettings', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
 		self.addDirectoryItem("[B]Resolver[/B]: EINSTELLUNGEN", 'resolverSettings', '06_03_resolver_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
+		self._endDirectory()
+
+	def provider_logins(self):
+		from resources.lib import provider_logins
+		for provider_id, provider_name in provider_logins.provider_items():
+			status = ' [COLOR green](gespeichert)[/COLOR]' if provider_logins.is_configured(provider_id) else ''
+			self.addDirectoryItem(
+				"[B]%s[/B] - Zugangsdaten eingeben / ändern%s" % (provider_name, status),
+				'providerLogin&provider=%s' % provider_id,
+				'06_02_xvault_einstellungen.png',
+				'DefaultAddonProgram.png',
+				isFolder=False,
+			)
+			self.addDirectoryItem(
+				"[B]%s[/B] - Zugangsdaten löschen" % provider_name,
+				'providerLoginClear&provider=%s' % provider_id,
+				'06_02_xvault_einstellungen.png',
+				'DefaultAddonProgram.png',
+				isFolder=False,
+			)
 		self._endDirectory()
 
 	def downloads(self):

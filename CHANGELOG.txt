@@ -1,3 +1,11 @@
+xVAULT 2026.08.12.1
+Entwickler: mojomedia1812
+
+- Anbieter-Logins pruefen nach dem Speichern, ob Kodi Benutzername und Passwort wirklich dauerhaft uebernommen hat.
+- Leere Anbieter-Zugangsdaten werden nicht mehr versehentlich als neue Werte gespeichert; zum Entfernen gibt es weiterhin die Loeschfunktion.
+- Anbieter-Logins sind zusaetzlich direkt unter Werkzeuge erreichbar und erzeugen geheimnisfreie Diagnoseeintraege im Kodi-Log.
+- Supportpakete zeigen leere sensible Einstellungen nun als leer an, waehrend vorhandene Werte weiterhin redigiert bleiben.
+
 xVAULT 2026.08.11.2
 Entwickler: mojomedia1812
 
