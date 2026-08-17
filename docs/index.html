@@ -40,12 +40,12 @@
         <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
         <tr><th colspan="4"><hr></th></tr>
         <tr><td>[PARENTDIR]</td><td><a href="../" data-umami-event="Verzeichnisnavigation geöffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">17.Aug.2026 21:43:56</td><td align="right">-</td></tr>
+        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">17.Aug.2026 22:57:16</td><td align="right">-</td></tr>
         <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geöffnet">repository.xvault/</a></td><td align="right">16.Aug.2026 20:27:03</td><td align="right">-</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">17.Aug.2026 21:43:56</td><td align="right">2.57 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">17.Aug.2026 21:43:56</td><td align="right">32.00 B</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">17.Aug.2026 21:43:56</td><td align="right">1.96 MB</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">17.Aug.2026 21:43:56</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">17.Aug.2026 22:57:16</td><td align="right">2.57 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">17.Aug.2026 22:57:16</td><td align="right">32.00 B</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">17.Aug.2026 22:57:16</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">17.Aug.2026 22:57:16</td><td align="right">1.96 MB</td></tr>
         <tr><th colspan="4"><hr></th></tr>
       </tbody>
     </table>
@@ -61,10 +61,10 @@
 
         <div class="release">
           <span>Aktuelle Version</span>
-          <strong>2026.08.17.4</strong>
+          <strong>2026.08.17.5</strong>
         </div>
 
-        <a class="download" href="downloads/plugin.video.xvault-2026.08.17.4.zip" download data-umami-event="Add-on ZIP heruntergeladen">
+        <a class="download" href="downloads/plugin.video.xvault-2026.08.17.5.zip" download data-umami-event="Add-on ZIP heruntergeladen">
           Installations-ZIP herunterladen
         </a>
 
@@ -109,6 +109,14 @@
 
     <!-- release-notes:start -->
     <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.08.17.5</p>
+      <h2>Änderungen im Überblick</h2>
+      <ul class="update-list">
+        <li>Playback-Stabilitaet nach Wiedergabeende verbessert: xVAULT beendet nicht mehr benoetigte Quellen- und Resolver-Worker vor dem Playerstart, damit Kodi nach Film- oder Episodenende nicht auf alte Hintergrundthreads warten muss.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
       <p class="section-kicker">Neu in 2026.08.17.4</p>
       <h2>Änderungen im Überblick</h2>
       <ul class="update-list">
@@ -144,16 +152,6 @@
         <li>Settings-Aktionen wie Download-Hilfe und Add-on-Einstellungen schließen Direktaufrufe sauber ab, damit Kodi keine unnötigen Pluginfehler protokolliert.</li>
         <li>My.JDownloader, JDownloader und PyLoad erscheinen unabhängig vom internen Downloadschalter im Kontextmenü einzelner Quellen, wenn die Quellenansicht als Verzeichnis geöffnet wird.</li>
         <li>Favoriten-Synchronisation überträgt Änderungen revisionsbasiert als einzelne neue, geänderte oder gelöschte Favoriten statt bei jedem Abgleich den kompletten Bestand.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.08.12.2</p>
-      <h2>Änderungen im Überblick</h2>
-      <ul class="update-list">
-        <li>Anbieter-Zugangsdaten werden zusaetzlich in einem xVAULT-Profil-Fallback gespeichert, wenn Kodi Add-on-Settings auf Android direkt nach dem Speichern wieder leer zurueckliefert.</li>
-        <li>SerienStream.to, BS.to, AniWorld.to und OpenSubtitles lesen Anbieter-Logins aus Kodi-Settings oder dem xVAULT-Fallback.</li>
-        <li>Supportpakete enthalten nun einen redigierten Status, ob der Anbieter-Login-Fallback Eintraege enthaelt.</li>
       </ul>
     </section>
     <!-- release-notes:end -->
@@ -220,15 +218,15 @@
     <section class="panel checksum">
       <h2>Dateiprüfung</h2>
       <p>SHA-256</p>
-      <code>BCC567631CA1C8F493273917A8D73AE8843405666DFD4247CEC3538BC5D10A37</code>
+      <code>07C4CEE30A654126EBEB6B262FF8EA5855C87903681D833759042753B47BD16F</code>
     </section>
 
     <section class="panel archive">
       <h2>Vorherige Versionen</h2>
       <ul class="archive-list">
         <!-- previous-downloads:start -->
+        <li><a href="downloads/plugin.video.xvault-2026.08.17.4.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.08.17.4 herunterladen</a><span>33,9 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.08.17.3.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.08.17.3 herunterladen</a><span>33,9 MB</span></li>
-        <li><a href="downloads/plugin.video.xvault-2026.08.17.2.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.08.17.2 herunterladen</a><span>33,9 MB</span></li>
         <!-- previous-downloads:end -->
       </ul>
     </section>
@@ -236,7 +234,7 @@
     <footer>
       <a href="handbuch/" data-umami-event="Handbuch geöffnet">Handbuch</a>
       <a href="https://github.com/mojomedia1812/xVAULT" data-umami-event="GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Version 2026.08.17.4</span>
+      <span>Version 2026.08.17.5</span>
     </footer>
   </main>
 </body>

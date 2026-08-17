@@ -1,3 +1,8 @@
+xVAULT 2026.08.17.5
+Entwickler: mojomedia1812
+
+- Playback-Stabilitaet nach Wiedergabeende verbessert: xVAULT beendet nicht mehr benoetigte Quellen- und Resolver-Worker vor dem Playerstart, damit Kodi nach Film- oder Episodenende nicht auf alte Hintergrundthreads warten muss.
+
 xVAULT 2026.08.17.4
 Entwickler: mojomedia1812
 

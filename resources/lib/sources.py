@@ -31,6 +31,39 @@ AUTOPLAY_PREFETCH_LIMIT = 5
 # für self.sysmeta - zur späteren verwendung als meta
 _params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
 
+class _XvaultThreadPoolExecutor(ThreadPoolExecutor):
+    def _adjust_thread_count(self):
+        try:
+            if self._idle_semaphore.acquire(timeout=0):
+                return
+
+            import weakref
+            from concurrent.futures import thread as _thread
+
+            def weakref_cb(_, q=self._work_queue):
+                q.put(None)
+
+            num_threads = len(self._threads)
+            if num_threads >= self._max_workers:
+                return
+
+            thread_name = '%s_%d' % (self._thread_name_prefix or 'xvault-worker', num_threads)
+            worker_params = len(inspect.signature(_thread._worker).parameters)
+            if worker_params == 3 and hasattr(self, '_create_worker_context'):
+                worker_args = (weakref.ref(self, weakref_cb), self._create_worker_context(), self._work_queue)
+            else:
+                worker_args = (weakref.ref(self, weakref_cb), self._work_queue, self._initializer, self._initargs)
+            worker = threading.Thread(
+                name=thread_name,
+                target=_thread._worker,
+                args=worker_args
+            )
+            worker.daemon = True
+            worker.start()
+            self._threads.add(worker)
+        except:
+            return super(_XvaultThreadPoolExecutor, self)._adjust_thread_count()
+
 class sources:
     def __init__(self):
         self.getConstants()
@@ -40,15 +73,28 @@ class sources:
         if 'sysmeta' in _params: self.sysmeta = _params['sysmeta'] # string zur späteren verwendung als meta
         self.watcher = False
         self.max_workers = self._adaptiveWorkerCount()
-        self.executor = ThreadPoolExecutor(max_workers=self.max_workers)
+        self.executor = self._newExecutor()
         self.executor_shutdown = False
         self.url = None
         self.last_source_error = 'no_sources'
 
+    def _newExecutor(self):
+        return _XvaultThreadPoolExecutor(max_workers=getattr(self, 'max_workers', self._adaptiveWorkerCount()))
+
     def _ensureExecutor(self):
         if getattr(self, 'executor_shutdown', False):
-            self.executor = ThreadPoolExecutor(max_workers=getattr(self, 'max_workers', self._adaptiveWorkerCount()))
+            self.executor = self._newExecutor()
             self.executor_shutdown = False
+
+    def _cancelFutures(self, futures):
+        try:
+            for future in list(futures or []):
+                try:
+                    future.cancel()
+                except:
+                    pass
+        except:
+            pass
 
     def _adaptiveWorkerCount(self):
         try:
@@ -165,6 +211,7 @@ class sources:
             except: pass
             meta = self._mergeSelectedStreamMeta(meta, getattr(self, 'selectedSourceItem', None))
 
+            self._shutdownExecutor()
             from resources.lib.player import player
             if not player().run(title, url, meta):
                 self.errorForSources('playback_start_failed')
@@ -435,6 +482,7 @@ class sources:
                 return
 
             meta = self._mergeSelectedStreamMeta(meta, item)
+            self._shutdownExecutor()
             from resources.lib.player import player
             if not player().run(title, self.url, meta):
                 self.errorForSources('playback_start_failed')
@@ -712,6 +760,7 @@ class sources:
                     self._markProviderTemporarilyBlocked(provider_name, 'timeout', PROVIDER_TIMEOUT_TTL)
             except:
                 pass
+        self._cancelFutures(futures.keys())
 
         try:
             if progressDialog:
@@ -720,6 +769,7 @@ class sources:
         self.sourcesFilter()
         self._writeSourceCache(cache_key, self.sources)
         self._updateSeriesCache(series_key, season, episode, self.sources, cache_key)
+        self._shutdownExecutor()
         return self.sources
 
     def _sourceCacheKey(self, title, year, imdb, season, episode, originaltitle, premiered, episode_title, episode_premiered, sourceDict):
@@ -1470,6 +1520,7 @@ class sources:
 
 
     def sourcesDialog(self, items):
+        self._ensureExecutor()
         labels = [i['label'] for i in items]
 
         select = control.selectDialog(labels)
@@ -1520,7 +1571,9 @@ class sources:
                                 control.condVisibility('Window.IsActive(yesnoDialog)'):
                             waiting_time = waiting_time + 1 #dont count down while dialog is presented ## control.condVisibility('Window.IsActive(PopupRecapInfoWindow)') or \
 
-                    if not future.done(): block = items[i]['source']
+                    if not future.done():
+                        future.cancel()
+                        block = items[i]['source']
 
                     if self.url == None: raise Exception()
 
@@ -1568,6 +1621,7 @@ class sources:
                 waiting_time = waiting_time + 1
 
         if not future.done():
+            future.cancel()
             log_utils.log(
                 'Resolve Timeout: Provider %s / Hoster %s nach %s Sekunden' %
                 (item.get('provider'), item.get('source'), timeout),
@@ -1593,6 +1647,7 @@ class sources:
             return min(3, len(items))
 
     def _resolveAutoplayCandidates(self, items, progressDialog=None, header2=''):
+        self._ensureExecutor()
         max_items = min(len(items), 40)
         prefetch_window = self._autoplayPrefetchWindow(items[:max_items])
         pending = {}
@@ -1624,8 +1679,10 @@ class sources:
             while not future.done():
                 try:
                     if control.abortRequested:
+                        self._cancelFutures([state['future'] for state in pending.values()])
                         return None, 'abort://'
                     if progressDialog and progressDialog.iscanceled():
+                        self._cancelFutures([state['future'] for state in pending.values()])
                         return None, 'close://'
                 except:
                     pass
@@ -1673,8 +1730,10 @@ class sources:
 
             if url:
                 self.url = url
+                self._cancelFutures([state['future'] for state in pending.values()])
                 return item, url
 
+        self._cancelFutures([state['future'] for state in pending.values()])
         return None, None
 
 
@@ -1719,8 +1778,10 @@ class sources:
                     (item.get('provider'), item.get('source')),
                     log_utils.LOGINFO
                 )
+                self._shutdownExecutor()
                 if player().run(title, url, playback_meta):
                     return True
+                self._ensureExecutor()
 
                 log_utils.log(
                     'Autoplay Quelle startete nicht: Provider %s / Hoster %s' %

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [2026.08.17.5] - 2026-08-17
+
+- Playback-Stabilität nach Wiedergabeende verbessert: xVAULT beendet nicht mehr benötigte Quellen- und Resolver-Worker vor dem Playerstart, damit Kodi nach Film- oder Episodenende nicht auf alte Hintergrundthreads warten muss.
+
 ## [2026.08.17.4] - 2026-08-17
 
 - Wiedergabeende stabilisiert: xVAULT führt die Rückkehr zur vorherigen Ansicht nicht mehr direkt im Kodi-Player-Callback aus, sondern zeitlich entkoppelt nach dem Player-Abschluss.
