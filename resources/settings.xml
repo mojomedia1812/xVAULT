@@ -223,8 +223,9 @@
         <setting id="livetv.epg.cache.hours" type="slider" label="EPG zwischenspeichern (Stunden)" default="6" range="1,1,24" option="int" />
     </category>
 
-    <category label="Downloads">
-        <setting id="downloads" type="bool" label="Downloads aktivieren" default="false" />
+    <category label="Interne Downloads">
+        <setting type="text" label="[COLOR blue]Lokale Downloads sind unabhängig von My.JDownloader und benötigen einen Zielordner.[/COLOR]" />
+        <setting id="downloads" type="bool" label="Interne Downloads aktivieren" default="false" />
         <setting id="download.movie.path" type="text" label="Download-Ordner für Filme" enable="!eq(-1,false)" default="" />
         <setting id="download.tv.path" type="text" label="Download-Ordner für TV-Serien" enable="!eq(-2,false)" default="" />
         <setting label="Hilfe zum Ordnerpfad anzeigen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=downloadInfo)" option="" />
@@ -239,6 +240,7 @@
     </category>
 
     <category label="Download-Manager">
+        <setting type="text" label="[COLOR blue]Download-Manager erscheinen im Kontextmenü einzelner Quellen. Dafür Standard-Aktion Verzeichnis verwenden.[/COLOR]" />
         <setting type="lsep" label="JDownloader" />
         <setting id="jd_enabled" type="bool" label="JDownloader aktivieren" default="false" />
         <setting id="jd_host" type="text" label="Host" default="127.0.0.1" enable="!eq(-1,false)" />

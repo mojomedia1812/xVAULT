@@ -1,4 +1,5 @@
 import hashlib
+import json
 import os
 import time
 import xml.etree.ElementTree as ET
@@ -78,6 +79,58 @@ def check_and_push_if_changed(silent=True, client=None, require_enabled=True, fo
     if not require_enabled and client is None and not storage.is_logged_in():
         return False
     client = client or Client()
+    try:
+        return _sync_favorites_delta(silent=silent, client=client, force=force)
+    except ApiError as exc:
+        if _should_use_legacy_favorites_sync(exc):
+            log_utils.log('xVAULT sync: favorites delta not available, using legacy sync: %s' % exc, log_utils.LOGWARNING)
+            return _sync_favorites_full(silent=silent, client=client, force=force)
+        if not silent:
+            control.infoDialog(str(exc), icon='WARNING')
+        return False
+
+
+def _sync_favorites_delta(silent=True, client=None, force=False):
+    local_raw = read_favourites()
+    local_hash = favorites_hash(local_raw)
+    state = load_state()
+    base_revision = _state_revision(state)
+    local_entries = _delta_entries(local_raw)
+    upserts, deletes = _local_delta(local_entries, state)
+
+    data = client.sync_favorites_delta(
+        base_revision=base_revision,
+        upserts=upserts,
+        deletes=deletes,
+        local_hash=local_hash,
+    )
+    changes = data.get('changes') or []
+    if not isinstance(changes, list):
+        changes = []
+
+    merged_raw = local_raw
+    if changes:
+        merged_entries = _apply_delta_changes(local_entries, changes)
+        merged_raw = _build_xml(merged_entries)
+        if favorites_hash(merged_raw) != local_hash:
+            write_favourites(merged_raw, backup=True)
+            local_raw = merged_raw
+            local_hash = favorites_hash(local_raw)
+
+    revision = int(data.get('revision') or base_revision or 0)
+    mark_delta_synced(local_raw, revision)
+    storage.update_last_sync(iso_now())
+    storage.set_status('Angemeldet als %s' % storage.email())
+    if not silent and (force or upserts or deletes or changes):
+        control.infoDialog('Favoriten synchronisiert.', icon='INFO')
+    return bool(force or upserts or deletes or changes)
+
+
+def _should_use_legacy_favorites_sync(exc):
+    return exc.status == 404 or exc.code in ('INVALID_ACTION', 'UNKNOWN_ACTION', 'ACTION_NOT_FOUND', 'NOT_FOUND')
+
+
+def _sync_favorites_full(silent=True, client=None, force=False):
     local_raw = read_favourites()
     local_hash = favorites_hash(local_raw)
 
@@ -128,11 +181,18 @@ def restore_from_server(mode='ask', client=None, require_login=True):
     if require_login and not storage.is_logged_in():
         control.infoDialog('Bitte zuerst anmelden.', icon='WARNING')
         return False
+    client = client or Client()
     try:
-        data = (client or Client()).pull_favorites()
+        data = client.favorites_state()
     except ApiError as exc:
-        control.infoDialog(str(exc), icon='WARNING')
-        return False
+        if not _should_use_legacy_favorites_sync(exc):
+            control.infoDialog(str(exc), icon='WARNING')
+            return False
+        try:
+            data = client.pull_favorites()
+        except ApiError as pull_exc:
+            control.infoDialog(str(pull_exc), icon='WARNING')
+            return False
     favorites = data.get('favorites') or {}
     if not favorites:
         control.infoDialog('Keine Serverdaten gefunden.', icon='WARNING')
@@ -154,7 +214,11 @@ def restore_from_server(mode='ask', client=None, require_login=True):
         raw_xml = '<favourites />\n'
 
     write_favourites(raw_xml, backup=True)
-    mark_synced(raw_xml)
+    revision = data.get('revision') or favorites.get('revision') or 0
+    if revision:
+        mark_delta_synced(raw_xml, revision)
+    else:
+        mark_synced(raw_xml)
     storage.update_last_sync(iso_now())
     control.infoDialog('Favoriten wurden wiederhergestellt. Bitte Kodi ggf. neu starten.', icon='INFO', time=6000)
     return True
@@ -255,6 +319,141 @@ def _build_xml(entries):
     return ET.tostring(root, encoding='unicode') + '\n'
 
 
+def _state_revision(state):
+    try:
+        return max(0, int(state.get('remote_revision') or 0))
+    except Exception:
+        return 0
+
+
+def _state_items(state):
+    items = state.get('items') if isinstance(state, dict) else {}
+    if not isinstance(items, dict):
+        return {}
+    result = {}
+    for key, value in items.items():
+        key = str(key or '').strip().lower()
+        if not key:
+            continue
+        if isinstance(value, dict):
+            result[key] = value
+        else:
+            result[key] = {'hash': str(value or '')}
+    return result
+
+
+def _entry_key_hash(item):
+    key = _entry_key(item)
+    return hashlib.sha256(key.encode('utf-8')).hexdigest() if key else ''
+
+
+def _entry_hash(item, order):
+    data = {
+        'label': item.get('label', '') or '',
+        'thumb': item.get('thumb', '') or '',
+        'path': item.get('path', '') or '',
+        'order': int(order or 0),
+    }
+    raw = json.dumps(data, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+    return hashlib.sha256(raw.encode('utf-8')).hexdigest()
+
+
+def _delta_entries(raw_xml=None):
+    entries = []
+    for order, item in enumerate(_dedupe_entries(_parse_entries(raw_xml if raw_xml is not None else read_favourites())), 1):
+        key = _entry_key_hash(item)
+        if not key:
+            continue
+        entry = {
+            'key': key,
+            'order': order,
+            'label': item.get('label', '') or '',
+            'thumb': item.get('thumb', '') or '',
+            'path': item.get('path', '') or '',
+        }
+        entry['hash'] = _entry_hash(entry, order)
+        entries.append(entry)
+    return entries
+
+
+def _delta_payload(entry):
+    return {
+        'key': entry.get('key', ''),
+        'order': int(entry.get('order') or 0),
+        'label': entry.get('label', '') or '',
+        'thumb': entry.get('thumb', '') or '',
+        'path': entry.get('path', '') or '',
+    }
+
+
+def _local_delta(entries, state):
+    previous = _state_items(state)
+    current = {entry['key']: entry for entry in entries if entry.get('key')}
+    if not previous:
+        return [_delta_payload(entry) for entry in entries], []
+
+    upserts = []
+    for key, entry in current.items():
+        old = previous.get(key) or {}
+        if old.get('hash') != entry.get('hash'):
+            upserts.append(_delta_payload(entry))
+
+    deletes = [key for key in previous.keys() if key not in current]
+    return upserts, deletes
+
+
+def _delta_entry_from_remote(item):
+    if not isinstance(item, dict):
+        return None
+    path = (item.get('path') or '').strip()
+    key = (item.get('key') or '').strip().lower()
+    if not key or not path:
+        return None
+    try:
+        order = int(item.get('order') or 0)
+    except Exception:
+        order = 0
+    entry = {
+        'key': key,
+        'order': max(0, order),
+        'label': item.get('label', '') or '',
+        'thumb': item.get('thumb', '') or '',
+        'path': path,
+    }
+    entry['hash'] = _entry_hash(entry, entry['order'])
+    return entry
+
+
+def _apply_delta_changes(local_entries, changes):
+    active = {entry['key']: dict(entry) for entry in local_entries if entry.get('key')}
+    def _revision(change):
+        try:
+            return int(change.get('revision') or 0)
+        except Exception:
+            return 0
+    for change in sorted([item for item in changes if isinstance(item, dict)], key=_revision):
+        key = (change.get('key') or '').strip().lower()
+        if not key:
+            continue
+        if change.get('deleted'):
+            active.pop(key, None)
+            continue
+        entry = _delta_entry_from_remote(change.get('item') or {})
+        if entry:
+            active[key] = entry
+    return _sort_delta_entries(active.values())
+
+
+def _sort_delta_entries(entries):
+    def _sort_key(item):
+        try:
+            order = int(item.get('order') or 0)
+        except Exception:
+            order = 0
+        return (order if order > 0 else 999999, (item.get('label') or '').lower(), item.get('key') or '')
+    return sorted([item for item in entries if item.get('path')], key=_sort_key)
+
+
 def write_favourites(raw_xml, backup=False):
     if not raw_xml.strip():
         raw_xml = '<favourites />\n'
@@ -287,6 +486,21 @@ def notify_remote_difference_once(local_hash, server_hash):
         time=7000,
     )
     return True
+
+
+def mark_delta_synced(raw_xml, remote_revision):
+    entries = _delta_entries(raw_xml)
+    digest = favorites_hash(raw_xml)
+    data = {
+        'schema_version': 2,
+        'favorites_hash': digest,
+        'keys': [_entry_key(item) for item in _parse_entries(raw_xml) if _entry_key(item)],
+        'items': dict((entry['key'], {'hash': entry.get('hash', '')}) for entry in entries),
+        'remote_revision': int(remote_revision or 0),
+        'updated_at': iso_now(),
+    }
+    storage.write_json(STATE_FILE, data)
+    storage.set_setting(storage.LAST_FAVORITES_HASH, digest)
 
 
 def mark_synced(raw_xml):

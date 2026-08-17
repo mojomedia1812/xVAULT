@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2026.08.17.1] - 2026-08-17
+
+- Download-Einstellungen klarer getrennt: interne Downloads und externe Download-Manager werden getrennt bezeichnet, der fehlende Download-Hilfetext wurde ergänzt und Settings-Werte werden frischer aus Kodi gelesen.
+- Settings-Aktionen wie Download-Hilfe und Add-on-Einstellungen schließen Direktaufrufe sauber ab, damit Kodi keine unnötigen Pluginfehler protokolliert.
+- Favoriten-Synchronisation überträgt Änderungen revisionsbasiert als einzelne neue, geänderte oder gelöschte Favoriten statt bei jedem Abgleich den kompletten Bestand.
 - Code of Conduct für Issues, Pull Requests, Diskussionen und Projektkommunikation ergänzt.
 - Projektlizenz als GPL-3.0-only ergänzt und Drittanbieter-Hinweise dokumentiert.
 

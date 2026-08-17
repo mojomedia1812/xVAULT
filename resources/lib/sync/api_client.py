@@ -9,8 +9,9 @@ from resources.lib import log_utils
 from resources.lib.sync import storage
 
 
-HTTPS_BASE = 'https://xvault-sql.ddnss.de/index.php?action='
-HTTP_BASE = 'http://xvault-sql.ddnss.de/index.php?action='
+API_BASES = (
+    'https://all-stats.de/index.php?action=',
+)
 TIMEOUT = 10
 BASE_RETRY_DELAY = 5 * 60
 USER_AGENT = 'Mozilla/5.0 (Kodi; xVAULT Sync)'
@@ -52,6 +53,19 @@ class Client(object):
     def pull_favorites(self):
         return self._get('favorites_pull')
 
+    def sync_favorites_delta(self, base_revision=0, upserts=None, deletes=None, local_hash=''):
+        from resources.lib.sync import device
+        return self._post('favorites_delta', {
+            'device_id': device.get_device_id(),
+            'base_revision': int(base_revision or 0),
+            'upserts': upserts or [],
+            'deletes': deletes or [],
+            'local_hash': local_hash or '',
+        })
+
+    def favorites_state(self):
+        return self._get('favorites_state')
+
     def push_binge_state(self, items, device_id):
         return self._post('binge_push', {'device_id': device_id, 'items': items})
 
@@ -91,6 +105,7 @@ class Client(object):
             if auth and key:
                 headers['Authorization'] = 'Bearer %s' % key
                 headers['X-API-Key'] = key
+            endpoint_errors = []
             for base in _candidate_bases():
                 try:
                     raw = self._open(base, action, method, body, headers)
@@ -120,8 +135,10 @@ class Client(object):
                 except Exception as exc:
                     last_error = exc
                     if _mark_base_failure(base, exc):
-                        log_utils.log('xVAULT sync: API call %s via %s failed: %s' % (action, base.split(':', 1)[0], _safe_error(exc)), log_utils.LOGWARNING)
+                        endpoint_errors.append('%s: %s' % (_safe_base(base), _safe_error(exc)))
                     continue
+            if endpoint_errors:
+                log_utils.log('xVAULT sync: API call %s failed on all reachable endpoints: %s' % (action, ' | '.join(endpoint_errors)), log_utils.LOGWARNING)
         raise ApiError('Synchronisation fehlgeschlagen. Bitte später erneut versuchen.', 'SYNC_FAILED')
 
     def _open(self, base, action, method, body, headers):
@@ -168,12 +185,12 @@ def _solve_hosting_challenge(raw):
 
 
 def _candidate_bases():
-    bases = (HTTP_BASE, HTTPS_BASE)
     now = time.time()
-    return [
-        base for base in bases
+    candidates = [
+        base for base in API_BASES
         if float((_BASE_FAILURES.get(base) or {}).get('retry_at', 0)) <= now
     ]
+    return candidates or list(API_BASES)
 
 
 def _mark_base_failure(base, exc):
@@ -200,3 +217,10 @@ def _safe_error(exc):
     for token in storage.api_keys():
         text = text.replace(token, storage.mask_token(token))
     return text
+
+
+def _safe_base(base):
+    try:
+        return base.split('/index.php', 1)[0]
+    except Exception:
+        return 'api'

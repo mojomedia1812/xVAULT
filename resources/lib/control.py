@@ -58,11 +58,17 @@ addonProfilePath = translatePath(addonInfo('profile')) # 'C:\\Program Files\\Kod
 #cachePath = os.path.join(addonProfilePath, "cache")
 #if not exists(cachePath): os.makedirs(cachePath)
 
-setSetting = xbmcaddon.Addon().setSetting
-_getSetting = xbmcaddon.Addon().getSetting
+def _addon():
+	return xbmcaddon.Addon(addonId)
+
+def setSetting(id=None, value=None):
+	return _addon().setSetting(id, '' if value is None else str(value))
 
 def getSetting(Name, default=''):
-	result = _getSetting(Name)
+	try:
+		result = _addon().getSetting(Name)
+	except Exception:
+		result = ''
 	if result:
 		return result
 	else:

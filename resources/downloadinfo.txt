@@ -1,0 +1,28 @@
+Interne Downloads und Download-Manager
+
+Der Bereich "Interne Downloads" speichert Streams direkt in lokale Zielordner.
+Dafür muss "Interne Downloads aktivieren" eingeschaltet und mindestens ein Zielordner für Filme oder Serien gesetzt sein.
+
+My.JDownloader, JDownloader, JDownloader 2 und PyLoad sind davon getrennt.
+Diese Funktionen laden nicht über den internen xVAULT-Downloader, sondern übergeben den Link an den ausgewählten Download-Manager.
+
+Damit die Einträge sichtbar sind:
+
+1. Öffne die xVAULT-Einstellungen.
+2. Aktiviere unter "Download-Manager" den gewünschten Dienst.
+3. Trage die benötigten Zugangsdaten oder Verbindungsdaten ein.
+4. Stelle die Standard-Aktion auf "Verzeichnis".
+5. Öffne einen Film oder eine Episode und lasse die Quellen anzeigen.
+6. Öffne auf einer einzelnen Quelle das Kontextmenü.
+
+Dort erscheinen je nach Einstellung:
+
+- Download
+- Sende zum JDownloader
+- Sende zum JDownloader2
+- Sende zu My.JDownloader
+- Sende zu PyLoad
+
+Hinweis:
+Bei "Dialog" und "Autoplay" wird keine normale Quellenliste mit Kontextmenü aufgebaut.
+Die Download-Manager-Einträge können deshalb nur in der Verzeichnisansicht direkt an einer Quelle genutzt werden.

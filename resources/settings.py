@@ -13,6 +13,9 @@ def window(title='', content='', filename=''):
     if content == '' and filename == '': return
     if content == '' and filename != '':
         file = os.path.join(control.py2_decode(control.translatePath(control.addonInfo('path'))), 'resources', filename)
+        if not os.path.exists(file):
+            dialog.ok(name, 'Die Hilfedatei wurde nicht gefunden:\n%s' % filename)
+            return
         if sys.version_info[0] == 2:
             with open(file, 'r') as f:
                 content = f.read()

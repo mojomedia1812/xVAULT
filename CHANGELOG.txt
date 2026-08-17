@@ -1,3 +1,11 @@
+xVAULT 2026.08.17.1
+Entwickler: mojomedia1812
+
+- Download-Einstellungen klarer getrennt: interne Downloads und externe Download-Manager werden getrennt bezeichnet, der fehlende Download-Hilfetext wurde ergänzt und Settings-Werte werden frischer aus Kodi gelesen.
+- Settings-Aktionen wie Download-Hilfe und Add-on-Einstellungen schließen Direktaufrufe sauber ab, damit Kodi keine unnötigen Pluginfehler protokolliert.
+- My.JDownloader, JDownloader und PyLoad erscheinen unabhängig vom internen Downloadschalter im Kontextmenü einzelner Quellen, wenn die Quellenansicht als Verzeichnis geöffnet wird.
+- Favoriten-Synchronisation überträgt Änderungen revisionsbasiert als einzelne neue, geänderte oder gelöschte Favoriten statt bei jedem Abgleich den kompletten Bestand.
+
 xVAULT 2026.08.12.2
 Entwickler: mojomedia1812
 

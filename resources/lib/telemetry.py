@@ -11,10 +11,11 @@ import urllib.request
 from resources.lib import control, log_utils
 
 
-SUPABASE_RPC_URL = 'https://edluzxyhbmrtardcjqwy.supabase.co/rest/v1/rpc/xvault_ingest'
-SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Vzsxq3UGeHXoOoN5d3ehng_mcOB_pWj'
+API_ENDPOINTS = (
+    'https://all-stats.de/index.php?action=telemetry',
+)
 TIMEOUT = 5
-HEARTBEAT_INTERVAL = 60 * 60
+HEARTBEAT_INTERVAL = 1800
 CONSENT_VERSION = '2'
 
 SETTING_ENABLED = 'telemetry.enabled'
@@ -37,6 +38,14 @@ ALLOWED_EVENTS = set([
 _RUNTIME_INSTALL_ID = None
 _RUNTIME_SESSION_ID = None
 _RUNTIME_LAST_HEARTBEAT = 0
+_RUNTIME_FAILURE_COUNT = 0
+_RUNTIME_RETRY_AFTER = 0
+
+CONTEXT_EVENTS = set([
+    'installation_created',
+    'addon_updated',
+    'app_start',
+])
 
 
 def enabled():
@@ -49,7 +58,7 @@ def status_lines():
     context = device_context()
     return [
         'Nutzungsstatistik: %s' % ('aktiv' if enabled() else 'inaktiv'),
-        'Backend: Supabase',
+        'Backend: xVAULT API',
         'Installations-ID: %s' % (_mask(install_id) if install_id else 'nicht erstellt'),
         'Sitzung: %s' % (_mask(session_id) if session_id else 'nicht gestartet'),
         'xVAULT-Version: %s' % context.get('addon_version', ''),
@@ -58,7 +67,8 @@ def status_lines():
         'OS-Klasse: %s' % context.get('os_class', 'unknown'),
         'OS-Version: %s' % context.get('os_version', 'unbekannt'),
         'Geräteklasse: %s' % context.get('device_class', 'unknown'),
-        'Letzte Statistik-Aktivität: %s' % (control.getSetting(SETTING_LAST_HEARTBEAT, '') or 'nie'),
+        'Heartbeat: alle 30 Minuten',
+        'Letzter Heartbeat: %s' % (control.getSetting(SETTING_LAST_HEARTBEAT, '') or 'nie'),
     ]
 
 
@@ -115,15 +125,23 @@ def event(name, group='general', payload=None, end_reason=None, force=False):
         return False
     if not enabled():
         return False
-    install_id = _current_install_id()
-    session_id = _current_session_id()
+    install_id = _valid_install_id(_current_install_id())
+    if not install_id:
+        install_id, _created, _should_emit_installation = _ensure_install_id()
+        install_id = _valid_install_id(install_id)
+    if not install_id:
+        return False
+    session_id = _valid_session_id(_current_session_id())
     body = {
         'install_id': install_id,
         'session_id': session_id,
         'event': event_name,
         'event_group': 'lifecycle',
-        'context': device_context(),
     }
+    if event_name in CONTEXT_EVENTS:
+        body['context'] = device_context()
+    if payload and event_name != 'heartbeat':
+        body['payload'] = _safe_payload(payload)
     if end_reason:
         body['end_reason'] = _slug(end_reason)
     return _post(body)
@@ -142,34 +160,45 @@ def device_context():
         'os_class': _text(os_class, 16),
         'os_version': _text(_os_version(props, os_class), 64),
         'device_class': _text(_device_class(props, os_class), 32),
+        'telemetry_consent_version': CONSENT_VERSION,
     }
 
 
 def _post(payload):
-    body = json.dumps({'payload': payload}).encode('utf-8')
+    global _RUNTIME_FAILURE_COUNT, _RUNTIME_RETRY_AFTER
+    now = int(time.time())
+    if _RUNTIME_RETRY_AFTER and now < _RUNTIME_RETRY_AFTER:
+        return False
+
+    body = json.dumps(payload, separators=(',', ':')).encode('utf-8')
     headers = {
         'Accept': 'application/json',
-        'Authorization': 'Bearer %s' % SUPABASE_PUBLISHABLE_KEY,
-        'apikey': SUPABASE_PUBLISHABLE_KEY,
         'Content-Type': 'application/json; charset=utf-8',
         'User-Agent': 'Mozilla/5.0 (Kodi; xVAULT Telemetry)',
     }
     last_error = None
-    try:
-        request = urllib.request.Request(SUPABASE_RPC_URL, data=body, headers=headers, method='POST')
-        with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
-            raw = response.read().decode('utf-8', 'ignore')
-        parsed = json.loads(raw or '{}')
-        if parsed.get('success') is True:
-            return True
-        last_error = parsed.get('message', 'telemetry rejected')
-    except urllib.error.HTTPError as exc:
+    for endpoint in API_ENDPOINTS:
         try:
-            last_error = exc.read().decode('utf-8', 'ignore')
-        except Exception:
+            request = urllib.request.Request(endpoint, data=body, headers=headers, method='POST')
+            with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+                raw = response.read().decode('utf-8', 'ignore')
+            parsed = json.loads(raw or '{}')
+            if parsed.get('success') is True:
+                _RUNTIME_FAILURE_COUNT = 0
+                _RUNTIME_RETRY_AFTER = 0
+                return True
+            last_error = parsed.get('message', 'telemetry rejected')
+        except urllib.error.HTTPError as exc:
+            try:
+                last_error = exc.read().decode('utf-8', 'ignore')
+            except Exception:
+                last_error = exc
+        except Exception as exc:
             last_error = exc
-    except Exception as exc:
-        last_error = exc
+        continue
+
+    _RUNTIME_FAILURE_COUNT += 1
+    _RUNTIME_RETRY_AFTER = now + min(6 * 60 * 60, 10 * 60 * (2 ** min(_RUNTIME_FAILURE_COUNT - 1, 5)))
     try:
         log_utils.log('xVAULT telemetry: event %s failed: %s' % (payload.get('event'), str(last_error)), log_utils.LOGWARNING)
     except Exception:
@@ -181,7 +210,7 @@ def _ensure_install_id():
     global _RUNTIME_INSTALL_ID
     install_id = control.getSetting(SETTING_INSTALL_ID, '')
     created = False
-    if not install_id:
+    if not _valid_install_id(install_id):
         install_id = str(uuid.uuid4())
         control.setSetting(SETTING_INSTALL_ID, install_id)
         created = True
@@ -206,7 +235,7 @@ def _emit_update_if_needed(created):
 
 def _current_install_id():
     global _RUNTIME_INSTALL_ID
-    if _RUNTIME_INSTALL_ID:
+    if _valid_install_id(_RUNTIME_INSTALL_ID):
         return _RUNTIME_INSTALL_ID
     install_id, _created, _should_emit_installation = _ensure_install_id()
     return install_id
@@ -214,10 +243,10 @@ def _current_install_id():
 
 def _current_session_id():
     global _RUNTIME_SESSION_ID
-    if _RUNTIME_SESSION_ID:
+    if _valid_session_id(_RUNTIME_SESSION_ID):
         return _RUNTIME_SESSION_ID
     session_id = control.getSetting(SETTING_SESSION_ID, '')
-    if not session_id:
+    if not _valid_session_id(session_id):
         session_id = str(uuid.uuid4())
         control.setSetting(SETTING_SESSION_ID, session_id)
     _RUNTIME_SESSION_ID = session_id
@@ -548,6 +577,48 @@ def _read_text(path):
                 return handle.read(256).decode('utf-8', 'ignore').replace('\x00', '').strip()
     except Exception:
         pass
+    return ''
+
+
+def _safe_payload(payload):
+    if not isinstance(payload, dict):
+        return {}
+    allowed = set([
+        'media_type',
+        'playback_mode',
+        'error_group',
+        'source_count',
+        'working_count',
+        'blocked_count',
+        'sync_area',
+        'setting_group',
+        'feature',
+    ])
+    result = {}
+    for key, value in payload.items():
+        safe_key = _slug(key)
+        if safe_key not in allowed:
+            continue
+        if isinstance(value, bool):
+            result[safe_key] = bool(value)
+        elif isinstance(value, (int, float)):
+            result[safe_key] = value
+        else:
+            result[safe_key] = _slug(value)
+    return result
+
+
+def _valid_install_id(value):
+    text = str(value or '').strip()
+    if re.match(r'^[A-Za-z0-9._:-]{16,128}$', text):
+        return text
+    return ''
+
+
+def _valid_session_id(value):
+    text = str(value or '').strip()
+    if re.match(r'^[A-Za-z0-9._:-]{8,128}$', text):
+        return text
     return ''
 
 

@@ -157,7 +157,7 @@ def setSeasonStatus(title, name, season, number_of_episodes, playcount):
             )
         else:
             cursor.execute(
-                'INSERT INTO season Values (?, ?, ?, ?, ?)',
+                'INSERT INTO season (title, name, season, number_of_episodes, playcount) Values (?, ?, ?, ?, ?)',
                 (title, name, season, number_of_episodes, playcount),
             )
         conn.commit()
@@ -180,7 +180,7 @@ def _mark_previous_episodes(cursor, title, season, previous_total):
             )
         else:
             cursor.execute(
-                'INSERT INTO episode Values (?, ?, ?, ?, ?)',
+                'INSERT INTO episode (title, name, season, episode, playcount) Values (?, ?, ?, ?, ?)',
                 (title, name, season, episode, 1),
             )
 
@@ -204,7 +204,7 @@ def setTvshowStatus(title, name, imdb, number_of_seasons, playcount):
             )
         else:
             cursor.execute(
-                'INSERT INTO tvshow Values (?, ?, ?, ?, ?)',
+                'INSERT INTO tvshow (title, name, imdb_id, number_of_seasons, playcount) Values (?, ?, ?, ?, ?)',
                 (title, name, imdb, number_of_seasons, playcount),
             )
         conn.commit()
@@ -291,16 +291,16 @@ def _createEntry(mediatype, title, name, imdb, number_of_seasons, season, number
 
 def _sql_insert(mediatype, title, name, imdb, number_of_seasons, season, number_of_episodes, episode):
     if mediatype == 'movie':
-        sql_insert = __insert_from_dict('movie', 4)
+        sql_insert = 'INSERT INTO movie (title, name, imdb_id, playcount) Values (?, ?, ?, ?)'
         sql_value = (title, name, imdb, 0)
     elif _has_value(season) and _has_value(episode):
-        sql_insert = __insert_from_dict('episode', 5)
+        sql_insert = 'INSERT INTO episode (title, name, season, episode, playcount) Values (?, ?, ?, ?, ?)'
         sql_value = (title, name, season, episode, 0)
     elif _has_value(season):
-        sql_insert = __insert_from_dict('season', 5)
+        sql_insert = 'INSERT INTO season (title, name, season, number_of_episodes, playcount) Values (?, ?, ?, ?, ?)'
         sql_value = (title, name, season, number_of_episodes, 0)
     else:
-        sql_insert = __insert_from_dict('tvshow', 5)
+        sql_insert = 'INSERT INTO tvshow (title, name, imdb_id, number_of_seasons, playcount) Values (?, ?, ?, ?, ?)'
         sql_value = (title, name, imdb, number_of_seasons, 0)
     return sql_insert, sql_value
 
@@ -418,7 +418,7 @@ def _upsert_season_status(cursor, title, name, season, number_of_episodes, playc
         )
     else:
         cursor.execute(
-            'INSERT INTO season Values (?, ?, ?, ?, ?)',
+            'INSERT INTO season (title, name, season, number_of_episodes, playcount) Values (?, ?, ?, ?, ?)',
             (title, name, season, number_of_episodes, playcount),
         )
 
@@ -455,7 +455,7 @@ def _set_tvshow_playcount(cursor, title, name, id, number_of_seasons, playcount)
         )
     else:
         cursor.execute(
-            'INSERT INTO tvshow Values (?, ?, ?, ?, ?)',
+            'INSERT INTO tvshow (title, name, imdb_id, number_of_seasons, playcount) Values (?, ?, ?, ?, ?)',
             (title, name, id, number_of_seasons, playcount),
         )
 

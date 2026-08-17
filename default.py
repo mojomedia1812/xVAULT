@@ -429,6 +429,7 @@ elif action == 'providerLoginsNavigator':
 elif action and action.startswith('sync'):
     from resources.lib.sync import account
     account.dispatch(action)
+    _finish_action()
 
 elif action and action.startswith('trakt'):
     from resources.lib import trakt
@@ -577,10 +578,12 @@ elif action == 'playItem':
 elif action == "settings":  # alle Quellen aktivieren / deaktivieren
     from resources import settings
     settings.run(params)
+    _finish_action()
 
 elif action == 'addonSettings':
     query = params.get('query')
     control.openSettings(query)
+    _finish_action()
 
 elif action == 'setPlaybackMode':
     from resources.lib import playback_settings

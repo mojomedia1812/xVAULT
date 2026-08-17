@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.08.11.2`
+Aktueller Stand: `2026.08.17.1`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.08.11.2.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.08.17.1.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -69,7 +69,8 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Nach beendeter Wiedergabe wird der Gesehen-Status aktualisiert, ohne dass die Auswahl mehrfach zwischen alter Position und nächster ungesehener Folge springt.
 - DNS over HTTPS ist standardmäßig aktiv und kann in den allgemeinen Einstellungen deaktiviert werden. xVAULT nutzt Cloudflare für die DNS-Auflösung seiner HTTP-Anfragen; die aktivierten Indexseiten laufen über dieselbe RequestHandler-Logik, feste IPs bleiben nur Rückfall.
 - xVAULT-Synchronisation für Favoriten und Wiedergabestände.
-- Die xVAULT-Synchronisation nutzt den neuen API-Host `xvault-sql.ddnss.de` für Favoriten- und Binge-/Wiedergabestände.
+- Die xVAULT-Synchronisation nutzt den API-Host `all-stats.de` für Favoriten- und Binge-/Wiedergabestände.
+- Favoriten werden revisionsbasiert als einzelne Einträge mit Löschmarken synchronisiert; Geräte übertragen nur neue, geänderte oder gelöschte Favoriten, statt bei jedem Abgleich den kompletten Favoritenbestand zu senden.
 - Die Synchronisation gleicht gespeicherte Login-Daten automatisch ab, damit Server-Backups auch nach einem veralteten lokalen API-Key wiederhergestellt werden können.
 - `Jetzt synchronisieren` bereinigt doppelte lokale Fortsetzen-Einträge und bricht dadurch nicht mehr mit einem PluginError ab, wenn alte Bookmark-Daten mehrfach vorhanden sind.
 - Über **Werkzeuge > Support** kann ein redigiertes Diagnosepaket erstellt, nach Bestätigung hochgeladen und über eine kurze Service-ID weitergegeben werden; lokale ZIP-Dateien werden nach dem Upload gelöscht.
@@ -77,7 +78,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Automatische Updateprüfung kann in den allgemeinen Einstellungen aktiviert oder deaktiviert werden.
 - LiveTV-Senderliste mit lokalem Cache, Kategorien, Suche, eigenen TV-Favoriten, Senderlogos, einstellbarer Stream-Puffergröße, plattformneutraler HLS-Wiedergabe-Engine, wahlweiser reiner M3U/XMLTV-Erstellung, nutzergesteuerter Kodi-TV/IPTV-Simple-Integration, wiederholter HLS-Stabilitätsprüfung, passendem Ersatzstream-Fallback, EPG-Vorschau für aktuell laufende und folgende Sendungen sowie einer Senderlisten-Prüfung, die vor dem Start warnt, am Ende per Ergebnisdialog geprüfte, funktionierende und temporär gesperrte Sender zählt und nicht erreichbare Sender temporär bis zum nächsten xVAULT-Hauptstart ausblendet.
 - LiveTV lite liest Deutsche TV-, Österreichische TV- und Schweizer TV-Sender direkt aus der 2ix2-WordPress-API, besitzt einen eigenen TV-Favoritenordner und startet die dort hinterlegten HLS-Streams schlank ohne EPG-Schicht; wenn 2ix2 temporär nicht erreichbar ist, nutzt xVAULT Nydus als Ersatzquelle und löst dort echte HLS-Streams beim Start dynamisch auf.
-- Download-, Untertitel- und externe Download-Manager-Optionen.
+- Interne Downloads und externe Download-Manager sind getrennt: lokale Downloads benötigen Zielordner, My.JDownloader/JDownloader/PyLoad erscheinen unabhängig davon im Kontextmenü einzelner Quellen, wenn die Quellenansicht als Verzeichnis geöffnet wird.
 
 ## Fehler und Vorschläge melden
 
@@ -117,11 +118,11 @@ Es werden keine Zugangsdaten, Secrets, geheimen API-Schlüssel oder personenbezo
 
 ## Add-on-Nutzungsstatistik
 
-Die optionale xVAULT-Nutzungsstatistik nutzt Supabase als Backend und kann im eigenen Add-on-Einstellungsbereich **Statistik** aktiviert oder deaktiviert werden. Neue Profile starten mit aktivierter Statistik.
+Die optionale xVAULT-Nutzungsstatistik nutzt die xVAULT-API als Backend und kann im eigenen Add-on-Einstellungsbereich **Statistik** aktiviert oder deaktiviert werden. Neue Profile starten mit aktivierter Statistik.
 
-Erfasst werden nur technische Lebenszyklusdaten: Installation erstellt, Add-on gestartet, Add-on beendet, Kodi-Version, xVAULT-Version, OS-Klasse, Geräteklasse, Online-Status und zuletzt gesehen. Das Plugin sendet keine Titel, Suchbegriffe, Stream-URLs, Favoriten, Zugangsdaten, geheimen API-Schlüssel, privaten Pfade oder persönlichen Eingaben.
+Erfasst werden nur technische Lebenszyklusdaten: Installation erstellt, Add-on gestartet, Add-on beendet, Heartbeat alle 30 Minuten, Kodi-Version, xVAULT-Version, OS-Klasse, Geräteklasse, Online-Status und zuletzt gesehen. Das Plugin sendet keine Titel, Suchbegriffe, Stream-URLs, Favoriten, Zugangsdaten, geheimen API-Schlüssel, privaten Pfade oder persönlichen Eingaben.
 
-Die lokale Installation-ID ist eine zufällig erzeugte UUID. In Supabase wird sie über die Ingest-Funktion gehasht gespeichert. Direkte Tabellenzugriffe sind per RLS gesperrt; das Plugin nutzt nur den öffentlichen Supabase-RPC-Endpunkt mit Publishable Key.
+Die lokale Installation-ID ist eine zufällig erzeugte UUID. Auf dem API-Server wird sie vor der Speicherung gehasht. Heartbeats aktualisieren nur den aktuellen Geräte-/Sitzungszustand; technische Ereignisse werden serverseitig verdichtet, damit die Datenmenge klein bleibt.
 
 ## Mitwirken
 
