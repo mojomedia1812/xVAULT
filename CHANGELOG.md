@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [2026.08.17.3] - 2026-08-17
+
+- Nach Stream-Ende oder manuellem Stop wird keine unsichere ParentDir-Navigation mehr ausgeführt. xVAULT kehrt stattdessen über den gespeicherten Containerpfad zur vorherigen Film- oder Folgenliste zurück, damit Kodi plattformübergreifend geöffnet bleibt.
+
 ## [2026.08.17.2] - 2026-08-17
 
 - Sync-Registrierung prüft E-Mail-Adressen lokal auf plausibles Format und serverseitig auf eine erreichbare Domain mit DNS-/Mail-Einträgen.

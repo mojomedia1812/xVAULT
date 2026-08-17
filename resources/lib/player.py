@@ -350,15 +350,42 @@ class player(xbmc.Player):
         return True
 
 
-    def _avoidParentDirNavigation(self):
+    def _restoreSourceContainer(self):
+        path = str(getattr(self, 'container_path', '') or '').strip()
+        if not self._isSafeXvaultContainerPath(path):
+            if self.isdebug:
+                log_utils.log(__name__ + ' - sichere Container-Rueckkehr ohne gueltigen xVAULT-Pfad uebersprungen', log_utils.LOGINFO)
+            return False
+
         try:
-            if control.condVisibility('system.platform.ios') or control.condVisibility('system.platform.atv2'):
+            current_path = control.getInfoLabel('Container.FolderPath') or ''
+            if current_path == path:
                 return True
-            if control.condVisibility('system.platform.darwin') and not control.condVisibility('system.platform.osx'):
-                return True
-        except:
-            pass
+
+            control.execute('Container.Update(%s,replace)' % path)
+            expected_content = self.list_content or ('movies' if self.mediatype == 'movie' else 'episodes')
+            for count in range(1, 25 + 1):
+                control.sleep(0.5)
+                current_path = control.getInfoLabel('Container.FolderPath') or ''
+                current_content = control.getInfoLabel('Container.Content') or ''
+                if current_path == path:
+                    return True
+                if expected_content and current_content == expected_content:
+                    return True
+
+            if self.isdebug:
+                log_utils.log(__name__ + ' - Container-Rueckkehr nicht bestaetigt: %s' % path, log_utils.LOGWARNING)
+        except Exception as exc:
+            if self.isdebug:
+                log_utils.log(__name__ + ' - Container-Rueckkehr fehlgeschlagen: %s' % str(exc), log_utils.LOGWARNING)
         return False
+
+
+    def _isSafeXvaultContainerPath(self, path):
+        if not path:
+            return False
+        lowered = path.lower()
+        return lowered.startswith('plugin://plugin.video.xvault/') or lowered.startswith('plugin://plugin.video.xvault?')
 
 
     def _completed(self, playback_ended=False):
@@ -429,21 +456,10 @@ class player(xbmc.Player):
 
             # zur Film- bzw. Episodenliste wechseln  - von content 'videos' dann zu content 'videos'
             if control.getInfoLabel("Container.Content") != 'movies' and ccont == 'videos':
-                if self._avoidParentDirNavigation():
-                    if self.isdebug: log_utils.log(__name__ + ' - ParentDir auf Apple/tvOS uebersprungen', log_utils.LOGINFO)
+                if self._restoreSourceContainer():
                     refreshtime = 0
-                else:
-                    control.execute('Action(ParentDir)')
-                    for count in range(1, 15 + 1):
-                        control.sleep(2)
-                        ccont = control.getInfoLabel("Container.Content")
-                        if ccont == 'movies': break
-
-                    if self.isdebug: log_utils.log(__name__ + ' - count: %s - Container.Content (2):  %s' % (count, control.getInfoLabel("Container.Content")), log_utils.LOGINFO)
-                    if count == 15:
-                        return
-                    else:
-                        refreshtime = 0
+                elif self.isdebug:
+                    log_utils.log(__name__ + ' - unsichere ParentDir-Navigation nach Playback-Ende uebersprungen', log_utils.LOGWARNING)
 
         if self.playcount == 0:
             ## auch abhÃ¤ngig von control.content()

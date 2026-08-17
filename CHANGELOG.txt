@@ -1,3 +1,8 @@
+xVAULT 2026.08.17.3
+Entwickler: mojomedia1812
+
+- Nach Stream-Ende oder manuellem Stop wird keine unsichere ParentDir-Navigation mehr ausgefuehrt. xVAULT kehrt stattdessen ueber den gespeicherten Containerpfad zur vorherigen Film- oder Folgenliste zurueck, damit Kodi plattformuebergreifend geoeffnet bleibt.
+
 xVAULT 2026.08.17.2
 Entwickler: mojomedia1812
 

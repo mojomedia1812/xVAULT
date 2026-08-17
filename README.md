@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.08.17.2`
+Aktueller Stand: `2026.08.17.3`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.08.17.2.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.08.17.3.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -68,7 +68,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Gesehen-Haken für Filme und Folgen erscheinen erst, wenn höchstens noch zehn Minuten Restlaufzeit übrig sind oder die Wiedergabe regulär endet.
 - Gesehen/Ungesehen-Status für Filme, Folgen, Staffeln und Serien.
 - Nach beendeter Wiedergabe wird der Gesehen-Status aktualisiert, ohne dass die Auswahl mehrfach zwischen alter Position und nächster ungesehener Folge springt.
-- Auf iOS/tvOS verzichtet xVAULT nach dem Stoppen oder Ende eines Streams auf zusätzliche Kodi-ParentDir-Navigation, damit Kodi geöffnet bleibt und nicht versehentlich zur Systemoberfläche zurückspringt.
+- Nach dem Stoppen oder Ende eines Streams nutzt xVAULT keine blinde Kodi-ParentDir-Navigation mehr, sondern kehrt über den gespeicherten xVAULT-Containerpfad zurück, damit Kodi auf verschiedenen Plattformen geöffnet bleibt.
 - DNS over HTTPS ist standardmäßig aktiv und kann in den allgemeinen Einstellungen deaktiviert werden. xVAULT nutzt Cloudflare für die DNS-Auflösung seiner HTTP-Anfragen; die aktivierten Indexseiten laufen über dieselbe RequestHandler-Logik, feste IPs bleiben nur Rückfall.
 - xVAULT-Synchronisation für Favoriten und Wiedergabestände.
 - Die xVAULT-Synchronisation nutzt den API-Host `all-stats.de` für Favoriten- und Binge-/Wiedergabestände.
