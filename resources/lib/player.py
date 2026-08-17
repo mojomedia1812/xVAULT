@@ -55,6 +55,8 @@ class player(xbmc.Player):
         self.list_content = ''
         self.queue_playback = False
         self.queue_last = False
+        self.restore_navigation_pending = False
+        self.restore_position_pending = False
         self.isdebug = True if control.getSetting('status.debug') == 'true' else False
 
 
@@ -259,6 +261,7 @@ class player(xbmc.Player):
                     break
             monitor.waitForAbort(3)
 
+        self._runDeferredNavigationRestore()
         if self.isdebug: log_utils.log('Ende - keepPlaybackAlive', log_utils.LOGINFO)
         return True
 
@@ -332,13 +335,8 @@ class player(xbmc.Player):
             pass
         if restore_navigation:
             if self.isdebug: log_utils.log('vor parentDir - onPlayBackStopped', log_utils.LOGINFO)
-            restore_position = self._shouldRestoreListPosition()
-            try:
-                self.parentDir()
-            finally:
-                if restore_position:
-                    from resources.lib.utils import restoreListPosition
-                    restoreListPosition(self.list_position, self.list_content, __name__)
+            self.restore_navigation_pending = True
+            self.restore_position_pending = self._shouldRestoreListPosition()
         self.watcher_control = False
         if self.isdebug: log_utils.log('Ende - onPlayBackStopped', log_utils.LOGINFO)
 
@@ -386,6 +384,23 @@ class player(xbmc.Player):
             return False
         lowered = path.lower()
         return lowered.startswith('plugin://plugin.video.xvault/') or lowered.startswith('plugin://plugin.video.xvault?')
+
+
+    def _runDeferredNavigationRestore(self):
+        if not getattr(self, 'restore_navigation_pending', False):
+            return
+        self.restore_navigation_pending = False
+        control.sleep(1)
+        try:
+            self.parentDir()
+        finally:
+            if getattr(self, 'restore_position_pending', False):
+                try:
+                    from resources.lib.utils import restoreListPosition
+                    restoreListPosition(self.list_position, self.list_content, __name__)
+                except:
+                    pass
+            self.restore_position_pending = False
 
 
     def _completed(self, playback_ended=False):
@@ -475,7 +490,11 @@ class player(xbmc.Player):
 
 
     def refreshContainer(self):
-        if self.mediatype != 'movie' and self.container_path:
+        if self.mediatype != 'movie':
+            if not self._isSafeXvaultContainerPath(self.container_path):
+                if self.isdebug:
+                    log_utils.log(__name__ + ' - Container.Refresh fuer ungueltigen Serienpfad uebersprungen', log_utils.LOGINFO)
+                return
             control.execute('Container.Update(%s,replace)' % self.container_path)
             return
         control.execute('Container.Refresh')

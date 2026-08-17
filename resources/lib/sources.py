@@ -20,6 +20,8 @@ if int(getKodiVersion()) >= 20: from infotagger.listitem import ListItemInfoTag
 SOURCE_CACHE_TTL = 30 * 60
 SOURCE_CACHE_STALE_TTL = 6 * 60 * 60
 SOURCE_CACHE_LIMIT = 60
+SOURCE_CONTEXT_TTL = 6 * 60 * 60
+SOURCE_CONTEXT_LIMIT = 80
 SERIES_CACHE_LIMIT = 200
 PROVIDER_ERROR_TTL = 5 * 60
 PROVIDER_TIMEOUT_TTL = 10 * 60
@@ -101,11 +103,15 @@ class sources:
         try:
             try:
                 meta_data = json.loads(meta)
-                list_position = int(params.get('_xvault_list_position') or control.infoLabel('Container().CurrentItem'))
-                if list_position > 0:
+                list_position = int(params.get('_xvault_list_position') or control.infoLabel('Container().CurrentItem') or 0)
+                if list_position >= 0:
                     meta_data['_xvault_list_position'] = list_position
-                    meta_data['_xvault_list_content'] = params.get('_xvault_list_content') or control.infoLabel('Container.Content')
-                    meta_data['_xvault_container_path'] = params.get('_xvault_container_path') or control.infoLabel('Container.FolderPath')
+                    list_content = params.get('_xvault_list_content') or control.infoLabel('Container.Content')
+                    container_path = params.get('_xvault_container_path') or control.infoLabel('Container.FolderPath')
+                    if list_content:
+                        meta_data['_xvault_list_content'] = list_content
+                    if container_path:
+                        meta_data['_xvault_container_path'] = container_path
                     meta = json.dumps(meta_data)
                     params['sysmeta'] = meta
             except:
@@ -229,6 +235,7 @@ class sources:
 
         meta = control.window.getProperty(self.metaProperty)
         meta = json.loads(meta)
+        source_context = self._writeSourceContext(meta)
 #TODO
         if meta['mediatype'] == 'movie':
             # downloads = True if control.getSetting('downloads') == 'true' and control.exists(control.translatePath(control.getSetting('download.movie.path'))) else False
@@ -280,6 +287,8 @@ class sources:
                 item.addContextMenuItems(cm)
 
                 url = "%s?action=playItem&title=%s&source=%s" % (sysaddon, systitle, syssource)
+                if source_context:
+                    url = "%s&context=%s" % (url, quote_plus(source_context))
 
                 # ## Notwendig für Library Exporte ##
                 # ## Amazon Scraper Details ##
@@ -375,12 +384,13 @@ class sources:
         control.endofdirectory(syshandle, cacheToDisc=True)
 
 
-    def playItem(self, title, source):
+    def playItem(self, title, source, params=None):
         isDebug = False
         if isDebug: log_utils.log('start playItem', log_utils.LOGWARNING)
         try:
-            meta = control.window.getProperty(self.metaProperty)
-            meta = json.loads(meta)
+            meta = self._playbackMetaForSourceItem(params or {})
+            if not isinstance(meta, dict):
+                raise Exception('Wiedergabe-Kontext fehlt')
 
             header = control.addonInfo('name')
             # control.idle() #ok
@@ -433,6 +443,130 @@ class sources:
             log_utils.log('Error %s' % str(e), log_utils.LOGERROR)
         finally:
             self._shutdownExecutor()
+
+    def _playbackMetaForSourceItem(self, params):
+        context = params.get('context') if isinstance(params, dict) else ''
+        meta = self._readSourceContext(context)
+        if isinstance(meta, dict):
+            return meta
+
+        candidates = []
+        if isinstance(params, dict):
+            candidates.append(params.get('sysmeta'))
+        candidates.append(getattr(self, 'sysmeta', None))
+        try:
+            candidates.append(control.window.getProperty(self.metaProperty))
+        except:
+            pass
+        for raw in candidates:
+            if not raw:
+                continue
+            try:
+                meta = json.loads(raw)
+                if isinstance(meta, dict):
+                    return meta
+            except:
+                pass
+        return {}
+
+    def _sourceContextFile(self):
+        return os.path.join(control.dataPath, 'source_context_v1.json')
+
+    def _compactPlaybackMeta(self, meta):
+        if not isinstance(meta, dict):
+            return {}
+        keep = [
+            'title', 'originaltitle', 'year', 'mediatype', 'imdb_id', 'imdbnumber',
+            'imdb', 'tmdb_id', 'tvdb_id', 'season', 'episode', 'number_of_seasons',
+            'number_of_episodes', 'episode_title', 'episode_premiered', 'premiered',
+            'poster', 'fanart', 'backdrop_url', 'plot', 'playcount', 'overlay',
+            '_xvault_list_position', '_xvault_list_content', '_xvault_container_path',
+            '_xvault_queue_playback', '_xvault_queue_last'
+        ]
+        return dict((key, meta.get(key)) for key in keep if key in meta and meta.get(key) not in [None, ''])
+
+    def _writeSourceContext(self, meta):
+        try:
+            compact = self._compactPlaybackMeta(meta)
+            if not compact:
+                return ''
+            raw = json.dumps(compact, sort_keys=True, ensure_ascii=False, separators=(',', ':'))
+            token = hashlib.sha256(('%s:%s' % (raw, time.time())).encode('utf-8')).hexdigest()[:24]
+            payload = self._readSourceContextPayload()
+            entries = payload.get('entries') if isinstance(payload.get('entries'), dict) else {}
+            now = int(time.time())
+            entries[token] = {'timestamp': now, 'meta': compact}
+            while len(entries) > SOURCE_CONTEXT_LIMIT:
+                oldest = sorted(entries.items(), key=lambda item: int(item[1].get('timestamp', 0)))[0][0]
+                entries.pop(oldest, None)
+            payload = {'version': 1, 'entries': entries}
+            self._writeSourceContextPayload(payload)
+            try:
+                control.window.setProperty('%s.context.%s' % (self.metaProperty, token), json.dumps(compact))
+            except:
+                pass
+            return token
+        except Exception as e:
+            log_utils.log('Quellen-Kontext konnte nicht gespeichert werden: %s' % str(e), log_utils.LOGWARNING)
+            return ''
+
+    def _readSourceContext(self, token):
+        if not token:
+            return {}
+        try:
+            raw = control.window.getProperty('%s.context.%s' % (self.metaProperty, token))
+            if raw:
+                meta = json.loads(raw)
+                if isinstance(meta, dict):
+                    return meta
+        except:
+            pass
+        try:
+            payload = self._readSourceContextPayload()
+            entry = (payload.get('entries') or {}).get(token)
+            if not isinstance(entry, dict):
+                return {}
+            meta = entry.get('meta')
+            return meta if isinstance(meta, dict) else {}
+        except:
+            return {}
+
+    def _readSourceContextPayload(self):
+        try:
+            path = self._sourceContextFile()
+            if os.path.exists(path):
+                with open(path, 'r', encoding='utf-8') as handle:
+                    payload = json.load(handle)
+            else:
+                payload = {}
+        except:
+            payload = {}
+        entries = payload.get('entries') if isinstance(payload.get('entries'), dict) else {}
+        now = int(time.time())
+        for key, entry in list(entries.items()):
+            try:
+                if now - int(entry.get('timestamp', 0)) > SOURCE_CONTEXT_TTL:
+                    entries.pop(key, None)
+            except:
+                entries.pop(key, None)
+        return {'version': 1, 'entries': entries}
+
+    def _writeSourceContextPayload(self, payload):
+        try:
+            if not os.path.exists(control.dataPath):
+                os.makedirs(control.dataPath)
+            path = self._sourceContextFile()
+            tmp_path = path + '.tmp'
+            with open(tmp_path, 'w', encoding='utf-8') as handle:
+                json.dump(payload, handle, ensure_ascii=False)
+            try:
+                os.replace(tmp_path, path)
+            except:
+                if os.path.exists(path):
+                    os.remove(path)
+                os.rename(tmp_path, path)
+        except Exception as e:
+            log_utils.log('Quellen-Kontext konnte nicht geschrieben werden: %s' % str(e), log_utils.LOGWARNING)
 
 
     def getSources(self, title, year, imdb, season, episode, originaltitle, premiered, quality='HD', timeout=30, episode_title=None, episode_premiered=None, force_refresh=False, quiet=False):

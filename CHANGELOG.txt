@@ -1,3 +1,10 @@
+xVAULT 2026.08.17.4
+Entwickler: mojomedia1812
+
+- Wiedergabeende stabilisiert: xVAULT fuehrt die Rueckkehr zur vorherigen Ansicht nicht mehr direkt im Kodi-Player-Callback aus, sondern zeitlich entkoppelt nach dem Player-Abschluss.
+- Quellenlisten speichern den Wiedergabe-Kontext nun zusaetzlich ueber einen kurzlebigen Quellen-Kontext, damit manuell ausgewaehlte Quellen mit den korrekten Film- oder Episodendaten gestartet werden.
+- Container-Aktualisierungen nach Serienwiedergabe laufen nur noch ueber gepruefte xVAULT-Pfade, damit ungueltige oder fremde Containerpfade Kodi nicht verlassen lassen.
+
 xVAULT 2026.08.17.3
 Entwickler: mojomedia1812
 

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.08.17.4] - 2026-08-17
+
+- Wiedergabeende stabilisiert: xVAULT führt die Rückkehr zur vorherigen Ansicht nicht mehr direkt im Kodi-Player-Callback aus, sondern zeitlich entkoppelt nach dem Player-Abschluss.
+- Quellenlisten speichern den Wiedergabe-Kontext nun zusätzlich über einen kurzlebigen Quellen-Kontext, damit manuell ausgewählte Quellen mit den korrekten Film- oder Episodendaten gestartet werden.
+- Container-Aktualisierungen nach Serienwiedergabe laufen nur noch über geprüfte xVAULT-Pfade, damit ungültige oder fremde Containerpfade Kodi nicht verlassen lassen.
+
 ## [2026.08.17.3] - 2026-08-17
 
 - Nach Stream-Ende oder manuellem Stop wird keine unsichere ParentDir-Navigation mehr ausgeführt. xVAULT kehrt stattdessen über den gespeicherten Containerpfad zur vorherigen Film- oder Folgenliste zurück, damit Kodi plattformübergreifend geöffnet bleibt.

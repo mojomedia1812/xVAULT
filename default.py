@@ -573,7 +573,7 @@ elif action == 'addItem':
 elif action == 'playItem':
     if not control.visible(): control.busy()
     from resources.lib import sources
-    sources.sources().playItem(title, source)
+    sources.sources().playItem(title, source, params)
 
 elif action == "settings":  # alle Quellen aktivieren / deaktivieren
     from resources import settings
