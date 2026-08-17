@@ -48,6 +48,7 @@ Die Tabellen werden beim ersten API-Aufruf automatisch angelegt.
 ## Sicherheitskonzept
 
 - Kennwörter werden serverseitig mit `password_hash()` gespeichert.
+- Neue Registrierungen prüfen die E-Mail-Adresse zuerst formal und lehnen zusätzlich Domains ab, die keine nutzbaren DNS-Einträge besitzen. Dadurch werden offensichtliche Tippfehler und frei erfundene Domains vor dem Anlegen eines Kontos abgefangen.
 - Logins geben einen kryptografisch zufälligen API-Key zurück.
 - In der Datenbank wird nur der SHA-256-Hash des API-Keys gespeichert.
 - Das Kodi-Plugin speichert lokal nur E-Mail-Adresse, API-Key, Geräte-ID, Sync-Status, Revisionsnummern und Hash-/Zeitstempel.

@@ -1,3 +1,4 @@
+import re
 import time
 
 import xbmcgui
@@ -12,6 +13,7 @@ PRIVACY_TEXT = (
     'Zugangsschlüssel sowie deine xVAULT-Favoriten und Wiedergabestände gespeichert. '
     'Dein Kennwort wird nicht im Klartext gespeichert.'
 )
+EMAIL_RE = re.compile(r'^[^@\s]+@([A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$')
 
 
 def dispatch(action):
@@ -57,6 +59,10 @@ def register():
     except ApiError as exc:
         if exc.code == 'EMAIL_EXISTS':
             control.dialog.ok(control.addonName, 'Diese E-Mail-Adresse ist bereits registriert.\nBitte melde dich an oder nutze die Passwort-Wiederherstellung.')
+        elif exc.code == 'INVALID_EMAIL_DOMAIN':
+            control.dialog.ok(control.addonName, 'Die Domain dieser E-Mail-Adresse ist nicht erreichbar oder besitzt keine nutzbaren DNS-/Mail-Einträge.\n\nBitte prüfe die Schreibweise oder verwende eine andere E-Mail-Adresse.')
+        elif exc.code == 'INVALID_EMAIL':
+            control.dialog.ok(control.addonName, 'Bitte gib eine gültige E-Mail-Adresse ein.')
         else:
             control.infoDialog(str(exc), icon='WARNING', time=6000)
 
@@ -164,7 +170,19 @@ def initial_sync(client, email):
 
 def ask_email(default=''):
     value = control.dialog.input('E-Mail-Adresse', defaultt=default or '', type=xbmcgui.INPUT_ALPHANUM)
-    return value.strip()
+    value = value.strip().lower()
+    if value and not is_valid_email_format(value):
+        control.dialog.ok(control.addonName, 'Bitte gib eine gültige E-Mail-Adresse ein.\n\nBeispiel: name@example.de')
+        return ''
+    return value
+
+
+def is_valid_email_format(value):
+    if not value or len(value) > 254:
+        return False
+    if '..' in value:
+        return False
+    return EMAIL_RE.match(value) is not None
 
 
 def ask_password(heading):

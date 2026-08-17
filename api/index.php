@@ -385,7 +385,7 @@ function input_json(): array
 
 function register_user(PDO $pdo, array $data): void
 {
-    [$email, $password] = credentials($data);
+    [$email, $password] = credentials($data, true);
     $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
@@ -457,7 +457,7 @@ function generate_password(int $length): string
     return $password;
 }
 
-function credentials(array $data): array
+function credentials(array $data, bool $requireReachableDomain = false): array
 {
     $email = strtolower(trim((string)($data['email'] ?? '')));
     $password = (string)($data['password'] ?? '');
@@ -470,7 +470,54 @@ function credentials(array $data): array
     if (strlen($password) < 8) {
         respond(false, 'Kennwort muss mindestens 8 Zeichen haben', null, 'WEAK_PASSWORD', 400);
     }
+    if ($requireReachableDomain) {
+        validate_email_domain($email);
+    }
     return [$email, $password];
+}
+
+function validate_email_domain(string $email): void
+{
+    $parts = explode('@', $email);
+    $domain = strtolower(trim((string)end($parts), ". \t\n\r\0\x0B"));
+    if ($domain === '' || strlen($domain) > 253) {
+        respond(false, 'Ungültige E-Mail-Domain', null, 'INVALID_EMAIL_DOMAIN', 400);
+    }
+    if (filter_var($domain, FILTER_VALIDATE_IP)) {
+        respond(false, 'E-Mail-Adressen mit IP-Adresse als Domain sind nicht zulässig', null, 'INVALID_EMAIL_DOMAIN', 400);
+    }
+    if (!preg_match('/^[a-z0-9.-]+$/i', $domain) || !preg_match('/\.[a-z]{2,63}$/i', $domain)) {
+        respond(false, 'Ungültige E-Mail-Domain', null, 'INVALID_EMAIL_DOMAIN', 400);
+    }
+    if (strpos($domain, '..') !== false) {
+        respond(false, 'Ungültige E-Mail-Domain', null, 'INVALID_EMAIL_DOMAIN', 400);
+    }
+    foreach (explode('.', $domain) as $label) {
+        if ($label === '' || strlen($label) > 63 || $label[0] === '-' || substr($label, -1) === '-') {
+            respond(false, 'Ungültige E-Mail-Domain', null, 'INVALID_EMAIL_DOMAIN', 400);
+        }
+    }
+    if (!email_domain_has_dns($domain)) {
+        respond(false, 'Die E-Mail-Domain ist nicht erreichbar oder besitzt keine nutzbaren DNS-/Mail-Einträge', null, 'INVALID_EMAIL_DOMAIN', 400);
+    }
+}
+
+function email_domain_has_dns(string $domain): bool
+{
+    if (function_exists('checkdnsrr')) {
+        foreach (['MX', 'A', 'AAAA'] as $recordType) {
+            if (@checkdnsrr($domain, $recordType)) {
+                return true;
+            }
+        }
+    }
+    if (function_exists('dns_get_record')) {
+        $records = @dns_get_record($domain, DNS_MX | DNS_A | DNS_AAAA);
+        if (is_array($records) && count($records) > 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function require_user(PDO $pdo): array

@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.08.17.2] - 2026-08-17
+
+- Sync-Registrierung prüft E-Mail-Adressen lokal auf plausibles Format und serverseitig auf eine erreichbare Domain mit DNS-/Mail-Einträgen.
+- Kodi-Settings werden nur noch geschrieben, wenn sich der Zielwert wirklich geändert hat; unnötige identische Schreibvorgänge werden übersprungen.
+- Auf iOS/tvOS wird nach Stream-Ende keine zusätzliche ParentDir-Navigation mehr ausgeführt, damit Kodi nach Stop oder regulärem Ende nicht versehentlich verlassen wird.
+
 ## [2026.08.17.1] - 2026-08-17
 
 - Download-Einstellungen klarer getrennt: interne Downloads und externe Download-Manager werden getrennt bezeichnet, der fehlende Download-Hilfetext wurde ergänzt und Settings-Werte werden frischer aus Kodi gelesen.

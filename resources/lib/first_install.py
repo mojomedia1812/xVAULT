@@ -29,6 +29,8 @@ def apply_defaults_once():
 def apply_telemetry_default_once():
     """Keep telemetry enabled by default while preserving a user opt-out."""
     try:
+        if control.getSetting(TELEMETRY_APPLIED_SETTING) == 'true':
+            return
         if control.getSetting(TELEMETRY_ENABLED_SETTING, 'true').lower() != 'false':
             control.setSetting(id=TELEMETRY_ENABLED_SETTING, value='true')
         control.setSetting(id=TELEMETRY_APPLIED_SETTING, value='true')

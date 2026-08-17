@@ -25,7 +25,7 @@ else:
 addonInfo = Addon().getAddonInfo
 addonPath = translatePath(addonInfo('path'))
 addonVersion = addonInfo('version')
-setSetting = Addon().setSetting
+_setSetting = Addon().setSetting
 _getSetting = Addon().getSetting
 _settingsLock = threading.Lock()
 SERIENSTREAM_OLD_DOMAIN = '.'.join(('s', 'to'))
@@ -42,6 +42,15 @@ def getSetting(Name, default=''):
     result = _getSetting(Name)
     if result: return result
     else: return default
+
+def setSetting(Name, value):
+    value = '' if value is None else str(value)
+    try:
+        if _getSetting(Name) == value:
+            return True
+    except Exception:
+        pass
+    return _setSetting(Name, value)
 
 # Html Cache beim KodiStart loeschen
 def delHtmlCache():
@@ -251,6 +260,7 @@ if __name__ == "__main__":
 	try:
 		from resources.lib import telemetry
 		telemetry.app_start()
+		telemetry.start_heartbeat_thread(interval=60)
 	except Exception:
 		pass
 	try:

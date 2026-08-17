@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.08.17.1`
+Aktueller Stand: `2026.08.17.2`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.08.17.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.08.17.2.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -50,6 +50,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Streamquellen für Filme und Serien können nach bevorzugter Sprache sortiert oder gefiltert werden; mehrere Scraper liefern Deutsch/Englisch-Varianten sauber an die Quellenliste, und Autoplay wird bei Sprache `Alle` automatisch in Dialog oder Verzeichnis umgestellt.
 - Die Standard-Aktion `Dialog`, `Verzeichnis` oder `Autoplay` wird beim Start von Filmen und Folgen frisch aus Kodis aktuellem Add-on-Setting gelesen; die Profil-Datei dient als Rückfall. Alte Favoriten oder externe Aufrufe frieren die Auswahl nicht mehr auf einen früheren Wert ein.
 - Die Standard-Aktion wird über einen xVAULT-eigenen Auswahl-Dialog gespeichert und migriert alte `hosts.mode.v2`-/`hosts.mode`-/`default.action`-Werte automatisch, damit Kodi-Defaultwerte die Auswahl nicht mehr auf Autoplay zurücksetzen.
+- xVAULT schreibt Kodi-Settings nur, wenn sich der Zielwert wirklich geändert hat; identische Werte werden übersprungen, um die Profil-Settings zu schonen.
 - Filmpalast liest die aktuelle Such- und Quellenstruktur, schützt bereits korrekt kodierte Suchpfade vor Doppel-Kodierung und übernimmt erkannte Hoster erst ohne vorzeitige ResolveURL-Filterung in die Quellenliste.
 - Filmo ist als aktivierbare Filmquelle in die normale Quellensuche eingebunden; xVAULT liest Filmo-Suche und Filmseiten, löst Providerchips über den Filmo-Mint-Endpunkt auf und übernimmt Deutsch-/Englisch-Hoster in die Quellenliste.
 - Scraper erhalten die aktuelle ResolveURL-Hosterliste, damit Quellen von FHDFilme, HDfilme, Megakino, StreamCloud, TopStreamFilm und ähnlichen Anbietern nicht mehr vorzeitig ausgefiltert werden.
@@ -67,9 +68,11 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Gesehen-Haken für Filme und Folgen erscheinen erst, wenn höchstens noch zehn Minuten Restlaufzeit übrig sind oder die Wiedergabe regulär endet.
 - Gesehen/Ungesehen-Status für Filme, Folgen, Staffeln und Serien.
 - Nach beendeter Wiedergabe wird der Gesehen-Status aktualisiert, ohne dass die Auswahl mehrfach zwischen alter Position und nächster ungesehener Folge springt.
+- Auf iOS/tvOS verzichtet xVAULT nach dem Stoppen oder Ende eines Streams auf zusätzliche Kodi-ParentDir-Navigation, damit Kodi geöffnet bleibt und nicht versehentlich zur Systemoberfläche zurückspringt.
 - DNS over HTTPS ist standardmäßig aktiv und kann in den allgemeinen Einstellungen deaktiviert werden. xVAULT nutzt Cloudflare für die DNS-Auflösung seiner HTTP-Anfragen; die aktivierten Indexseiten laufen über dieselbe RequestHandler-Logik, feste IPs bleiben nur Rückfall.
 - xVAULT-Synchronisation für Favoriten und Wiedergabestände.
 - Die xVAULT-Synchronisation nutzt den API-Host `all-stats.de` für Favoriten- und Binge-/Wiedergabestände.
+- Bei der Sync-Registrierung prüft xVAULT die E-Mail-Adresse auf plausibles Format und die API zusätzlich, ob die angegebene Domain per DNS erreichbar ist.
 - Favoriten werden revisionsbasiert als einzelne Einträge mit Löschmarken synchronisiert; Geräte übertragen nur neue, geänderte oder gelöschte Favoriten, statt bei jedem Abgleich den kompletten Favoritenbestand zu senden.
 - Die Synchronisation gleicht gespeicherte Login-Daten automatisch ab, damit Server-Backups auch nach einem veralteten lokalen API-Key wiederhergestellt werden können.
 - `Jetzt synchronisieren` bereinigt doppelte lokale Fortsetzen-Einträge und bricht dadurch nicht mehr mit einem PluginError ab, wenn alte Bookmark-Daten mehrfach vorhanden sind.

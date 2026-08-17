@@ -3,6 +3,7 @@ import os
 import platform as py_platform
 import re
 import subprocess
+import threading
 import time
 import uuid
 import urllib.error
@@ -24,6 +25,7 @@ SETTING_SESSION_ID = 'telemetry.session_id'
 SETTING_LAST_HEARTBEAT = 'telemetry.last_heartbeat'
 SETTING_CONSENT_VERSION = 'telemetry.consent_version'
 SETTING_ADDON_VERSION = 'telemetry.addon_version'
+STATE_FILE = 'telemetry_state.json'
 STABLE_ADDON_ID = 'plugin.video.xvault'
 ALPHA_ADDON_ID = 'plugin.video.xvaultalpha'
 
@@ -40,6 +42,9 @@ _RUNTIME_SESSION_ID = None
 _RUNTIME_LAST_HEARTBEAT = 0
 _RUNTIME_FAILURE_COUNT = 0
 _RUNTIME_RETRY_AFTER = 0
+_RUNTIME_STATE = None
+_HEARTBEAT_THREAD_STARTED = False
+_STATE_LOCK = threading.RLock()
 
 CONTEXT_EVENTS = set([
     'installation_created',
@@ -53,8 +58,8 @@ def enabled():
 
 
 def status_lines():
-    install_id = control.getSetting(SETTING_INSTALL_ID, '')
-    session_id = control.getSetting(SETTING_SESSION_ID, '')
+    install_id = _state_get('install_id')
+    session_id = _state_get('session_id')
     context = device_context()
     return [
         'Nutzungsstatistik: %s' % ('aktiv' if enabled() else 'inaktiv'),
@@ -68,7 +73,7 @@ def status_lines():
         'OS-Version: %s' % context.get('os_version', 'unbekannt'),
         'Geräteklasse: %s' % context.get('device_class', 'unknown'),
         'Heartbeat: alle 30 Minuten',
-        'Letzter Heartbeat: %s' % (control.getSetting(SETTING_LAST_HEARTBEAT, '') or 'nie'),
+        'Letzter Heartbeat: %s' % (_state_get('last_heartbeat') or 'nie'),
     ]
 
 
@@ -87,10 +92,10 @@ def app_start():
     install_id, created, should_emit_installation = _ensure_install_id()
     _RUNTIME_INSTALL_ID = install_id
     _RUNTIME_SESSION_ID = str(uuid.uuid4())
-    control.setSetting(SETTING_SESSION_ID, _RUNTIME_SESSION_ID)
+    _state_set('session_id', _RUNTIME_SESSION_ID)
     if should_emit_installation:
         if event('installation_created', 'lifecycle', {'feature': 'service'}, force=True):
-            control.setSetting(SETTING_CONSENT_VERSION, CONSENT_VERSION)
+            _state_set('consent_version', CONSENT_VERSION)
     _emit_update_if_needed(created)
     if event('app_start', 'lifecycle', {'feature': 'service'}, force=True):
         _set_last_heartbeat(int(time.time()))
@@ -111,6 +116,38 @@ def heartbeat(force=False):
         return
     if event('heartbeat', 'lifecycle', {'feature': 'service'}, force=True):
         _set_last_heartbeat(now)
+
+
+def start_heartbeat_thread(interval=60):
+    global _HEARTBEAT_THREAD_STARTED
+    if _HEARTBEAT_THREAD_STARTED:
+        return
+    _HEARTBEAT_THREAD_STARTED = True
+    try:
+        worker = threading.Thread(target=_heartbeat_loop, args=(max(10, int(interval or 60)),))
+        worker.daemon = True
+        worker.start()
+    except Exception as exc:
+        _HEARTBEAT_THREAD_STARTED = False
+        try:
+            log_utils.log('xVAULT telemetry: heartbeat thread failed: %s' % str(exc), log_utils.LOGWARNING)
+        except Exception:
+            pass
+
+
+def _heartbeat_loop(interval):
+    try:
+        import xbmc
+        monitor = xbmc.Monitor()
+        while not monitor.abortRequested():
+            if monitor.waitForAbort(interval):
+                break
+            heartbeat()
+    except Exception as exc:
+        try:
+            log_utils.log('xVAULT telemetry: heartbeat loop stopped: %s' % str(exc), log_utils.LOGWARNING)
+        except Exception:
+            pass
 
 
 def menu_opened(menu):
@@ -208,14 +245,14 @@ def _post(payload):
 
 def _ensure_install_id():
     global _RUNTIME_INSTALL_ID
-    install_id = control.getSetting(SETTING_INSTALL_ID, '')
+    install_id = _state_get('install_id')
     created = False
     if not _valid_install_id(install_id):
         install_id = str(uuid.uuid4())
-        control.setSetting(SETTING_INSTALL_ID, install_id)
+        _state_set('install_id', install_id)
         created = True
     _RUNTIME_INSTALL_ID = install_id
-    consent_version = control.getSetting(SETTING_CONSENT_VERSION, '')
+    consent_version = _state_get('consent_version')
     return install_id, created, created or consent_version != CONSENT_VERSION
 
 
@@ -223,14 +260,14 @@ def _emit_update_if_needed(created):
     current_version = _addon_version()
     if not current_version:
         return
-    stored_version = control.getSetting(SETTING_ADDON_VERSION, '')
+    stored_version = _state_get('addon_version')
     if created or not stored_version:
-        control.setSetting(SETTING_ADDON_VERSION, current_version)
+        _state_set('addon_version', current_version)
         return
     if stored_version == current_version:
         return
     if event('addon_updated', 'lifecycle', {'feature': 'service'}, force=True):
-        control.setSetting(SETTING_ADDON_VERSION, current_version)
+        _state_set('addon_version', current_version)
 
 
 def _current_install_id():
@@ -245,10 +282,10 @@ def _current_session_id():
     global _RUNTIME_SESSION_ID
     if _valid_session_id(_RUNTIME_SESSION_ID):
         return _RUNTIME_SESSION_ID
-    session_id = control.getSetting(SETTING_SESSION_ID, '')
+    session_id = _state_get('session_id')
     if not _valid_session_id(session_id):
         session_id = str(uuid.uuid4())
-        control.setSetting(SETTING_SESSION_ID, session_id)
+        _state_set('session_id', session_id)
     _RUNTIME_SESSION_ID = session_id
     return session_id
 
@@ -257,7 +294,7 @@ def _last_heartbeat():
     if _RUNTIME_LAST_HEARTBEAT:
         return _RUNTIME_LAST_HEARTBEAT
     try:
-        return int(control.getSetting(SETTING_LAST_HEARTBEAT, '0') or 0)
+        return int(_state_get('last_heartbeat') or 0)
     except Exception:
         return 0
 
@@ -265,7 +302,86 @@ def _last_heartbeat():
 def _set_last_heartbeat(timestamp):
     global _RUNTIME_LAST_HEARTBEAT
     _RUNTIME_LAST_HEARTBEAT = int(timestamp or 0)
-    control.setSetting(SETTING_LAST_HEARTBEAT, str(_RUNTIME_LAST_HEARTBEAT))
+    _state_set('last_heartbeat', str(_RUNTIME_LAST_HEARTBEAT))
+
+
+def _state_get(key, default=''):
+    with _STATE_LOCK:
+        return str(_load_state().get(key) or default or '')
+
+
+def _state_set(key, value):
+    with _STATE_LOCK:
+        state = _load_state()
+        state[key] = str(value or '')
+        _write_state(state)
+
+
+def _load_state():
+    global _RUNTIME_STATE
+    with _STATE_LOCK:
+        if isinstance(_RUNTIME_STATE, dict):
+            return dict(_RUNTIME_STATE)
+
+        data = {}
+        path = _state_path()
+        try:
+            if os.path.exists(path):
+                with open(path, 'r', encoding='utf-8') as handle:
+                    loaded = json.load(handle)
+                if isinstance(loaded, dict):
+                    data = loaded
+        except Exception as exc:
+            try:
+                log_utils.log('xVAULT telemetry: state read failed: %s' % str(exc), log_utils.LOGWARNING)
+            except Exception:
+                pass
+
+        legacy_map = {
+            'install_id': SETTING_INSTALL_ID,
+            'session_id': SETTING_SESSION_ID,
+            'last_heartbeat': SETTING_LAST_HEARTBEAT,
+            'consent_version': SETTING_CONSENT_VERSION,
+            'addon_version': SETTING_ADDON_VERSION,
+        }
+        migrated = False
+        for key, setting_id in legacy_map.items():
+            if data.get(key):
+                continue
+            value = control.getSetting(setting_id, '')
+            if value:
+                data[key] = value
+                migrated = True
+
+        _RUNTIME_STATE = data
+        if migrated:
+            _write_state(data)
+        return dict(_RUNTIME_STATE)
+
+
+def _write_state(state):
+    global _RUNTIME_STATE
+    with _STATE_LOCK:
+        try:
+            directory = control.addonProfilePath
+            if directory and not os.path.exists(directory):
+                os.makedirs(directory)
+            path = _state_path()
+            tmp_path = path + '.tmp'
+            with open(tmp_path, 'w', encoding='utf-8') as handle:
+                json.dump(state, handle, ensure_ascii=True, sort_keys=True, separators=(',', ':'))
+                handle.write('\n')
+            os.replace(tmp_path, path)
+            _RUNTIME_STATE = dict(state)
+        except Exception as exc:
+            try:
+                log_utils.log('xVAULT telemetry: state write failed: %s' % str(exc), log_utils.LOGWARNING)
+            except Exception:
+                pass
+
+
+def _state_path():
+    return os.path.join(control.addonProfilePath, STATE_FILE)
 
 
 def _android_props():

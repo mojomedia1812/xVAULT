@@ -62,7 +62,13 @@ def _addon():
 	return xbmcaddon.Addon(addonId)
 
 def setSetting(id=None, value=None):
-	return _addon().setSetting(id, '' if value is None else str(value))
+	value = '' if value is None else str(value)
+	try:
+		if _addon().getSetting(id) == value:
+			return True
+	except Exception:
+		pass
+	return _addon().setSetting(id, value)
 
 def getSetting(Name, default=''):
 	try:

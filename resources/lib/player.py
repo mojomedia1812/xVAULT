@@ -350,6 +350,17 @@ class player(xbmc.Player):
         return True
 
 
+    def _avoidParentDirNavigation(self):
+        try:
+            if control.condVisibility('system.platform.ios') or control.condVisibility('system.platform.atv2'):
+                return True
+            if control.condVisibility('system.platform.darwin') and not control.condVisibility('system.platform.osx'):
+                return True
+        except:
+            pass
+        return False
+
+
     def _completed(self, playback_ended=False):
         if playback_ended:
             return True
@@ -418,17 +429,21 @@ class player(xbmc.Player):
 
             # zur Film- bzw. Episodenliste wechseln  - von content 'videos' dann zu content 'videos'
             if control.getInfoLabel("Container.Content") != 'movies' and ccont == 'videos':
-                control.execute('Action(ParentDir)')
-                for count in range(1, 15 + 1):
-                    control.sleep(2)
-                    ccont = control.getInfoLabel("Container.Content")
-                    if ccont == 'movies': break
-
-                if self.isdebug: log_utils.log(__name__ + ' - count: %s - Container.Content (2):  %s' % (count, control.getInfoLabel("Container.Content")), log_utils.LOGINFO)
-                if count == 15:
-                    return
-                else:
+                if self._avoidParentDirNavigation():
+                    if self.isdebug: log_utils.log(__name__ + ' - ParentDir auf Apple/tvOS uebersprungen', log_utils.LOGINFO)
                     refreshtime = 0
+                else:
+                    control.execute('Action(ParentDir)')
+                    for count in range(1, 15 + 1):
+                        control.sleep(2)
+                        ccont = control.getInfoLabel("Container.Content")
+                        if ccont == 'movies': break
+
+                    if self.isdebug: log_utils.log(__name__ + ' - count: %s - Container.Content (2):  %s' % (count, control.getInfoLabel("Container.Content")), log_utils.LOGINFO)
+                    if count == 15:
+                        return
+                    else:
+                        refreshtime = 0
 
         if self.playcount == 0:
             ## auch abhÃ¤ngig von control.content()

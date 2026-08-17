@@ -549,11 +549,6 @@ def monitor_changes(interval=5):
         while not monitor.abortRequested():
             if monitor.waitForAbort(interval):
                 break
-            try:
-                from resources.lib import telemetry
-                telemetry.heartbeat()
-            except Exception:
-                pass
             now = time.time()
             if has_local_changes():
                 check_and_push_if_changed(silent=True)
