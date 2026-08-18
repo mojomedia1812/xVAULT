@@ -45,7 +45,10 @@ def start(params):
         item = control.item(label=label, offscreen=True)
         item.setProperty('IsPlayable', 'true')
         try:
-            item.setArt({'poster': meta.get('poster', ''), 'fanart': meta.get('fanart', '')})
+            item.setArt({
+                'poster': control.posterArtwork(meta.get('poster'), meta.get('cover_url')),
+                'fanart': control.fanartArtwork(meta.get('fanart'), meta.get('backdrop_url')),
+            })
         except:
             pass
 

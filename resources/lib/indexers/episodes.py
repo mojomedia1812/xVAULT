@@ -127,8 +127,8 @@ class episodes:
 				if i.get('premiered') and datetime.datetime(*(time.strptime(i['premiered'], "%Y-%m-%d")[0:6])) > datetime.datetime.now():
 					label = '[COLOR=red][I]{}[/I][/COLOR]'.format(label)  # ffcc0000
 
-				poster = i['poster'] if 'poster' in i and 'http' in i['poster'] else sysmeta['poster']
-				fanart = sysmeta['fanart'] if 'fanart' in sysmeta else addonFanart
+				poster = control.posterArtwork(i.get('poster'), sysmeta.get('poster'))
+				fanart = control.fanartArtwork(sysmeta.get('fanart'), i.get('fanart'))
 				plot = ''
 				if 'plot' in i and len(i['plot']) > 50:
 					plot = i['plot']
@@ -142,6 +142,8 @@ class episodes:
 
 				meta.update({'poster': poster})
 				meta.update({'fanart': fanart})
+				sysmeta.update({'poster': poster})
+				sysmeta.update({'fanart': fanart})
 				meta.update({'plot': plot})
 				if 'premiered' in i and i['premiered']: meta.update({'premiered': i['premiered']})
 				display_meta = dict(sysmeta)

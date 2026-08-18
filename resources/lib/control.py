@@ -185,6 +185,56 @@ def addonNext():
 def addonNoPicture():
 	return os.path.join(artPath(), 'no-picture.png')
 
+def isBlockedProviderArt(url):
+	try:
+		parsed = urlparse(str(url).split('|', 1)[0])
+		host = (parsed.netloc or '').split('@')[-1].split(':', 1)[0].lower()
+		path = (parsed.path or '').lower()
+		if host in ('s.to', 'www.s.to'):
+			return True
+		if host in ('serienstream.to', 'www.serienstream.to') or host.endswith('.serienstream.to'):
+			return path.startswith('/media/images/')
+	except:
+		pass
+	return False
+
+def _isLocalArt(value):
+	try:
+		if str(value).startswith('special://'):
+			return exists(value)
+		return os.path.exists(value)
+	except:
+		return False
+
+def selectArtwork(candidates, fallback=''):
+	for candidate in candidates:
+		try:
+			value = py2_decode(candidate)
+		except:
+			value = candidate
+		value = str(value or '').strip()
+		if not value:
+			continue
+		if isBlockedProviderArt(value):
+			continue
+		if value.startswith('http://') or value.startswith('https://') or _isLocalArt(value):
+			return value
+	return fallback
+
+def posterArtwork(*candidates):
+	return selectArtwork(candidates, addonPoster())
+
+def fanartArtwork(*candidates):
+	return selectArtwork(candidates, addonFanart())
+
+def sanitizeMetaArtwork(meta):
+	if not isinstance(meta, dict):
+		return meta
+	poster = posterArtwork(meta.get('cover_url'), meta.get('poster'))
+	fanart = fanartArtwork(meta.get('backdrop_url'), meta.get('fanart'))
+	meta.update({'poster': poster, 'cover_url': poster, 'fanart': fanart, 'backdrop_url': fanart})
+	return meta
+
 def infoDialog(message, heading=addonInfo('name'), icon='', time=3000, sound=False):
 	if icon == '': icon = addonIcon()
 	elif icon == 'INFO': icon = xbmcgui.NOTIFICATION_INFO

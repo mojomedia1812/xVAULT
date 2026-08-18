@@ -3,7 +3,7 @@
 #2021-11-22
 #edit 2025-03-02
 
-import sys, re, json
+import sys, re, json, time
 import hashlib,os,codecs
 from sqlite3 import dbapi2 as database
 import xbmc, xbmcplugin
@@ -21,6 +21,9 @@ except:
 #_params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
 
 PLAYBACK_START_TIMEOUT = 45
+PLAYBACK_STALL_TIMEOUT = 90
+ANDROID_NAVIGATION_RESTORE_DELAY = 8
+CONTAINER_IDLE_TIMEOUT = 18
 
 
 def _addon_enabled(addon_id):
@@ -55,15 +58,18 @@ class player(xbmc.Player):
         self.list_content = ''
         self.queue_playback = False
         self.queue_last = False
+        self.playback_failed = False
         self.restore_navigation_pending = False
         self.restore_position_pending = False
+        self._last_container_restore_updated = False
         self.isdebug = True if control.getSetting('status.debug') == 'true' else False
 
 
     def run(self, title, url, meta):
         import xbmc
         try:
-            self.meta = meta
+            self.meta = control.sanitizeMetaArtwork(meta)
+            meta = self.meta
             self.mediatype = meta['mediatype']
             self.title = meta['title']
             self.year = str(meta['year']) if 'year' in meta else ''
@@ -152,7 +158,7 @@ class player(xbmc.Player):
 
             item.setPath(url)
             try:
-                item.setArt({'poster': meta['poster']})
+                item.setArt({'poster': control.posterArtwork(meta.get('poster'), meta.get('cover_url'))})
                 item.setInfo(type='Video', infoLabels=Info)
             except:
                 pass
@@ -226,7 +232,9 @@ class player(xbmc.Player):
             control.sleep(1)
 
         if not started:
-            control.idle()
+            self.playback_failed = True
+            self._closePlaybackBusyDialogs()
+            self._stopFailedPlayback()
             log_utils.log(
                 'Playback start timeout nach %s Sekunden: %s' %
                 (PLAYBACK_START_TIMEOUT, getattr(self, 'playback_name', getattr(self, 'name', 'unbekannt'))),
@@ -243,11 +251,30 @@ class player(xbmc.Player):
         monitor = xbmc.Monitor()
         self.watcher_control = False
         stopped_without_callback = 0
+        last_position = -1.0
+        last_progress_at = time.time()
         while (not monitor.abortRequested()) & (not self.streamFinished):
             if self.isPlayingVideo():
                 stopped_without_callback = 0
                 self.totalTime = self.getTotalTime()
                 self.currentTime = self.getTime()
+                if self._isPlaybackPaused():
+                    last_progress_at = time.time()
+                elif self.currentTime > last_position + 0.25:
+                    last_position = self.currentTime
+                    last_progress_at = time.time()
+                elif time.time() - last_progress_at >= PLAYBACK_STALL_TIMEOUT:
+                    self.playback_failed = True
+                    self.streamFinished = True
+                    log_utils.log(
+                        'Playback ohne Fortschritt abgebrochen nach %s Sekunden: %s' %
+                        (PLAYBACK_STALL_TIMEOUT, getattr(self, 'playback_name', '')),
+                        log_utils.LOGWARNING
+                    )
+                    self._telemetryEvent('playback_failed', 'player_stall')
+                    self._closePlaybackBusyDialogs()
+                    self._stopFailedPlayback()
+                    break
                 watcher = watch_progress.is_completed_position(self.currentTime, self.totalTime)
                 if watcher and not self.watcher_control:
                     playcountDB.updatePlaycount(self.mediatype, self.title, self.name, self.imdb, self.number_of_seasons, self.season, self.number_of_episodes, self.episode, 1)
@@ -263,7 +290,31 @@ class player(xbmc.Player):
 
         self._runDeferredNavigationRestore()
         if self.isdebug: log_utils.log('Ende - keepPlaybackAlive', log_utils.LOGINFO)
-        return True
+        return not self.playback_failed
+
+    def _closePlaybackBusyDialogs(self):
+        try:
+            control.execute('Dialog.Close(busydialog,true)')
+            control.execute('Dialog.Close(busydialognocancel,true)')
+            control.idle()
+        except:
+            pass
+
+    def _stopFailedPlayback(self):
+        try:
+            if self.isPlaying():
+                self.stop()
+        except:
+            try:
+                xbmc.Player().stop()
+            except:
+                pass
+
+    def _isPlaybackPaused(self):
+        try:
+            return bool(control.condVisibility('Player.Paused'))
+        except:
+            return False
 
 
     def idleForPlayback(self):
@@ -303,7 +354,9 @@ class player(xbmc.Player):
 
     def onPlayBackError(self):
         log_utils.log('Playback-Fehler vor oder waehrend der Wiedergabe: %s' % getattr(self, 'playback_name', ''), log_utils.LOGWARNING)
+        self.playback_failed = True
         self._telemetryEvent('playback_failed', 'player_error')
+        self._closePlaybackBusyDialogs()
         self.streamFinished = True
 
     def _finishPlayback(self, restore_navigation, playback_ended=False):
@@ -349,6 +402,7 @@ class player(xbmc.Player):
 
 
     def _restoreSourceContainer(self):
+        self._last_container_restore_updated = False
         path = str(getattr(self, 'container_path', '') or '').strip()
         if not self._isSafeXvaultContainerPath(path):
             if self.isdebug:
@@ -356,11 +410,17 @@ class player(xbmc.Player):
             return False
 
         try:
+            if self._isAndroidPlatform() and not self._waitForContainerNavigationIdle(0.5, 10):
+                if self.isdebug:
+                    log_utils.log(__name__ + ' - Android Container-Rueckkehr uebersprungen: Kodi noch nicht idle', log_utils.LOGWARNING)
+                return False
+
             current_path = control.getInfoLabel('Container.FolderPath') or ''
             if current_path == path:
                 return True
 
             control.execute('Container.Update(%s,replace)' % path)
+            self._last_container_restore_updated = True
             expected_content = self.list_content or ('movies' if self.mediatype == 'movie' else 'episodes')
             for count in range(1, 25 + 1):
                 control.sleep(0.5)
@@ -385,12 +445,54 @@ class player(xbmc.Player):
         lowered = path.lower()
         return lowered.startswith('plugin://plugin.video.xvault/') or lowered.startswith('plugin://plugin.video.xvault?')
 
+    def _isAndroidPlatform(self):
+        try:
+            return bool(control.condVisibility('System.Platform.Android'))
+        except:
+            return False
+
+    def _waitForContainerNavigationIdle(self, initial_delay=0, timeout=CONTAINER_IDLE_TIMEOUT):
+        try:
+            monitor = xbmc.Monitor()
+            if initial_delay:
+                if monitor.waitForAbort(initial_delay):
+                    return False
+
+            deadline = time.time() + timeout
+            stable_checks = 0
+            while time.time() < deadline and not monitor.abortRequested():
+                busy = False
+                try:
+                    busy = self.isPlaying() or \
+                        bool(control.condVisibility('Window.IsActive(fullscreenvideo)')) or \
+                        bool(control.condVisibility('Window.IsActive(busydialog)')) or \
+                        bool(control.condVisibility('Window.IsActive(busydialognocancel)')) or \
+                        bool(control.condVisibility('Container.IsUpdating'))
+                except:
+                    busy = True
+
+                if busy:
+                    stable_checks = 0
+                else:
+                    stable_checks += 1
+                    if stable_checks >= 3:
+                        return True
+                monitor.waitForAbort(0.5)
+        except:
+            pass
+        return False
+
 
     def _runDeferredNavigationRestore(self):
         if not getattr(self, 'restore_navigation_pending', False):
             return
         self.restore_navigation_pending = False
-        control.sleep(1)
+        delay = ANDROID_NAVIGATION_RESTORE_DELAY if self._isAndroidPlatform() else 1
+        if not self._waitForContainerNavigationIdle(delay, CONTAINER_IDLE_TIMEOUT):
+            if self.isdebug:
+                log_utils.log(__name__ + ' - Navigation nach Playback-Ende uebersprungen: Kodi noch nicht idle', log_utils.LOGWARNING)
+            self.restore_position_pending = False
+            return
         try:
             self.parentDir()
         finally:
@@ -456,6 +558,7 @@ class player(xbmc.Player):
 
     def parentDir(self):
         refreshtime = 2
+        restored_container_update = False
         control.sleep(refreshtime)
         ccont = ''
         if playback_settings.get_mode() == '1': # Liste der Streams (Hosterliste) als Verzeichnis
@@ -473,6 +576,7 @@ class player(xbmc.Player):
             if control.getInfoLabel("Container.Content") != 'movies' and ccont == 'videos':
                 if self._restoreSourceContainer():
                     refreshtime = 0
+                    restored_container_update = bool(getattr(self, '_last_container_restore_updated', False))
                 elif self.isdebug:
                     log_utils.log(__name__ + ' - unsichere ParentDir-Navigation nach Playback-Ende uebersprungen', log_utils.LOGWARNING)
 
@@ -485,11 +589,19 @@ class player(xbmc.Player):
                 refresh = True
 
             if refresh:
+                if restored_container_update:
+                    if self.isdebug:
+                        log_utils.log(__name__ + ' - zusaetzlicher Container.Refresh nach Container.Update uebersprungen', log_utils.LOGINFO)
+                    return
                 if refreshtime != 0: control.sleep(refreshtime)
                 self.refreshContainer()
 
 
     def refreshContainer(self):
+        if self._isAndroidPlatform() and not self._waitForContainerNavigationIdle(0, 12):
+            if self.isdebug:
+                log_utils.log(__name__ + ' - Container.Refresh uebersprungen: Kodi noch nicht idle', log_utils.LOGWARNING)
+            return
         if self.mediatype != 'movie':
             if not self._isSafeXvaultContainerPath(self.container_path):
                 if self.isdebug:

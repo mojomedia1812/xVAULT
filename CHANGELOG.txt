@@ -1,3 +1,11 @@
+xVAULT 2026.08.18.1
+Entwickler: mojomedia1812
+
+- Streamstart robuster gemacht: xVAULT prueft ausgewaehlte Streams vor dem Playerstart genauer und wechselt bei nicht startenden Quellen automatisch zu passenden Alternativen aus der Quellenliste.
+- Playback-Wartebildschirme werden bei Startfehlern oder haengender Wiedergabe sauber geschlossen, damit Kodi nicht dauerhaft im Ladezustand bleibt.
+- Rueckkehr nach Serien- und Filmwiedergabe auf Android/Fire TV weiter stabilisiert, indem Container-Updates erst nach einem idle Zustand ausgefuehrt werden.
+- SerienStream-/s.to-Anbieterbilder werden nicht mehr als Kodi-Menuegrafiken verwendet; xVAULT nutzt stattdessen TMDB-Bilder oder lokale xVAULT-Grafiken.
+
 xVAULT 2026.08.17.5
 Entwickler: mojomedia1812
 

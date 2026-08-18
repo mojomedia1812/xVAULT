@@ -128,8 +128,8 @@ class tvshows:
 				else:
 					label = '[COLOR=red][I]{}[/I][/COLOR]'.format(label)
 
-				poster = i['poster'] if 'poster' in i and 'http' in i['poster'] else addonPoster
-				fanart = i['fanart'] if 'fanart' in i and 'http' in i['fanart'] else addonFanart
+				poster = control.posterArtwork(i.get('poster'))
+				fanart = control.fanartArtwork(i.get('fanart'))
 				meta.update({'poster': poster})
 				meta.update({'fanart': fanart})
 

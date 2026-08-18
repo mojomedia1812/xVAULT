@@ -280,7 +280,7 @@ def test_stream(stream_url):
     """
     # parse_qsl doesn't work because it splits elements by ';' which can be in a non-quoted UA
     try:
-        headers = dict([item.split('=') for item in (stream_url.split('|')[1]).split('&')])
+        headers = dict([item.split('=', 1) for item in (stream_url.split('|')[1]).split('&') if '=' in item])
     except:
         headers = {}
     for header in headers:
@@ -336,7 +336,53 @@ def test_stream(stream_url):
     if int(http_code) >= 400 and int(http_code) != 504:
         log_utils.log('Stream UrlOpen Failed: Url: %s \n HTTP Code: %s Msg: %s' % (stream_url, http_code, msg), log_utils.LOGWARNING)
 
-    return int(http_code) < 400 or int(http_code) == 504
+    if not (int(http_code) < 400 or int(http_code) == 504):
+        return False
+
+    return _test_stream_body(stream_url, headers)
+
+
+def _test_stream_body(stream_url, headers):
+    try:
+        raw_url = stream_url.split('|', 1)[0]
+        parsed = urllib_parse.urlparse(raw_url)
+        if parsed.scheme not in ['http', 'https']:
+            return True
+        path = (parsed.path or '').lower()
+        if path.endswith(('.m3u', '.m3u8', '.mpd')):
+            return True
+
+        probe_headers = dict(headers)
+        probe_headers.setdefault('Range', 'bytes=0-0')
+        probe_headers.setdefault('Connection', 'close')
+        return _read_stream_probe(raw_url, probe_headers)
+    except urllib_error.HTTPError as e:
+        code = int(getattr(e, 'code', 500))
+        if code == 416:
+            return True
+        if code in [400, 403, 405]:
+            try:
+                fallback_headers = dict(headers)
+                fallback_headers.pop('Range', None)
+                fallback_headers.setdefault('Connection', 'close')
+                return _read_stream_probe(stream_url.split('|', 1)[0], fallback_headers)
+            except:
+                return False
+        return code < 400
+    except:
+        return False
+
+
+def _read_stream_probe(raw_url, headers):
+    request = urllib_request.Request(raw_url, headers=headers)
+    response = urllib_request.urlopen(request, timeout=15)
+    try:
+        return bool(response.read(1))
+    finally:
+        try:
+            response.close()
+        except:
+            pass
 
 def normalize(title):
     from sys import version_info

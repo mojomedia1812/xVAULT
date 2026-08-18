@@ -294,13 +294,9 @@ class sources:
         addonPoster, addonBanner = control.addonPoster(), control.addonBanner()
         addonFanart, settingFanart = control.addonFanart(), control.getSetting('fanart')
 
-        if 'backdrop_url' in meta and 'http' in meta['backdrop_url']: fanart = meta['backdrop_url']
-        elif 'fanart' in meta and 'http' in meta['fanart']: fanart = meta['fanart']
-        else: fanart = addonFanart
-
-        if 'cover_url' in meta and 'http' in meta['cover_url']: poster = meta['cover_url']
-        elif 'poster' in meta and 'http' in meta['poster']: poster = meta['poster']
-        else:  poster = addonPoster
+        fanart = control.fanartArtwork(meta.get('backdrop_url'), meta.get('fanart'))
+        poster = control.posterArtwork(meta.get('cover_url'), meta.get('poster'))
+        meta.update({'fanart': fanart, 'backdrop_url': fanart, 'poster': poster, 'cover_url': poster})
         sysimage = poster
 
         if 'season' in meta and 'episode' in meta:
@@ -450,7 +446,7 @@ class sources:
             if item['source'] == None: raise Exception()
             
             self._ensureExecutor()
-            future = self.executor.submit(self.sourcesResolve, item)
+            future = self.executor.submit(self.sourcesResolve, item, False, True)
             
             waiting_time = 30
             while waiting_time > 0:
@@ -470,6 +466,14 @@ class sources:
                     waiting_time = waiting_time + 1  # dont count down while dialog is presented
                 if future.done(): break
 
+            if not future.done():
+                future.cancel()
+                log_utils.log(
+                    'Resolve Timeout bei ausgewaehlter Quelle: Provider %s / Hoster %s' %
+                    (item.get('provider'), item.get('source')),
+                    log_utils.LOGWARNING
+                )
+
             try: progressDialog.close()
             except: pass
             if isDebug: log_utils.log('playItem 261', log_utils.LOGWARNING)
@@ -478,19 +482,108 @@ class sources:
 
             if isDebug: log_utils.log('playItem url: %s' % self.url, log_utils.LOGWARNING)
             if self.url == None:
-                #self.errorForSources()
+                if self._playFallbackSource(title, meta, item):
+                    return self.url
+                self.errorForSources('resolve_failed')
                 return
 
             meta = self._mergeSelectedStreamMeta(meta, item)
             self._shutdownExecutor()
             from resources.lib.player import player
             if not player().run(title, self.url, meta):
+                if self._playFallbackSource(title, meta, item):
+                    return self.url
                 self.errorForSources('playback_start_failed')
             return self.url
         except Exception as e:
             log_utils.log('Error %s' % str(e), log_utils.LOGERROR)
         finally:
             self._shutdownExecutor()
+
+    def _sourceItemKey(self, item):
+        try:
+            return json.dumps({
+                'provider': item.get('provider'),
+                'source': item.get('source'),
+                'url': item.get('url'),
+                'language': item.get('language'),
+                'quality': item.get('quality'),
+            }, sort_keys=True)
+        except:
+            return str(item)
+
+    def _fallbackSourceItems(self, selected_item):
+        try:
+            raw_items = control.window.getProperty(self.itemsProperty)
+            items = json.loads(raw_items)
+            if not isinstance(items, list) or len(items) <= 1:
+                return []
+            selected_key = self._sourceItemKey(selected_item)
+            selected_index = 0
+            for index, candidate in enumerate(items):
+                if self._sourceItemKey(candidate) == selected_key:
+                    selected_index = index
+                    break
+            ordered = items[selected_index + 1:] + items[:selected_index]
+            return [candidate for candidate in ordered if self._sourceItemKey(candidate) != selected_key]
+        except:
+            return []
+
+    def _playFallbackSource(self, title, meta, failed_item):
+        candidates = self._fallbackSourceItems(failed_item)
+        if not candidates:
+            return False
+
+        progressDialog = control.progressDialog if control.getSetting('progress.dialog') == '0' else control.progressDialogBG
+        try:
+            progressDialog.create(control.addonInfo('name'), 'Versuche naechste Quelle...')
+        except:
+            progressDialog = None
+
+        try:
+            for index, candidate in enumerate(candidates[:12]):
+                try:
+                    if progressDialog:
+                        if progressDialog.iscanceled():
+                            return False
+                        progressDialog.update(
+                            int((100 / float(min(len(candidates), 12))) * index),
+                            str(candidate.get('label', candidate.get('source', 'Quelle')))
+                        )
+                except:
+                    pass
+
+                self.url = None
+                resolved_url = self._resolveSourceWithTimeout(candidate, progressDialog, SOURCE_RESOLVE_TIMEOUT, set_url=True)
+                if not resolved_url or resolved_url == 'close://':
+                    continue
+
+                try:
+                    if progressDialog:
+                        progressDialog.close()
+                except:
+                    pass
+
+                fallback_meta = dict(meta) if isinstance(meta, dict) else meta
+                fallback_meta = self._mergeSelectedStreamMeta(fallback_meta, candidate)
+                self._shutdownExecutor()
+                from resources.lib.player import player
+                if player().run(title, self.url, fallback_meta):
+                    return True
+
+                self._ensureExecutor()
+                progressDialog = control.progressDialog if control.getSetting('progress.dialog') == '0' else control.progressDialogBG
+                try:
+                    progressDialog.create(control.addonInfo('name'), 'Versuche naechste Quelle...')
+                except:
+                    progressDialog = None
+        finally:
+            try:
+                if progressDialog:
+                    progressDialog.close()
+            except:
+                pass
+        return False
 
     def _playbackMetaForSourceItem(self, params):
         context = params.get('context') if isinstance(params, dict) else ''
@@ -1493,6 +1586,11 @@ class sources:
                 return None
 
             stream_headers = urlencode({
+                'Accept': '*/*',
+                'Accept-Language': 'de,en-US;q=0.7,en;q=0.3',
+                'Cache-Control': 'no-cache',
+                'Connection': 'close',
+                'Pragma': 'no-cache',
                 'User-Agent': headers['User-Agent'],
                 'Referer': real_url,
             })
