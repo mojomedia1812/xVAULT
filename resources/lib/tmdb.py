@@ -486,18 +486,27 @@ class cTMDB:
 
             urlType = _meta['mediatype'] if _meta['mediatype'] == 'movie' else 'tv'
             overviews = self._call(urlType + '/' + str(_meta['tmdb_id']) + '/translations')
-            # overview = overviews['translations'][0]['data']['overview']
-            if len(overviews['translations']) > 0:
-                overviews = overviews['translations']
-                for overview in overviews:
-                    if overview['name'] == "Deutsch" or  overview['iso_639_1'] == "de": #  or  overview['name'] == "English":
-                        _meta.update({'plot': overview['data']['overview']})
+            english_plot = ''
+            translations = overviews.get('translations', []) if isinstance(overviews, dict) else []
+            for overview in translations:
+                try:
+                    data = overview.get('data') or {}
+                    translated_plot = (data.get('overview') or '').strip()
+                    if not translated_plot:
+                        continue
+                    if overview.get('name') == "Deutsch" or overview.get('iso_639_1') == "de":
+                        _meta.update({'plot': translated_plot})
                         break
-                    elif not 'plot' in _meta and not 'overview' in _meta and overview['name'] == "English":
-                        _meta.update({'plot': overview['data']['overview']})
+                    if not english_plot and (overview.get('name') == "English" or overview.get('iso_639_1') == "en"):
+                        english_plot = translated_plot
+                except:
+                    pass
 
-            if not 'plot' in _meta:
-                if 'overview' in meta and len(meta['overview'].strip()) > 5:
+            if not (_meta.get('plot') or '').strip() and english_plot:
+                _meta.update({'plot': english_plot})
+
+            if not (_meta.get('plot') or '').strip():
+                if 'overview' in meta and len((meta['overview'] or '').strip()) > 5:
                     _meta['plot'] = meta['overview']
                 else:
                     _meta['plot'] = ''

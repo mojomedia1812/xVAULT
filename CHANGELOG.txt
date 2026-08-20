@@ -1,3 +1,9 @@
+xVAULT 2026.08.20.2
+Entwickler: mojomedia1812
+
+- TV-Seriensuche robuster gemacht: direkte TMDB-Suchergebnisse werden nicht mehr verworfen, nur weil die deutsche Inhaltsbeschreibung leer ist.
+- TMDB-Beschreibungen nutzen nun eine sinnvolle Fallback-Reihenfolge: deutsche Beschreibung, englische Beschreibung, originale TMDB-Uebersicht.
+
 xVAULT 2026.08.20.1
 Entwickler: mojomedia1812
 
