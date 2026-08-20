@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [2026.08.20.1] - 2026-08-20
+
+- ResolveURL-Kompatibilität erweitert: xVAULT erkennt zusätzliche VOE-, Streamix-, Playmate- und FireStream-Ausweichdomains und kann sie lokal über vorhandene Resolver-Mechaniken vorbereiten, wenn die installierte ResolveURL-Version diese Domains noch nicht kennt.
+- FireStream-Quellen mit Bindestrich in der Medien-ID werden nicht mehr vorzeitig verworfen.
+- KinoGer-Spezialhosts werden gezielt dem passenden Resolver zugeordnet; `kinoger.be` wird als FileLions behandelt und bevorzugt echte HLS-Varianten vor problematischen Werbe-Playlists.
+- Der KinoGer-Scraper reicht betroffene Spezialhosts als normale Resolver-Quellen weiter, damit Dialog, Verzeichnis und Autoplay denselben robusteren Auflösungsweg nutzen.
+- Das Kodi-Busy-Overlay wird beim Wechsel von der Quellensuche in die Quellenliste gezielt geschlossen, damit die fertige Quellenliste nicht hinter einer weiterdrehenden Ladeanzeige verborgen bleibt.
+- Neue Hoster-Ausweichdomains werden in der Quellenanzeige mit stabilen, lesbaren Hoster-Namen dargestellt.
+
 ## [2026.08.18.1] - 2026-08-18
 
 - Streamstart robuster gemacht: xVAULT prüft ausgewählte Streams vor dem Playerstart genauer und wechselt bei nicht startenden Quellen automatisch zu passenden Alternativen aus der Quellenliste.

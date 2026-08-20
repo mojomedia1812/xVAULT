@@ -12,7 +12,7 @@ from resources.lib.control import urlparse, showparentdiritems, currentWindowId,
 from six.moves import urllib_error, urllib_request, urllib_parse
 from operator import itemgetter
 from functools import cmp_to_key
-from resources.lib import log_utils
+from resources.lib import log_utils, hoster_compat
 
 
 def getHostDict():
@@ -80,18 +80,34 @@ def isBlockedHoster(url, isResolve=True):
                         prioHoster = hmf._HostedMediaFile__resolvers[0].priority
                         return False, sDomain, url, max(prioHoster, 999)
                 except: pass
-                sUrl = hmf.resolve()
+                try:
+                    sUrl = hmf.resolve()
+                except:
+                    sUrl = None
+                if not sUrl:
+                    sUrl = hoster_compat.resolve(url)
                 try: prioHoster = hmf._HostedMediaFile__resolvers[0].priority
                 except: pass
+                if sUrl:
+                    return False, hoster_compat.display_name(sDomain) or sDomain, sUrl, prioHoster
                 return False, sDomain, sUrl, prioHoster
             else:
+                sUrl = hoster_compat.resolve(url)
+                if sUrl:
+                    return False, hoster_compat.display_name(sDomain) or sDomain, sUrl, 90
                 log_utils.log('In resolveUrl keine Domain für Url %s' % url, log_utils.LOGWARNING)
                 return True, sDomain, url, prioHoster
         except:
+            sUrl = hoster_compat.resolve(url)
+            if sUrl:
+                return False, hoster_compat.display_name(sDomain) or sDomain, sUrl, 90
             return True, sDomain, url, prioHoster
     else:
         status = resolver.relevant_resolvers(domain=sDomain)
-        if status == []: return True, sDomain, url, prioHoster
+        if status == []:
+            if hoster_compat.is_supported_host(sDomain):
+                return False, hoster_compat.display_name(sDomain) or sDomain, url, prioHoster
+            return True, sDomain, url, prioHoster
         else:
             prioHoster = status[0].priority
             return False, sDomain, url, prioHoster

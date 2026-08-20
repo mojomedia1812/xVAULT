@@ -9,7 +9,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from html import unescape as html_unescape
 from urllib.parse import urlencode, urljoin, urlparse
-from resources.lib import log_utils, utils, control, playback_settings
+from resources.lib import log_utils, utils, control, playback_settings, hoster_compat
 from resources.lib.control import py2_decode, py2_encode, quote_plus, parse_qsl
 import resolveurl as resolver
 # from functools import reduce
@@ -189,6 +189,7 @@ class sources:
                     control.window.clearProperty(self.metaProperty)
                     control.window.setProperty(self.metaProperty, meta)
                     if 'plugin' in control.infoLabel('Container.PluginName'):
+                        control.idle()
                         control.sleep(2)
                         return control.execute('Container.Update(%s?action=addItem&title=%s)' % (sys.argv[0], quote_plus(title)))
                     return self.addItem(title)
@@ -271,6 +272,7 @@ class sources:
 # Liste gefundene Streams Indexseite|Hoster
     def addItem(self, title):
         control.playlist.clear()
+        control.idle()
 
         items = control.window.getProperty(self.itemsProperty)
         items = json.loads(items)
@@ -425,6 +427,7 @@ class sources:
         control.content(syshandle, 'videos')
         control.plugincategory(syshandle, control.addonVersion)
         control.endofdirectory(syshandle, cacheToDisc=True)
+        control.idle()
 
 
     def playItem(self, title, source, params=None):
@@ -1218,6 +1221,7 @@ class sources:
                     domain = str(domain).strip().lower()
                     if domain and domain != '*':
                         domains.append(domain)
+            domains.extend(hoster_compat.extra_domains())
             domains = sorted(set(domains))
             log_utils.log('ResolveURL-Hosterliste geladen: %s Domains' % len(domains), log_utils.LOGINFO)
             return domains
@@ -1245,6 +1249,10 @@ class sources:
         known = {
             'voe': 'VOE',
             'voe.sx': 'VOE',
+            'playmate.to': 'Playmate',
+            'firestream.to': 'FireStream',
+            'viewdara.com': 'Streamix',
+            'thebesthosterv.com': 'Streamix',
             'vivo': 'VIVO',
             'vidoza': 'Vidoza',
             'doodstream': 'DoodStream',
@@ -1252,7 +1260,12 @@ class sources:
             'filmpalast': 'Filmpalast',
             'filmo': 'Filmo'
         }
-        return known.get(value.lower(), value)
+        lower = value.lower()
+        if lower in known:
+            return known[lower]
+        if hoster_compat.is_supported_host(lower):
+            return hoster_compat.display_name(lower)
+        return value
 
     def _mergeSelectedStreamMeta(self, meta, item):
         try:
@@ -1459,7 +1472,8 @@ class sources:
         try:
             if set_url:
                 self.url = None
-            url = item['url']
+            raw_url = item['url']
+            url = raw_url
             direct = item['direct']
             local = item.get('local', False)
             provider = item['provider']
@@ -1484,6 +1498,14 @@ class sources:
                             if url == False or url == None or url == '': url = None # raise Exception()
                     except:
                         url = None
+                    if not resolved:
+                        try:
+                            compat_url = hoster_compat.resolve(url) or hoster_compat.resolve(raw_url)
+                        except:
+                            compat_url = hoster_compat.resolve(raw_url)
+                        if compat_url:
+                            url = compat_url
+                            resolved = True
                 if url and not resolved and not self._looksLikeDirectMediaUrl(url):
                     log_utils.log('Resolver lieferte keinen Direktstream: Provider %s / %s' % (item['provider'], item['source']), log_utils.LOGWARNING)
                     url = None
@@ -1495,6 +1517,9 @@ class sources:
                         if url == False or url == None or url == '': url = None
                 except:
                     url = None
+                compat_url = hoster_compat.resolve(url) or hoster_compat.resolve(raw_url)
+                if compat_url:
+                    url = compat_url
 
             if not self._isUsableResolvedUrl(url, local):
                 log_utils.log('Ungueltige Stream-URL verworfen: Provider %s / %s / %s' % (item['provider'], item['source'], str(url)), log_utils.LOGWARNING)
