@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.08.18.1`
+Aktueller Stand: `2026.08.20.1`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.08.18.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.08.20.1.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -41,7 +41,11 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - SerienStream prüft bei abweichender Anbieter-Staffelzählung Episodentitel und Erstausstrahlung, damit Folgen auch dann gefunden werden, wenn TMDB/xVAULT und Anbieter die Staffeln unterschiedlich schneiden; gleiche Veröffentlichungsdaten mehrerer Folgen werden dabei nicht mehr als eindeutiger Treffer behandelt.
 - Serienwiedergaben starten auch dann stabil, wenn Metadaten aus Favoriten, alten Listen oder Android/Kodi-Varianten nur `imdb_id` statt `imdbnumber` liefern; Startfehler werden im Kodi-Log klarer protokolliert.
 - VOE-Quellen können direkt in xVAULT aufgelöst werden, wenn die installierte ResolveURL-Version die aktuelle VOE-Ausweichdomain noch nicht kennt.
+- xVAULT kennt zusätzliche VOE-, Streamix-, Playmate- und FireStream-Ausweichdomains, damit Quellen auch dann nutzbar bleiben, wenn die installierte ResolveURL-Version diese Domains noch nicht selbst enthält.
+- KinoGer-Spezialhosts werden gezielt dem passenden Resolver zugeordnet; bei `kinoger.be` bevorzugt xVAULT echte HLS-Varianten statt problematischer Werbe-Playlists.
+- Der KinoGer-Scraper gibt erkannte Spezialhosts als Resolver-Quellen weiter, damit Dialog, Verzeichnis und Autoplay denselben geprüften Auflösungsweg verwenden.
 - Nicht aufgelöste Hoster-Seiten werden nicht mehr als Video an Kodi übergeben; xVAULT versucht stattdessen weitere Quellen oder meldet, dass keine nutzbare Quelle verfügbar ist.
+- Beim Wechsel von der Quellensuche in die Quellenliste schließt xVAULT Kodis Busy-Overlay gezielt, damit die fertige Liste nicht hinter einer weiterdrehenden Ladeanzeige liegen bleibt.
 - Autoplay und manuelle Streamauswahl begrenzen hängende Resolver- und Player-Starts per Timeout; bei Autoplay probiert xVAULT danach weitere gefundene Quellen und beendet die Wiedergabeüberwachung auch ohne Kodi-Stop-Callback sauber.
 - Gefundene Quellenlisten für Filme und Serien werden im Kodi-Profil zwischengespeichert. Beim erneuten Quellenwechsel für denselben Titel kann xVAULT die Liste wiederverwenden, während Hoster-Links weiterhin frisch aufgelöst und getestet werden.
 - Serien merken sich erfolgreiche Anbieter für spätere Folgen derselben Serie, damit passende Indexseiten schneller nach vorne rücken, ohne andere aktive Anbieter dauerhaft auszuschließen.

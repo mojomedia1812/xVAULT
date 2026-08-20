@@ -1,25 +1,22 @@
 # -*- coding: UTF-8 -*-
-import re, random, base64, ast, binascii, json, string
-from resources.lib.control import quote_plus, unquote_plus, infoDialog, urlparse, getSetting
+import re, random, base64, ast, binascii, string
+from resources.lib.control import quote_plus, unquote_plus, urlparse, getSetting
 from resources.lib.requestHandler import cRequestHandler
-from resources.lib import pyaes
-from binascii import unhexlify
 from scrapers.modules import dom_parser, source_utils, cleantitle
-from scrapers.modules.tools import cParser, cUtil
-from resources.lib import log_utils
-import re
-import resolveurl as resolver
-from resources.lib.control import urljoin
-from resources.lib.requestHandler import cRequestHandler
-from scrapers.modules import cleantitle, dom_parser, source_utils
-from resources.lib.control import getSetting
-import xbmcgui
+from resources.lib import log_utils, hoster_compat
 SITE_IDENTIFIER = 'kinoger'
 SITE_DOMAIN = 'kinoger.com'
 SITE_NAME = SITE_IDENTIFIER.upper()
-from resolveurl.plugins import voesx
 
 DOOD_DOMAINS = ('dood.sbs', 'dood.re', 'dood.cx', 'dood.la', 'dood.so', 'dood.pm', 'dood.to', 'dood.watch')
+KINOGER_RESOLVER_HOSTS = (
+    'kinoger.embed4me.vip',
+    'kinoger.seekplays.pro',
+    'kinoger.pw',
+    'kinoger.be',
+    'kinoger.ru',
+    'veev.pro',
+)
 
 def _rewrite_dood(url):
     for d in DOOD_DOMAINS:
@@ -27,45 +24,35 @@ def _rewrite_dood(url):
             url = url.replace(d, 'veev.to')
     return url
 
-def extract_media_id_from_kinoger(kinoger_url):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36",
-        "Referer": "https://kinoger.ru/"
-    }
+def _url_host(url):
     try:
-        request = cRequestHandler(kinoger_url, caching=False, ignoreErrors=True)
-        for key, value in headers.items():
-            request.addHeaderEntry(key, value)
-        html = request.request()
-        patterns = [
-            r'https?://[^/]+/e/([a-zA-Z0-9]{8,12})',
-            r'voe\.sx/e/([a-zA-Z0-9]{8,12})',
-            r'/([a-zA-Z0-9]{8,12})["\']'
-        ]
-        for pattern in patterns:
-            matches = re.findall(pattern, html, re.IGNORECASE)
-            for media_id in matches:
-                if len(media_id) >= 8 and media_id.isalnum():
-                    return media_id
-        return None
-    except Exception:
-        return None
+        raw_url = str(url or '').split('|', 1)[0].split('$$', 1)[0]
+        host = urlparse(raw_url).hostname or ''
+        return host.lower()
+    except:
+        return ''
 
-def get_voe_stream_from_kinoger(kinoger_url):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Referer": "https://kinoger.ru/"
-    }
+def _is_kinoger_resolver_host(url, source=''):
+    haystack = '%s %s' % (str(url or '').lower(), str(source or '').lower())
+    return any(host in haystack for host in KINOGER_RESOLVER_HOSTS)
+
+def _kinoger_resolver_source(url, fallback=''):
+    host = _url_host(url)
+    if hoster_compat.is_supported_host(host):
+        return hoster_compat.display_name(host)
+    if _is_kinoger_resolver_host(url, fallback):
+        for host in KINOGER_RESOLVER_HOSTS:
+            if host in str(url or '').lower() or host in str(fallback or '').lower():
+                return hoster_compat.display_name(host)
+    return fallback or host
+
+def _kinoger_resolver_url(url):
     try:
-        media_id = extract_media_id_from_kinoger(kinoger_url)
-        if media_id:
-            resolver = voesx.VoeResolver()
-            stream_url = resolver.get_media_url('voe.sx', media_id)
-            return stream_url
-        return None
-    except Exception as e:
-        log_utils.log('Kinoger VOE Fehler: %s' % str(e), log_utils.LOGERROR)
-        return None
+        if 'kinoger.be' in str(url or '').lower() and '$$' not in str(url or ''):
+            return '%s$$https://kinoger.com/' % url
+    except:
+        pass
+    return url
 
 class source:
     def __init__(self):
@@ -148,43 +135,19 @@ class source:
                     quality = '360p'
                 items.append({'source': host, 'quality': quality, 'url': url, 'direct': direct})
 
-            headers = '&Accept-Language=de%2Cen-US%3Bq%3D0.7%2Cen%3Bq%3D0.3&Accept=%2A%2F%2A&User-Agent=Mozilla%2F5.0+%28Windows+NT+10.0%3B+Win64%3B+x64%3B+rv%3A99.0%29+Gecko%2F20100101+Firefox%2F99.0'
             for item in items:
                 try:
-                    if 'kinoger.re' in item['source']: continue
+                    if _is_kinoger_resolver_host(item.get('url'), item.get('source')):
+                        sUrl = _kinoger_resolver_url(item.get('url'))
+                        sources.append({
+                            'source': _kinoger_resolver_source(sUrl, item.get('source')),
+                            'quality': item['quality'],
+                            'language': 'de',
+                            'url': sUrl,
+                            'direct': False
+                        })
+                    elif 'kinoger.re' in item['source']: continue
                     elif 'p2p' in item['source'] or 'P2P' in item['source']: continue
-                    elif 'kinoger.ru' in item['source']:
-                        sUrl = item['url']
-                        stream_url = get_voe_stream_from_kinoger(sUrl)
-                        if stream_url:
-                            sources.append({'source': item['source'], 'quality': item['quality'], 'language': 'de', 'url': stream_url, 'direct': False})
-                    elif 'kinoger.be' in item['source']:
-                        sUrl = item['url']
-                        oRequest = cRequestHandler(sUrl, caching=False, ignoreErrors=True)
-                        oRequest.addHeaderEntry('Referer', 'https://kinoger.com/')
-                        sHtmlContent = oRequest.request()
-                        isMatch, packed = cParser.parseSingleResult(sHtmlContent, r'(eval\s*\(function.*?)</script>')
-                        if isMatch:
-                            from resources.lib import jsunpacker
-                            sHtmlContent = jsunpacker.unpack(packed)
-                        isMatch, hUrl = cParser.parseSingleResult(sHtmlContent, 'sources.*?file.*?(http[^"]+)')
-                        if isMatch:
-                            hUrl = hUrl.replace('\\', '')
-                            oRequest = cRequestHandler(hUrl, caching=False, ignoreErrors=True)
-                            oRequest.addHeaderEntry('Referer', 'https://kinoger.be/')
-                            oRequest.addHeaderEntry('Origin', 'https://kinoger.be')
-                            oRequest.removeNewLines(False)
-                            sHtmlContent = oRequest.request()
-                            if 'CF-DDOS-GUARD aktiv' in sHtmlContent:
-                                continue
-                            else:
-                                pattern = r'RESOLUTION=.*?x(\d+).*?\n(index[^\n]+)'
-                                isMatch, aResult = cParser.parse(sHtmlContent, pattern)
-                        if isMatch:
-                            for sQuality, sUrl in aResult:
-                                sUrl = (hUrl.split('video')[0].strip() + sUrl.strip())
-                                sUrl = sUrl + '|Origin=https%3A%2F%2Fkinoger.be&Referer=https%3A%2F%2Fkinoger.be%2F' + headers
-                                sources.append({'source': item['source'], 'quality': sQuality, 'language': 'de', 'url': sUrl, 'direct': True})
                     else:
                         url = _rewrite_dood(item['url'])
                         sources.append({'source': item['source'], 'quality': item['quality'], 'language': 'de', 'url': url, 'direct': False})
