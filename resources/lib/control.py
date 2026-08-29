@@ -316,10 +316,6 @@ def resetSettings():
 	yes = yesnoDialog("Zurücksetzen der Settings (außer Konten)", 'und einem abschließenden Reload vom Profil', 'Sind Sie sicher?')
 	if not yes: return
 	try:
-		bsto_login = getSetting('bsto.user')
-		bsto_password = getSetting('bsto.pass')
-		login = getSetting('serienstream.user')
-		password = getSetting('serienstream.pass')
 		flimmerstube_login = getSetting('flimmerstube.user')
 		flimmerstube_password = getSetting('flimmerstube.pass')
 		aniworld_login = getSetting('aniworld.user')
@@ -342,10 +338,6 @@ def resetSettings():
 		if xbmcvfs.exists(SettingFile): xbmcvfs.delete(SettingFile)
 		# PROFIL_RELOAD = os.path.join(xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')).decode('utf-8'), "profil_reload")
 		# open(PROFIL_RELOAD, "w+").write('Profil reload')
-		setSetting(id='bsto.user', value=bsto_login)
-		setSetting(id='bsto.pass', value=bsto_password)
-		setSetting(id='serienstream.user', value=login)
-		setSetting(id='serienstream.pass', value=password)
 		setSetting(id='flimmerstube.user', value=flimmerstube_login)
 		setSetting(id='flimmerstube.pass', value=flimmerstube_password)
 		setSetting(id='aniworld.user', value=aniworld_login)

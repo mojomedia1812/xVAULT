@@ -4,7 +4,6 @@ import sys
 import datetime
 from urllib.parse import urlparse
 from resources.lib.control import getSetting, urljoin, setSetting
-from resources.lib import provider_logins
 from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import cleantitle, dom_parser
 from resources.lib.utils import isBlockedHoster
@@ -129,8 +128,6 @@ class source:
         self.search_link = '/suche?term='
 
         self.sources = []
-        self.logged_in = False
-        self.credentials_checked = False
 
         if log_utils:
             logger.info('SerienStream - Init: %s' % self.base_link)
@@ -149,33 +146,8 @@ class source:
             if log_utils:
                 logger.info('SerienStream - Search: S%02dE%02d | all title variants: %s' % (season, episode, t))
 
-            login, password = self._getLogin()
-
-            if not login or not password:
-                if log_utils:
-                    logger.info('SerienStream - No credentials, skipping scraper')
-
-                if not self.credentials_checked:
-                    self.credentials_checked = True
-                    try:
-                        import xbmcgui
-                        xbmcgui.Dialog().ok(
-                            'SerienStream',
-                            'Keine Login-Daten in den Einstellungen eingetragen.\n\nBitte Email und Passwort fuer SerienStream eintragen.\nBis dahin wird SerienStream uebersprungen.'
-                        )
-                    except Exception as e:
-                        if log_utils:
-                            logger.info('SerienStream - Dialog error: %s' % str(e))
-
-                return self.sources
-
             if log_utils:
-                logger.info('SerienStream - Credentials found, attempting login')
-
-            login_success = self._do_login(login, password)
-            if not login_success:
-                if log_utils:
-                    logger.info('SerienStream - Login failed, but continuing anyway')
+                logger.info('SerienStream - Searching without credentials')
 
             aLinks = []
 
@@ -286,62 +258,6 @@ class source:
             return self.sources
 
         return self.sources
-
-    def _do_login(self, login, password):
-        try:
-            if log_utils:
-                logger.info('SerienStream - Performing login...')
-
-            URL_LOGIN = self.base_link + '/login'
-
-            oRequest = cRequestHandler(URL_LOGIN)
-            oRequest.addHeaderEntry('User-Agent', 'Mozilla/5.0')
-            login_page = oRequest.request()
-
-            form_fields = {}
-            input_pattern = r'<input[^>]*name=["\']([^"\']+)["\'][^>]*(?:value=["\']([^"\']*)["\'])?[^>]*>'
-            for match in re.finditer(input_pattern, login_page, re.IGNORECASE):
-                name = match.group(1)
-                value = match.group(2) if match.group(2) else ''
-                if name.lower() not in ['email', 'password']:
-                    form_fields[name] = value
-
-            oRequest = cRequestHandler(URL_LOGIN)
-            oRequest.addHeaderEntry('User-Agent', 'Mozilla/5.0')
-            oRequest.addHeaderEntry('Content-Type', 'application/x-www-form-urlencoded')
-            oRequest.addHeaderEntry('Referer', URL_LOGIN)
-            oRequest.addHeaderEntry('Origin', self.base_link)
-
-            for field_name, field_value in form_fields.items():
-                oRequest.addParameters(field_name, field_value)
-
-            oRequest.addParameters('email', login)
-            oRequest.addParameters('password', password)
-
-            login_response = oRequest.request()
-            if not login_response or login_response in ['SEITE NICHT ERREICHBAR', 'CLOUDFLARE-SCHUTZ AKTIV', 'URL FEHLER', 'TIMEOUT', 'DDOS GUARD SCHUTZ']:
-                self.logged_in = False
-                return False
-
-            if len(login_response) != len(login_page):
-                if log_utils:
-                    logger.info('SerienStream - Login successful')
-                self.logged_in = True
-                return True
-            elif 'logout' in login_response.lower() or 'abmelden' in login_response.lower():
-                if log_utils:
-                    logger.info('SerienStream - Login successful')
-                self.logged_in = True
-                return True
-            else:
-                self.logged_in = False
-                return False
-
-        except Exception as e:
-            if log_utils:
-                logger.info('SerienStream - Login error: %s' % str(e))
-            self.logged_in = False
-            return False
 
     def _parse_search_results(self, html):
         links = []
@@ -953,22 +869,3 @@ class source:
             if log_utils:
                 logger.info('SerienStream - Resolve error: %s' % str(e))
             return None if self._is_internal_redirect_url(url) else url
-
-    @staticmethod
-    def _getLogin():
-        login = ''
-        password = ''
-
-        try:
-            from scrapers.modules.jsnprotect import cHelper
-            login = cHelper.UserName
-            password = cHelper.PassWord
-            setSetting('serienstream.user', login)
-            setSetting('serienstream.pass', password)
-        except:
-            login, password = provider_logins.get_credentials(SITE_IDENTIFIER)
-
-        if not login or not password:
-            return '', ''
-
-        return login, password

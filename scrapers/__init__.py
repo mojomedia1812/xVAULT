@@ -17,6 +17,7 @@ _ADDON_ROOT = os.path.dirname(_SCRAPERS_ROOT)
 _SITES_FOLDER = os.path.join(_ADDON_ROOT, 'sites')
 _LEGACY_FOLDER = os.path.join(_SCRAPERS_ROOT, 'scrapers_source', 'de')
 _MODULE_CACHE = {}
+_HIDDEN_PROVIDERS = set(['bsto'])
 
 
 def _folder_has_providers(folder):
@@ -37,7 +38,7 @@ def getProviderModuleNames():
         return []
     return sorted(
         filename[:-3] for filename in os.listdir(folder)
-        if filename.endswith('.py') and not filename.startswith('__')
+        if filename.endswith('.py') and not filename.startswith('__') and filename[:-3] not in _HIDDEN_PROVIDERS
     )
 
 
@@ -81,6 +82,8 @@ def sources(specified_folders=None):
         for loader, module_name, is_pkg in pkgutil.walk_packages([folder]):
             if is_pkg:
                 continue
+            if module_name in _HIDDEN_PROVIDERS:
+                continue
             if not enabledCheck(module_name):
                 continue
             try:
@@ -97,6 +100,8 @@ def sources(specified_folders=None):
 
 
 def enabledCheck(module_name):
+    if module_name in _HIDDEN_PROVIDERS:
+        return False
     if __addon__ is not None:
         if __addon__.getSetting('provider.' + module_name) == 'false' or __addon__.getSetting('provider.' + module_name + '.check') == 'false':
             return False

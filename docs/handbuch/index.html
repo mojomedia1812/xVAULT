@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.08.20.2.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.08.29.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.08.20.2.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.08.29.1.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -407,7 +407,7 @@
       <p>In der Staffelliste zeigt xVAULT neben normalen Staffeln auch erkannte Specials. In der Episodenliste werden Playcount, Fortsetzen-Status und die Option für die erste ungesehene Folge berücksichtigt, damit lange Serien übersichtlich bleiben.</p>
       <h3>Specials und Staffel 0</h3>
       <p>Wenn TMDB zu einer Serie Inhalte in Staffel 0 liefert, zeigt xVAULT diese Specials oder Pilotfilme als eigenen Eintrag in der Staffelliste an. In der Episodenliste erscheinen sie lesbar als <strong>Special 01</strong>, <strong>Special 02</strong> und so weiter.</p>
-      <p>Staffel-0-Folgen bleiben beim Abspielen echte Serienfolgen. Dadurch werden sie nicht versehentlich als Filme an die Quellen-Scraper übergeben und Anbieter wie SerienStream, BS.to und Vixstream können Sonderfolgen gezielt behandeln.</p>
+      <p>Staffel-0-Folgen bleiben beim Abspielen echte Serienfolgen. Dadurch werden sie nicht versehentlich als Filme an die Quellen-Scraper übergeben und Anbieter wie SerienStream und Vixstream können Sonderfolgen gezielt behandeln.</p>
       <h3>Personensuche</h3>
       <p>Die Personensuche ist für Darsteller, Regie und ähnliche Metadaten gedacht. Je nach Datenlage führt sie zu zugeordneten Titeln oder weiterführenden Übersichten.</p>
       <h3>Collections</h3>
@@ -470,7 +470,6 @@
         <li>Movie2k2</li>
         <li>Movie4k</li>
         <li>Netzkino</li>
-        <li>BS.to</li>
         <li>SerienStream</li>
         <li>AniWorld</li>
         <li>StreamCloud</li>
@@ -490,7 +489,7 @@
         </thead>
         <tbody>
           <tr><td>Indexseiten 1 (DE)</td><td>Einschalten, Filmpalast, Filmo, Filmpro, HDFilme, FHDFilme, Huhu, KinoGer, KinoKiste, Kinox und KKiste.</td></tr>
-          <tr><td>Indexseiten 2 (DE)</td><td>Megakino, Movie2k, Movie2k2, Movie4k, Netzkino, BS.to, SerienStream, AniWorld, StreamCloud, TopStreamFilm und VixStream.</td></tr>
+          <tr><td>Indexseiten 2 (DE)</td><td>Megakino, Movie2k, Movie2k2, Movie4k, Netzkino, SerienStream, AniWorld, StreamCloud, TopStreamFilm und VixStream.</td></tr>
           <tr><td>Indexseiten 3 (DE)</td><td>CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM.</td></tr>
         </tbody>
       </table>
@@ -500,9 +499,6 @@
       <p>Filmo wird zusätzlich zu den Collections auch als normale Filmquelle genutzt. Bei der Quellensuche liest xVAULT die Filmo-Suche, öffnet passende Filmseiten, übernimmt Deutsch- und Englisch-Providerchips und löst sie vor der Quellenanzeige über den Filmo-Mint-Endpunkt in echte Hoster-Weiterleitungen auf. Andere Sprachvarianten werden nicht als eigene xVAULT-Sprache geführt.</p>
       <h3>Movie4k</h3>
       <p>Movie4k nutzt die aktuelle API-Struktur der erreichbaren Domain. Alte gespeicherte Movie4k-Domainwerte werden beim Providercheck auf die funktionierende Domain migriert, damit die Indexseite nicht durch veraltete Einstellungen als nicht erreichbar markiert wird.</p>
-      <h3>BS.to</h3>
-      <p>BS.to ist als optionaler Serien-Scraper eingebunden. Der Anbieter kann Serien, Staffeln, Episoden, Sprachvarianten und Hoster liefern. Erkannte Sprachen wie Deutsch, Englisch und deutsch untertitelte Varianten werden an die zentrale Sprachsteuerung weitergegeben.</p>
-      <p>Der BS.to-Login in den Konten-Einstellungen ist freiwillig. Ohne Zugangsdaten sucht xVAULT weiter nach Quellen, die ohne Anmeldung und ohne CAPTCHA erreichbar sind. Quellen, die eine CAPTCHA-Prüfung benötigen, werden nicht angezeigt und nicht automatisiert umgangen.</p>
       <h3>AniWorld</h3>
       <p>AniWorld.to ist als optionaler Serienanbieter eingebunden. Der Anbieter kann über die Indexseiten aktiviert oder deaktiviert werden und nutzt die Serien-/Episodenlogik von xVAULT mit Titelabgleich, Staffel-/Episodenpfaden und Sprachkennzeichnung.</p>
       <p>Zugangsdaten können im Kontenbereich hinterlegt werden, sind aber nicht zwingend erforderlich. Ohne Zugangsdaten sucht xVAULT nach erreichbaren Quellen, die ohne Anmeldung nutzbar sind.</p>
@@ -512,6 +508,7 @@
       <p>Bei Sonderfolgen reicht xVAULT Episodentitel, Erstausstrahlung und Staffel-0-Informationen an die Quellen-Scraper weiter. Das hilft, Specials zu finden, wenn Anbieter sie nicht als normale Staffel-Episode führen oder wenn ein Titelvergleich nötig ist.</p>
       <h3>SerienStream-Domain</h3>
       <p>SerienStream wird über <strong>serienstream.to</strong> angesprochen. Alte lokal gespeicherte Domainwerte werden beim Providercheck und beim Scraperstart automatisch auf diese Domain migriert.</p>
+      <p>SerienStream.to benötigt in xVAULT keine Zugangsdaten mehr. Die Quellensuche läuft direkt ohne vorherige Loginprüfung, damit fehlende oder veraltete Zugangsdaten die Suche nicht blockieren.</p>
       <p>Für ältere Profile bedeutet das: gespeicherte Werte wie die frühere Kurzdomain werden nicht weiterverwendet, sondern auf <strong>serienstream.to</strong> zurückgeführt. Netzwerkseitig nutzt xVAULT zuerst Cloudflare DNS over HTTPS. Nur wenn diese Auflösung keine nutzbare Verbindung liefert, kann für SerienStream die bekannte feste IP als Rückfall verwendet werden.</p>
       <h3>Folgenerkennung bei abweichenden Staffeln</h3>
       <p>Einige Anbieter teilen Serien anders als TMDB, zum Beispiel in Parts statt in Staffeln. Wenn SerienStream eine Folge unter der direkten SxxExx-Nummer nicht findet oder der Titel der gefundenen Anbieterfolge nicht passt, prüft xVAULT die verfügbaren Anbieter-Staffeln anhand von Episodentitel und Erstausstrahlung und übernimmt nur einen bestätigten Treffer. Der Episodentitel hat Vorrang; ein Datum wird nur als Rückfall genutzt, wenn es genau einen passenden Kandidaten gibt.</p>
@@ -764,7 +761,7 @@
       </div>
       <div class="setting-group">
         <h3>Indexseiten</h3>
-        <p>Hier werden einzelne Anbieter für Filme und Serien aktiviert oder deaktiviert. Die Bereiche heißen <strong>Indexseiten 1 (DE)</strong>, <strong>Indexseiten 2 (DE)</strong> und <strong>Indexseiten 3 (DE)</strong>. Weniger aktivierte Indexseiten können schneller sein, mehr aktivierte Indexseiten erhöhen die Chance auf Treffer. BS.to und AniWorld besitzen zusätzlich optionale Zugangsdaten im Kontenbereich; CAPTCHA-pflichtige Quellen werden ausgeblendet.</p>
+        <p>Hier werden einzelne Anbieter für Filme und Serien aktiviert oder deaktiviert. Die Bereiche heißen <strong>Indexseiten 1 (DE)</strong>, <strong>Indexseiten 2 (DE)</strong> und <strong>Indexseiten 3 (DE)</strong>. Weniger aktivierte Indexseiten können schneller sein, mehr aktivierte Indexseiten erhöhen die Chance auf Treffer. AniWorld besitzt zusätzlich optionale Zugangsdaten im Kontenbereich; CAPTCHA-pflichtige Quellen werden ausgeblendet.</p>
         <p>Die versteckten Domain- und Check-Felder zeigen Providerstatus an oder speichern intern erkannte Domains. Sie sind nicht als normale Bedienfelder gedacht.</p>
       </div>
       <div class="setting-group">
@@ -797,7 +794,7 @@
       <div class="setting-group">
         <h3>Konten</h3>
         <p>Der Kontenbereich enthält xVAULT-Synchronisation, optionale Anbieterzugänge, optionale API-Schlüssel für Metadaten und Aktionen für Anmeldung, Registrierung, Kennwort-Wiederherstellung, manuelle Synchronisation, Server-Backup, Statusanzeige, Datenschutz-Hinweis und Abmeldung.</p>
-        <p>Zusätzlich liegen hier optionale Zugangsdaten für BS.to, SerienStream.to, FlimmerStube.com, Aniworld.io, OpenSubtitles sowie Einstellungen für TMDB, FANART.TV und Trakt. Nicht jede Quelle benötigt zwingend Zugangsdaten; BS.to und SerienStream können je nach Anbieterzustand aber davon profitieren.</p>
+        <p>Zusätzlich liegen hier optionale Zugangsdaten für FlimmerStube.com, Aniworld.io, OpenSubtitles sowie Einstellungen für TMDB, FANART.TV und Trakt. SerienStream.to arbeitet ohne Zugangsdatenpflicht.</p>
       </div>
       <div class="setting-group">
         <h3>Downloads / Untertitel</h3>
@@ -893,7 +890,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.08.20.2</span>
+      <span>Handbuch zu xVAULT 2026.08.29.1</span>
     </footer>
   </main>
 </body>

@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [2026.08.29.1] - 2026-08-29
+
+- BS.to wird im Indexseiten-Menü ausgeblendet und vom Scraper-Lader nicht mehr aktiviert.
+- SerienStream.to arbeitet ohne Zugangsdatenpflicht; fehlende Login-Daten brechen die Quellensuche nicht mehr ab.
+- Die SerienStream.to-Zugangsdateneingabe wurde aus den Anbieter-Logins ausgeblendet.
+
+## [2026.08.20.2] - 2026-08-20
+
+- TV-Seriensuche robuster gemacht: direkte TMDB-Suchergebnisse werden nicht mehr verworfen, nur weil die deutsche Inhaltsbeschreibung leer ist.
+- TMDB-Beschreibungen nutzen nun eine sinnvolle Fallback-Reihenfolge: deutsche Beschreibung, englische Beschreibung, originale TMDB-Übersicht.
+
 ## [2026.08.20.1] - 2026-08-20
 
 - ResolveURL-Kompatibilität erweitert: xVAULT erkennt zusätzliche VOE-, Streamix-, Playmate- und FireStream-Ausweichdomains und kann sie lokal über vorhandene Resolver-Mechaniken vorbereiten, wenn die installierte ResolveURL-Version diese Domains noch nicht kennt.

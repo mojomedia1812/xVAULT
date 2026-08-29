@@ -123,9 +123,11 @@
         <setting id="provider.netzkino.check" label="Netzkino Check" type="bool" default="true" visible="false" />
 
         <setting type="lsep" label="Nur Serien" />
+        <!--
         <setting id="provider.bsto" type="bool" label="BS.to" default="true" />
         <setting id="provider.bsto.domain" label="[B][COLOR red]BS.to: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.bsto.check" label="BS.to Check" type="bool" default="true" visible="false" />
+        -->
         <setting id="provider.serienstream" type="bool" label="SerienStream.to" default="true" />
         <setting id="provider.serienstream.domain" label="[B][COLOR red]SerienStream.to: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.serienstream.check" label="SerienStream.to Check" type="bool" default="true" visible="false" />
@@ -181,16 +183,20 @@
     </category>
 
     <category label="Anbieter-Logins">
+        <!--
         <setting type="lsep" label="BS.to" />
         <setting label="BS.to-Zugangsdaten eingeben / ändern" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLogin&amp;provider=bsto)" />
         <setting label="BS.to-Zugangsdaten löschen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLoginClear&amp;provider=bsto)" />
         <setting id="bsto.user" type="text" label="Benutzername" default="" visible="false" />
         <setting id="bsto.pass" type="text" option="hidden" label="Passwort" default="" visible="false" />
+        -->
+        <!--
         <setting type="lsep" label="SerienStream.to" />
         <setting label="SerienStream.to-Zugangsdaten eingeben / ändern" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLogin&amp;provider=serienstream)" />
         <setting label="SerienStream.to-Zugangsdaten löschen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLoginClear&amp;provider=serienstream)" />
         <setting id="serienstream.user" type="text" label="E-Mail" default="" visible="false" />
         <setting id="serienstream.pass" type="text" option="hidden" label="Passwort" default="" visible="false" />
+        -->
         <setting type="lsep" label="FlimmerStube.com" />
         <setting label="FlimmerStube.com-Zugangsdaten eingeben / ändern" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLogin&amp;provider=flimmerstube)" />
         <setting label="FlimmerStube.com-Zugangsdaten löschen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=providerLoginClear&amp;provider=flimmerstube)" />

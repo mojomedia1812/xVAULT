@@ -11,18 +11,6 @@ STORE_FILE = 'provider_logins.json'
 
 
 PROVIDERS = {
-    'bsto': {
-        'name': 'BS.to',
-        'user_setting': 'bsto.user',
-        'pass_setting': 'bsto.pass',
-        'user_label': 'Benutzername',
-    },
-    'serienstream': {
-        'name': 'SerienStream.to',
-        'user_setting': 'serienstream.user',
-        'pass_setting': 'serienstream.pass',
-        'user_label': 'E-Mail',
-    },
     'flimmerstube': {
         'name': 'FlimmerStube.com',
         'user_setting': 'flimmerstube.user',

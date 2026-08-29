@@ -1,3 +1,10 @@
+xVAULT 2026.08.29.1
+Entwickler: mojomedia1812
+
+- BS.to wird im Indexseiten-Menü ausgeblendet und vom Scraper-Lader nicht mehr aktiviert.
+- SerienStream.to arbeitet ohne Zugangsdatenpflicht; fehlende Login-Daten brechen die Quellensuche nicht mehr ab.
+- Die SerienStream.to-Zugangsdateneingabe wurde aus den Anbieter-Logins ausgeblendet.
+
 xVAULT 2026.08.20.2
 Entwickler: mojomedia1812
 
