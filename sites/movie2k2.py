@@ -54,7 +54,7 @@ class source:
                         if sStreamUrl.startswith('//'): sStreamUrl = 'https:' + sStreamUrl
                         elif sStreamUrl.startswith('/'): sStreamUrl = self.base_link + sStreamUrl
                         
-                        isBlocked, hoster, sFinalUrl, prioHoster = isBlockedHoster(sStreamUrl)
+                        isBlocked, hoster, sFinalUrl, prioHoster = isBlockedHoster(sStreamUrl, isResolve=False)
                         if isBlocked: continue
 
                         sources.append({

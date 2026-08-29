@@ -637,9 +637,8 @@ class player(xbmc.Player):
 
 class subtitles:
     def __init__(self, *args, **kwargs):
-        from xbmcaddon import Addon
         __scriptname__ = "XBMC Subtitles Login"
-        __version__ = Addon().getAddonInfo('version')  # Module version
+        __version__ = control.addonVersion  # Module version
         BASE_URL_XMLRPC = u"http://api.opensubtitles.org/xml-rpc"
 
         self.server = _xmlrpclib.ServerProxy(BASE_URL_XMLRPC, verbose=0)

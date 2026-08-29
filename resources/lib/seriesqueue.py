@@ -58,4 +58,4 @@ def start(params):
         )
         control.playlist.add(url, item)
 
-    control.player.play(control.playlist)
+    control.player.play(control.playlistObject())

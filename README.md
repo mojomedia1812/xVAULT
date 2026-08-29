@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.08.29.1`
+Aktueller Stand: `2026.08.29.5`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.08.29.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.08.29.5.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -39,6 +39,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Serien zeigen vorhandene Specials aus TMDB-Staffel 0 als eigenen Staffel-Eintrag an; Sonderfolgen bleiben beim Abspielen echte Serienfolgen.
 - SerienStream verwendet `serienstream.to`; alte gespeicherte Domainwerte werden automatisch auf diese Domain migriert.
 - SerienStream.to arbeitet ohne Zugangsdatenpflicht; die Quellensuche läuft auch ohne hinterlegte Login-Daten.
+- SerienStream und AniWorld gleichen Serien- und Episodentreffer über Titel, Slugs, Jahr, Kapitelnummern und deutsche/englische Episodentitel robuster ab; Untertitelvarianten werden nicht mehr als Tonspur-Sprache gewertet.
 - SerienStream prüft bei abweichender Anbieter-Staffelzählung Episodentitel und Erstausstrahlung, damit Folgen auch dann gefunden werden, wenn TMDB/xVAULT und Anbieter die Staffeln unterschiedlich schneiden; gleiche Veröffentlichungsdaten mehrerer Folgen werden dabei nicht mehr als eindeutiger Treffer behandelt.
 - Serienwiedergaben starten auch dann stabil, wenn Metadaten aus Favoriten, alten Listen oder Android/Kodi-Varianten nur `imdb_id` statt `imdbnumber` liefern; Startfehler werden im Kodi-Log klarer protokolliert.
 - VOE-Quellen können direkt in xVAULT aufgelöst werden, wenn die installierte ResolveURL-Version die aktuelle VOE-Ausweichdomain noch nicht kennt.
@@ -51,14 +52,20 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Gefundene Quellenlisten für Filme und Serien werden im Kodi-Profil zwischengespeichert. Beim erneuten Quellenwechsel für denselben Titel kann xVAULT die Liste wiederverwenden, während Hoster-Links weiterhin frisch aufgelöst und getestet werden.
 - Serien merken sich erfolgreiche Anbieter für spätere Folgen derselben Serie, damit passende Indexseiten schneller nach vorne rücken, ohne andere aktive Anbieter dauerhaft auszuschließen.
 - Fehlerhafte oder hängende Indexseiten werden nur kurzzeitig übersprungen, damit ein einzelner Timeout die Suche nicht bei jedem Start erneut ausbremst.
+- Fehlerhafte oder hängende Hoster-Auflösungen werden ebenfalls kurzzeitig pro Provider-/Hoster-Kombination übersprungen, damit ein erneuter Quellenwechsel nicht sofort wieder an derselben problematischen Quelle startet.
 - Die parallele Quellensuche passt die Thread-Anzahl an die Plattform an und bereitet bei Autoplay mehrere aussichtsreiche Quellen parallel vor, behält aber die bisherige Sortier- und Auswahlreihenfolge bei.
 - Streamquellen für Filme und Serien können nach bevorzugter Sprache sortiert oder gefiltert werden; mehrere Scraper liefern Deutsch/Englisch-Varianten sauber an die Quellenliste, und Autoplay wird bei Sprache `Alle` automatisch in Dialog oder Verzeichnis umgestellt.
 - Die Standard-Aktion `Dialog`, `Verzeichnis` oder `Autoplay` wird beim Start von Filmen und Folgen frisch aus Kodis aktuellem Add-on-Setting gelesen; die Profil-Datei dient als Rückfall. Alte Favoriten oder externe Aufrufe frieren die Auswahl nicht mehr auf einen früheren Wert ein.
 - Die Standard-Aktion wird über einen xVAULT-eigenen Auswahl-Dialog gespeichert und migriert alte `hosts.mode.v2`-/`hosts.mode`-/`default.action`-Werte automatisch, damit Kodi-Defaultwerte die Auswahl nicht mehr auf Autoplay zurücksetzen.
 - xVAULT schreibt Kodi-Settings nur, wenn sich der Zielwert wirklich geändert hat; identische Werte werden übersprungen, um die Profil-Settings zu schonen.
-- Filmpalast liest die aktuelle Such- und Quellenstruktur, schützt bereits korrekt kodierte Suchpfade vor Doppel-Kodierung und übernimmt erkannte Hoster erst ohne vorzeitige ResolveURL-Filterung in die Quellenliste.
-- Filmo ist als aktivierbare Filmquelle in die normale Quellensuche eingebunden; xVAULT liest Filmo-Suche und Filmseiten, löst Providerchips über den Filmo-Mint-Endpunkt auf und übernimmt Deutsch-/Englisch-Hoster in die Quellenliste.
-- Scraper erhalten die aktuelle ResolveURL-Hosterliste, damit Quellen von FHDFilme, HDfilme, Megakino, StreamCloud, TopStreamFilm und ähnlichen Anbietern nicht mehr vorzeitig ausgefiltert werden.
+- Filmpalast liest die aktuelle Such- und Quellenstruktur, schützt bereits korrekt kodierte Suchpfade vor Doppel-Kodierung, durchsucht mehrere Trefferseiten und übernimmt erkannte Hoster erst ohne vorzeitige ResolveURL-Filterung in die Quellenliste.
+- Filmo ist als aktivierbare Filmquelle in die normale Quellensuche eingebunden; xVAULT liest Filmo-Suche und Filmseiten, löst Providerchips mit CSRF-Token, Session-Cookies und Redirect-Auswertung über den Filmo-Mint-Endpunkt auf und übernimmt Deutsch-/Englisch-Hoster in die Quellenliste.
+- AnimeToast ist als eigener Serien-Scraper eingebunden. xVAULT nutzt dort nur konkrete Episoden aus der Ajax-Playerlogik oder eindeutige Einzel-Episodenlinks; reine Staffelbereichs-Container werden nicht als einzelne Folge übernommen.
+- Internet Archive ist als optionale Filmquelle vorhanden. Die Suche ist bewusst streng auf passende Titel-/Jahr-Treffer und echte Videodateien begrenzt, damit Archiv-, Bonus- oder Trailer-Treffer die normale Quellenliste nicht verfälschen.
+- Quellenlisten behalten die vom Scraper gelieferte Reihenfolge, werden nach Qualitäts-/Sprachlogik stabil dedupliziert und berücksichtigen manuelle Hoster-Ausschlüsse erst danach.
+- Kodi-Wrapper für Add-on, Fenster, Dialoge, Player, Playlists und Fortschrittsdialoge werden kontrolliert erzeugt und beim Add-on-Ende freigegeben, damit Kodi nach xVAULT-Aufrufen keine unnötigen CPythonInvoker-Cleanup-Warnungen protokolliert.
+- Scraper erhalten die ResolveURL-Hosterliste aus den installierten ResolveURL-Plugin-Dateien, damit Quellen von FHDFilme, HDfilme, Megakino, StreamCloud, TopStreamFilm und ähnlichen Anbietern nicht mehr vorzeitig ausgefiltert werden; die eigentliche ResolveURL-Auflösung wird erst beim Start einer Quelle geladen und danach wieder aus dem xVAULT-Invoker gelöst.
+- Settings-Lesezugriffe nutzen Profil- und Default-XML mit Cache, damit aktuelle Kodi-Einstellungen sofort greifen und keine unnötigen Add-on-Wrapper entstehen.
 - Die Standard-Aktion `Verzeichnis` liefert Quellenlisten auch aus Favoriten, RPC- und externen Aufrufen wieder als Kodi-Verzeichnis, statt ungewollt in den Dialog zurückzufallen.
 - VIXSTREAM-Playlist-Streams ohne `.m3u8`-Endung werden als HLS erkannt und behalten die benötigten Vixcloud-Header beim Kodi-Start im Abspielpfad, damit Manifest, Segmente und AES-Schlüssel erreichbar bleiben.
 - VIXSTREAM prüft die tatsächlichen HLS-Audiospuren und zeigt eine Quelle nur als Deutsch oder Englisch an, wenn die angeforderte Sprache als Tonspur vorhanden ist; Untertitel zählen nicht als Streamsprache.
@@ -80,6 +87,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Favoriten werden revisionsbasiert als einzelne Einträge mit Löschmarken synchronisiert; Geräte übertragen nur neue, geänderte oder gelöschte Favoriten, statt bei jedem Abgleich den kompletten Favoritenbestand zu senden.
 - Die Synchronisation gleicht gespeicherte Login-Daten automatisch ab, damit Server-Backups auch nach einem veralteten lokalen API-Key wiederhergestellt werden können.
 - `Jetzt synchronisieren` bereinigt doppelte lokale Fortsetzen-Einträge und bricht dadurch nicht mehr mit einem PluginError ab, wenn alte Bookmark-Daten mehrfach vorhanden sind.
+- Sync-Zustandsdateien werden bei kurz gesperrten Profil-Dateien mit Retry und Fallback geschrieben, damit Wiedergabeende und Synchronisation keine unnötigen Datei-Zugriffsfehler erzeugen.
 - Über **Werkzeuge > Support** kann ein redigiertes Diagnosepaket erstellt, nach Bestätigung hochgeladen und über eine kurze Service-ID weitergegeben werden; lokale ZIP-Dateien werden nach dem Upload gelöscht.
 - Beschädigte gespeicherte xVAULT-Einstellungen werden beim Pluginstart erkannt; der Nutzer kann die defekte `settings.xml` sichern und zurücksetzen lassen. Dieselbe Prüfung ist unter **Werkzeuge > Reparatur** sowie in den Einstellungen unter **Wartung & Support** manuell erreichbar.
 - Automatische Updateprüfung kann in den allgemeinen Einstellungen aktiviert oder deaktiviert werden.

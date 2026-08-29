@@ -19,3 +19,4 @@ tools/statistics-dashboard.html
 backups/
 secrets/
 supabase/.temp/
+.tmp-kodi-profile/

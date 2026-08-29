@@ -62,6 +62,7 @@ EXCLUDED_PARTS = {
     "tools",
     ".pytest_cache",
     ".venv",
+    ".tmp-kodi-profile",
 }
 EXCLUDED_FILES = {
     ".gitignore",

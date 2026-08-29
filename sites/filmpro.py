@@ -28,9 +28,9 @@ class source:
             isMatch, aResults = cParser.parse(sHtmlContent, pattern)
             if isMatch:
                 for link, quality in aResults:
-                    isBlocked, hoster, sUrl, prioHoster = isBlockedHoster(link)
+                    isBlocked, hoster, sUrl, prioHoster = isBlockedHoster(link, isResolve=False)
                     if isBlocked: continue
-                    if sUrl: sources.append({'source': hoster, 'quality': quality, 'language': 'de', 'url': sUrl, 'direct': True, 'prioHoster': prioHoster})
+                    if sUrl: sources.append({'source': hoster, 'quality': quality, 'language': 'de', 'url': sUrl, 'direct': False, 'prioHoster': prioHoster})
             return sources
         else:
             try:
@@ -69,9 +69,9 @@ class source:
                 aResults=cParser.parse(dataLinks[0], pattern)[1]
 
                 for link in aResults:
-                    isBlocked, sDomain, sUrl, prioHoster = isBlockedHoster(link)
+                    isBlocked, sDomain, sUrl, prioHoster = isBlockedHoster(link, isResolve=False)
                     if isBlocked: continue
-                    if url: sources.append({'source': sDomain, 'quality': 'HD', 'language': 'de', 'url': sUrl, 'direct': True, 'prioHoster': prioHoster})
+                    if url: sources.append({'source': sDomain, 'quality': 'HD', 'language': 'de', 'url': sUrl, 'direct': False, 'prioHoster': prioHoster})
                 return sources
             except:
                 return sources

@@ -40,12 +40,12 @@
         <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
         <tr><th colspan="4"><hr></th></tr>
         <tr><td>[PARENTDIR]</td><td><a href="../" data-umami-event="Verzeichnisnavigation geöffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">29.Aug.2026 13:37:34</td><td align="right">-</td></tr>
+        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">29.Aug.2026 18:17:45</td><td align="right">-</td></tr>
         <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geöffnet">repository.xvault/</a></td><td align="right">29.Aug.2026 13:26:25</td><td align="right">-</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">29.Aug.2026 13:47:00</td><td align="right">2.57 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">29.Aug.2026 13:47:00</td><td align="right">32.00 B</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">29.Aug.2026 13:47:00</td><td align="right">1.96 MB</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">29.Aug.2026 13:47:00</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">29.Aug.2026 19:48:05</td><td align="right">2.57 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">29.Aug.2026 19:48:05</td><td align="right">32.00 B</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">29.Aug.2026 19:48:05</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">29.Aug.2026 19:48:05</td><td align="right">1.96 MB</td></tr>
         <tr><th colspan="4"><hr></th></tr>
       </tbody>
     </table>
@@ -61,10 +61,10 @@
 
         <div class="release">
           <span>Aktuelle Version</span>
-          <strong>2026.08.29.1</strong>
+          <strong>2026.08.29.5</strong>
         </div>
 
-        <a class="download" href="downloads/plugin.video.xvault-2026.08.29.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
+        <a class="download" href="downloads/plugin.video.xvault-2026.08.29.5.zip" download data-umami-event="Add-on ZIP heruntergeladen">
           Installations-ZIP herunterladen
         </a>
 
@@ -109,51 +109,57 @@
 
     <!-- release-notes:start -->
     <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.08.29.5</p>
+      <h2>Änderungen im Überblick</h2>
+      <ul class="update-list">
+        <li>Kodi-Wrapper für Add-on, Fenster, Dialoge, Player, Playlists und Fortschrittsdialoge werden kontrolliert erzeugt und beim Add-on-Ende freigegeben, damit Kodi nach xVAULT-Aufrufen keine unnötigen CPythonInvoker-Cleanup-Warnungen protokolliert.</li>
+        <li>Die Serienqueue übergibt weiterhin eine echte Kodi-Playlist an den Player, während die übrigen Laufzeitobjekte nicht mehr dauerhaft als Modul-Globals gehalten werden.</li>
+        <li>Scraper erhalten die ResolveURL-Hosterliste aus den installierten ResolveURL-Plugin-Dateien; die eigentliche ResolveURL-Auflösung wird erst beim Start einer Quelle geladen und danach wieder aus dem xVAULT-Invoker gelöst.</li>
+        <li>Settings-Lesezugriffe nutzen Profil- und Default-XML mit Cache, damit aktuelle Kodi-Einstellungen sofort greifen und keine unnötigen Add-on-Wrapper entstehen.</li>
+        <li>Sync-Zustandsdateien werden bei kurz gesperrten Profil-Dateien mit Retry und Fallback geschrieben, damit Wiedergabeende und Synchronisation keine unnötigen Datei-Zugriffsfehler erzeugen.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.08.29.4</p>
+      <h2>Änderungen im Überblick</h2>
+      <ul class="update-list">
+        <li>Filmpalast-Suche robuster gemacht: xVAULT wertet mehrere Suchseiten aus, erkennt Treffer über Titel, Attribute, Bildtexte und URL-Slugs und prüft erkannte Jahresangaben toleranter.</li>
+        <li>Filmo-Quellenauflösung stabilisiert: CSRF-Token, Session-Cookies, direkte Mint-Ziele sowie HTTP-/HTML-Redirects werden innerhalb der xVAULT-Requestlogik verarbeitet.</li>
+        <li>SerienStream und AniWorld gleichen Serien- und Episodentreffer genauer ab; Untertitelvarianten werden nicht mehr als deutsche oder englische Tonspur behandelt und in der Quellenliste nicht mehr als DE/EN gekennzeichnet.</li>
+        <li>Abweichende Serien-Staffelungen werden zuverlässiger abgefangen, indem Episodentitel zusätzlich über Kapitelnummern, deutsche/englische Titelvarianten und robuste Wortvergleiche geprüft werden.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.08.29.3</p>
+      <h2>Änderungen im Überblick</h2>
+      <ul class="update-list">
+        <li>Filmpalast-Suche robuster gemacht: xVAULT wertet mehrere Suchseiten aus, erkennt Treffer über Titel, Attribute, Bildtexte und URL-Slugs und prüft erkannte Jahresangaben toleranter.</li>
+        <li>Filmo-Quellenauflösung stabilisiert: CSRF-Token, Session-Cookies, direkte Mint-Ziele sowie HTTP-/HTML-Redirects werden innerhalb der xVAULT-Requestlogik verarbeitet.</li>
+        <li>SerienStream und AniWorld gleichen Serien- und Episodentreffer genauer ab; Untertitelvarianten werden nicht mehr als deutsche oder englische Tonspur behandelt und in der Quellenliste nicht mehr als DE/EN gekennzeichnet.</li>
+        <li>Abweichende Serien-Staffelungen werden zuverlässiger abgefangen, indem Episodentitel zusätzlich über Kapitelnummern, deutsche/englische Titelvarianten und robuste Wortvergleiche geprüft werden.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.08.29.2</p>
+      <h2>Änderungen im Überblick</h2>
+      <ul class="update-list">
+        <li>Filmpalast-Suche robuster gemacht: xVAULT wertet mehrere Suchseiten aus, erkennt Treffer über Titel, Attribute, Bildtexte und URL-Slugs und prüft erkannte Jahresangaben toleranter.</li>
+        <li>Filmo-Quellenauflösung stabilisiert: CSRF-Token, Session-Cookies, direkte Mint-Ziele sowie HTTP-/HTML-Redirects werden innerhalb der xVAULT-Requestlogik verarbeitet.</li>
+        <li>SerienStream und AniWorld gleichen Serien- und Episodentreffer genauer ab; Untertitelvarianten werden nicht mehr als deutsche oder englische Tonspur behandelt.</li>
+        <li>Abweichende Serien-Staffelungen werden zuverlässiger abgefangen, indem Episodentitel zusätzlich über Kapitelnummern, deutsche/englische Titelvarianten und robuste Wortvergleiche geprüft werden.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
       <p class="section-kicker">Neu in 2026.08.29.1</p>
       <h2>Änderungen im Überblick</h2>
       <ul class="update-list">
         <li>BS.to wird im Indexseiten-Menü ausgeblendet und vom Scraper-Lader nicht mehr aktiviert.</li>
         <li>SerienStream.to arbeitet ohne Zugangsdatenpflicht; fehlende Login-Daten brechen die Quellensuche nicht mehr ab.</li>
         <li>Die SerienStream.to-Zugangsdateneingabe wurde aus den Anbieter-Logins ausgeblendet.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.08.20.2</p>
-      <h2>Änderungen im Überblick</h2>
-      <ul class="update-list">
-        <li>TV-Seriensuche robuster gemacht: direkte TMDB-Suchergebnisse werden nicht mehr verworfen, nur weil die deutsche Inhaltsbeschreibung leer ist.</li>
-        <li>TMDB-Beschreibungen nutzen nun eine sinnvolle Fallback-Reihenfolge: deutsche Beschreibung, englische Beschreibung, originale TMDB-Uebersicht.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.08.20.1</p>
-      <h2>Änderungen im Überblick</h2>
-      <ul class="update-list">
-        <li>ResolveURL-Kompatibilitaet erweitert: xVAULT erkennt zusaetzliche VOE-, Streamix-, Playmate- und FireStream-Ausweichdomains und kann sie lokal ueber vorhandene Resolver-Mechaniken vorbereiten, wenn die installierte ResolveURL-Version diese Domains noch nicht kennt.</li>
-        <li>FireStream-Quellen mit Bindestrich in der Medien-ID werden nicht mehr vorzeitig verworfen.</li>
-        <li>KinoGer-Spezialhosts werden gezielt dem passenden Resolver zugeordnet; kinoger.be wird als FileLions behandelt und bevorzugt echte HLS-Varianten vor problematischen Werbe-Playlists.</li>
-        <li>Der KinoGer-Scraper reicht betroffene Spezialhosts als normale Resolver-Quellen weiter, damit Dialog, Verzeichnis und Autoplay denselben robusteren Aufloesungsweg nutzen.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.08.18.1</p>
-      <h2>Änderungen im Überblick</h2>
-      <ul class="update-list">
-        <li>Streamstart robuster gemacht: xVAULT prueft ausgewaehlte Streams vor dem Playerstart genauer und wechselt bei nicht startenden Quellen automatisch zu passenden Alternativen aus der Quellenliste.</li>
-        <li>Playback-Wartebildschirme werden bei Startfehlern oder haengender Wiedergabe sauber geschlossen, damit Kodi nicht dauerhaft im Ladezustand bleibt.</li>
-        <li>Rueckkehr nach Serien- und Filmwiedergabe auf Android/Fire TV weiter stabilisiert, indem Container-Updates erst nach einem idle Zustand ausgefuehrt werden.</li>
-        <li>SerienStream-/s.to-Anbieterbilder werden nicht mehr als Kodi-Menuegrafiken verwendet; xVAULT nutzt stattdessen TMDB-Bilder oder lokale xVAULT-Grafiken.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.08.17.5</p>
-      <h2>Änderungen im Überblick</h2>
-      <ul class="update-list">
-        <li>Playback-Stabilitaet nach Wiedergabeende verbessert: xVAULT beendet nicht mehr benoetigte Quellen- und Resolver-Worker vor dem Playerstart, damit Kodi nach Film- oder Episodenende nicht auf alte Hintergrundthreads warten muss.</li>
       </ul>
     </section>
     <!-- release-notes:end -->
@@ -220,15 +226,15 @@
     <section class="panel checksum">
       <h2>Dateiprüfung</h2>
       <p>SHA-256</p>
-      <code>1EE2EE3DE771C1819CD25EA94125242FAA6F244D7C1D60920FFA2153A5171966</code>
+      <code>77AFDACFE8D536A8E6BA1A65271A3D5D98C9F2B663B7A5FF74B39F661D68432E</code>
     </section>
 
     <section class="panel archive">
       <h2>Vorherige Versionen</h2>
       <ul class="archive-list">
         <!-- previous-downloads:start -->
-        <li><a href="downloads/plugin.video.xvault-2026.08.20.2.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.08.20.2 herunterladen</a><span>35,9 MB</span></li>
-        <li><a href="downloads/plugin.video.xvault-2026.08.20.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.08.20.1 herunterladen</a><span>33,9 MB</span></li>
+        <li><a href="downloads/plugin.video.xvault-2026.08.29.4.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.08.29.4 herunterladen</a><span>33,9 MB</span></li>
+        <li><a href="downloads/plugin.video.xvault-2026.08.29.3.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.08.29.3 herunterladen</a><span>33,9 MB</span></li>
         <!-- previous-downloads:end -->
       </ul>
     </section>
@@ -236,7 +242,7 @@
     <footer>
       <a href="handbuch/" data-umami-event="Handbuch geöffnet">Handbuch</a>
       <a href="https://github.com/mojomedia1812/xVAULT" data-umami-event="GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Version 2026.08.29.1</span>
+      <span>Version 2026.08.29.5</span>
     </footer>
   </main>
 </body>

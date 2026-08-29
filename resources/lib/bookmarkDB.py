@@ -10,7 +10,8 @@ import time
 import hashlib
 import pickle
 from copy import deepcopy
-import xbmc, xbmcaddon, xbmcvfs
+import xbmc, xbmcvfs
+from resources.lib import control
 
 if sys.version_info.major == 3:
     from collections.abc import MutableMapping
@@ -173,7 +174,7 @@ def _get_storage(filename='storage.pcl'):
     :return: Storage object
     :rtype: Storage
     """
-    _profile_dir = _py2_decode(xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo('profile')))
+    _profile_dir = _py2_decode(control.dataPath)
 
     return _Storage(_profile_dir, filename)
 

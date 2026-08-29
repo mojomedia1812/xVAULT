@@ -218,6 +218,7 @@ class source:
                             if log_utils:
                                 logger.info('SerienStream - Found %d results' % len(links))
 
+                            ranked_matches = []
                             for href, series_title in links:
                                 matched = False
                                 for clean_title in t:
@@ -232,10 +233,14 @@ class source:
                                     matched = _titles_match(t, series_title)
 
                                 if matched:
-                                    aLinks.append({'source': href})
-                                    if log_utils:
-                                        logger.info('SerienStream - Match: %s | title: %s' % (href, series_title))
-                                    break
+                                    ranked_matches.append((self._series_match_score(t, href, series_title, year), href, series_title))
+
+                            if ranked_matches:
+                                ranked_matches.sort(key=lambda item: item[0], reverse=True)
+                                score, href, series_title = ranked_matches[0]
+                                aLinks.append({'source': href})
+                                if log_utils:
+                                    logger.info('SerienStream - Match: %s | title: %s | score: %s' % (href, series_title, score))
 
                         if aLinks:
                             break
@@ -269,11 +274,14 @@ class source:
             ]
 
             all_serie_hrefs = []
+            seen_hrefs = set()
             for pattern in patterns:
                 matches = re.findall(pattern, html, re.IGNORECASE)
-                all_serie_hrefs.extend(matches)
-
-            all_serie_hrefs = list(set(all_serie_hrefs))
+                for href in matches:
+                    if href in seen_hrefs:
+                        continue
+                    seen_hrefs.add(href)
+                    all_serie_hrefs.append(href)
 
             for href in all_serie_hrefs:
                 try:
@@ -315,6 +323,33 @@ class source:
                 logger.info('SerienStream - Parse error: %s' % str(e))
 
         return links
+
+    def _series_match_score(self, search_variants, href, series_title, year=None):
+        title_variants = _all_variants(series_title)
+        slug = href.rstrip('/').split('/')[-1].replace('-', ' ')
+        title_variants.extend(_all_variants(slug))
+
+        score = 0
+        for query_variant in search_variants:
+            for title_variant in title_variants:
+                if not query_variant or not title_variant:
+                    continue
+                if query_variant == title_variant:
+                    score = max(score, 115 if re.search(r'\d', query_variant) else 100)
+                elif len(query_variant) >= 5 and len(title_variant) >= 5 and (query_variant in title_variant or title_variant in query_variant):
+                    score = max(score, 60)
+
+        if year:
+            try:
+                expected = str(int(year))
+                haystack = '%s %s' % (href, series_title)
+                if re.search(r'(?:^|[-\s/])%s(?:$|[-\s/])' % re.escape(expected), haystack):
+                    score += 30
+                elif re.search(r'(?:19|20)\d{2}', haystack):
+                    score -= 25
+            except:
+                pass
+        return score
 
     def run2(self, url, year, season=0, episode=0, hostDict=None, imdb=None):
         try:
@@ -430,7 +465,7 @@ class source:
 
     @staticmethod
     def _parse_stream_link_buttons(html):
-        pattern = r'<[^>]+data-link-id="[^"]+"[^>]*>'
+        pattern = r'<[^>]+data-link-id=["\'][^"\']+["\'][^>]*>'
         return re.findall(pattern, html or '', re.DOTALL | re.IGNORECASE)
 
     def _has_stream_links(self, html):
@@ -616,6 +651,13 @@ class source:
         return ''
 
     def _episode_titles_match(self, requested, candidate):
+        requested_chapter = self._episode_chapter_number(requested)
+        candidate_chapter = self._episode_chapter_number(candidate)
+        if requested_chapter and candidate_chapter and requested_chapter == candidate_chapter:
+            return True
+        if requested_chapter and candidate_chapter:
+            return False
+
         requested_variants = self._episode_title_variants(requested)
         candidate_variants = self._episode_title_variants(candidate)
 
@@ -629,6 +671,14 @@ class source:
             for cand in candidate_variants:
                 if len(req) >= 6 and len(cand) >= 6 and (req in cand or cand in req):
                     return True
+
+        requested_tokens = self._episode_title_tokens(requested)
+        candidate_tokens = self._episode_title_tokens(candidate)
+        if requested_tokens and candidate_tokens:
+            overlap = requested_tokens.intersection(candidate_tokens)
+            shortest = float(min(len(requested_tokens), len(candidate_tokens)) or 1)
+            if len(overlap) >= 2 and (len(overlap) / shortest) >= 0.45:
+                return True
         return False
 
     @staticmethod
@@ -666,6 +716,67 @@ class source:
                 variants.append(ascii_part)
 
         return list(set([variant for variant in variants if variant]))
+
+    @staticmethod
+    def _episode_chapter_number(title):
+        if not title:
+            return 0
+
+        value = source._normalise_episode_text(title)
+        numbers = {
+            'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+            'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15, 'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19,
+            'twenty': 20, 'twenty one': 21, 'twenty two': 22, 'twenty three': 23, 'twenty four': 24, 'twenty five': 25, 'twenty six': 26, 'twenty seven': 27, 'twenty eight': 28, 'twenty nine': 29,
+            'thirty': 30, 'thirty one': 31, 'thirty two': 32, 'thirty three': 33, 'thirty four': 34, 'thirty five': 35, 'thirty six': 36,
+            'eins': 1, 'ein': 1, 'zwei': 2, 'drei': 3, 'vier': 4, 'fuenf': 5, 'funf': 5, 'sechs': 6, 'sieben': 7, 'acht': 8, 'neun': 9, 'zehn': 10,
+            'elf': 11, 'zwoelf': 12, 'zwolf': 12, 'dreizehn': 13, 'vierzehn': 14, 'fuenfzehn': 15, 'funfzehn': 15, 'sechzehn': 16, 'siebzehn': 17, 'achtzehn': 18, 'neunzehn': 19,
+            'zwanzig': 20, 'einundzwanzig': 21, 'zweiundzwanzig': 22, 'dreiundzwanzig': 23, 'vierundzwanzig': 24, 'fuenfundzwanzig': 25, 'funfundzwanzig': 25,
+            'sechsundzwanzig': 26, 'siebenundzwanzig': 27, 'achtundzwanzig': 28, 'neunundzwanzig': 29,
+            'dreissig': 30, 'dreisig': 30, 'einunddreissig': 31, 'zweiunddreissig': 32, 'dreiunddreissig': 33, 'vierunddreissig': 34, 'fuenfunddreissig': 35, 'funfunddreissig': 35, 'sechsunddreissig': 36,
+        }
+
+        for marker in ('chapter', 'kapitel'):
+            match = re.search(r'\b%s\s+([^:()]+)' % marker, value)
+            if not match:
+                continue
+            chunk = re.sub(r'[^a-z0-9]+', ' ', match.group(1)).strip()
+            if chunk.isdigit():
+                return int(chunk)
+            for text, number in sorted(numbers.items(), key=lambda item: len(item[0]), reverse=True):
+                if re.search(r'\b%s\b' % re.escape(text), chunk) or text.replace(' ', '') in chunk.replace(' ', ''):
+                    return number
+        return 0
+
+    @staticmethod
+    def _episode_title_tokens(title):
+        value = source._normalise_episode_text(title)
+        value = re.sub(r'\b(?:chapter|kapitel|episode|folge)\b', ' ', value)
+        stopwords = set([
+            'the', 'a', 'an', 'of', 'and', 'to', 'in', 'on',
+            'der', 'die', 'das', 'den', 'dem', 'des', 'und', 'ein', 'eine', 'einer', 'eines', 'zur', 'zum',
+        ])
+        tokens = set()
+        for token in re.findall(r'[a-z0-9]+', value):
+            if len(token) < 3 or token in stopwords:
+                continue
+            tokens.add(token)
+            if token.endswith('s') and len(token) > 4:
+                tokens.add(token[:-1])
+        return tokens
+
+    @staticmethod
+    def _normalise_episode_text(title):
+        value = html_unescape(title or '').lower()
+        value = value.replace(u'\u2018', "'").replace(u'\u2019', "'").replace(u'\u201c', '"').replace(u'\u201d', '"')
+        replacements = [
+            (u'\xe4', 'ae'), (u'\xf6', 'oe'), (u'\xfc', 'ue'),
+            (u'\xc4', 'ae'), (u'\xd6', 'oe'), (u'\xdc', 'ue'),
+            (u'\xdf', 'ss'), (u'\xe9', 'e'), (u'\xe8', 'e'),
+            (u'\u2013', '-'), (u'\u2014', '-'),
+        ]
+        for old, new in replacements:
+            value = value.replace(old, new)
+        return value
 
     @staticmethod
     def _extract_publish_date(html):
@@ -727,19 +838,19 @@ class source:
 
     @staticmethod
     def _attr(html, name):
-        match = re.search(r'%s="([^"]*)"' % re.escape(name), html, re.IGNORECASE)
-        return html_unescape(match.group(1)).strip() if match else ''
+        match = re.search(r'\b%s=(["\'])(.*?)\1' % re.escape(name), html or '', re.IGNORECASE | re.DOTALL)
+        return html_unescape(match.group(2)).strip() if match else ''
 
     @staticmethod
     def _language_from_id(language_id, label=''):
         language_label = (label or '').strip()
         normalized_label = language_label.lower()
+        if 'sub' in normalized_label or language_id == '3':
+            return 'unknown', language_label or 'Ger-Sub'
         if language_id == '1' or 'deutsch' in normalized_label:
             return 'de', language_label or 'Deutsch'
         if language_id == '2' or 'englisch' in normalized_label or 'english' in normalized_label:
             return 'en', language_label or 'Englisch'
-        if language_id == '3' or 'ger-sub' in normalized_label or 'sub' in normalized_label:
-            return 'en', language_label or 'Ger-Sub'
         return '', language_label
 
     def _is_serienstream_url(self, url):
@@ -778,23 +889,40 @@ class source:
 
     def _resolve_http_redirect(self, url, referer):
         try:
-            import requests
-            requests.packages.urllib3.disable_warnings()
-
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'Referer': referer,
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-            }
-            response = requests.get(url, headers=headers, allow_redirects=False, verify=False, timeout=10)
-            if response.status_code in (301, 302, 303, 307, 308):
-                target = self._external_redirect_target(response.url, response.headers.get('Location'))
+            request = cRequestHandler(url, caching=False, ignoreErrors=True, preserve_url=True, follow_redirects=False)
+            request.addHeaderEntry('User-Agent', 'Mozilla/5.0')
+            request.addHeaderEntry('Referer', referer)
+            request.addHeaderEntry('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
+            request.request()
+            status = int(str(request.getStatus() or '0'))
+            if status in (301, 302, 303, 307, 308):
+                headers = request.getResponseHeader()
+                try:
+                    location = headers.get('Location') or headers.get('location')
+                except:
+                    location = ''
+                target = self._external_redirect_target(url, location)
                 if target:
                     if log_utils:
                         logger.info('SerienStream - Resolved redirect location: %s' % target[:80])
                     return target
         except:
             pass
+        return None
+
+    def _resolve_html_redirect(self, html, base_url):
+        patterns = [
+            r'(?is)<meta[^>]+http-equiv=["\']refresh["\'][^>]+content=["\'][^"\']*url=([^"\']+)',
+            r'(?is)window\.location(?:\.href)?\s*=\s*["\']([^"\']+)',
+            r'(?is)location\.replace\(\s*["\']([^"\']+)',
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, html or '')
+            if not match:
+                continue
+            target = self._external_redirect_target(base_url, match.group(1))
+            if target:
+                return target
         return None
 
     def resolve(self, url):
@@ -821,36 +949,15 @@ class source:
                     if log_utils:
                         logger.info('SerienStream - Resolved via cRequestHandler: %s' % final_url[:80])
                     return final_url
+                html_redirect = self._resolve_html_redirect(response_html, url)
+                if html_redirect:
+                    if log_utils:
+                        logger.info('SerienStream - Resolved via HTML redirect: %s' % html_redirect[:80])
+                    return html_redirect
                 if self._is_frame_bridge(response_html):
                     bridge_seen = True
             except:
                 pass
-
-            if getSetting('bypassDNSlock', 'false') != 'true':
-                try:
-                    import requests
-                    requests.packages.urllib3.disable_warnings()
-
-                    session = requests.Session()
-                    session.headers.update({
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                        'Referer': referer,
-                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-                    })
-
-                    response = session.get(url, allow_redirects=True, verify=False, timeout=10)
-                    final_url = response.url
-
-                    if log_utils:
-                        logger.info('SerienStream - Resolved to: %s' % final_url[:80])
-
-                    if final_url and final_url != url and len(final_url) > 20:
-                        return final_url
-                    if self._is_frame_bridge(response.text):
-                        bridge_seen = True
-
-                except:
-                    pass
 
             if bridge_seen:
                 if log_utils:

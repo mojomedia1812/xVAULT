@@ -5,10 +5,9 @@ import pkgutil
 from resources.lib import log_utils
 
 try:
-    import xbmcaddon
-    __addon__ = xbmcaddon.Addon()
+    from resources.lib import control
 except Exception:
-    __addon__ = None
+    control = None
 
 debug = True
 
@@ -90,8 +89,8 @@ def sources(specified_folders=None):
                 module = _load_module(loader, module_name)
                 sourceDict.append((module_name, module.source()))
             except Exception as e:
-                if __addon__ is not None:
-                    __addon__.setSetting('provider.' + module_name, 'false')
+                if control is not None:
+                    control.setSetting('provider.' + module_name, 'false')
                 if debug:
                     log_utils.log('Error: Loading module: "%s": %s' % (module_name, e), log_utils.LOGERROR)
         return sourceDict
@@ -102,8 +101,8 @@ def sources(specified_folders=None):
 def enabledCheck(module_name):
     if module_name in _HIDDEN_PROVIDERS:
         return False
-    if __addon__ is not None:
-        if __addon__.getSetting('provider.' + module_name) == 'false' or __addon__.getSetting('provider.' + module_name + '.check') == 'false':
+    if control is not None:
+        if control.getSetting('provider.' + module_name) == 'false' or control.getSetting('provider.' + module_name + '.check') == 'false':
             return False
     return True
 

@@ -3,7 +3,7 @@
 import json
 import re
 from html import unescape
-from urllib.parse import quote_plus, urljoin
+from urllib.parse import quote_plus, urljoin, urlparse
 
 from resources.lib.control import getSetting
 from resources.lib.requestHandler import cRequestHandler
@@ -28,6 +28,7 @@ class source:
         self.suggest_link = self.base_link + '/search/suggest?q=%s'
         self.sources = []
         self._seen = set()
+        self._last_response_header = None
 
     def run(self, titles, year, season=0, episode=0, imdb='', hostDict=None):
         if int(season or 0) > 0:
@@ -103,7 +104,9 @@ class source:
             seen.add(url)
             body = match.group(2)
             title = (
-                self._class_text(body, 'popular-spotlight-card__title')
+                self._attr_text(match.group(0), 'title')
+                or self._attr_text(match.group(0), 'aria-label')
+                or self._class_text(body, 'popular-spotlight-card__title')
                 or self._class_text(body, 'movie-poster-grid-card__title')
                 or self._attr_text(body, 'alt')
             )
@@ -190,19 +193,35 @@ class source:
             )
             if status not in ('200', '301'):
                 return ''
-            token = (json.loads(payload or '{}') or {}).get('x')
+            response = json.loads(payload or '{}') or {}
+            direct_url = self._external_url(
+                response.get('url') or response.get('href') or response.get('location') or response.get('redirect')
+            )
+            if direct_url:
+                return direct_url
+
+            token = response.get('x') or response.get('token')
             if not token:
                 return ''
             mint_url = open_mint.rstrip('/') + '/' + quote_plus(token)
-            redirect_html, _status, real_url = self._request(
+            redirect_html, status, real_url = self._request(
                 mint_url,
                 referer=referer or self.base_link + '/',
-                caching=False
+                caching=False,
+                follow_redirects=False
             )
-            if real_url and real_url != mint_url and '/n/' not in real_url:
-                return real_url
-            match = re.search(r'href=["\']([^"\']+)["\']', redirect_html or '', re.I)
-            return unescape(match.group(1)).strip() if match else ''
+            redirect_url = self._redirect_target_from_response(mint_url, status, real_url, redirect_html)
+            if redirect_url:
+                return redirect_url
+
+            redirect_html, status, real_url = self._request(
+                mint_url,
+                referer=referer or self.base_link + '/',
+                caching=False,
+                follow_redirects=True
+            )
+            redirect_url = self._redirect_target_from_response(mint_url, status, real_url, redirect_html)
+            return redirect_url or ''
         except Exception:
             return ''
 
@@ -222,8 +241,8 @@ class source:
         except Exception:
             return ''
 
-    def _request(self, url, referer=None, headers=None, post=None, jspost=False, caching=False):
-        request = cRequestHandler(url, caching=caching, ignoreErrors=True, jspost=jspost, preserve_url=True)
+    def _request(self, url, referer=None, headers=None, post=None, jspost=False, caching=False, follow_redirects=True):
+        request = cRequestHandler(url, caching=caching, ignoreErrors=True, jspost=jspost, preserve_url=True, follow_redirects=follow_redirects)
         request.addHeaderEntry('User-Agent', UA)
         request.addHeaderEntry('Accept-Language', 'de,en-US;q=0.7,en;q=0.3')
         request.addHeaderEntry('Connection', 'close')
@@ -234,11 +253,15 @@ class source:
         for key, value in (post or {}).items():
             request.addParameters(key, value)
         payload = request.request()
+        self._last_response_header = request.getResponseHeader()
         return payload or '', str(request.getStatus()), request.getRealUrl()
 
     def _matches(self, title, clean_titles, year, html):
         clean_title = cleantitle.get(title or '')
-        if clean_title not in clean_titles:
+        if clean_title not in clean_titles and not any(
+            clean_title and value and len(clean_title) >= 5 and len(value) >= 5 and (clean_title in value or value in clean_title)
+            for value in clean_titles
+        ):
             return False
         page_year = self._year(html)
         try:
@@ -305,9 +328,9 @@ class source:
     @staticmethod
     def _language(value):
         text = str(value or '').strip().lower()
-        if text in ('deutsch', 'german', 'de', 'ger'):
+        if text in ('deutsch', 'german', 'de', 'ger') or 'deutsch' in text or 'german' in text:
             return 'de'
-        if text in ('english', 'englisch', 'en', 'eng'):
+        if text in ('english', 'englisch', 'en', 'eng') or 'english' in text or 'englisch' in text:
             return 'en'
         return 'unknown'
 
@@ -330,6 +353,53 @@ class source:
     @staticmethod
     def _json_url(value):
         return value.replace('\\/', '/').replace('\\u0026', '&').replace('\\u003d', '=')
+
+    def _redirect_target_from_response(self, request_url, status, real_url, html):
+        header = getattr(self, '_last_response_header', None)
+        location = ''
+        try:
+            if header:
+                location = header.get('Location') or header.get('location') or ''
+        except Exception:
+            location = ''
+
+        for candidate in [location, real_url, self._extract_redirect_url(html)]:
+            target = self._external_url(candidate, request_url)
+            if target:
+                return target
+        return ''
+
+    def _extract_redirect_url(self, html):
+        patterns = [
+            r'(?is)<meta[^>]+http-equiv=["\']refresh["\'][^>]+content=["\'][^"\']*url=([^"\']+)',
+            r'(?is)window\.location(?:\.href)?\s*=\s*["\']([^"\']+)',
+            r'(?is)location\.replace\(\s*["\']([^"\']+)',
+            r'(?is)<a\b[^>]*\bhref=["\']([^"\']+)["\']',
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, html or '')
+            if match:
+                return unescape(match.group(1)).strip()
+        return ''
+
+    def _external_url(self, value, base_url=None):
+        if not value:
+            return ''
+        try:
+            target = urljoin(base_url or self.base_link, self._json_url(unescape(str(value)).strip()))
+            if not target or self._is_filmo_url(target):
+                return ''
+            return target
+        except Exception:
+            return ''
+
+    def _is_filmo_url(self, value):
+        try:
+            host = (urlparse(str(value).split('|', 1)[0]).hostname or '').lower()
+            domain = (self.domain or SITE_DOMAIN).lower()
+            return host == domain or host.endswith('.' + domain)
+        except Exception:
+            return False
 
     @staticmethod
     def _clean(value):

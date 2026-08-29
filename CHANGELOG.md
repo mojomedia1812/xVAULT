@@ -2,6 +2,41 @@
 
 ## [Unreleased]
 
+## [2026.08.29.5] - 2026-08-29
+
+- Kodi-Wrapper für Add-on, Fenster, Dialoge, Player, Playlists und Fortschrittsdialoge werden kontrolliert erzeugt und beim Add-on-Ende freigegeben, damit Kodi nach xVAULT-Aufrufen keine unnötigen CPythonInvoker-Cleanup-Warnungen protokolliert.
+- Die Serienqueue übergibt weiterhin eine echte Kodi-Playlist an den Player, während die übrigen Laufzeitobjekte nicht mehr dauerhaft als Modul-Globals gehalten werden.
+- Scraper erhalten die ResolveURL-Hosterliste aus den installierten ResolveURL-Plugin-Dateien; die eigentliche ResolveURL-Auflösung wird erst beim Start einer Quelle geladen und danach wieder aus dem xVAULT-Invoker gelöst.
+- Settings-Lesezugriffe nutzen Profil- und Default-XML mit Cache, damit aktuelle Kodi-Einstellungen sofort greifen und keine unnötigen Add-on-Wrapper entstehen.
+- Sync-Zustandsdateien werden bei kurz gesperrten Profil-Dateien mit Retry und Fallback geschrieben, damit Wiedergabeende und Synchronisation keine unnötigen Datei-Zugriffsfehler erzeugen.
+
+## [2026.08.29.4] - 2026-08-29
+
+- Filmpalast-Suche robuster gemacht: xVAULT wertet mehrere Suchseiten aus, erkennt Treffer über Titel, Attribute, Bildtexte und URL-Slugs und prüft erkannte Jahresangaben toleranter.
+- Filmo-Quellenauflösung stabilisiert: CSRF-Token, Session-Cookies, direkte Mint-Ziele sowie HTTP-/HTML-Redirects werden innerhalb der xVAULT-Requestlogik verarbeitet.
+- SerienStream und AniWorld gleichen Serien- und Episodentreffer genauer ab; Untertitelvarianten werden nicht mehr als deutsche oder englische Tonspur behandelt und in der Quellenliste nicht mehr als DE/EN gekennzeichnet.
+- Abweichende Serien-Staffelungen werden zuverlässiger abgefangen, indem Episodentitel zusätzlich über Kapitelnummern, deutsche/englische Titelvarianten und robuste Wortvergleiche geprüft werden.
+- Quellenlisten behalten ihre Scraper-Reihenfolge, entfernen Dubletten stabiler und wenden Hoster-Ausschlüsse erst nach Sprach- und Qualitätslogik an.
+- Resolver-Timeouts und fehlerhafte Hoster-Auflösungen sperren nur die betroffene Provider-/Hoster-Kombination kurzzeitig, damit erneute Quellenwechsel nicht wieder an derselben hängenden Quelle starten.
+- AnimeToast wurde als eigener Serien-Scraper ergänzt; xVAULT nutzt nur konkrete Episoden- oder Playerdaten und übernimmt keine unsicheren Staffelbereich-Container als Einzelfolge.
+- Internet Archive wurde als optionale Filmquelle ergänzt und streng auf passende Titel-/Jahr-Treffer mit echten Videodateien begrenzt.
+
+## [2026.08.29.3] - 2026-08-29
+
+- Filmpalast-Suche robuster gemacht: xVAULT wertet mehrere Suchseiten aus, erkennt Treffer über Titel, Attribute, Bildtexte und URL-Slugs und prüft erkannte Jahresangaben toleranter.
+- Filmo-Quellenauflösung stabilisiert: CSRF-Token, Session-Cookies, direkte Mint-Ziele sowie HTTP-/HTML-Redirects werden innerhalb der xVAULT-Requestlogik verarbeitet.
+- SerienStream und AniWorld gleichen Serien- und Episodentreffer genauer ab; Untertitelvarianten werden nicht mehr als deutsche oder englische Tonspur behandelt und in der Quellenliste nicht mehr als DE/EN gekennzeichnet.
+- Abweichende Serien-Staffelungen werden zuverlässiger abgefangen, indem Episodentitel zusätzlich über Kapitelnummern, deutsche/englische Titelvarianten und robuste Wortvergleiche geprüft werden.
+- Quellenlisten behalten ihre Scraper-Reihenfolge, entfernen Dubletten stabiler und wenden Hoster-Ausschlüsse erst nach Sprach- und Qualitätslogik an.
+
+## [2026.08.29.2] - 2026-08-29
+
+- Filmpalast-Suche robuster gemacht: xVAULT wertet mehrere Suchseiten aus, erkennt Treffer über Titel, Attribute, Bildtexte und URL-Slugs und prüft erkannte Jahresangaben toleranter.
+- Filmo-Quellenauflösung stabilisiert: CSRF-Token, Session-Cookies, direkte Mint-Ziele sowie HTTP-/HTML-Redirects werden innerhalb der xVAULT-Requestlogik verarbeitet.
+- SerienStream und AniWorld gleichen Serien- und Episodentreffer genauer ab; Untertitelvarianten werden nicht mehr als deutsche oder englische Tonspur behandelt.
+- Abweichende Serien-Staffelungen werden zuverlässiger abgefangen, indem Episodentitel zusätzlich über Kapitelnummern, deutsche/englische Titelvarianten und robuste Wortvergleiche geprüft werden.
+- Quellenlisten behalten ihre Scraper-Reihenfolge, entfernen Dubletten stabiler und wenden Hoster-Ausschlüsse erst nach Sprach- und Qualitätslogik an.
+
 ## [2026.08.29.1] - 2026-08-29
 
 - BS.to wird im Indexseiten-Menü ausgeblendet und vom Scraper-Lader nicht mehr aktiviert.

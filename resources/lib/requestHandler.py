@@ -27,9 +27,8 @@ try:
 except ImportError:
     ADDON_NAME = ''
     profilePath = ''
-    _getSetting = xbmcaddon.Addon().getSetting
     def getSetting(Name, default=''):
-        result = _getSetting(Name)
+        result = xbmcaddon.Addon().getSetting(Name)
         if result:
             return result
         else:
@@ -125,6 +124,10 @@ class RedirectFilter(HTTPRedirectHandler):
                 return None
         return HTTPRedirectHandler.redirect_request(self, req, fp, code, msg, hdrs, newurl)
 
+class NoRedirectFilter(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, hdrs, newurl):
+        return None
+
 class cRequestHandler:
     # useful for e.g. tmdb request where multiple requests are made within a loop
     persistent_openers = {}
@@ -148,7 +151,7 @@ class cRequestHandler:
         _User_Agents = [FF_USER_AGENT, OPERA_USER_AGENT, EDGE_USER_AGENT, CHROME_USER_AGENT, SAFARI_USER_AGENT]
         return choice(_User_Agents)
 
-    def __init__(self, sUrl, caching=True, ignoreErrors=True, compression=True, jspost=False, ssl_verify=False, bypass_dns=False, preserve_url=False):
+    def __init__(self, sUrl, caching=True, ignoreErrors=True, compression=True, jspost=False, ssl_verify=False, bypass_dns=False, preserve_url=False, follow_redirects=True):
         self._sUrl = sUrl if preserve_url else self.__cleanupUrl(sUrl)
         self._sRealUrl = ''
         # self._USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0'
@@ -168,6 +171,7 @@ class cRequestHandler:
         self.ignoreErrors = ignoreErrors
         self.compression = compression
         self.jspost = jspost
+        self._follow_redirects = follow_redirects
         self.cacheTime = int(getSetting('cacheTime', 600))
         self.requestTimeout = int(getSetting('requestTimeout', 10))
         self.bypassDNSlock = _doh_enabled()
@@ -294,6 +298,20 @@ class cRequestHandler:
                 else:
                     raise
         except HTTPError as e:
+            if 300 <= int(getattr(e, 'code', 0) or 0) < 400 and not self._follow_redirects:
+                self._Status = str(e.code)
+                self._sResponseHeader = e.headers
+                self._sRealUrl = self._sUrl
+                try:
+                    data = e.fp.read() if e.fp else b''
+                    sContent = data.decode('utf-8', 'replace') if isinstance(data, bytes) else str(data or '')
+                except Exception:
+                    sContent = ''
+                try:
+                    cookieJar.save(ignore_discard=self.__bIgnoreDiscard, ignore_expires=self.__bIgnoreExpired)
+                except Exception as save_error:
+                    logger.error(' -> [requestHandler]: Failed save cookie: %s' % save_error)
+                return sContent
             if e.code >= 400:
                 self._Status = str(e.code)
                 data = e.fp.read()
@@ -446,7 +464,8 @@ class cRequestHandler:
         return None
 
     def __openerKey(self, domain, ip_override):
-        return '%s|%s|%s' % (domain, ip_override or 'system', 'verify' if self._ssl_verify else 'noverify')
+        redirect_mode = 'redirects' if self._follow_redirects else 'no-redirects'
+        return '%s|%s|%s|%s' % (domain, ip_override or 'system', 'verify' if self._ssl_verify else 'noverify', redirect_mode)
 
     def __getOpener(self, domain, ip_override, cookieJar):
         ip_map = self.__buildIpMap(ip_override)
@@ -455,7 +474,7 @@ class cRequestHandler:
             return cRequestHandler.persistent_openers[opener_key]
 
         handlers = self.__getDefaultHandler(self._ssl_verify, ip_map)
-        handlers += [HTTPCookieProcessor(cookiejar=cookieJar), RedirectFilter()]
+        handlers += [HTTPCookieProcessor(cookiejar=cookieJar), RedirectFilter() if self._follow_redirects else NoRedirectFilter()]
         if not ip_map:
             handlers.append(HTTPHandler())
         opener = build_opener(*handlers)

@@ -1,5 +1,6 @@
 # edit 2025-06-12
 import sys
+import ast
 import base64
 import hashlib
 import inspect
@@ -11,7 +12,6 @@ from html import unescape as html_unescape
 from urllib.parse import urlencode, urljoin, urlparse
 from resources.lib import log_utils, utils, control, playback_settings, hoster_compat
 from resources.lib.control import py2_decode, py2_encode, quote_plus, parse_qsl
-import resolveurl as resolver
 # from functools import reduce
 from resources.lib.control import getKodiVersion
 
@@ -25,11 +25,91 @@ SOURCE_CONTEXT_LIMIT = 80
 SERIES_CACHE_LIMIT = 200
 PROVIDER_ERROR_TTL = 5 * 60
 PROVIDER_TIMEOUT_TTL = 10 * 60
+HOSTER_ERROR_TTL = 5 * 60
+HOSTER_TIMEOUT_TTL = 10 * 60
 SOURCE_RESOLVE_TIMEOUT = 30
 AUTOPLAY_PREFETCH_LIMIT = 5
+_RESOLVEURL_PLUGIN_DOMAINS = None
+_RESOLVEURL_MODULE = None
 
 # für self.sysmeta - zur späteren verwendung als meta
 _params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
+
+def _resolveurl():
+    global _RESOLVEURL_MODULE
+    if _RESOLVEURL_MODULE is None:
+        import resolveurl
+        _RESOLVEURL_MODULE = resolveurl
+    return _RESOLVEURL_MODULE
+
+
+def _resolveurlPluginDomains():
+    global _RESOLVEURL_PLUGIN_DOMAINS
+    if _RESOLVEURL_PLUGIN_DOMAINS is not None:
+        return list(_RESOLVEURL_PLUGIN_DOMAINS)
+
+    domains = set()
+    plugin_path = control.translatePath('special://home/addons/script.module.resolveurl/lib/resolveurl/plugins')
+    if os.path.isdir(plugin_path):
+        for filename in os.listdir(plugin_path):
+            if not filename.endswith('.py') or filename.startswith('__'):
+                continue
+            path = os.path.join(plugin_path, filename)
+            try:
+                with open(path, 'r', encoding='utf-8', errors='ignore') as handle:
+                    domains.update(_domainsFromPythonSource(handle.read()))
+            except:
+                pass
+    _RESOLVEURL_PLUGIN_DOMAINS = sorted(domain for domain in domains if domain and domain != '*')
+    return list(_RESOLVEURL_PLUGIN_DOMAINS)
+
+
+def _domainsFromPythonSource(content):
+    domains = set()
+    try:
+        tree = ast.parse(content)
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Assign):
+                continue
+            if not any(_isDomainsTarget(target) for target in node.targets):
+                continue
+            for value in _literalStringList(node.value):
+                value = str(value).strip().lower()
+                if value:
+                    domains.add(value)
+    except:
+        pass
+    if domains:
+        return domains
+
+    for match in re.finditer(r'\bdomains\s*=\s*(\[[^\]]+\])', content, re.S):
+        try:
+            for value in ast.literal_eval(match.group(1)):
+                value = str(value).strip().lower()
+                if value:
+                    domains.add(value)
+        except:
+            pass
+    return domains
+
+
+def _isDomainsTarget(target):
+    try:
+        return getattr(target, 'id', '') == 'domains' or getattr(target, 'attr', '') == 'domains'
+    except:
+        return False
+
+
+def _literalStringList(node):
+    result = []
+    if isinstance(node, (ast.List, ast.Tuple, ast.Set)):
+        for item in node.elts:
+            result.extend(_literalStringList(item))
+    elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+        result.append(node.value)
+    elif hasattr(ast, 'Str') and isinstance(node, ast.Str):
+        result.append(node.s)
+    return result
 
 class _XvaultThreadPoolExecutor(ThreadPoolExecutor):
     def _adjust_thread_count(self):
@@ -476,6 +556,21 @@ class sources:
                     (item.get('provider'), item.get('source')),
                     log_utils.LOGWARNING
                 )
+                self._markHosterTemporarilyBlocked(item, 'timeout', HOSTER_TIMEOUT_TTL)
+            else:
+                try:
+                    resolved_url = future.result()
+                    if resolved_url and self.url == None:
+                        self.url = resolved_url
+                    if not resolved_url and self.url == None:
+                        self._markHosterTemporarilyBlocked(item, 'resolve_failed', HOSTER_ERROR_TTL)
+                except Exception as e:
+                    log_utils.log(
+                        'Resolve Fehler bei ausgewaehlter Quelle: Provider %s / Hoster %s / %s' %
+                        (item.get('provider'), item.get('source'), str(e)),
+                        log_utils.LOGWARNING
+                    )
+                    self._markHosterTemporarilyBlocked(item, 'error', HOSTER_ERROR_TTL)
 
             try: progressDialog.close()
             except: pass
@@ -726,7 +821,7 @@ class sources:
         series_key = self._seriesCacheKey(title, year, imdb, originaltitle, premiered)
         cached, stale = self._readSourceCache(cache_key, allow_stale=True)
         if cached and not force_refresh:
-            self.sources = cached
+            self.sources = self._filterTemporarilyBlockedHosters(cached)
             if stale:
                 log_utils.log('Quellen-Cache verwendet (stale): %s Treffer' % len(self.sources), log_utils.LOGINFO)
                 self._scheduleSourceCacheRefresh(cache_key, title, year, imdb, season, episode, originaltitle, premiered, episode_title, episode_premiered)
@@ -892,7 +987,7 @@ class sources:
             settings[setting] = control.getSetting(setting)
 
         key = {
-            'version': 5,
+            'version': 6,
             'addon': control.addonVersion,
             'mediatype': getattr(self, 'mediatype', None),
             'title': py2_decode(title),
@@ -1030,6 +1125,7 @@ class sources:
             }
         series = payload.get('series') if isinstance(payload.get('series'), dict) else {}
         provider_health = payload.get('provider_health') if isinstance(payload.get('provider_health'), dict) else {}
+        hoster_health = payload.get('hoster_health') if isinstance(payload.get('hoster_health'), dict) else {}
         now = int(time.time())
         for key, entry in list(entries.items()):
             try:
@@ -1043,6 +1139,12 @@ class sources:
                     provider_health.pop(key, None)
             except:
                 provider_health.pop(key, None)
+        for key, entry in list(hoster_health.items()):
+            try:
+                if int(entry.get('blocked_until', 0)) <= now:
+                    hoster_health.pop(key, None)
+            except:
+                hoster_health.pop(key, None)
         while len(series) > SERIES_CACHE_LIMIT:
             oldest = sorted(series.items(), key=lambda item: int(item[1].get('timestamp', 0)))[0][0]
             series.pop(oldest, None)
@@ -1050,7 +1152,8 @@ class sources:
             'version': 2,
             'entries': entries,
             'series': series,
-            'provider_health': provider_health
+            'provider_health': provider_health,
+            'hoster_health': hoster_health
         }
 
     def _filterTemporarilyBlockedProviders(self, sourceDict):
@@ -1085,6 +1188,65 @@ class sources:
             payload['provider_health'] = provider_health
             self._writeSourceCachePayload(payload)
             log_utils.log('Indexseite temporär gesperrt: %s (%s)' % (provider, reason), log_utils.LOGWARNING)
+        except:
+            pass
+
+    def _hosterHealthKey(self, item):
+        try:
+            provider = str(item.get('provider') or '').strip().lower()
+            hoster = self._streamDisplayText(item.get('source') or '').strip().lower()
+            if not hoster:
+                hoster = (urlparse(str(item.get('url') or '').split('|', 1)[0]).hostname or '').lower()
+            hoster = hoster.replace('www.', '')
+            if not provider or not hoster:
+                return ''
+            return '%s|%s' % (provider, hoster)
+        except:
+            return ''
+
+    def _filterTemporarilyBlockedHosters(self, items):
+        if not items:
+            return items
+        try:
+            payload = self._readSourceCachePayload()
+            hoster_health = payload.get('hoster_health') or {}
+            now = int(time.time())
+            result = []
+            skipped = []
+            for item in items:
+                key = self._hosterHealthKey(item)
+                state = hoster_health.get(key) if key else None
+                if state and int(state.get('blocked_until', 0)) > now:
+                    skipped.append('%s/%s' % (item.get('provider'), item.get('source')))
+                    continue
+                result.append(item)
+            if skipped:
+                log_utils.log('Temporär gesperrte Hoster übersprungen: %s' % ', '.join(skipped), log_utils.LOGINFO)
+            return result
+        except:
+            return items
+
+    def _markHosterTemporarilyBlocked(self, item, reason, ttl):
+        try:
+            key = self._hosterHealthKey(item)
+            if not key:
+                return
+            payload = self._readSourceCachePayload()
+            hoster_health = payload.get('hoster_health')
+            if not isinstance(hoster_health, dict):
+                hoster_health = {}
+            hoster_health[key] = {
+                'reason': str(reason or 'error'),
+                'blocked_until': int(time.time()) + int(ttl),
+                'timestamp': int(time.time())
+            }
+            payload['hoster_health'] = hoster_health
+            self._writeSourceCachePayload(payload)
+            log_utils.log(
+                'Hoster temporär gesperrt: Provider %s / Hoster %s (%s)' %
+                (item.get('provider'), item.get('source'), reason),
+                log_utils.LOGWARNING
+            )
         except:
             pass
 
@@ -1189,7 +1351,7 @@ class sources:
                 sources = call.run(titles, year, season, episode, imdb)
             if sources == None or sources == []:
                 return {'provider': source, 'count': 0, 'status': 'empty'}
-            sources = [json.loads(t) for t in set(json.dumps(d, sort_keys=True) for d in sources)]
+            sources = self._stableUniqueSources(sources)
             for i in sources:
                 i.update({'provider': source})
                 i.update({'provider_display': self._providerDisplayName(source, call)})
@@ -1202,6 +1364,20 @@ class sources:
             log_utils.log('Indexseite Fehler: %s / %s' % (source, str(e)), log_utils.LOGWARNING)
             return {'provider': source, 'count': 0, 'status': 'error'}
 
+    def _stableUniqueSources(self, items):
+        result = []
+        seen = set()
+        for item in items or []:
+            try:
+                key = json.dumps(item, sort_keys=True, ensure_ascii=False)
+            except:
+                key = str(item)
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append(item)
+        return result
+
     def _acceptsHostDict(self, call):
         try:
             return 'hostDict' in inspect.signature(call.run).parameters
@@ -1210,20 +1386,10 @@ class sources:
 
     def _getHostDict(self):
         try:
-            domains = []
-            relevant = resolver.relevant_resolvers(
-                include_disabled=True,
-                include_universal=False,
-                include_popups=True
-            )
-            for item in relevant:
-                for domain in getattr(item, 'domains', []) or []:
-                    domain = str(domain).strip().lower()
-                    if domain and domain != '*':
-                        domains.append(domain)
+            domains = _resolveurlPluginDomains()
             domains.extend(hoster_compat.extra_domains())
             domains = sorted(set(domains))
-            log_utils.log('ResolveURL-Hosterliste geladen: %s Domains' % len(domains), log_utils.LOGINFO)
+            log_utils.log('ResolveURL-Hosterliste aus Plugin-Dateien geladen: %s Domains' % len(domains), log_utils.LOGINFO)
             return domains
         except Exception as e:
             log_utils.log('ResolveURL-Hosterliste konnte nicht geladen werden: %s' % str(e), log_utils.LOGWARNING)
@@ -1291,13 +1457,23 @@ class sources:
         return meta
 
     def _normalizeStreamLanguage(self, item):
-        language_codes = self._languageCodesFromText(item.get('language', ''))
+        raw_language = item.get('language', None)
+        if raw_language is not None:
+            explicit_language = str(raw_language).strip().lower()
+            if explicit_language in ['unknown', 'unk', '?']:
+                return 'unknown'
+            if self._isSubtitleOnlyLanguageText(explicit_language):
+                return 'unknown'
+
+        language_codes = self._languageCodesFromText(raw_language or '')
         if language_codes:
             return self._languageFromCodes(language_codes)
 
         values = [item.get('info', '')]
         codes = set()
         for value in values:
+            if self._isSubtitleOnlyLanguageText(value):
+                return 'unknown'
             codes.update(self._languageCodesFromText(value))
         return self._languageFromCodes(codes)
 
@@ -1315,6 +1491,8 @@ class sources:
             return set()
         if isinstance(value, (list, tuple, set)):
             value = ' '.join([str(i) for i in value])
+        if self._isSubtitleOnlyLanguageText(value):
+            return set()
         text = str(value).lower()
         text = re.sub(r'[^a-z0-9]+', ' ', text)
         tokens = set([token for token in text.split() if token])
@@ -1334,6 +1512,18 @@ class sources:
         if tokens.intersection(set(['en', 'eng', 'english', 'englisch'])):
             codes.add('en')
         return codes
+
+    @staticmethod
+    def _isSubtitleOnlyLanguageText(value):
+        if value == None:
+            return False
+        text = str(value).lower()
+        text = re.sub(r'[^a-z0-9]+', ' ', text)
+        if not re.search(r'\b(sub|subtitle|subbed|untertitel)\b', text):
+            return False
+        has_language = re.search(r'\b(de|deu|ger|german|deutsch|en|eng|english|englisch)\b', text)
+        has_audio_hint = re.search(r'\b(dub|dubbed|tonspur|audio|dl|dual|multi)\b', text)
+        return bool(has_language) and not bool(has_audio_hint)
 
     def _applyLanguagePreference(self):
         if getattr(self, 'mediatype', None) not in ['movie', 'tvshow']:
@@ -1397,6 +1587,84 @@ class sources:
             'unknown': '?'
         }.get(language, '?')
 
+    def _sourceDedupeKey(self, item):
+        try:
+            provider = self._streamDisplayText(item.get('provider_display') or item.get('provider') or '').lower()
+            source = self._streamDisplayText(item.get('source') or '').lower()
+            language = self._normalizeStreamLanguage(item)
+            url = self._canonicalSourceUrl(item.get('url'))
+            if not url:
+                return ''
+            return '|'.join([provider, source, language, url])
+        except:
+            return ''
+
+    def _canonicalSourceUrl(self, value):
+        try:
+            raw = str(value or '').split('|', 1)[0].strip()
+            if not raw:
+                return ''
+            parsed = urlparse(raw)
+            if parsed.scheme not in ['http', 'https']:
+                return raw.lower()
+            host = (parsed.hostname or parsed.netloc or '').lower()
+            path = re.sub(r'/+', '/', parsed.path or '/').rstrip('/')
+            query_items = []
+            drop_prefixes = ('utm_',)
+            drop_keys = set(['fbclid', 'gclid', 'yclid', 'mc_cid', 'mc_eid'])
+            for key, val in parse_qsl(parsed.query, keep_blank_values=True):
+                key_l = key.lower()
+                if key_l in drop_keys or any(key_l.startswith(prefix) for prefix in drop_prefixes):
+                    continue
+                query_items.append((key_l, val))
+            query = urlencode(sorted(query_items))
+            return '%s://%s%s%s' % (
+                parsed.scheme.lower(),
+                host,
+                path or '/',
+                ('?' + query) if query else ''
+            )
+        except:
+            return str(value or '').split('|', 1)[0].strip().lower()
+
+    def _dedupeSources(self, items):
+        result = []
+        seen = set()
+        for item in items or []:
+            key = self._sourceDedupeKey(item)
+            if key and key in seen:
+                continue
+            if key:
+                seen.add(key)
+            result.append(item)
+        removed = len(items or []) - len(result)
+        if removed > 0:
+            log_utils.log('Quellen-Dubletten entfernt: %d' % removed, log_utils.LOGINFO)
+        return result
+
+    def _applyHosterExclusions(self, items):
+        raw = control.getSetting('hosts.filter') or ''
+        tokens = [token.strip().lower() for token in re.split(r'[\s,;]+', raw) if token.strip()]
+        if not tokens:
+            return items
+
+        result = []
+        removed = 0
+        for item in items or []:
+            values = [
+                self._streamDisplayText(item.get('source') or ''),
+                self._streamDisplayText(item.get('provider_display') or item.get('provider') or ''),
+                urlparse(str(item.get('url') or '').split('|', 1)[0]).netloc,
+            ]
+            haystack = ' '.join([str(value or '').lower() for value in values])
+            if any(token and (token in haystack or token.split('.', 1)[0] in haystack) for token in tokens):
+                removed += 1
+                continue
+            result.append(item)
+        if removed > 0:
+            log_utils.log('Ausgeschlossene Hoster entfernt: %d' % removed, log_utils.LOGINFO)
+        return result
+
 
     def sourcesFilter(self):
         # hostblockDict = utils.getHostDict()
@@ -1419,7 +1687,7 @@ class sources:
         if quality in ['0', '1', '2']: filter += [i for i in self.sources if i['quality'] == '1080p']
         if quality in ['0', '1', '2', '3']: filter += [i for i in self.sources if i['quality'] == '720p']
         #filter += [i for i in self.sources if i['quality'] in ['SD', 'SCR', 'CAM']]
-        filter += [i for i in self.sources if i['quality'] not in ['4k', '1440p', '1080p', '720p']]
+        filter += [i for i in self.sources if i['quality'] not in ['4K', '4k', '1440p', '1080p', '720p']]
         self.sources = filter
 
         if control.getSetting('hosts.sort.provider') == 'true':
@@ -1428,6 +1696,9 @@ class sources:
         if control.getSetting('hosts.sort.priority') == 'true' and self.mediatype == 'tvshow': self.sources = sorted(self.sources, key=lambda k: (k.get('prioHoster', 0) >= 999, k['priority']), reverse=False)
 
         self._applyLanguagePreference()
+        self.sources = self._dedupeSources(self.sources)
+        self.sources = self._applyHosterExclusions(self.sources)
+        self.sources = self._filterTemporarilyBlockedHosters(self.sources)
 
         if str(control.getSetting('hosts.limit')) == 'true':
             self.sources = self.sources[:int(control.getSetting('hosts.limit.num'))]
@@ -1489,9 +1760,9 @@ class sources:
                 else:
                     try:
                         include_popups = item.get('prioHoster', 0) >= 999
-                        hmf = resolver.HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=include_popups)
+                        hmf = _resolveurl().HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=include_popups)
                         if not hmf.valid_url() and not include_popups:
-                            hmf = resolver.HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=True)
+                            hmf = _resolveurl().HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=True)
                         if hmf.valid_url():
                             url = hmf.resolve()
                             resolved = True
@@ -1511,7 +1782,7 @@ class sources:
                     url = None
             elif item.get('prioHoster', 0) >= 999:
                 try:
-                    hmf = resolver.HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=True)
+                    hmf = _resolveurl().HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=True)
                     if hmf.valid_url():
                         url = hmf.resolve()
                         if url == False or url == None or url == '': url = None
@@ -1750,16 +2021,21 @@ class sources:
                 (item.get('provider'), item.get('source'), timeout),
                 log_utils.LOGWARNING
             )
+            self._markHosterTemporarilyBlocked(item, 'timeout', HOSTER_TIMEOUT_TTL)
             return None
 
         try:
-            return future.result()
+            result = future.result()
+            if not result:
+                self._markHosterTemporarilyBlocked(item, 'resolve_failed', HOSTER_ERROR_TTL)
+            return result
         except Exception as e:
             log_utils.log(
                 'Resolve Fehler: Provider %s / Hoster %s / %s' %
                 (item.get('provider'), item.get('source'), str(e)),
                 log_utils.LOGWARNING
             )
+            self._markHosterTemporarilyBlocked(item, 'error', HOSTER_ERROR_TTL)
             return None
 
 
@@ -1816,6 +2092,7 @@ class sources:
                         (item.get('provider'), item.get('source'), SOURCE_RESOLVE_TIMEOUT),
                         log_utils.LOGWARNING
                     )
+                    self._markHosterTemporarilyBlocked(item, 'timeout', HOSTER_TIMEOUT_TTL)
                     break
 
                 try:
@@ -1849,7 +2126,11 @@ class sources:
                     (item.get('provider'), item.get('source'), str(e)),
                     log_utils.LOGWARNING
                 )
+                self._markHosterTemporarilyBlocked(item, 'error', HOSTER_ERROR_TTL)
                 url = None
+
+            if not url:
+                self._markHosterTemporarilyBlocked(item, 'resolve_failed', HOSTER_ERROR_TTL)
 
             if url:
                 self.url = url
@@ -2072,8 +2353,8 @@ class sources:
         return title
 
     def getConstants(self):
-        self.itemsProperty = '%s.container.items' % control.Addon.getAddonInfo('id')
-        self.metaProperty = '%s.container.meta'  % control.Addon.getAddonInfo('id')
-        self.sourceCacheProperty = '%s.sources.last' % control.Addon.getAddonInfo('id')
+        self.itemsProperty = '%s.container.items' % control.addonId
+        self.metaProperty = '%s.container.meta'  % control.addonId
+        self.sourceCacheProperty = '%s.sources.last' % control.addonId
         from scrapers import sources
         self.sourceDict = sources()

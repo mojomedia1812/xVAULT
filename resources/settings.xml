@@ -121,6 +121,9 @@
         <setting id="provider.netzkino" type="bool" label="Netzkino" default="false" />
         <setting id="provider.netzkino.domain" label="[B][COLOR red]Netzkino: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.netzkino.check" label="Netzkino Check" type="bool" default="true" visible="false" />
+        <setting id="provider.internetarchive" type="bool" label="Internet Archive" default="false" />
+        <setting id="provider.internetarchive.domain" label="[B][COLOR red]Internet Archive: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.internetarchive.check" label="Internet Archive Check" type="bool" default="true" visible="false" />
 
         <setting type="lsep" label="Nur Serien" />
         <!--
@@ -134,6 +137,9 @@
         <setting id="provider.aniworld" type="bool" label="AniWorld.to" default="true" />
         <setting id="provider.aniworld.domain" label="[B][COLOR red]AniWorld.to: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.aniworld.check" label="AniWorld.to Check" type="bool" default="true" visible="false" />
+        <setting id="provider.animetoast" type="bool" label="AnimeToast" default="true" />
+        <setting id="provider.animetoast.domain" label="[B][COLOR red]AnimeToast: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.animetoast.check" label="AnimeToast Check" type="bool" default="true" visible="false" />
         <setting id="provider.serienfans" type="bool" label="Serienfans" default="true" />
         <setting id="provider.serienfans.domain" label="[B][COLOR red]Serienfans: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.serienfans.check" label="Serienfans Check" type="bool" default="true" visible="false" />

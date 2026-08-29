@@ -1,5 +1,4 @@
 # -*- coding: UTF-8 -*-
-import resolveurl as resolver
 from scrapers.modules.tools import cParser
 from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import cleantitle, dom_parser, source_utils

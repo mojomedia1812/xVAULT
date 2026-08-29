@@ -118,7 +118,7 @@ def write_json(filename, data):
             os.makedirs(directory)
         with open(tmp, 'w', encoding='utf-8') as handle:
             json.dump(data, handle, ensure_ascii=False, indent=2, sort_keys=True)
-        os.replace(tmp, path)
+        _replace_file(tmp, path)
         return True
     except Exception as exc:
         log_utils.log('xVAULT sync: failed to write %s: %s' % (filename, exc), log_utils.LOGWARNING)
@@ -128,6 +128,29 @@ def write_json(filename, data):
         except Exception:
             pass
         return False
+
+
+def _replace_file(source, destination):
+    last_error = None
+    for attempt in range(50):
+        try:
+            os.replace(source, destination)
+            return
+        except OSError as exc:
+            last_error = exc
+            if getattr(exc, 'winerror', None) != 5 and not isinstance(exc, PermissionError):
+                break
+            time.sleep(0.05)
+
+    try:
+        if os.path.exists(destination):
+            os.remove(destination)
+        os.rename(source, destination)
+        return
+    except Exception:
+        if last_error:
+            raise last_error
+        raise
 
 
 def _auth_data():

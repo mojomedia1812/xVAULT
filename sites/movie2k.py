@@ -49,12 +49,12 @@ class source:
             else:
                 quality = 'HD'
 
-            isBlocked, hoster, url, prioHoster = isBlockedHoster(sUrl)
+            isBlocked, hoster, url, prioHoster = isBlockedHoster(sUrl, isResolve=False)
             if isBlocked: continue
             if url:
                 language = jSearch[i].get('_xvault_language', 'de')
                 language_label = jSearch[i].get('_xvault_language_label', '')
-                self.sources.append({'source': hoster, 'quality': quality, 'language': language, 'url': url, 'direct': True, 'prioHoster': prioHoster, 'info': language_label})
+                self.sources.append({'source': hoster, 'quality': quality, 'language': language, 'url': url, 'direct': False, 'prioHoster': prioHoster, 'info': language_label})
                 total += 1
                 if total == 10: break
         return self.sources

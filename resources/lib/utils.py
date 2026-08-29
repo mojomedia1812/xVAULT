@@ -24,18 +24,23 @@ def getHostDict():
 
 def isBlockedHoster(url, isResolve=True):
     import html
-    import resolveurl as resolver
     from resources.lib import log_utils
+    resolver = None
+    if isResolve:
+        try:
+            import resolveurl as resolver
+        except Exception as exc:
+            log_utils.log('ResolveURL konnte fuer Hoster-Pruefung nicht geladen werden: %s' % str(exc), log_utils.LOGWARNING)
 
     requests.packages.urllib3.disable_warnings()
     from resources.lib.requestHandler import cRequestHandler
     if url.startswith("//"): url = 'http:%s' % url
     parsed = urlparse(url)
     if parsed.scheme in ['http', 'https'] and not parsed.hostname:
-        log_utils.log('Ungueltige Stream-URL ohne Domain verworfen: %s' % url, log_utils.LOGWARNING)
+        log_utils.log('Ungueltige Stream-URL ohne Domain verworfen: %s' % url, log_utils.LOGINFO)
         return True, '', url, 100
     if parsed.hostname and parsed.hostname.lower() in ['redirect']:
-        log_utils.log('Ungueltige Redirect-URL verworfen: %s' % url, log_utils.LOGWARNING)
+        log_utils.log('Ungueltige Redirect-URL verworfen: %s' % url, log_utils.LOGINFO)
         return True, parsed.hostname, url, 100
 
     if parsed.hostname and parsed.scheme:
@@ -47,18 +52,18 @@ def isBlockedHoster(url, isResolve=True):
         try:
             r = requests.head(url, verify=False, headers=headers, timeout=3)
         except:
-            sDomain = urlparse(url).path if urlparse(url).hostname == None else urlparse(url).hostname
-            return True, sDomain, url, 100
-        status_code = r.status_code
-        if 300 <= status_code <= 400:
-            url = r.headers['Location']
-            parsed = urlparse(url)
-            if parsed.scheme in ['http', 'https'] and not parsed.hostname:
-                log_utils.log('Ungueltige Redirect-Ziel-URL verworfen: %s' % url, log_utils.LOGWARNING)
-                return True, '', url, 100
-            if parsed.hostname and parsed.hostname.lower() in ['redirect']:
-                log_utils.log('Ungueltige Redirect-Ziel-URL verworfen: %s' % url, log_utils.LOGWARNING)
-                return True, parsed.hostname, url, 100
+            pass
+        else:
+            status_code = r.status_code
+            if 300 <= status_code <= 400:
+                url = r.headers.get('Location') or url
+                parsed = urlparse(url)
+                if parsed.scheme in ['http', 'https'] and not parsed.hostname:
+                    log_utils.log('Ungueltige Redirect-Ziel-URL verworfen: %s' % url, log_utils.LOGINFO)
+                    return True, '', url, 100
+                if parsed.hostname and parsed.hostname.lower() in ['redirect']:
+                    log_utils.log('Ungueltige Redirect-Ziel-URL verworfen: %s' % url, log_utils.LOGINFO)
+                    return True, parsed.hostname, url, 100
         
         ## TODO moflix, fileions etc 404
         # elif status_code != 200:
@@ -71,6 +76,11 @@ def isBlockedHoster(url, isResolve=True):
     for i in hostblockDict:
         if i in sDomain.lower() or i.split('.')[0] in sDomain.lower(): return True, sDomain, url, prioHoster
     if isResolve:
+        if resolver is None:
+            sUrl = hoster_compat.resolve(url)
+            if sUrl:
+                return False, hoster_compat.display_name(sDomain) or sDomain, sUrl, 90
+            return False, sDomain, url, prioHoster
         try:
             url = html.unescape(url)    # https://github.com/Gujal00/ResolveURL/pull/1115
             hmf = resolver.HostedMediaFile(url=url, include_disabled=True, include_universal=False)
@@ -103,6 +113,10 @@ def isBlockedHoster(url, isResolve=True):
                 return False, hoster_compat.display_name(sDomain) or sDomain, sUrl, 90
             return True, sDomain, url, prioHoster
     else:
+        if resolver is None:
+            if hoster_compat.is_supported_host(sDomain):
+                return False, hoster_compat.display_name(sDomain) or sDomain, url, prioHoster
+            return False, sDomain, url, prioHoster
         status = resolver.relevant_resolvers(domain=sDomain)
         if status == []:
             if hoster_compat.is_supported_host(sDomain):

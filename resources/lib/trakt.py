@@ -1012,20 +1012,12 @@ def _setting(key, default=''):
 
 
 def _set_setting(key, value):
-    value = '' if value is None else str(value)
-    try:
-        if key in ('trakt.enabled',):
-            control.Addon.setSettingBool(key, value.lower() == 'true')
-            return
-        control.Addon.setSettingString(key, value)
-        return
-    except Exception as exc:
-        _log('Trakt setSettingString/setSettingBool fehlgeschlagen fuer %s: %s' % (key, exc), log_utils.LOGWARNING)
-        pass
-    try:
-        control.setSetting(key, value)
-    except Exception as exc:
-        _log('Trakt setting fallback fehlgeschlagen fuer %s: %s' % (key, exc), log_utils.LOGWARNING)
+	value = '' if value is None else str(value)
+	try:
+		control.setSetting(key, value)
+		return
+	except Exception as exc:
+		_log('Trakt setting fallback fehlgeschlagen fuer %s: %s' % (key, exc), log_utils.LOGWARNING)
 
 
 def _bool(key, default='false'):

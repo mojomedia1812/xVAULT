@@ -3,7 +3,8 @@
 #2021-07-20
 #edit 2024-12-04
 
-import os, sys
+import os, sys, atexit
+import xml.etree.ElementTree as ET
 import xbmc, xbmcplugin, xbmcaddon, xbmcgui, xbmcvfs
 from six import iteritems
 
@@ -41,13 +42,118 @@ def py2_encode(value):
 		try: return value.encode('utf-8')
 		except: return value
 	return value
+
+def _addonRootPath():
+	return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+def _addonAssetPath(base, value):
+	value = str(value or '').strip()
+	if not value:
+		return ''
+	if value.startswith('special://') or value.startswith('http://') or value.startswith('https://') or os.path.isabs(value):
+		return value
+	return os.path.join(base, value)
+
+def _readAddonInfo():
+	base = _addonRootPath()
+	info = {'id': 'plugin.video.xvault', 'name': 'xVAULT', 'version': '', 'path': base}
+	try:
+		root = ET.parse(os.path.join(base, 'addon.xml')).getroot()
+		for key in ('id', 'name', 'version'):
+			value = root.attrib.get(key)
+			if value:
+				info[key] = value
+		assets = root.find("./extension[@point='xbmc.addon.metadata']/assets")
+		if assets is None:
+			assets = root.find('.//assets')
+		if assets is not None:
+			for key in ('icon', 'fanart', 'banner'):
+				node = assets.find(key)
+				if node is not None and node.text:
+					info[key] = _addonAssetPath(base, node.text)
+	except:
+		pass
+	info['profile'] = translatePath('special://profile/addon_data/%s/' % info.get('id', 'plugin.video.xvault'))
+	return info
 ## from six
 ## iteritems = lambda d: ((hasattr(d, 'iteritems') and d.iteritems) or d.items)()
 
+class _KodiLazyObject(object):
+	def __init__(self, factory, cleanup=None):
+		self._factory = factory
+		self._cleanup = cleanup
+		self._obj = None
+
+	def _get(self):
+		if self._obj is None:
+			self._obj = self._factory()
+		return self._obj
+
+	def __getattr__(self, name):
+		if self._cleanup and name == self._cleanup:
+			return self._release_call
+		return getattr(self._get(), name)
+
+	def __bool__(self):
+		return True
+
+	__nonzero__ = __bool__
+
+	def _release_call(self, *args, **kwargs):
+		obj = self._obj
+		self._obj = None
+		if obj is None:
+			return None
+		try:
+			return getattr(obj, self._cleanup)(*args, **kwargs)
+		except:
+			return None
+
+	def release(self):
+		if self._cleanup:
+			self._release_call()
+			return
+		self._obj = None
+
+
+class _KodiDynamicObject(object):
+	def __init__(self, factory):
+		self._factory = factory
+
+	def __getattr__(self, name):
+		return getattr(self._factory(), name)
+
+	def __bool__(self):
+		return True
+
+	__nonzero__ = __bool__
+
+
+_kodi_lazy_objects = []
+
+
+def _lazy(factory, cleanup=None):
+	obj = _KodiLazyObject(factory, cleanup)
+	_kodi_lazy_objects.append(obj)
+	return obj
+
+
+def _dynamic(factory):
+	return _KodiDynamicObject(factory)
+
+
 # xbmcaddon
-Addon = xbmcaddon.Addon()
-addonInfo = xbmcaddon.Addon().getAddonInfo
-addonId = addonInfo('id')	   # 'plugin.video.xvault'
+_ADDON_INFO = _readAddonInfo()
+addonId = _ADDON_INFO.get('id', 'plugin.video.xvault')
+
+
+def addonInfo(key):
+	value = _ADDON_INFO.get(key)
+	if value:
+		return value
+	return ''
+
+
 addonName = addonInfo('name')   # 'xVAULT'
 addonVersion = addonInfo('version')
 addonPath = translatePath(addonInfo('path'))   # 'C:\\Program Files\\Kodi21\\portable_data\\addons\\plugin.video.xvault\\'
@@ -58,33 +164,162 @@ addonProfilePath = translatePath(addonInfo('profile')) # 'C:\\Program Files\\Kod
 #cachePath = os.path.join(addonProfilePath, "cache")
 #if not exists(cachePath): os.makedirs(cachePath)
 
-def _addon():
-	return xbmcaddon.Addon(addonId)
+_settings_cache = {}
+
+def _readSettingsXml(path, defaults=False):
+	values = {}
+	if not path or not os.path.exists(path):
+		return values
+	try:
+		root = ET.parse(path).getroot()
+		for node in root.findall('.//setting'):
+			setting_id = node.attrib.get('id')
+			if not setting_id:
+				continue
+			if defaults:
+				value = node.attrib.get('default')
+				if value is None:
+					value = node.attrib.get('value')
+				if value is None and node.text is not None:
+					value = node.text
+			else:
+				value = node.attrib.get('value')
+				if value is None and node.text is not None:
+					value = node.text
+			if value is not None:
+				values[setting_id] = str(value).strip()
+	except:
+		pass
+	return values
+
+def _settingsValues(path, defaults=False):
+	try:
+		mtime = os.path.getmtime(path)
+	except:
+		mtime = None
+	cache_key = (path, bool(defaults))
+	cached = _settings_cache.get(cache_key)
+	if cached and cached.get('mtime') == mtime:
+		return cached.get('values', {})
+	values = _readSettingsXml(path, defaults)
+	_settings_cache[cache_key] = {'mtime': mtime, 'values': values}
+	return values
+
+def _invalidateSettingsCache():
+	try:
+		_settings_cache.clear()
+	except:
+		pass
+
+def _settingsXmlPath():
+	return os.path.join(addonProfilePath, 'settings.xml')
+
+def _settingsRoot(path):
+	try:
+		if path and os.path.exists(path):
+			root = ET.parse(path).getroot()
+			if root.tag == 'settings':
+				return root
+	except:
+		pass
+	return ET.Element('settings', {'version': '2'})
+
+def _writeSettingsRoot(root, path):
+	tmp_path = ''
+	try:
+		directory = os.path.dirname(path)
+		if directory and not os.path.exists(directory):
+			os.makedirs(directory)
+		try:
+			if hasattr(ET, 'indent'):
+				ET.indent(root, space='    ')
+		except:
+			pass
+		tmp_path = path + '.tmp'
+		ET.ElementTree(root).write(tmp_path, encoding='utf-8', xml_declaration=False)
+		os.replace(tmp_path, path)
+		return True
+	except:
+		try:
+			if tmp_path and os.path.exists(tmp_path):
+				os.remove(tmp_path)
+		except:
+			pass
+		return False
+
+def _writeSettingValue(setting_id, value):
+	if not setting_id:
+		return False
+	path = _settingsXmlPath()
+	root = _settingsRoot(path)
+	root.attrib.setdefault('version', '2')
+	target = None
+	for node in list(root.findall('setting')):
+		if node.attrib.get('id') != setting_id:
+			continue
+		if target is None:
+			target = node
+		else:
+			root.remove(node)
+	if target is None:
+		target = ET.SubElement(root, 'setting', {'id': setting_id})
+	else:
+		target.attrib.clear()
+		target.attrib['id'] = setting_id
+	for attr in ('default', 'value'):
+		if attr in target.attrib:
+			del target.attrib[attr]
+	if value == '':
+		target.text = None
+	else:
+		target.text = value
+	return _writeSettingsRoot(root, path)
 
 def setSetting(id=None, value=None):
 	value = '' if value is None else str(value)
 	try:
-		if _addon().getSetting(id) == value:
+		if getSetting(id) == value:
 			return True
 	except Exception:
 		pass
-	return _addon().setSetting(id, value)
+	result = _writeSettingValue(id, value)
+	if result:
+		_invalidateSettingsCache()
+	return result
 
 def getSetting(Name, default=''):
-	try:
-		result = _addon().getSetting(Name)
-	except Exception:
-		result = ''
+	result = _settingsValues(_settingsXmlPath()).get(Name)
 	if result:
 		return result
-	else:
-		return default
+	result = _settingsValues(os.path.join(addonPath, 'resources', 'settings.xml'), defaults=True).get(Name)
+	if result:
+		return result
+	return default
+
+class _AddonSettingsProxy(object):
+	def getAddonInfo(self, key):
+		return addonInfo(key)
+
+	def getSetting(self, key):
+		return getSetting(key)
+
+	def setSetting(self, key, value=''):
+		return setSetting(key, value)
+
+	def setSettingString(self, key, value=''):
+		return setSetting(key, value)
+
+	def setSettingBool(self, key, value=False):
+		return setSetting(key, 'true' if value else 'false')
+
+
+Addon = _AddonSettingsProxy()
 
 # xbmc
 skin = xbmc.getSkinDir()
 infoLabel = xbmc.getInfoLabel
 condVisibility = xbmc.getCondVisibility
-playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+playlist = _lazy(lambda: xbmc.PlayList(xbmc.PLAYLIST_VIDEO))
 keyboard = xbmc.Keyboard
 
 
@@ -99,7 +334,7 @@ keyboard = xbmc.Keyboard
 
 execute = xbmc.executebuiltin
 executebuiltin  = xbmc.executebuiltin
-player = xbmc.Player()
+player = _dynamic(lambda: xbmc.Player())
 abortRequested = xbmc.Monitor().abortRequested()
 jsonrpc = xbmc.executeJSONRPC
 getInfoLabel = xbmc.getInfoLabel
@@ -137,12 +372,12 @@ def hasTrailerPlayer():
 	return True
 
 # xbmcgui
-window = xbmcgui.Window(10000)
-currentWindowId = xbmcgui.Window(xbmcgui.getCurrentWindowId())
+window = _dynamic(lambda: xbmcgui.Window(10000))
+currentWindowId = _dynamic(lambda: xbmcgui.Window(xbmcgui.getCurrentWindowId()))
 item = xbmcgui.ListItem
-dialog = xbmcgui.Dialog()
-progressDialog = xbmcgui.DialogProgress()
-progressDialogBG = xbmcgui.DialogProgressBG()
+dialog = _dynamic(lambda: xbmcgui.Dialog())
+progressDialog = _lazy(lambda: xbmcgui.DialogProgress(), 'close')
+progressDialogBG = _lazy(lambda: xbmcgui.DialogProgressBG(), 'close')
 
 dataPath = py2_decode(translatePath(addonInfo('profile')))
 
@@ -166,6 +401,12 @@ def addonPoster():
 
 def addonBanner():
 	return os.path.join(artPath(), 'banner.png')
+
+def playlistObject():
+	try:
+		return playlist._get()
+	except:
+		return xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 
 #def addonFanart():
 #	addonXml = os.path.join(py2_decode(translatePath(addonInfo('path'))), 'addon.xml')
@@ -334,10 +575,8 @@ def resetSettings():
 		trakt_token_expires_at = getSetting('trakt.token_expires_at')
 		fanart = getSetting('api.fanart.tv')
 		debug = getSetting('status.debug')
-		SettingFile = os.path.join(xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')), "settings.xml")
+		SettingFile = os.path.join(addonProfilePath, "settings.xml")
 		if xbmcvfs.exists(SettingFile): xbmcvfs.delete(SettingFile)
-		# PROFIL_RELOAD = os.path.join(xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('profile')).decode('utf-8'), "profil_reload")
-		# open(PROFIL_RELOAD, "w+").write('Profil reload')
 		setSetting(id='flimmerstube.user', value=flimmerstube_login)
 		setSetting(id='flimmerstube.pass', value=flimmerstube_password)
 		setSetting(id='aniworld.user', value=aniworld_login)
@@ -379,3 +618,38 @@ def inAdvancedsettings(word=''):
 			content = file.read()
 			if word in content: return True
 	return False
+
+
+def cleanupKodiObjects():
+	try:
+		idle()
+	except:
+		pass
+	try:
+		sources_module = sys.modules.get('resources.lib.sources')
+		if sources_module is not None and hasattr(sources_module, '_RESOLVEURL_MODULE'):
+			setattr(sources_module, '_RESOLVEURL_MODULE', None)
+	except:
+		pass
+	try:
+		for module_name in list(sys.modules.keys()):
+			if module_name == 'resolveurl' or module_name.startswith('resolveurl.'):
+				sys.modules.pop(module_name, None)
+	except:
+		pass
+	for obj in reversed(_kodi_lazy_objects):
+		try:
+			obj.release()
+		except:
+			pass
+	try:
+		import gc
+		gc.collect()
+	except:
+		pass
+
+
+try:
+	atexit.register(cleanupKodiObjects)
+except:
+	pass

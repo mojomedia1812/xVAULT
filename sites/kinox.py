@@ -197,7 +197,7 @@ class source:
                             r = [(dom_parser.parse_dom(r, 'a', req='href'), dom_parser.parse_dom(r, 'iframe', req='src'))]
                             r = [i[0][0].attrs['href'] if i[0] else i[1][0].attrs['src'] for i in r if i[0] or i[1]][0]
                             if not r.startswith('http'): r = urljoin('https:', r)
-                            isBlocked, hoster, url, prioHoster = isBlockedHoster(r)
+                            isBlocked, hoster, url, prioHoster = isBlockedHoster(r, isResolve=False)
                             if isBlocked: continue
                             info = 'Mirror ' + str(x+1)
                             if language_label:

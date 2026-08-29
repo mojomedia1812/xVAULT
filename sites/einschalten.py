@@ -1,6 +1,5 @@
 # -*- coding: UTF-8 -*-
 import re
-import resolveurl as resolver
 import json
 from scrapers.modules.tools import cParser
 from resources.lib.requestHandler import cRequestHandler
@@ -76,7 +75,7 @@ class source:
                         quality = '360p'
                     else:
                         quality = 'SD'
-                    isBlocked, hoster, url, prioHoster = isBlockedHoster(streamUrl)
+                    isBlocked, hoster, url, prioHoster = isBlockedHoster(streamUrl, isResolve=False)
                     if isBlocked:
                         continue
                     self.sources.append({'source': hoster, 'quality': quality, 'language': 'de', 'url': streamUrl, 'direct': False, 'prioHoster': prioHoster})

@@ -20,6 +20,7 @@ class source:
         self.domain = getSetting('provider.' + SITE_IDENTIFIER + '.domain', SITE_DOMAIN)
         self.base_link = 'https://' + self.domain
         self.search_link = '/search/title/%s'
+        self.max_search_pages = 5
 
     def _request(self, url, referer=None):
         headers = {
@@ -44,49 +45,42 @@ class source:
     def run(self, titles, year, season=0, episode=0, imdb='', hostDict=None):
         sources = []
         url = ''
+        moviecontent = ''
 
         try:
             titles = [t for t in titles if t and str(t).lower() != 'none']
             logger.info('[Filmpalast] Suche: %s' % titles)
 
             for title in titles:
-                search_url = self.base_link + (self.search_link % quote(title))
-                data = self._request(search_url, self.base_link)
-                if not data:
-                    continue
-
-                content = self._content_area(data)
-                matches = self._parse_search_results(content)
-
-                clean_search = self._clean_title(title, year)
-
-                for m_url, m_title in matches:
+                candidates = []
+                for m_url, m_title in self._search_candidates(title):
                     if season and episode and not self._episode_matches(m_title, m_url, season, episode):
                         continue
 
-                    clean_match = self._clean_title(m_title, year)
-                    if clean_search not in clean_match and clean_match not in clean_search:
+                    score = self._match_score(title, m_title, m_url, year)
+                    if score <= 0:
                         continue
 
                     page_url = self._absolute_url(m_url)
                     page_data = self._request(page_url, self.base_link)
+                    if not page_data:
+                        continue
+                    if year and not self._year_matches(page_data, year):
+                        continue
 
-                    if year:
-                        y = re.search(r'>Ver&ouml;ffentlicht:\s*([^<]+)', page_data, re.I)
-                        if y and str(year) not in y.group(1):
-                            continue
+                    candidates.append((score, page_url, page_data))
 
-                    url = page_url
+                if candidates:
+                    candidates.sort(key=lambda item: item[0], reverse=True)
+                    _score, url, moviecontent = candidates[0]
                     logger.info('[Filmpalast] Treffer: %s' % url)
-                    break
-
-                if url:
                     break
 
             if not url:
                 return sources
 
-            moviecontent = self._request(url, self.base_link)
+            if not moviecontent:
+                moviecontent = self._request(url, self.base_link)
 
             quality = 'HD'
             q = re.search(r'<span id="release_text"[^>]*>([^<&]+)', moviecontent, re.I)
@@ -115,7 +109,8 @@ class source:
                     'language': 'de',
                     'url': res_url if res_url else s_url,
                     'direct': False,
-                    'debridonly': False
+                    'debridonly': False,
+                    'prioHoster': prio
                 })
 
             logger.info('[Filmpalast] %d Quellen gefunden' % len(sources))
@@ -136,16 +131,53 @@ class source:
         )
         return content_match.group(1) if content_match else data or ''
 
+    def _search_candidates(self, title):
+        search_url = self.base_link + (self.search_link % quote(title))
+        queue = [search_url]
+        visited = set()
+        results = []
+        seen = set()
+
+        while queue and len(visited) < self.max_search_pages:
+            page_url = queue.pop(0)
+            if page_url in visited:
+                continue
+            visited.add(page_url)
+
+            data = self._request(page_url, self.base_link)
+            if not data:
+                continue
+
+            for href, result_title in self._parse_search_results(self._content_area(data)):
+                key = (self._absolute_url(href), self._clean_title(result_title))
+                if key in seen:
+                    continue
+                seen.add(key)
+                results.append((href, result_title))
+
+            for next_url in self._next_page_urls(data, search_url):
+                if next_url not in visited and next_url not in queue:
+                    queue.append(next_url)
+
+        return results
+
     def _parse_search_results(self, html):
         results = []
         seen = set()
-        pattern = re.compile(
-            r'<a\b(?=[^>]*\btitle=(["\'])(?P<title>.*?)\1)[^>]*\bhref=(["\'])(?P<href>(?:(?:https?:)?//[^"\']+)?/stream/[^"\']+)\3',
-            re.S | re.I
-        )
-        for match in pattern.finditer(html or ''):
-            href = unescape(match.group('href')).strip()
-            title = self._clean_text(match.group('title'))
+
+        for match in re.finditer(r'(?is)<a\b[^>]*\bhref=(["\'])(.*?)\1[^>]*>.*?</a>', html or ''):
+            anchor = match.group(0)
+            href = unescape(match.group(2)).strip()
+            if '/stream/' not in href:
+                continue
+            title = (
+                self._attr(anchor, 'title')
+                or self._attr(anchor, 'data-title')
+                or self._attr(anchor, 'aria-label')
+                or self._image_alt(anchor)
+                or self._clean_text(re.sub(r'(?is)^<a\b[^>]*>|</a>$', ' ', anchor))
+                or self._title_from_href(href)
+            )
             if not href or not title:
                 continue
             key = (href, title)
@@ -180,11 +212,48 @@ class source:
                 streams.append((hoster, stream_url))
         return streams
 
+    def _next_page_urls(self, html, first_search_url):
+        urls = []
+        seen = set()
+        first_path = urlparse(first_search_url).path.rstrip('/')
+        for match in re.finditer(r'(?is)<a\b[^>]*\bhref=(["\'])(.*?)\1[^>]*>(.*?)</a>', html or ''):
+            href = unescape(match.group(2)).strip()
+            label = self._clean_text(match.group(3)).lower()
+            if not href:
+                continue
+            absolute = self._absolute_url(href)
+            path = urlparse(absolute).path.rstrip('/')
+            if not path.startswith(first_path):
+                continue
+            if not re.search(r'(?:^|\D)(?:[2-9]|\d{2,})(?:\D|$)', label) and 'vorw' not in label and 'next' not in label and '+' not in label:
+                continue
+            if absolute in seen:
+                continue
+            seen.add(absolute)
+            urls.append(absolute)
+        return urls[:self.max_search_pages - 1]
+
     def _absolute_url(self, url):
         url = unescape(url or '').strip()
         if url.startswith('//'):
             return 'https:' + url
         return urljoin(self.base_link, url)
+
+    @staticmethod
+    def _attr(html, attr):
+        match = re.search(r'\b%s=(["\'])(.*?)\1' % re.escape(attr), html or '', re.S | re.I)
+        return source._clean_text(match.group(2)) if match else ''
+
+    def _image_alt(self, html):
+        match = re.search(r'(?is)<img\b[^>]*\balt=(["\'])(.*?)\1', html or '')
+        return self._clean_text(match.group(2)) if match else ''
+
+    def _title_from_href(self, href):
+        try:
+            slug = unescape(str(href).split('/stream/', 1)[1]).split('?', 1)[0].strip('/')
+            return self._clean_text(slug.replace('-', ' '))
+        except:
+            return ''
 
     @staticmethod
     def _clean_text(value):
@@ -198,6 +267,73 @@ class source:
         if year:
             title = re.sub(r'\(?\b%s\b\)?' % re.escape(str(year)), ' ', title)
         return cleantitle.get(title)
+
+    def _title_variants(self, title, year=None):
+        values = []
+        base = self._clean_text(title)
+        if year:
+            base = re.sub(r'\(?\b%s\b\)?' % re.escape(str(year)), ' ', base)
+        candidates = [base]
+        candidates.append(re.sub(r'\s*&\s*', ' ', base))
+        candidates.append(re.sub(r'\band\b', ' ', base, flags=re.I))
+        for candidate in candidates:
+            cleaned = cleantitle.get(candidate)
+            if cleaned:
+                values.append(cleaned)
+            ascii_candidate = candidate.lower()
+            replacements = [
+                (u'\xe4', 'ae'), (u'\xf6', 'oe'), (u'\xfc', 'ue'),
+                (u'\xdf', 'ss'), (u'\xe9', 'e'), (u'\xe8', 'e'),
+            ]
+            for source_text, target_text in replacements:
+                ascii_candidate = ascii_candidate.replace(source_text, target_text)
+            ascii_candidate = re.sub(r'[^a-z0-9]+', '', ascii_candidate)
+            if ascii_candidate:
+                values.append(ascii_candidate)
+        return list(set([value for value in values if value]))
+
+    def _match_score(self, requested_title, result_title, href, year=None):
+        requested = self._title_variants(requested_title, year)
+        result = self._title_variants(result_title, year)
+        slug_title = self._title_from_href(href)
+        if slug_title:
+            result.extend(self._title_variants(slug_title, year))
+
+        for left in requested:
+            for right in result:
+                if not left or not right:
+                    continue
+                if left == right:
+                    return 100
+                if len(left) >= 6 and len(right) >= 6 and (left in right or right in left):
+                    return 60
+        return 0
+
+    def _year_matches(self, html, expected_year):
+        page_year = self._extract_year(html)
+        if not page_year:
+            return True
+        try:
+            return abs(int(page_year) - int(expected_year)) <= 1
+        except:
+            return True
+
+    def _extract_year(self, html):
+        patterns = [
+            r'>\s*Ver(?:&ouml;|\xf6)ffentlicht:\s*([^<]+)',
+            r'>\s*(?:Erscheinungsjahr|Release|Jahr):\s*([^<]+)',
+            r'<time[^>]+datetime=(["\'])(.*?)\1',
+            r'<meta[^>]+property=(["\'])(?:og:video:release_date|video:release_date)\1[^>]+content=(["\'])(.*?)\2',
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, html or '', re.I | re.S)
+            if not match:
+                continue
+            text = ' '.join([group for group in match.groups() if group])
+            year = re.search(r'\b(19\d{2}|20\d{2})\b', unescape(text))
+            if year:
+                return year.group(1)
+        return ''
 
     def _episode_matches(self, title, url, season, episode):
         haystack = '%s %s' % (title or '', url or '')

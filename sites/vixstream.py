@@ -48,7 +48,10 @@ class source:
     def _request_json(self, url, headers=None, caching=False):
         payload, status, real_url = self._request(url, headers=headers, caching=caching)
         if status not in ['200', '301']:
-            logger.error('[%s] API-Status: %s' % (SITE_NAME, status))
+            if status == '404':
+                logger.info('[%s] API-Status: %s' % (SITE_NAME, status))
+            else:
+                logger.warning('[%s] API-Status: %s' % (SITE_NAME, status))
             return None
         try:
             return json.loads(payload)
@@ -206,7 +209,7 @@ class source:
 
         audio_languages = self._audio_languages_from_playlist(playlist)
         if audio_languages and stream_language not in audio_languages:
-            logger.warning('[%s] Sprache verworfen: angefordert=%s, Audio=%s, tmdb=%s' % (
+            logger.info('[%s] Sprache verworfen: angefordert=%s, Audio=%s, tmdb=%s' % (
                 SITE_NAME, stream_language, ','.join(sorted(audio_languages)), tmdb_id
             ))
             return None, None, None

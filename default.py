@@ -600,3 +600,8 @@ elif action == 'resetSettings':
 elif action == 'resolverSettings':
     import resolveurl as resolver
     resolver.display_settings()
+
+try:
+    control.cleanupKodiObjects()
+except Exception:
+    pass

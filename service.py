@@ -3,8 +3,8 @@
 # edit 2026-06-13
 
 import sys, os, threading
+import xml.etree.ElementTree as ET
 from random import choice
-from xbmcaddon import Addon
 # from resources.lib.requestHandler import cRequestHandler
 try:
     from resources.lib.tools import logger
@@ -22,11 +22,33 @@ else:
     from xbmcvfs import translatePath
     from urllib.parse import urlparse
 
-addonInfo = Addon().getAddonInfo
+def _addonRootPath():
+    return os.path.abspath(os.path.dirname(__file__))
+
+def _readAddonInfo():
+    info = {'id': 'plugin.video.xvault', 'name': 'xVAULT', 'version': '', 'path': _addonRootPath()}
+    try:
+        root = ET.parse(os.path.join(info['path'], 'addon.xml')).getroot()
+        for key in ('id', 'name', 'version'):
+            value = root.attrib.get(key)
+            if value:
+                info[key] = value
+    except:
+        pass
+    return info
+
+_ADDON_INFO = _readAddonInfo()
+
+def addonInfo(key):
+    value = _ADDON_INFO.get(key)
+    if value:
+        return value
+    return ''
+
+
 addonPath = translatePath(addonInfo('path'))
+addonProfilePath = translatePath('special://profile/addon_data/%s/' % _ADDON_INFO.get('id', 'plugin.video.xvault'))
 addonVersion = addonInfo('version')
-_setSetting = Addon().setSetting
-_getSetting = Addon().getSetting
 _settingsLock = threading.Lock()
 SERIENSTREAM_OLD_DOMAIN = '.'.join(('s', 'to'))
 PROVIDER_DOMAIN_REPLACEMENTS = {
@@ -38,19 +60,90 @@ PROVIDER_DOMAIN_REPLACEMENTS = {
     ('serienstream', 'www.' + SERIENSTREAM_OLD_DOMAIN): 'serienstream.to',
 }
 
+def _settings_xml_values(path, defaults=False):
+    values = {}
+    if not path or not os.path.exists(path):
+        return values
+    try:
+        root = ET.parse(path).getroot()
+        for node in root.findall('.//setting'):
+            setting_id = node.attrib.get('id')
+            if not setting_id:
+                continue
+            if defaults:
+                value = node.attrib.get('default')
+                if value is None:
+                    value = node.attrib.get('value')
+                if value is None and node.text is not None:
+                    value = node.text
+            else:
+                value = node.attrib.get('value')
+                if value is None and node.text is not None:
+                    value = node.text
+            if value is not None:
+                values[setting_id] = str(value).strip()
+    except:
+        pass
+    return values
+
+
 def getSetting(Name, default=''):
-    result = _getSetting(Name)
-    if result: return result
-    else: return default
+    result = _settings_xml_values(os.path.join(addonProfilePath, 'settings.xml')).get(Name)
+    if result:
+        return result
+    result = _settings_xml_values(os.path.join(addonPath, 'resources', 'settings.xml'), defaults=True).get(Name)
+    if result:
+        return result
+    return default
+
+
+def _write_setting_value(Name, value):
+    path = os.path.join(addonProfilePath, 'settings.xml')
+    try:
+        directory = os.path.dirname(path)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory)
+        try:
+            root = ET.parse(path).getroot() if os.path.exists(path) else ET.Element('settings', {'version': '2'})
+            if root.tag != 'settings':
+                root = ET.Element('settings', {'version': '2'})
+        except:
+            root = ET.Element('settings', {'version': '2'})
+        root.attrib.setdefault('version', '2')
+        target = None
+        for node in list(root.findall('setting')):
+            if node.attrib.get('id') != Name:
+                continue
+            if target is None:
+                target = node
+            else:
+                root.remove(node)
+        if target is None:
+            target = ET.SubElement(root, 'setting', {'id': Name})
+        else:
+            target.attrib.clear()
+            target.attrib['id'] = Name
+        target.text = None if value == '' else value
+        try:
+            if hasattr(ET, 'indent'):
+                ET.indent(root, space='    ')
+        except:
+            pass
+        tmp_path = path + '.tmp'
+        ET.ElementTree(root).write(tmp_path, encoding='utf-8', xml_declaration=False)
+        os.replace(tmp_path, path)
+        return True
+    except:
+        return False
 
 def setSetting(Name, value):
     value = '' if value is None else str(value)
     try:
-        if _getSetting(Name) == value:
+        if getSetting(Name) == value:
             return True
     except Exception:
         pass
-    return _setSetting(Name, value)
+    return _write_setting_value(Name, value)
 
 # Html Cache beim KodiStart loeschen
 def delHtmlCache():

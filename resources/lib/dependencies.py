@@ -9,7 +9,6 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 import xbmc
-import xbmcaddon
 
 try:
     import xbmcvfs
@@ -27,11 +26,31 @@ except ImportError:
     from urllib2 import Request, urlopen
 
 
-ADDON = xbmcaddon.Addon()
-ADDON_ID = ADDON.getAddonInfo('id')
-ADDON_NAME = ADDON.getAddonInfo('name')
-ADDON_PATH = ADDON.getAddonInfo('path')
-ADDON_VERSION = ADDON.getAddonInfo('version')
+ADDON_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+
+def _addon_manifest_info():
+    info = {
+        'id': 'plugin.video.xvault',
+        'name': 'xVAULT',
+        'path': ADDON_PATH,
+        'version': '',
+    }
+    try:
+        root = ET.parse(os.path.join(ADDON_PATH, 'addon.xml')).getroot()
+        for key in ('id', 'name', 'version'):
+            value = root.attrib.get(key)
+            if value:
+                info[key] = value
+    except:
+        pass
+    return info
+
+
+_ADDON_INFO = _addon_manifest_info()
+ADDON_ID = _ADDON_INFO.get('id', 'plugin.video.xvault')
+ADDON_NAME = _ADDON_INFO.get('name', 'xVAULT')
+ADDON_VERSION = _ADDON_INFO.get('version', '')
 
 INSTALL_TIMEOUT = 90
 INSTALL_OPTIONAL = False
@@ -209,12 +228,32 @@ def _should_install(addon_id, optional):
     return True
 
 
+def _addon_version(addon_id):
+    try:
+        payload = json.dumps({
+            'jsonrpc': '2.0',
+            'id': 1,
+            'method': 'Addons.GetAddonDetails',
+            'params': {
+                'addonid': addon_id,
+                'properties': ['version'],
+            },
+        })
+        response = json.loads(xbmc.executeJSONRPC(payload) or '{}')
+        addon = response.get('result', {}).get('addon', {})
+        return str(addon.get('version') or '').strip()
+    except:
+        return ''
+
+
 def _has_addon(addon_id, min_version=None):
     try:
         if not bool(xbmc.getCondVisibility('System.HasAddon(%s)' % addon_id)):
             return False
         if min_version:
-            installed = xbmcaddon.Addon(addon_id).getAddonInfo('version')
+            installed = _addon_version(addon_id)
+            if not installed:
+                return False
             return _compare_versions(installed, min_version) >= 0
         return True
     except:

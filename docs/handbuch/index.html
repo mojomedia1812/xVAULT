@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.08.29.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.08.29.5.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.08.29.1.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.08.29.5.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -446,10 +446,10 @@
           <tr><td>Metadaten vorbereiten</td><td>Titel, Originaltitel, Jahr, IMDb-/TMDb-IDs, Staffel, Episode, Episodentitel und Erstausstrahlung werden gesammelt.</td></tr>
           <tr><td>Indexseiten auswählen</td><td>Nur aktivierte Anbieter werden abgefragt. Serien- und Film-Scraper werden passend zum Medientyp genutzt.</td></tr>
           <tr><td>Bekannte Serienanbieter bevorzugen</td><td>Wenn xVAULT für eine Serie bereits erfolgreiche Anbieter kennt, werden diese bei späteren Folgen früher abgefragt.</td></tr>
-          <tr><td>Hoster prüfen</td><td>xVAULT lädt die aktuelle ResolveURL-Hosterliste und reicht sie an Scraper weiter, die diese Information unterstützen.</td></tr>
+          <tr><td>Hoster prüfen</td><td>xVAULT liest die ResolveURL-Hosterliste aus den installierten ResolveURL-Plugin-Dateien und reicht sie an Scraper weiter, die diese Information unterstützen. Die eigentliche ResolveURL-Auflösung wird erst beim Start einer Quelle geladen und danach wieder aus dem xVAULT-Invoker gelöst.</td></tr>
           <tr><td>Quellen normalisieren</td><td>Gefundene Einträge erhalten Anbieter, Hoster, Qualität, Sprache, Priorität und eine abspielbare oder auflösbare URL.</td></tr>
-          <tr><td>Sprache und Qualität anwenden</td><td>Die Liste wird nach Sprache, Qualität, Providerreihenfolge, Hosterlimit und Ausschlussliste sortiert oder gefiltert.</td></tr>
-          <tr><td>Abspielen vorbereiten</td><td>Beim Start löst xVAULT die Quelle frisch auf, überspringt unbrauchbare HTML-Seiten und übergibt nur nutzbare Medienlinks an Kodi.</td></tr>
+          <tr><td>Sprache und Qualität anwenden</td><td>Die Liste wird nach Sprache, Qualität, Providerreihenfolge, Hosterlimit und Ausschlussliste sortiert oder gefiltert. Dubletten werden erst nach dieser Bewertung entfernt, damit die Sortierung nachvollziehbar bleibt.</td></tr>
+          <tr><td>Abspielen vorbereiten</td><td>Beim Start löst xVAULT die Quelle frisch auf, überspringt unbrauchbare HTML-Seiten und übergibt nur nutzbare Medienlinks an Kodi. Provider-/Hoster-Kombinationen, die gerade mit Timeout oder Resolverfehler aufgefallen sind, werden kurzzeitig übersprungen.</td></tr>
         </tbody>
       </table>
       <h3>Aktivierbare Indexseiten</h3>
@@ -489,22 +489,26 @@
         </thead>
         <tbody>
           <tr><td>Filme &amp; Serien</td><td>Einschalten, Filmpalast, Filmo, Filmpro, HDFilme, FHDFilme, Huhu, KinoGer, KinoKiste, Kinox, KKiste, Megakino, Movie2k, Movie2k2, Movie4k, Nox, StreamCloud, StreamCloud Forum, TopStreamFilm und VixStream.</td></tr>
-          <tr><td>Nur Filme</td><td>Cine.to, Filmfans und Netzkino.</td></tr>
-          <tr><td>Nur Serien</td><td>SerienStream.to, AniWorld.to und Serienfans.</td></tr>
+          <tr><td>Nur Filme</td><td>Cine.to, Filmfans, Netzkino und Internet Archive.</td></tr>
+          <tr><td>Nur Serien</td><td>SerienStream.to, AniWorld.to, AnimeToast und Serienfans.</td></tr>
           <tr><td>Ausgeblendet</td><td>BS.to ist in der aktuellen Oberfläche nicht als aktivierbare Quelle sichtbar und wird vom Scraper-Lader übersprungen.</td></tr>
         </tbody>
       </table>
       <h3>Filmpalast</h3>
-      <p>Filmpalast wird für Filme und Serien als normale Indexseite geführt. xVAULT berücksichtigt die aktuelle Such- und Quellenstruktur der Seite, schützt korrekt kodierte Suchpfade vor Doppel-Kodierung und übernimmt erkannte Hoster in die Quellenliste, bevor die Resolver-Schicht den eigentlichen Abspiellink vorbereitet.</p>
+      <p>Filmpalast wird für Filme und Serien als normale Indexseite geführt. xVAULT berücksichtigt die aktuelle Such- und Quellenstruktur der Seite, schützt korrekt kodierte Suchpfade vor Doppel-Kodierung, wertet mehrere Suchergebnisseiten aus und erkennt Treffer über Linktitel, Zusatzattribute, Bildtexte und URL-Slugs. Erkannte Jahresangaben werden tolerant geprüft, damit ein leicht abweichendes Veröffentlichungsdatum nicht sofort einen ansonsten passenden Treffer entfernt.</p>
       <h3>Filmo</h3>
-      <p>Filmo wird zusätzlich zu den Collections auch als normale Filmquelle genutzt. Bei der Quellensuche liest xVAULT die Filmo-Suche, öffnet passende Filmseiten, übernimmt Deutsch- und Englisch-Providerchips und löst sie vor der Quellenanzeige über den Filmo-Mint-Endpunkt in echte Hoster-Weiterleitungen auf. Andere Sprachvarianten werden nicht als eigene xVAULT-Sprache geführt.</p>
+      <p>Filmo wird zusätzlich zu den Collections auch als normale Filmquelle genutzt. Bei der Quellensuche liest xVAULT die Filmo-Suche, öffnet passende Filmseiten, übernimmt Deutsch- und Englisch-Providerchips und löst sie vor der Quellenanzeige über den Filmo-Mint-Endpunkt in echte Hoster-Weiterleitungen auf. Dafür nutzt xVAULT die eigene RequestHandler-Logik mit CSRF-Token, Session-Cookies, direkten Mint-Zielen sowie HTTP- und HTML-Redirects. Andere Sprachvarianten werden nicht als eigene xVAULT-Sprache geführt.</p>
       <h3>Movie4k</h3>
       <p>Movie4k nutzt die aktuelle API-Struktur der erreichbaren Domain. Alte gespeicherte Movie4k-Domainwerte werden beim Providercheck auf die funktionierende Domain migriert, damit die Indexseite nicht durch veraltete Einstellungen als nicht erreichbar markiert wird.</p>
       <h3>AniWorld</h3>
-      <p>AniWorld.to ist als optionaler Serienanbieter eingebunden. Der Anbieter kann über die Indexseiten aktiviert oder deaktiviert werden und nutzt die Serien-/Episodenlogik von xVAULT mit Titelabgleich, Staffel-/Episodenpfaden und Sprachkennzeichnung.</p>
+      <p>AniWorld.to ist als optionaler Serienanbieter eingebunden. Der Anbieter kann über die Indexseiten aktiviert oder deaktiviert werden und nutzt die Serien-/Episodenlogik von xVAULT mit Titelabgleich, Staffel-/Episodenpfaden und Sprachkennzeichnung. Untertitelvarianten wie Ger-Sub oder Eng-Sub werden nicht als deutsche oder englische Tonspur behandelt, sondern als unklare Sprache geführt.</p>
       <p>Zugangsdaten können unter <strong>Anbieter-Logins</strong> hinterlegt werden, sind aber nicht zwingend erforderlich. Ohne Zugangsdaten sucht xVAULT nach erreichbaren Quellen, die ohne Anmeldung nutzbar sind.</p>
+      <h3>AnimeToast</h3>
+      <p>AnimeToast ist als eigener Serien-Scraper eingebunden. xVAULT wertet die WordPress-Suche, eindeutige Serienseiten, Ajax-Playerdaten und konkrete Einzel-Episodenlinks aus. Staffelbereichs-Container wie komplette Episodenblöcke werden nicht als einzelne Folge übernommen, weil sie sonst leicht auf den falschen Inhalt zeigen könnten. Ger-Dub wird als deutsche Tonspur geführt; Ger-Sub und Eng-Sub bleiben bewusst unklare Sprache, weil Untertitel keine Audio-Sprache sind.</p>
+      <h3>Internet Archive</h3>
+      <p>Internet Archive ist als optionale Filmquelle vorhanden und standardmäßig deaktiviert. Die Suche ist streng auf passende Filmnamen, Jahresangaben und echte Videodateien begrenzt. Dadurch werden Archivbeiträge, Trailer, Reviews oder Bonusmaterial nicht ungeprüft als Filmquelle in die normale Trefferliste übernommen.</p>
       <h3>Ergänzende Quellen</h3>
-      <p>CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM werden wie die anderen Indexseiten im Bereich <strong>Quellen verwalten</strong> über eigene Schalter aktiviert oder deaktiviert. xVAULT übernimmt nur Quellen, die sich sinnvoll an Kodi oder die Resolver-Schicht übergeben lassen; interne Hilfslinks, reine Containerwege oder nicht abspielbare Einträge werden ausgefiltert.</p>
+      <p>CINE.TO, FILMFANS, NOX, SERIENFANS, STREAMCLOUD.FORUM und weitere optionale Anbieter werden wie die anderen Indexseiten im Bereich <strong>Quellen verwalten</strong> über eigene Schalter aktiviert oder deaktiviert. xVAULT übernimmt nur Quellen, die sich sinnvoll an Kodi oder die Resolver-Schicht übergeben lassen; interne Hilfslinks, reine Containerwege oder nicht abspielbare Einträge werden ausgefiltert.</p>
       <h3>Serien-Specials in Quellen</h3>
       <p>Bei Sonderfolgen reicht xVAULT Episodentitel, Erstausstrahlung und Staffel-0-Informationen an die Quellen-Scraper weiter. Das hilft, Specials zu finden, wenn Anbieter sie nicht als normale Staffel-Episode führen oder wenn ein Titelvergleich nötig ist.</p>
       <h3>SerienStream-Domain</h3>
@@ -512,10 +516,12 @@
       <p>SerienStream.to benötigt in xVAULT keine Zugangsdaten mehr. Die Quellensuche läuft direkt ohne vorherige Loginprüfung, damit fehlende oder veraltete Zugangsdaten die Suche nicht blockieren.</p>
       <p>Für ältere Profile bedeutet das: gespeicherte Werte wie die frühere Kurzdomain werden nicht weiterverwendet, sondern auf <strong>serienstream.to</strong> zurückgeführt. Netzwerkseitig nutzt xVAULT zuerst Cloudflare DNS over HTTPS. Nur wenn diese Auflösung keine nutzbare Verbindung liefert, kann für SerienStream die bekannte feste IP als Rückfall verwendet werden.</p>
       <h3>Folgenerkennung bei abweichenden Staffeln</h3>
-      <p>Einige Anbieter teilen Serien anders als TMDb, zum Beispiel in Parts statt in Staffeln. Wenn SerienStream eine Folge unter der direkten SxxExx-Nummer nicht findet oder der Titel der gefundenen Anbieterfolge nicht passt, prüft xVAULT die verfügbaren Anbieter-Staffeln anhand von Episodentitel und Erstausstrahlung und übernimmt nur einen bestätigten Treffer. Der Episodentitel hat Vorrang; ein Datum wird nur als Rückfall genutzt, wenn es genau einen passenden Kandidaten gibt.</p>
+      <p>Einige Anbieter teilen Serien anders als TMDb, zum Beispiel in Parts statt in Staffeln. Wenn SerienStream oder AniWorld eine Folge unter der direkten SxxExx-Nummer nicht findet oder der Titel der gefundenen Anbieterfolge nicht passt, prüft xVAULT die verfügbaren Anbieter-Staffeln anhand von Episodentitel und Erstausstrahlung und übernimmt nur einen bestätigten Treffer. Der Episodentitel hat Vorrang; ein Datum wird nur als Rückfall genutzt, wenn es genau einen passenden Kandidaten gibt. Zusätzlich erkennt xVAULT Kapitelnummern und deutsche/englische Titelvarianten, damit gemischte Titel wie deutsche Folge plus englischer Originaltitel sauber zugeordnet werden.</p>
       <h3>Scraper-Fallbacks</h3>
       <p>Viele Scraper arbeiten mehrstufig. SerienStream versucht zuerst die IMDb-Suche, fällt bei fehlendem Treffer auf die Titelsuche zurück und prüft danach Episodentitel oder Erstausstrahlung, wenn eine Anbieterfolge nicht eindeutig zur angefragten Folge passt. Andere Anbieter nutzen vergleichbare Titel-, Domain-, API- oder Watch-URL-Rückfälle, damit einzelne Webseitenänderungen nicht sofort die komplette Quelle unbrauchbar machen.</p>
       <p>Wenn eine Indexseite wiederholt mit Fehler oder Timeout aussteigt, wird sie nur kurzfristig übersprungen. Das verhindert unnötige Wartezeit, ohne die Indexseite dauerhaft zu deaktivieren.</p>
+      <p>Wenn eine konkrete Hoster-Auflösung hängt oder fehlschlägt, merkt xVAULT sich nur diese Provider-/Hoster-Kombination für kurze Zeit. Dadurch kann dieselbe Quelle beim nächsten Quellenwechsel übersprungen werden, während andere Anbieter und andere Hoster weiterhin normal nutzbar bleiben.</p>
+      <p>Quellen mit identischem Anbieter, Hoster, Sprache und Ziel werden nach der Sortierung zusammengeführt. Tracking-Parameter in URLs werden dabei ignoriert, echte unterschiedliche Streamziele bleiben aber erhalten. Die manuelle Hoster-Ausschlussliste wird anschließend auf Hostername, Anbietername und Zielhost angewendet.</p>
       <h3>Bevorzugte Streamsprache</h3>
       <table class="manual-table">
         <thead>
@@ -594,7 +600,7 @@
       <p>Beim Synchronisieren werden lokale Favoriten und Server-Favoriten zusammengeführt. Doppelte Einträge werden vermieden. Wenn auf einem Gerät Favoriten vorhanden sind und auf einem anderen ebenfalls, entsteht daraus eine gemeinsame Liste.</p>
       <h3>Jetzt synchronisieren</h3>
       <p>Die manuelle Synchronisation prüft zuerst den gespeicherten Login-Zustand und verwendet danach denselben Zugang für Favoriten und Wiedergabestände. Lokale Fortsetzen-Einträge werden beim Schreiben bereinigt, damit doppelte oder beschädigte Bookmark-Daten die Synchronisation nicht als PluginError abbrechen.</p>
-      <p>Beim manuellen Lauf werden lokale Favoriten zum Server übertragen, lokale Wiedergabestände übertragen und anschließend Remote-Wiedergabestände wieder eingelesen. Der Status in den Einstellungen zeigt, ob eine Anmeldung erkannt wurde und wann zuletzt synchronisiert wurde.</p>
+      <p>Beim manuellen Lauf werden lokale Favoriten zum Server übertragen, lokale Wiedergabestände übertragen und anschließend Remote-Wiedergabestände wieder eingelesen. Der Status in den Einstellungen zeigt, ob eine Anmeldung erkannt wurde und wann zuletzt synchronisiert wurde. Wenn Kodi eine lokale Sync-Zustandsdatei kurzzeitig sperrt, versucht xVAULT das Schreiben erneut und nutzt danach einen Fallback, statt den Sync wegen eines vorübergehenden Datei-Zugriffsfehlers abzubrechen.</p>
       <h3>Server-Backup wiederherstellen</h3>
       <p>Beim Wiederherstellen eines Server-Backups prüft xVAULT die gespeicherten Login-Daten aus Auth-Datei und Kodi-Settings. Wenn ein alter API-Key in den Settings liegt, wird er automatisch mit der aktuellen Auth-Datei abgeglichen, damit die Wiederherstellung nicht fälschlich als nicht angemeldet abbricht.</p>
       <h3>Entfernen und sofort synchronisieren</h3>
@@ -782,7 +788,7 @@
       </div>
       <div class="setting-group">
         <h3>Quellen verwalten</h3>
-        <p>Hier werden einzelne Anbieter für Filme und Serien aktiviert oder deaktiviert. Weniger aktivierte Quellen können schneller sein, mehr aktivierte Quellen erhöhen die Chance auf Treffer. AniWorld besitzt zusätzlich optionale Zugangsdaten unter <strong>Anbieter-Logins</strong>. SerienStream.to arbeitet ohne Zugangsdatenpflicht. BS.to ist in der aktuellen Oberfläche ausgeblendet.</p>
+        <p>Hier werden einzelne Anbieter für Filme und Serien aktiviert oder deaktiviert. Weniger aktivierte Quellen können schneller sein, mehr aktivierte Quellen erhöhen die Chance auf Treffer. AniWorld besitzt zusätzlich optionale Zugangsdaten unter <strong>Anbieter-Logins</strong>. SerienStream.to arbeitet ohne Zugangsdatenpflicht. AnimeToast ist als Serienanbieter verfügbar; Internet Archive ist als optionale Filmquelle standardmäßig deaktiviert. BS.to ist in der aktuellen Oberfläche ausgeblendet.</p>
         <p>Die versteckten Domain- und Check-Felder zeigen Providerstatus an oder speichern intern erkannte Domains. Sie sind nicht als normale Bedienfelder gedacht.</p>
       </div>
       <div class="setting-group">
@@ -878,6 +884,7 @@
           <tr><td>Synchronisation wirkt unvollständig</td><td>Anmeldung prüfen, manuell synchronisieren, danach Favoriten und Wiedergabestände erneut öffnen.</td></tr>
           <tr><td>Standard-Aktion wird nicht übernommen</td><td>Einstellungen mit OK schließen, danach denselben Film oder dieselbe Folge neu starten. Bei Sprache Alle muss Dialog oder Verzeichnis gewählt werden.</td></tr>
           <tr><td>Kodi meldet, dass plugin.video.xvault/settings.xml nicht geladen werden kann</td><td>xVAULT starten und die angebotene Reparatur ausführen oder unter Werkzeuge die Einstellungsprüfung öffnen. Die defekte Datei wird lokal gesichert und danach zurückgesetzt.</td></tr>
+          <tr><td>Kodi protokolliert CPythonInvoker-Cleanup-Warnungen nach xVAULT-Aufrufen</td><td>Aktuelle Version installieren. xVAULT erzeugt Kodi-Wrapper kontrolliert und gibt Fenster, Dialoge, Player, Playlists und Fortschrittsdialoge beim Add-on-Ende wieder frei.</td></tr>
           <tr><td>Quelle lädt dauerhaft</td><td>Autoplay versucht weitere Quellen nach Timeout. Bei wiederholtem Hängen Dialog oder Verzeichnis wählen und einen anderen Hoster testen.</td></tr>
           <tr><td>Serienfolge startet falsch</td><td>Bei abweichender Anbieter-Staffelung prüft xVAULT Episodentitel und Erstausstrahlung. Wenn es weiter falsch ist, Titel, Staffel, Folge und Anbieter im Fehlerbericht nennen.</td></tr>
           <tr><td>SerienStream nicht erreichbar</td><td>DNS over HTTPS aktiv lassen, SerienStream-Domain nicht manuell auf alte Werte setzen und die Quelle später erneut prüfen.</td></tr>
@@ -917,7 +924,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.08.29.1</span>
+      <span>Handbuch zu xVAULT 2026.08.29.5</span>
     </footer>
   </main>
 </body>
