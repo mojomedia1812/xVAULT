@@ -24,6 +24,7 @@ class tvshows:
 		self.activeSearchDB = 'TMDB'
 		#self.setSearchDB() # TODO different search providers
 		self.playcount = 0
+		self.search_direct = False
 
 	def get(self, params):
 		try:
@@ -32,6 +33,7 @@ class tvshows:
 			self.list, self.total_pages = cTMDB().search_term('tvshow', params.get('query'), params.get('page'))
 			if self.list == None or len(self.list) == 0:  # nichts gefunden
 				return control.infoDialog("Nichts gefunden1", time=2000)
+			self.search_direct = True
 			self.getDirectory(params)
 			searchDB.save_query(params.get('query'), params.get('action'))
 		except:
@@ -270,7 +272,9 @@ class tvshows:
 
 		self.meta = sorted(self.meta, key=lambda k: k.get('title') or k.get('originaltitle') or '')
 		self.list = [i for i in self.meta] # falls noch eine Filterfunktion kommt
-		if getattr(self, 'allow_incomplete_meta', False):
+		if getattr(self, 'search_direct', False):
+			self.list = [i for i in self.list if i.get('title') or i.get('originaltitle')]
+		elif getattr(self, 'allow_incomplete_meta', False):
 			self.list = [i for i in self.list if i.get('title') or i.get('originaltitle')]
 		else:
 			self.list = [i for i in self.list if (i.get('plot') or '').strip() and i.get('poster') != control.addonPoster()]  # - Filter
