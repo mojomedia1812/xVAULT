@@ -8,7 +8,7 @@ import json, os, re
 import unicodedata
 import requests
 import xbmcvfs
-from resources.lib.control import urlparse, showparentdiritems, currentWindowId, getInfoLabel, sleep, getSetting, urlretrieve, quote_plus, progressDialog
+from resources.lib.control import urlparse, showparentdiritems, getInfoLabel, sleep, getSetting, urlretrieve, quote_plus, progressDialog
 from six.moves import urllib_error, urllib_request, urllib_parse
 from operator import itemgetter
 from functools import cmp_to_key
@@ -432,57 +432,92 @@ def normalize(title):
 #         return title
 
 
+def _container_item_position(pos):
+    try:
+        pos = int(pos)
+    except:
+        return None, None
+    if pos < 1:
+        return None, None
+    index = pos if showparentdiritems() else pos - 1
+    if index < 0:
+        index = 0
+    return pos, index
+
+
+def _safeSetFocusPosition(pos, _name='', content='', timeout=3.0, settle_delay=0.15):
+    """Select a list position without touching xbmcgui.ControlList directly."""
+    import time
+    import xbmc
+
+    pos, index = _container_item_position(pos)
+    if pos is None:
+        return False
+
+    isdebug = getSetting('status.debug') == 'true'
+    monitor = xbmc.Monitor()
+    deadline = time.time() + float(timeout)
+    last_control_id = ''
+
+    while time.time() < deadline and not monitor.abortRequested():
+        try:
+            if xbmc.getCondVisibility('Container.IsUpdating') or \
+                    xbmc.getCondVisibility('Window.IsActive(busydialog)') or \
+                    xbmc.getCondVisibility('Window.IsActive(busydialognocancel)') or \
+                    xbmc.getCondVisibility('Window.IsActive(fullscreenvideo)'):
+                monitor.waitForAbort(settle_delay)
+                continue
+
+            current_content = getInfoLabel('Container.Content')
+            if content and current_content != content:
+                monitor.waitForAbort(settle_delay)
+                continue
+
+            control_id = getInfoLabel('System.CurrentControlID')
+            last_control_id = control_id
+            control_id_int = int(control_id)
+            if control_id_int <= 0:
+                monitor.waitForAbort(settle_delay)
+                continue
+
+            # Kodi kann die Listenposition selbst fokussieren. Direkte
+            # ControlList-Python-Bindings koennen auf macOS/tvOS native
+            # SIGSEGV-Abstuerze ausloesen und werden deshalb vermieden.
+            import xbmc as _xbmc
+            _xbmc.executebuiltin('SetFocus(%i,%i)' % (control_id_int, index))
+            monitor.waitForAbort(0.2)
+
+            try:
+                if int(getInfoLabel('Container().CurrentItem')) == pos:
+                    if isdebug:
+                        log_utils.log('%s - list position restored via SetFocus: %s' % (_name, pos), log_utils.LOGINFO)
+                    return True
+            except:
+                if isdebug:
+                    log_utils.log('%s - SetFocus requested for list position: %s' % (_name, pos), log_utils.LOGINFO)
+                return True
+        except:
+            monitor.waitForAbort(settle_delay)
+
+    if isdebug:
+        log_utils.log('%s - list position restore skipped: pos=%s content=%s control=%s' % (_name, pos, content, last_control_id), log_utils.LOGWARNING)
+    return False
+
+
 ## setzt Auswahl nach letzte als gesehen markierte Episode / Staffel
 def setPosition(pos, _name, content='movies'): # org.: episodes
-    isdebug = True if getSetting('status.debug') == 'true' else False
-    win = currentWindowId  # win = xbmcgui.Window(xbmcgui.getCurrentWindowId())
-    pos = int(pos)
-    pos_sp = pos if showparentdiritems() else pos - 1
-    count = 0
-
-    for count in range(1, 15):
-        ccont = getInfoLabel("Container.Content")
-        if ccont == content: break
-        sleep(0.1)
-
-    if isdebug:
-        log_utils.log(_name + ' - Container.Content (1) - soll: %s ist: %s  count: %s' % (content, getInfoLabel("Container.Content"), count), log_utils.LOGINFO)
-        log_utils.log(_name + ' - System.CurrentControlID - old: %s ' % getInfoLabel("System.CurrentControlID"), log_utils.LOGINFO)
-        log_utils.log(_name + ' - pos: %s - check: %s' % (pos, int(getInfoLabel("Container().CurrentItem"))), log_utils.LOGINFO)
-
-    # setze Position
-    for count in range(1, 15):
-        try:
-            cid = getInfoLabel("System.CurrentControlID")
-            ctrl = win.getControl(int(cid))
-        except:
-            sleep(0.2)
-            continue
-
-        ctrl.selectItem(pos_sp)
-        sleep(0.1)
-        check = int(getInfoLabel("Container().CurrentItem"))  # % cid)) # Container().CurrentItem
-        if pos == check: break
-
-    if isdebug:
-        log_utils.log(_name + ' - pos: %s - check: %s - count: %s' % (pos, int(getInfoLabel("Container().CurrentItem")),count), log_utils.LOGINFO)
-        log_utils.log(_name + ' - System.CurrentControlID:  %s' % getInfoLabel("System.CurrentControlID"), log_utils.LOGINFO)
+    return _safeSetFocusPosition(pos, _name, content, timeout=3.0)
 
 
 def restoreListPosition(pos, content='', _name=''):
     """Restore the exact selected media item after playback or a container refresh."""
     import time
     import xbmc
-    import xbmcgui
 
-    try:
-        pos = int(pos)
-    except:
-        return False
-    if pos < 1:
+    pos, index = _container_item_position(pos)
+    if pos is None:
         return False
 
-    index = pos if showparentdiritems() else pos - 1
     deadline = time.time() + 12
     monitor = xbmc.Monitor()
     stable_checks = 0
@@ -504,8 +539,11 @@ def restoreListPosition(pos, content='', _name=''):
                 continue
 
             control_id = int(getInfoLabel('System.CurrentControlID'))
-            window = xbmcgui.Window(xbmcgui.getCurrentWindowId())
-            window.getControl(control_id).selectItem(index)
+            if control_id <= 0:
+                stable_checks = 0
+                monitor.waitForAbort(0.2)
+                continue
+            xbmc.executebuiltin('SetFocus(%i,%i)' % (control_id, index))
             monitor.waitForAbort(0.25)
 
             if int(getInfoLabel('Container().CurrentItem')) == pos:

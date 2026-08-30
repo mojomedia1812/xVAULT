@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.08.30.1] - 2026-08-30
+
+- Kodi-Abstürze beim Öffnen von Serien-, Staffel- oder Episodenlisten auf macOS/tvOS behoben, indem xVAULT keine direkten Kodi-ControlList-Bindings mehr zur Positionswiederherstellung verwendet.
+- Die Listenposition wird nur noch defensiv über Kodis eigene Fokusfunktion gesetzt und übersprungen, wenn Kodi gerade Container, Busy-Dialoge oder Vollbildwiedergabe aktualisiert.
+- Die Rückkehr aus der Wiedergabe nutzt dieselbe abgesicherte Positionslogik, damit Kodi nach Stop oder regulärem Ende geöffnet bleibt.
+
 ## [2026.08.29.5] - 2026-08-29
 
 - Kodi-Wrapper für Add-on, Fenster, Dialoge, Player, Playlists und Fortschrittsdialoge werden kontrolliert erzeugt und beim Add-on-Ende freigegeben, damit Kodi nach xVAULT-Aufrufen keine unnötigen CPythonInvoker-Cleanup-Warnungen protokolliert.
