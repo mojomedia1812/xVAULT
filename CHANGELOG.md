@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [2026.09.03.1] - 2026-09-03
+
+- Quelltext optimierung
+
 ## [2026.08.30.1] - 2026-08-30
 
 - Kodi-Abstürze beim Öffnen von Serien-, Staffel- oder Episodenlisten auf macOS/tvOS behoben, indem xVAULT keine direkten Kodi-ControlList-Bindings mehr zur Positionswiederherstellung verwendet.

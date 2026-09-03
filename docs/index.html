@@ -40,12 +40,12 @@
         <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
         <tr><th colspan="4"><hr></th></tr>
         <tr><td>[PARENTDIR]</td><td><a href="../" data-umami-event="Verzeichnisnavigation geöffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">30.Aug.2026 10:08:29</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geöffnet">repository.xvault/</a></td><td align="right">29.Aug.2026 13:26:25</td><td align="right">-</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">30.Aug.2026 10:08:29</td><td align="right">2.57 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">30.Aug.2026 10:08:29</td><td align="right">32.00 B</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">30.Aug.2026 10:08:29</td><td align="right">1.96 MB</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">30.Aug.2026 10:08:29</td><td align="right">1.96 MB</td></tr>
+        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">03.Sep.2026 21:13:06</td><td align="right">-</td></tr>
+        <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geöffnet">repository.xvault/</a></td><td align="right">02.Sep.2026 21:27:02</td><td align="right">-</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">03.Sep.2026 21:13:06</td><td align="right">2.57 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">03.Sep.2026 21:13:06</td><td align="right">32.00 B</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">03.Sep.2026 21:13:06</td><td align="right">330.06 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">03.Sep.2026 21:13:06</td><td align="right">330.06 KB</td></tr>
         <tr><th colspan="4"><hr></th></tr>
       </tbody>
     </table>
@@ -61,14 +61,14 @@
 
         <div class="release">
           <span>Aktuelle Version</span>
-          <strong>2026.08.30.1</strong>
+          <strong>2026.09.03.1</strong>
         </div>
 
-        <a class="download" href="downloads/plugin.video.xvault-2026.08.30.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
+        <a class="download" href="downloads/plugin.video.xvault-2026.09.03.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
           Installations-ZIP herunterladen
         </a>
 
-        <p class="fileinfo">ZIP-Datei · 33,9 MB</p>
+        <p class="fileinfo">ZIP-Datei · 14,7 MB</p>
       </div>
     </section>
 
@@ -109,6 +109,14 @@
 
     <!-- release-notes:start -->
     <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.09.03.1</p>
+      <h2>Änderungen im Überblick</h2>
+      <ul class="update-list">
+        <li>Quelltext optimierung</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
       <p class="section-kicker">Neu in 2026.08.30.1</p>
       <h2>Änderungen im Überblick</h2>
       <ul class="update-list">
@@ -147,17 +155,6 @@
         <li>Filmpalast-Suche robuster gemacht: xVAULT wertet mehrere Suchseiten aus, erkennt Treffer über Titel, Attribute, Bildtexte und URL-Slugs und prüft erkannte Jahresangaben toleranter.</li>
         <li>Filmo-Quellenauflösung stabilisiert: CSRF-Token, Session-Cookies, direkte Mint-Ziele sowie HTTP-/HTML-Redirects werden innerhalb der xVAULT-Requestlogik verarbeitet.</li>
         <li>SerienStream und AniWorld gleichen Serien- und Episodentreffer genauer ab; Untertitelvarianten werden nicht mehr als deutsche oder englische Tonspur behandelt und in der Quellenliste nicht mehr als DE/EN gekennzeichnet.</li>
-        <li>Abweichende Serien-Staffelungen werden zuverlässiger abgefangen, indem Episodentitel zusätzlich über Kapitelnummern, deutsche/englische Titelvarianten und robuste Wortvergleiche geprüft werden.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.08.29.2</p>
-      <h2>Änderungen im Überblick</h2>
-      <ul class="update-list">
-        <li>Filmpalast-Suche robuster gemacht: xVAULT wertet mehrere Suchseiten aus, erkennt Treffer über Titel, Attribute, Bildtexte und URL-Slugs und prüft erkannte Jahresangaben toleranter.</li>
-        <li>Filmo-Quellenauflösung stabilisiert: CSRF-Token, Session-Cookies, direkte Mint-Ziele sowie HTTP-/HTML-Redirects werden innerhalb der xVAULT-Requestlogik verarbeitet.</li>
-        <li>SerienStream und AniWorld gleichen Serien- und Episodentreffer genauer ab; Untertitelvarianten werden nicht mehr als deutsche oder englische Tonspur behandelt.</li>
         <li>Abweichende Serien-Staffelungen werden zuverlässiger abgefangen, indem Episodentitel zusätzlich über Kapitelnummern, deutsche/englische Titelvarianten und robuste Wortvergleiche geprüft werden.</li>
       </ul>
     </section>
@@ -225,15 +222,15 @@
     <section class="panel checksum">
       <h2>Dateiprüfung</h2>
       <p>SHA-256</p>
-      <code>4C43E37A701E100EC59E28F9CA0F0393F5D6240D7ED6AE828283AA59C166365D</code>
+      <code>F1B5A16D950E46FB6B92C6C6D0661AC8F1957A397F81BC20A6F485BEF8923275</code>
     </section>
 
     <section class="panel archive">
       <h2>Vorherige Versionen</h2>
       <ul class="archive-list">
         <!-- previous-downloads:start -->
+        <li><a href="downloads/plugin.video.xvault-2026.08.30.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.08.30.1 herunterladen</a><span>33,9 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.08.29.5.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.08.29.5 herunterladen</a><span>33,9 MB</span></li>
-        <li><a href="downloads/plugin.video.xvault-2026.08.29.4.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.08.29.4 herunterladen</a><span>33,9 MB</span></li>
         <!-- previous-downloads:end -->
       </ul>
     </section>
@@ -241,7 +238,7 @@
     <footer>
       <a href="handbuch/" data-umami-event="Handbuch geöffnet">Handbuch</a>
       <a href="https://github.com/mojomedia1812/xVAULT" data-umami-event="GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Version 2026.08.30.1</span>
+      <span>Version 2026.09.03.1</span>
     </footer>
   </main>
 </body>
