@@ -95,6 +95,9 @@
         <setting id="provider.movie4k.checkHoster" type="bool" label="Movie4k: Streams auf Verfügbarkeit prüfen" default="true" enable="!eq(-1,false)" />
         <setting id="provider.movie4k.domain" label="[B][COLOR red]Movie4k: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.movie4k.check" label="Movie4k Check" type="bool" default="true" visible="false" />
+        <setting id="provider.moflix" type="bool" label="MoFlix" default="true" />
+        <setting id="provider.moflix.domain" label="[B][COLOR red]MoFlix: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.moflix.check" label="MoFlix Check" type="bool" default="true" visible="false" />
         <setting id="provider.nox" type="bool" label="Nox" default="true" />
         <setting id="provider.nox.domain" label="[B][COLOR red]Nox: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.nox.check" label="Nox Check" type="bool" default="true" visible="false" />

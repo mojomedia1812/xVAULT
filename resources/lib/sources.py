@@ -987,7 +987,7 @@ class sources:
             settings[setting] = control.getSetting(setting)
 
         key = {
-            'version': 6,
+            'version': 8,
             'addon': control.addonVersion,
             'mediatype': getattr(self, 'mediatype', None),
             'title': py2_decode(title),
@@ -1424,7 +1424,9 @@ class sources:
             'doodstream': 'DoodStream',
             'serienstream': 'SerienStream',
             'filmpalast': 'Filmpalast',
-            'filmo': 'Filmo'
+            'filmo': 'Filmo',
+            'moflix': 'MoFlix',
+            'moflix-stream': 'MoFlix'
         }
         lower = value.lower()
         if lower in known:

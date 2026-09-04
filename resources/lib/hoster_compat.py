@@ -46,7 +46,25 @@ KINOGER_FILELIONS_DOMAINS = [
 ]
 
 VEEV_DOMAINS = [
+    'veev.to',
     'veev.pro',
+]
+
+FILELIONS_DOMAINS = [
+    'moflix-stream.click',
+]
+
+BYSE_DOMAINS = [
+    'moflix-stream.link',
+]
+
+GUPLOAD_DOMAINS = [
+    'gupload.xyz',
+]
+
+MOFLIX_KINOGER_DOMAINS = [
+    'moflix.upns.xyz',
+    'moflix.rpmplay.xyz',
 ]
 
 EXTRA_RESOLVER_DOMAINS = sorted(set(
@@ -56,7 +74,11 @@ EXTRA_RESOLVER_DOMAINS = sorted(set(
     FIRESTREAM_DOMAINS +
     KINOGER_DOMAINS +
     KINOGER_FILELIONS_DOMAINS +
-    VEEV_DOMAINS
+    VEEV_DOMAINS +
+    FILELIONS_DOMAINS +
+    BYSE_DOMAINS +
+    GUPLOAD_DOMAINS +
+    MOFLIX_KINOGER_DOMAINS
 ))
 
 
@@ -85,10 +107,30 @@ def display_name(host):
         return 'FileLions'
     if host in VEEV_DOMAINS:
         return 'Veev'
+    if host in FILELIONS_DOMAINS:
+        return 'FileLions'
+    if host in BYSE_DOMAINS:
+        return 'BySe'
+    if host in GUPLOAD_DOMAINS:
+        return 'GUpload'
+    if host in MOFLIX_KINOGER_DOMAINS:
+        return 'KinoGer'
     return host
 
 
 def resolve(url):
+    host, media_id = _match_gupload(url)
+    if host and media_id:
+        return _resolve_existing_plugin('gupload', 'GUploadResolver', host, media_id)
+
+    host, media_id = _match_filelions(url)
+    if host and media_id:
+        return _resolve_existing_plugin('filelions', 'FileLionsResolver', host, media_id)
+
+    host, media_id = _match_byse(url)
+    if host and media_id:
+        return _resolve_existing_plugin('byse', 'ByseResolver', host, media_id)
+
     host, media_id = _match_firestream(url)
     if host and media_id:
         return _resolve_existing_plugin('firestream', 'FireStreamResolver', host, media_id)
@@ -225,7 +267,7 @@ def _match_streamix(url):
 
 
 def _match_kinoger(url):
-    domains = '|'.join(re.escape(domain) for domain in KINOGER_DOMAINS)
+    domains = '|'.join(re.escape(domain) for domain in KINOGER_DOMAINS + MOFLIX_KINOGER_DOMAINS)
     return _match(url, r'(?://|\.)((?:%s))/(?:#|api/v1/video\?id=)([0-9A-Za-z]+)' % domains)
 
 
@@ -249,6 +291,21 @@ def _match_voe(url):
 def _match_veev(url):
     domains = '|'.join(re.escape(domain) for domain in VEEV_DOMAINS)
     return _match(url, r'(?://|\.)((?:%s))/(?:e|d)/([0-9A-Za-z]+)' % domains)
+
+
+def _match_filelions(url):
+    domains = '|'.join(re.escape(domain) for domain in FILELIONS_DOMAINS)
+    return _match(url, r'(?://|\.)((?:%s))/((?:s|v|f|d|e|embed|file|download)/[0-9A-Za-z$:/.]+)' % domains)
+
+
+def _match_byse(url):
+    domains = '|'.join(re.escape(domain) for domain in BYSE_DOMAINS)
+    return _match(url, r'(?://|\.)((?:%s))/(?:e|embed)/([0-9A-Za-z]+)' % domains)
+
+
+def _match_gupload(url):
+    domains = '|'.join(re.escape(domain) for domain in GUPLOAD_DOMAINS)
+    return _match(url, r'(?://|\.)((?:%s))/data/e/([0-9a-f]+)' % domains)
 
 
 def _match_playmate(url):

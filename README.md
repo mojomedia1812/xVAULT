@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.09.03.1`
+Aktueller Stand: `2026.09.04.1`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.09.03.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.09.04.1.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -60,6 +60,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - xVAULT schreibt Kodi-Settings nur, wenn sich der Zielwert wirklich geändert hat; identische Werte werden übersprungen, um die Profil-Settings zu schonen.
 - Filmpalast liest die aktuelle Such- und Quellenstruktur, schützt bereits korrekt kodierte Suchpfade vor Doppel-Kodierung, durchsucht mehrere Trefferseiten und übernimmt erkannte Hoster erst ohne vorzeitige ResolveURL-Filterung in die Quellenliste.
 - Filmo ist als aktivierbare Filmquelle in die normale Quellensuche eingebunden; xVAULT liest Filmo-Suche und Filmseiten, löst Providerchips mit CSRF-Token, Session-Cookies und Redirect-Auswertung über den Filmo-Mint-Endpunkt auf und übernimmt Deutsch-/Englisch-Hoster in die Quellenliste.
+- MoFlix ist als optionale Film- und Serienquelle eingebunden; xVAULT prüft Treffer über Titel, Jahr und IMDb-ID, verwirft nicht nutzbare direkte HLS-Kandidaten und bereitet unterstützte Spiegel als normale ResolveURL-Quellen vor.
 - AnimeToast ist als eigener Serien-Scraper eingebunden. xVAULT nutzt dort nur konkrete Episoden aus der Ajax-Playerlogik oder eindeutige Einzel-Episodenlinks; reine Staffelbereichs-Container werden nicht als einzelne Folge übernommen.
 - Internet Archive ist als optionale Filmquelle vorhanden. Die Suche ist bewusst streng auf passende Titel-/Jahr-Treffer und echte Videodateien begrenzt, damit Archiv-, Bonus- oder Trailer-Treffer die normale Quellenliste nicht verfälschen.
 - Quellenlisten behalten die vom Scraper gelieferte Reihenfolge, werden nach Qualitäts-/Sprachlogik stabil dedupliziert und berücksichtigen manuelle Hoster-Ausschlüsse erst danach.

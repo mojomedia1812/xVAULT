@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2026.09.04.1] - 2026-09-04
+
+- MoFlix als neue Film- und Serienquelle ergänzt; xVAULT nutzt die JSON-Titelsuche, prüft Treffer über Titel, Jahr und IMDb-ID und sortiert unterstützte Spiegel stabil für ResolveURL.
+- Problematische direkte MoFlix-HLS-Links werden vor der Anzeige geprüft und verworfen, wenn Unter-Playlists nicht erreichbar sind, damit Kodi nicht an scheinbar gültigen Premium-Links hängen bleibt.
+
 ## [2026.09.03.1] - 2026-09-03
 
 - Quelltext optimierung

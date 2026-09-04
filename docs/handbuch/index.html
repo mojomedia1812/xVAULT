@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.09.03.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.09.04.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.09.03.1.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.09.04.1.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -466,6 +466,7 @@
         <li>Kinox</li>
         <li>KKiste</li>
         <li>Megakino</li>
+        <li>MoFlix</li>
         <li>Movie2k</li>
         <li>Movie2k2</li>
         <li>Movie4k</li>
@@ -488,7 +489,7 @@
           <tr><th>Bereich</th><th>Anbieter</th></tr>
         </thead>
         <tbody>
-          <tr><td>Filme &amp; Serien</td><td>Einschalten, Filmpalast, Filmo, Filmpro, HDFilme, FHDFilme, Huhu, KinoGer, KinoKiste, Kinox, KKiste, Megakino, Movie2k, Movie2k2, Movie4k, Nox, StreamCloud, StreamCloud Forum, TopStreamFilm und VixStream.</td></tr>
+          <tr><td>Filme &amp; Serien</td><td>Einschalten, Filmpalast, Filmo, Filmpro, HDFilme, FHDFilme, Huhu, KinoGer, KinoKiste, Kinox, KKiste, Megakino, MoFlix, Movie2k, Movie2k2, Movie4k, Nox, StreamCloud, StreamCloud Forum, TopStreamFilm und VixStream.</td></tr>
           <tr><td>Nur Filme</td><td>Cine.to, Filmfans, Netzkino und Internet Archive.</td></tr>
           <tr><td>Nur Serien</td><td>SerienStream.to, AniWorld.to, AnimeToast und Serienfans.</td></tr>
           <tr><td>Ausgeblendet</td><td>BS.to ist in der aktuellen Oberfläche nicht als aktivierbare Quelle sichtbar und wird vom Scraper-Lader übersprungen.</td></tr>
@@ -498,6 +499,8 @@
       <p>Filmpalast wird für Filme und Serien als normale Indexseite geführt. xVAULT berücksichtigt die aktuelle Such- und Quellenstruktur der Seite, schützt korrekt kodierte Suchpfade vor Doppel-Kodierung, wertet mehrere Suchergebnisseiten aus und erkennt Treffer über Linktitel, Zusatzattribute, Bildtexte und URL-Slugs. Erkannte Jahresangaben werden tolerant geprüft, damit ein leicht abweichendes Veröffentlichungsdatum nicht sofort einen ansonsten passenden Treffer entfernt.</p>
       <h3>Filmo</h3>
       <p>Filmo wird zusätzlich zu den Collections auch als normale Filmquelle genutzt. Bei der Quellensuche liest xVAULT die Filmo-Suche, öffnet passende Filmseiten, übernimmt Deutsch- und Englisch-Providerchips und löst sie vor der Quellenanzeige über den Filmo-Mint-Endpunkt in echte Hoster-Weiterleitungen auf. Dafür nutzt xVAULT die eigene RequestHandler-Logik mit CSRF-Token, Session-Cookies, direkten Mint-Zielen sowie HTTP- und HTML-Redirects. Andere Sprachvarianten werden nicht als eigene xVAULT-Sprache geführt.</p>
+      <h3>MoFlix</h3>
+      <p>MoFlix ist als optionale Film- und Serienquelle verfügbar. xVAULT nutzt die Titelsuche der Seite, prüft Treffer gegen Titel, Jahr und IMDb-ID und entfernt direkte HLS-Kandidaten, wenn deren Unter-Playlists nicht erreichbar sind. Unterstützte Spiegel werden als normale ResolveURL-Quellen angezeigt.</p>
       <h3>Movie4k</h3>
       <p>Movie4k nutzt die aktuelle API-Struktur der erreichbaren Domain. Alte gespeicherte Movie4k-Domainwerte werden beim Providercheck auf die funktionierende Domain migriert, damit die Indexseite nicht durch veraltete Einstellungen als nicht erreichbar markiert wird.</p>
       <h3>AniWorld</h3>
@@ -925,7 +928,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.09.03.1</span>
+      <span>Handbuch zu xVAULT 2026.09.04.1</span>
     </footer>
   </main>
 </body>

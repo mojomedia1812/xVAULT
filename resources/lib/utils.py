@@ -65,11 +65,6 @@ def isBlockedHoster(url, isResolve=True):
                     log_utils.log('Ungueltige Redirect-Ziel-URL verworfen: %s' % url, log_utils.LOGINFO)
                     return True, parsed.hostname, url, 100
         
-        ## TODO moflix, fileions etc 404
-        # elif status_code != 200:
-        #     sDomain = urlparse(url).path if urlparse(url).hostname == None else urlparse(url).hostname
-        #     return True, sDomain, url, 100
-
     sDomain = urlparse(url).path if urlparse(url).hostname == None else urlparse(url).hostname
     hostblockDict = getHostDict()
     prioHoster = 100
