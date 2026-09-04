@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.09.04.1`
+Aktueller Stand: `2026.09.04.2`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.09.04.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.09.04.2.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -33,6 +33,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 ## Funktionen
 
 - Suche und Wiedergabe von Filmen, TV-Serien und LiveTV.
+- Film- und Serienlisten können über TMDb-Watch-Provider nach Streaming-Anbietern im deutschen Markt gefiltert werden; danach nutzt xVAULT weiterhin die normale Quellen- und Resolverlogik.
 - xVAULT kann als Player für TMDbHelper genutzt werden, ohne die eigene Quellenlogik, Resolver-Auswahl und Wiedergabeüberwachung zu verlieren.
 - Der Hauptmenüpunkt `Collections` zeigt Filmreihen aus Filmo, speichert die Übersichten 24 Stunden im Cache, sortiert enthaltene Filme chronologisch und filtert die Detailansicht über TMDb-Filmreihen gegen offensichtliche Fremdtreffer.
 - Das Playback-Label zeigt beim laufenden Stream Hoster und Indexseite an, z.B. `VOE @ SerienStream`.

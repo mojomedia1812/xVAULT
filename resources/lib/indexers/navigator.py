@@ -29,6 +29,7 @@ class navigator:
 		self.addDirectoryItem("[B]Filme[/B] - Neu", 'listings&media_type=movie&url=kino', '04_01_filme_neu.png', 'DefaultRecentlyAddedMovies.png')
 		self.addDirectoryItem("[B]Filme[/B] - Jahr", 'movieYears', '04_02_filme_jahr.png', 'DefaultMovies.png')
 		self.addDirectoryItem("[B]Filme[/B] - Genres", 'movieGenres', '04_03_filme_genres.png', 'DefaultMovies.png')
+		self.addDirectoryItem("[B]Filme[/B] - Streaming-Anbieter", 'movieWatchProviders', 'tmdb_search.png', 'DefaultMovies.png')
 		self.addDirectoryItem("[B]Filme[/B] - Am populärsten", 'listings&media_type=movie&url=production_status=released%26sort_by=popularity.desc', '04_04_filme_am_populaersten.png', 'DefaultMovies.png')
 		self.addDirectoryItem("[B]Filme[/B] - Am besten bewertet", 'listings&media_type=movie&url=production_status=released%26sort_by=vote_average.desc', '04_05_filme_am_besten_bewertet.png', 'DefaultMovies.png')
 		self.addDirectoryItem("[B]Filme[/B] - Meist bewertet", 'listings&media_type=movie&url=production_status=released%26sort_by=vote_count.desc', '04_06_filme_meist_bewertet.png', 'DefaultMovies.png')
@@ -42,6 +43,7 @@ class navigator:
 	def tvshows(self):
 		self.addDirectoryItem("[B]Serien[/B] - Neue Serien", 'listings&media_type=tv&url=new_tv_de', '05_tv_serien.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("[B]Serien[/B] - Genres", 'tvGenres', '05_01_serien_genres.png', 'DefaultTVShows.png')
+		self.addDirectoryItem("[B]Serien[/B] - Streaming-Anbieter", 'tvWatchProviders', 'tmdb_search.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("[B]Serien[/B] - Am populärsten", 'listings&media_type=tv&url=sort_by=popularity.desc', '05_02_serien_am_populaersten.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("[B]Serien[/B] - Am besten bewertet", 'listings&media_type=tv&url=sort_by=vote_average.desc', '05_03_serien_am_besten_bewertet.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("[B]Serien[/B] - Meist bewertet", 'listings&media_type=tv&url=sort_by=vote_count.desc', '05_04_serien_meist_bewertet.png', 'DefaultTVShows.png')

@@ -1,3 +1,9 @@
+xVAULT 2026.09.04.2
+Entwickler: mojomedia1812
+
+- Filme und TV-Serien können in den TMDb-Rubriken zusätzlich nach Streaming-Anbietern im deutschen Markt gefiltert werden; die Wiedergabe nutzt danach weiterhin die normale xVAULT-Quellen- und Resolverlogik.
+- Die Kodi-Add-on-Information wurde um eine klare Beschreibung mit offizieller Repository-Adresse ergänzt.
+
 xVAULT 2026.09.04.1
 Entwickler: mojomedia1812
 

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2026.09.04.2] - 2026-09-04
+
+- Filme und TV-Serien können in den TMDb-Rubriken zusätzlich nach Streaming-Anbietern im deutschen Markt gefiltert werden; die Wiedergabe nutzt danach weiterhin die normale xVAULT-Quellen- und Resolverlogik.
+- Die Kodi-Add-on-Information wurde um eine klare Beschreibung mit offizieller Repository-Adresse ergänzt.
+
 ## [2026.09.04.1] - 2026-09-04
 
 - MoFlix als neue Film- und Serienquelle ergänzt; xVAULT nutzt die JSON-Titelsuche, prüft Treffer über Titel, Jahr und IMDb-ID und sortiert unterstützte Spiegel stabil für ResolveURL.

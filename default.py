@@ -483,9 +483,17 @@ elif action == 'movieGenres':
     from resources.lib.indexers import listings
     listings.listings().movieGenres()
 
+elif action == 'movieWatchProviders':
+    from resources.lib.indexers import listings
+    listings.listings().movieWatchProviders()
+
 elif action == 'tvGenres':
     from resources.lib.indexers import listings
     listings.listings().tvGenres()
+
+elif action == 'tvWatchProviders':
+    from resources.lib.indexers import listings
+    listings.listings().tvWatchProviders()
 
 elif action == 'searchNew':
     from resources.lib import searchDB

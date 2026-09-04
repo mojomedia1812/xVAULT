@@ -35,6 +35,7 @@ class listings:
 		self.genres_params = ''
 		self.popular_link = ''
 		self.datetime = datetime.datetime.utcnow()
+		self.provider_logo = 'https://image.tmdb.org/t/p/w185'
 
 	def get(self, params):
 		try:
@@ -103,6 +104,58 @@ class listings:
 		self.addDirectory(self.list)
 		return self.list
 
+	def movieWatchProviders(self):
+		self.media_type = 'movie'
+		self._watchProviders()
+		return self.list
+
+	def tvWatchProviders(self):
+		self.media_type = 'tv'
+		self._watchProviders()
+		return self.list
+
+	def _watchProviders(self):
+		providers = self._providerList(self.media_type)
+		for provider in providers:
+			provider_id = provider.get('provider_id')
+			name = provider.get('provider_name')
+			if not provider_id or not name:
+				continue
+			logo = provider.get('logo_path')
+			image = self.provider_logo + logo if logo else 'tmdb_search.png'
+			media_label = 'Filme' if self.media_type == 'movie' else 'Serien'
+			url = 'watch_region=DE&with_watch_providers=%s&sort_by=popularity.desc' % provider_id
+			self.list.append({
+				'name': name,
+				'url': url,
+				'image': image,
+				'action': 'listings',
+				'plot': '%s mit TMDb-Verfügbarkeit bei %s im deutschen Markt.' % (media_label, name)
+			})
+		if not self.list:
+			return self._emptyDirectory('Streaming-Anbieter konnten nicht geladen werden.', media_type=self.media_type)
+		self.addDirectory(self.list)
+		return self.list
+
+	def _providerList(self, media_type):
+		if media_type not in ['movie', 'tv']:
+			return []
+		url = 'https://api.themoviedb.org/3/watch/providers/%s?api_key=%s&language=de-DE&watch_region=DE' % (media_type, self.api_key)
+		try:
+			request = cRequestHandler(url, caching=True, ignoreErrors=True)
+			request.cacheTime = 60 * 60 * 24
+			payload = request.request()
+			if not payload:
+				return []
+			data = json.loads(payload)
+			providers = data.get('results') or []
+			providers = [provider for provider in providers if isinstance(provider, dict)]
+			providers.sort(key=lambda item: (int(item.get('display_priority') or 9999), item.get('provider_name') or ''))
+			return providers
+		except Exception as exc:
+			log_utils.log('TMDb-Streaming-Anbieter konnten nicht geladen werden (%s): %s' % (media_type, exc), log_utils.LOGWARNING)
+			return []
+
 	def _germany_today(self):
 		try:
 			from zoneinfo import ZoneInfo
@@ -144,9 +197,17 @@ class listings:
 			return [], 0
 		list = []
 		for i in data['results']:
-			list.append(i['id'])
+			if self._validResult(i):
+				list.append(i['id'])
 
 		return list, data['total_pages']
+
+	def _validResult(self, item):
+		if not isinstance(item, dict):
+			return False
+		if self.media_type == 'movie':
+			return bool(item.get('id') and (item.get('title') or item.get('original_title')))
+		return bool(item.get('id') and (item.get('name') or item.get('original_name')))
 
 
 	def addDirectory(self, items):
@@ -160,7 +221,9 @@ class listings:
 		for i in items:
 			try:
 				name = i['name']
-				if self.media_type == 'movie':
+				if 'plot' in i:
+					plot = i['plot']
+				elif self.media_type == 'movie':
 					if 'primary_release_year' in i['url']:
 						plot = 'Filme aus dem Jahr:  %s' % name
 					else:
@@ -169,8 +232,13 @@ class listings:
 					plot = 'Serien aus der Kategorie:  %s' % name
 
 				try:
-					poster = os.path.join(artPath, i['image'])
-					thumb = os.path.join(artPath, i['image'])
+					image = i.get('image') or ''
+					if image.startswith('http://') or image.startswith('https://'):
+						poster = image
+						thumb = image
+					else:
+						poster = os.path.join(artPath, image)
+						thumb = os.path.join(artPath, image)
 				except:
 					thumb = addonThumb
 					poster = addonPoster

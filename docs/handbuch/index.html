@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.09.04.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.09.04.2.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.09.04.1.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.09.04.2.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -383,8 +383,8 @@
           <tr><td>Suche TV-Serien</td><td>Sucht Serien und führt anschließend zu Staffeln, Episoden und Quellen.</td></tr>
           <tr><td>Suche nach Person / Darsteller</td><td>Sucht nach Personen und zeigt passende Film- oder Serienbezüge an, wenn Metadaten verfügbar sind.</td></tr>
           <tr><td>Collections</td><td>Öffnet Filmreihen und Sammlungen. Die Übersicht wird zwischengespeichert, Detailansichten werden chronologisch sortiert und über TMDb-Filmreihen gegen erkennbare Fremdtreffer abgeglichen.</td></tr>
-          <tr><td>Filme</td><td>Öffnet Filmrubriken wie Neu, Jahr, Genres, populär, bestbewertet, meistbewertet und bestes Einspielergebnis.</td></tr>
-          <tr><td>TV-Serien</td><td>Öffnet Serienrubriken wie Genres, populär, bestbewertet und meistbewertet.</td></tr>
+          <tr><td>Filme</td><td>Öffnet Filmrubriken wie Neu, Jahr, Genres, Streaming-Anbieter, populär, bestbewertet, meistbewertet und bestes Einspielergebnis.</td></tr>
+          <tr><td>TV-Serien</td><td>Öffnet Serienrubriken wie Genres, Streaming-Anbieter, populär, bestbewertet und meistbewertet.</td></tr>
           <tr><td>LiveTV</td><td>Öffnet den deutschen LiveTV-Bereich mit Kategorien, Logos, EPG-Vorschau, Favoriten und stabilisierter HLS-Wiedergabe.</td></tr>
           <tr><td>LiveTV lite</td><td>Öffnet eine schlanke Senderliste für Deutsche TV, Österreichische TV und Schweizer TV auf Basis der 2ix2-Quelle.</td></tr>
           <tr><td>Stream-URL abspielen</td><td>Spielt eine direkt eingegebene oder übergebene Stream-Adresse ab.</td></tr>
@@ -402,6 +402,7 @@
       <h3>Filmsuche</h3>
       <p>Die Filmsuche fragt die aktivierten Film-Indexseiten ab und zeigt passende Treffer in Kodi an. Bei Filmen mit mehreren Schreibweisen lohnt sich die Suche nach dem deutschen Titel, dem Originaltitel oder einer gekürzten Titelvariante.</p>
       <p>Metadaten wie Titel, Originaltitel, Jahr, Poster, Fanart und externe IDs kommen aus der Metadaten-Schicht. Diese Daten werden später an die Scraper weitergereicht, damit Anbieter auch dann gefunden werden können, wenn die Schreibweise auf der Webseite abweicht.</p>
+      <p>Unter <strong>Filme</strong> und <strong>TV-Serien</strong> gibt es zusätzlich den Bereich <strong>Streaming-Anbieter</strong>. Dort lädt xVAULT die in TMDb für Deutschland verfügbaren Watch-Provider, zeigt sie mit Anbieterlogo an und ruft anschließend TMDb-Discover mit Anbieterfilter auf. Die daraus entstehende Film- oder Serienliste bleibt eine normale xVAULT-Liste: Beim Abspielen werden weiterhin die aktivierten Indexseiten und Resolver genutzt.</p>
       <h3>Seriensuche</h3>
       <p>Die Seriensuche führt von der Serie zur Staffel und von dort zur Episode. xVAULT merkt sich Suchbegriffe und kann einzelne Suchbegriffe wieder entfernen oder die Suchhistorie leeren.</p>
       <p>In der Staffelliste zeigt xVAULT neben normalen Staffeln auch erkannte Specials. In der Episodenliste werden Playcount, Fortsetzen-Status und die Option für die erste ungesehene Folge berücksichtigt, damit lange Serien übersichtlich bleiben.</p>
@@ -423,8 +424,8 @@
           <tr><td>Neue Suche</td><td>Öffnet die Kodi-Tastatur und speichert den Suchbegriff im passenden Suchverlauf.</td></tr>
           <tr><td>Suchverlauf</td><td>Öffnet frühere Suchbegriffe erneut. Einzelne Begriffe können entfernt oder der Verlauf kann komplett geleert werden.</td></tr>
           <tr><td>Collections</td><td>Listet Filmreihen, sortiert enthaltene Filme chronologisch und nutzt TMDb-Filmreihen zur Plausibilitätsprüfung.</td></tr>
-          <tr><td>Filmrubriken</td><td>Listet Filme nach Jahr, Genre, Popularität, Bewertung, Stimmenzahl oder Einspielergebnis.</td></tr>
-          <tr><td>Serienrubriken</td><td>Listet Serien nach Genre, Popularität, Bewertung oder Stimmenzahl.</td></tr>
+          <tr><td>Filmrubriken</td><td>Listet Filme nach Jahr, Genre, Streaming-Anbieter, Popularität, Bewertung, Stimmenzahl oder Einspielergebnis.</td></tr>
+          <tr><td>Serienrubriken</td><td>Listet Serien nach Genre, Streaming-Anbieter, Popularität, Bewertung oder Stimmenzahl.</td></tr>
           <tr><td>Personen</td><td>Führt von einem Namen zu bekannten Film- und Serienrollen, sofern Metadaten vorhanden sind.</td></tr>
         </tbody>
       </table>
@@ -928,7 +929,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.09.04.1</span>
+      <span>Handbuch zu xVAULT 2026.09.04.2</span>
     </footer>
   </main>
 </body>
