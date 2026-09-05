@@ -52,6 +52,8 @@ HLS_PREFLIGHT_MIN_GOOD = 2
 HLS_PREFLIGHT_RECHECK_DELAY = 2.5
 HLS_PREFLIGHT_CONFIRM_ROUNDS = 2
 HLS_FALLBACK_LIMIT = 6
+HLS_PREFLIGHT_FATAL_STATUSES = (404, 410, 451)
+HLS_PREFLIGHT_FATAL_MARKERS = ("dns_error", "connection_error", "network_error")
 HEALTH_CHECK_TIMEOUT = 8
 HEALTH_SEGMENT_LIMIT = 2
 HEALTH_CHECK_WORKERS = 8
@@ -1011,16 +1013,21 @@ def _health_stream_reachable(stream_url):
     try:
         segment_urls = _hls_probe_segments(stream_url, timeout=HEALTH_CHECK_TIMEOUT)
         if not segment_urls:
-            return {"ok": False, "reason": "HLS ohne Segmente"}
+            return {"ok": True, "reason": "HLS-Segmente nicht prüfbar"}
         sample = segment_urls[-HEALTH_SEGMENT_LIMIT:]
-        statuses = [_probe_segment_status(segment_url, timeout=HEALTH_CHECK_TIMEOUT) for segment_url in sample]
+        statuses = [_probe_segment_status_safe(segment_url, timeout=HEALTH_CHECK_TIMEOUT) for segment_url in sample]
         good = [status for status in statuses if _hls_status_ok(status)]
         latest = statuses[-1] if statuses else None
         if good and _hls_status_ok(latest):
             return {"ok": True, "reason": "HTTP %s" % latest}
+        if _hls_statuses_allow_kodi_fallback(statuses):
+            return {"ok": True, "reason": "Segmentprüfung unklar, Kodi entscheidet"}
         return {"ok": False, "reason": "HLS Segment HTTP %s" % latest}
     except Exception as exc:
-        return {"ok": False, "reason": _truncate(str(exc), 120)}
+        status = _preflight_exception_status(exc)
+        if _hls_status_fatal(status):
+            return {"ok": False, "reason": _truncate(str(exc), 120)}
+        return {"ok": True, "reason": "Segmentprüfung unklar, Kodi entscheidet"}
 
 
 def _signature(force=False):
@@ -1166,6 +1173,7 @@ def _addon_enabled(addon_id):
 
 def _select_live_stream(channel, catalog):
     playable = []
+    kodi_fallback = []
     for candidate, force_signature in _stream_candidates(channel, catalog):
         stream_url = _resolve(candidate.get("url"), force_signature=force_signature)
         if not stream_url:
@@ -1179,10 +1187,22 @@ def _select_live_stream(channel, catalog):
 
         if report.get("ok"):
             playable.append((stream_url, candidate, report))
+        elif _preflight_allows_kodi_fallback(report):
+            kodi_fallback.append((stream_url, candidate, report))
 
     for stream_url, candidate, report in sorted(playable, key=lambda item: _preflight_score(item[2]), reverse=True):
         if _confirm_preflight(stream_url, candidate, report):
             return stream_url, candidate
+
+    for stream_url, candidate, report in sorted(kodi_fallback, key=lambda item: _preflight_score(item[2]), reverse=True):
+        log_utils.log(
+            "LiveTV preflight lets Kodi decide for %s: %s" % (
+                candidate.get("name") or candidate.get("id") or "unknown",
+                report.get("reason") or "segment probe inconclusive",
+            ),
+            log_utils.LOGWARNING,
+        )
+        return stream_url, candidate
 
     return "", channel
 
@@ -1256,7 +1276,7 @@ def _fallback_score(original, candidate):
 
 def _confirm_preflight(stream_url, candidate, report):
     if not report.get("ok"):
-        return False
+        return _preflight_allows_kodi_fallback(report)
     if requests is None or ".m3u8" not in (stream_url or "").lower():
         return True
     if control.getSetting("livetv.preflight", "true") == "false":
@@ -1266,9 +1286,84 @@ def _confirm_preflight(stream_url, candidate, report):
     for _ in range(HLS_PREFLIGHT_CONFIRM_ROUNDS):
         time.sleep(HLS_PREFLIGHT_RECHECK_DELAY)
         confirm = _stream_preflight_report(stream_url, candidate)
-        if not confirm.get("ok") or confirm.get("unstable"):
-            return False
+        if not confirm.get("ok"):
+            return _preflight_allows_kodi_fallback(confirm)
+        if confirm.get("unstable"):
+            log_utils.log(
+                "LiveTV preflight confirmed with unstable segments for %s: %s" % (
+                    candidate.get("name") or candidate.get("id") or "unknown",
+                    confirm.get("reason") or "segment probe partially failed",
+                ),
+                log_utils.LOGWARNING,
+            )
+            return True
+        if not confirm.get("unstable"):
+            return True
     return True
+
+
+def _preflight_allows_kodi_fallback(report):
+    if not isinstance(report, dict):
+        return False
+    if report.get("fatal"):
+        return False
+    return bool(report.get("kodi_fallback"))
+
+
+def _preflight_report(ok=False, unstable=True, good=0, tested=0, latest=None, reason="", kodi_fallback=False, fatal=False):
+    return {
+        "ok": bool(ok),
+        "unstable": bool(unstable),
+        "good": int(good or 0),
+        "tested": int(tested or 0),
+        "latest": latest,
+        "reason": reason,
+        "kodi_fallback": bool(kodi_fallback),
+        "fatal": bool(fatal),
+    }
+
+
+def _probe_segment_status_safe(segment_url, timeout=10):
+    try:
+        return _probe_segment_status(segment_url, timeout=timeout)
+    except Exception as exc:
+        response = getattr(exc, "response", None)
+        status = getattr(response, "status_code", None)
+        if status is not None:
+            try:
+                return int(status)
+            except Exception:
+                return status
+        message = str(exc).lower()
+        return _preflight_exception_status(exc, message)
+
+
+def _preflight_exception_status(exc, message=None):
+    message = message if message is not None else str(exc).lower()
+    if "timed out" in message or "timeout" in message:
+        return "timeout"
+    if "name resolution" in message or "getaddrinfo failed" in message or "no address associated" in message:
+        return "dns_error"
+    if "network is unreachable" in message or "no route to host" in message:
+        return "network_error"
+    if "failed to establish a new connection" in message or "connection refused" in message:
+        return "connection_error"
+    return "probe_error"
+
+
+def _hls_status_fatal(status):
+    if str(status) in HLS_PREFLIGHT_FATAL_MARKERS:
+        return True
+    try:
+        return int(status) in HLS_PREFLIGHT_FATAL_STATUSES
+    except Exception:
+        return False
+
+
+def _hls_statuses_allow_kodi_fallback(statuses):
+    if not statuses:
+        return True
+    return not any(_hls_status_fatal(status) for status in statuses)
 
 
 def _preflight_score(report):
@@ -1288,36 +1383,49 @@ def _preflight_score(report):
 
 
 def _stream_preflight_report(stream_url, channel):
-    report = {"ok": True, "unstable": False}
     if requests is None or ".m3u8" not in (stream_url or "").lower():
-        return report
+        return _preflight_report(ok=True, unstable=False, reason="not_hls")
     if control.getSetting("livetv.preflight", "true") == "false":
-        return report
+        return _preflight_report(ok=True, unstable=False, reason="disabled")
 
     try:
         segment_urls = _hls_probe_segments(stream_url)
         if not segment_urls:
             log_utils.log(
-                "LiveTV preflight blocked %s: HLS manifest has no playable segments" % (
+                "LiveTV preflight inconclusive %s: HLS manifest has no testable segments" % (
                     channel.get("name") or channel.get("id") or "unknown"
                 ),
                 log_utils.LOGWARNING,
             )
-            return {"ok": False, "unstable": True, "good": 0, "tested": 0, "latest": None}
+            return _preflight_report(
+                ok=False,
+                unstable=True,
+                good=0,
+                tested=0,
+                latest=None,
+                reason="HLS manifest has no testable segments",
+                kodi_fallback=True,
+            )
 
         recent = segment_urls[-HLS_PREFLIGHT_SEGMENTS:]
-        statuses = [_probe_segment_status(segment_url) for segment_url in recent]
+        statuses = [_probe_segment_status_safe(segment_url) for segment_url in recent]
         good = [status for status in statuses if _hls_status_ok(status)]
         needed = min(HLS_PREFLIGHT_MIN_GOOD, len(recent))
         latest_ok = _hls_status_ok(statuses[-1] if statuses else None)
+        latest = statuses[-1] if statuses else None
+        fatal = any(_hls_status_fatal(status) for status in statuses)
+        kodi_fallback = not fatal and _hls_statuses_allow_kodi_fallback(statuses)
 
-        report.update({
-            "ok": latest_ok and len(good) >= needed,
-            "unstable": len(good) < len(recent),
-            "good": len(good),
-            "tested": len(recent),
-            "latest": statuses[-1] if statuses else None,
-        })
+        report = _preflight_report(
+            ok=latest_ok and len(good) >= needed,
+            unstable=len(good) < len(recent),
+            good=len(good),
+            tested=len(recent),
+            latest=latest,
+            reason="%d/%d segments usable, latest HTTP %s" % (len(good), len(recent), latest),
+            kodi_fallback=kodi_fallback,
+            fatal=fatal,
+        )
         if report["ok"]:
             if report["unstable"]:
                 log_utils.log(
@@ -1342,11 +1450,20 @@ def _stream_preflight_report(stream_url, channel):
         )
         return report
     except Exception as exc:
+        status = _preflight_exception_status(exc)
+        fatal = _hls_status_fatal(status)
         log_utils.log(
-            "LiveTV preflight blocked %s: %s" % (channel.get("name") or channel.get("id") or "unknown", str(exc)),
+            "LiveTV preflight inconclusive %s: %s" % (channel.get("name") or channel.get("id") or "unknown", str(exc)),
             log_utils.LOGWARNING,
         )
-        return {"ok": False, "unstable": True}
+        return _preflight_report(
+            ok=False,
+            unstable=True,
+            latest=status,
+            reason=_truncate(str(exc), 120),
+            kodi_fallback=not fatal,
+            fatal=fatal,
+        )
 
 
 def _hls_probe_segment(manifest_url, depth=0):

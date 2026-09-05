@@ -40,12 +40,12 @@
         <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
         <tr><th colspan="4"><hr></th></tr>
         <tr><td>[PARENTDIR]</td><td><a href="../" data-umami-event="Verzeichnisnavigation geöffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">04.Sep.2026 12:40:59</td><td align="right">-</td></tr>
+        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">05.Sep.2026 11:53:17</td><td align="right">-</td></tr>
         <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geöffnet">repository.xvault/</a></td><td align="right">04.Sep.2026 09:48:33</td><td align="right">-</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">04.Sep.2026 12:40:59</td><td align="right">3.57 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">04.Sep.2026 12:40:59</td><td align="right">32.00 B</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">04.Sep.2026 12:40:58</td><td align="right">330.06 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">04.Sep.2026 12:40:58</td><td align="right">330.06 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">05.Sep.2026 11:53:17</td><td align="right">3.57 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">05.Sep.2026 11:53:17</td><td align="right">32.00 B</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">05.Sep.2026 11:53:17</td><td align="right">330.06 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">05.Sep.2026 11:53:17</td><td align="right">330.06 KB</td></tr>
         <tr><th colspan="4"><hr></th></tr>
       </tbody>
     </table>
@@ -61,10 +61,10 @@
 
         <div class="release">
           <span>Aktuelle Version</span>
-          <strong>2026.09.04.2</strong>
+          <strong>2026.09.05.1</strong>
         </div>
 
-        <a class="download" href="downloads/plugin.video.xvault-2026.09.04.2.zip" download data-umami-event="Add-on ZIP heruntergeladen">
+        <a class="download" href="downloads/plugin.video.xvault-2026.09.05.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
           Installations-ZIP herunterladen
         </a>
 
@@ -109,6 +109,16 @@
 
     <!-- release-notes:start -->
     <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.09.05.1</p>
+      <h2>Änderungen im Überblick</h2>
+      <ul class="update-list">
+        <li>LiveTV-Streamsegmentprüfung toleranter gemacht: xVAULT blockiert auf Fire TV, Android und vergleichbaren Systemen lauffähige HLS-Streams nicht mehr nur wegen unklarer Segment-Probe, sondern lässt Kodi bei nicht fatalen Prüfantworten entscheiden.</li>
+        <li>Die manuelle LiveTV-Senderprüfung blendet Sender bei unklarer Segmentprüfung nicht mehr fälschlich temporär aus; eindeutige HTTP-, DNS- und Verbindungsfehler bleiben weiter geschützt.</li>
+        <li>Listenpositions-Wiederherstellung beruhigt: xVAULT setzt den Fokus nach Staffelaufruf, Container-Refresh und Wiedergabeende nicht mehr mehrfach aggressiv, wenn Kodi die Zielposition bereits erreicht hat.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
       <p class="section-kicker">Neu in 2026.09.04.2</p>
       <h2>Änderungen im Überblick</h2>
       <ul class="update-list">
@@ -141,17 +151,6 @@
         <li>Kodi-Abstürze beim Öffnen von Serien-, Staffel- oder Episodenlisten auf macOS/tvOS behoben, indem xVAULT keine direkten Kodi-ControlList-Bindings mehr zur Positionswiederherstellung verwendet.</li>
         <li>Die Listenposition wird nur noch defensiv über Kodis eigene Fokusfunktion gesetzt und übersprungen, wenn Kodi gerade Container, Busy-Dialoge oder Vollbildwiedergabe aktualisiert.</li>
         <li>Die Rückkehr aus der Wiedergabe nutzt dieselbe abgesicherte Positionslogik, damit Kodi nach Stop oder regulärem Ende geöffnet bleibt.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.08.29.5</p>
-      <h2>Änderungen im Überblick</h2>
-      <ul class="update-list">
-        <li>Kodi-Wrapper für Add-on, Fenster, Dialoge, Player, Playlists und Fortschrittsdialoge werden kontrolliert erzeugt und beim Add-on-Ende freigegeben, damit Kodi nach xVAULT-Aufrufen keine unnötigen CPythonInvoker-Cleanup-Warnungen protokolliert.</li>
-        <li>Die Serienqueue übergibt weiterhin eine echte Kodi-Playlist an den Player, während die übrigen Laufzeitobjekte nicht mehr dauerhaft als Modul-Globals gehalten werden.</li>
-        <li>Scraper erhalten die ResolveURL-Hosterliste aus den installierten ResolveURL-Plugin-Dateien; die eigentliche ResolveURL-Auflösung wird erst beim Start einer Quelle geladen und danach wieder aus dem xVAULT-Invoker gelöst.</li>
-        <li>Settings-Lesezugriffe nutzen Profil- und Default-XML mit Cache, damit aktuelle Kodi-Einstellungen sofort greifen und keine unnötigen Add-on-Wrapper entstehen.</li>
       </ul>
     </section>
     <!-- release-notes:end -->
@@ -218,15 +217,15 @@
     <section class="panel checksum">
       <h2>Dateiprüfung</h2>
       <p>SHA-256</p>
-      <code>7E546D07ECB9B75B223CE564A797CFD169C18A3FE025B6337330FA0D5EF94CD6</code>
+      <code>C7D940EC9C15640B5CDE14D48EE441AA9A20481EDD3635B6FBB1E58078FBE1CF</code>
     </section>
 
     <section class="panel archive">
       <h2>Vorherige Versionen</h2>
       <ul class="archive-list">
         <!-- previous-downloads:start -->
+        <li><a href="downloads/plugin.video.xvault-2026.09.04.2.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.09.04.2 herunterladen</a><span>12,7 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.09.04.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.09.04.1 herunterladen</a><span>12,7 MB</span></li>
-        <li><a href="downloads/plugin.video.xvault-2026.09.03.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.09.03.1 herunterladen</a><span>14,7 MB</span></li>
         <!-- previous-downloads:end -->
       </ul>
     </section>
@@ -234,7 +233,7 @@
     <footer>
       <a href="handbuch/" data-umami-event="Handbuch geöffnet">Handbuch</a>
       <a href="https://github.com/mojomedia1812/xVAULT" data-umami-event="GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Version 2026.09.04.2</span>
+      <span>Version 2026.09.05.1</span>
     </footer>
   </main>
 </body>

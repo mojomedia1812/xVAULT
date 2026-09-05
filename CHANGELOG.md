@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2026.09.05.1] - 2026-09-05
+
+- LiveTV-Streamsegmentprüfung toleranter gemacht: xVAULT blockiert auf Fire TV, Android und vergleichbaren Systemen lauffähige HLS-Streams nicht mehr nur wegen unklarer Segment-Probe, sondern lässt Kodi bei nicht fatalen Prüfantworten entscheiden.
+- Die manuelle LiveTV-Senderprüfung blendet Sender bei unklarer Segmentprüfung nicht mehr fälschlich temporär aus; eindeutige HTTP-, DNS- und Verbindungsfehler bleiben weiter geschützt.
+- Listenpositions-Wiederherstellung beruhigt: xVAULT setzt den Fokus nach Staffelaufruf, Container-Refresh und Wiedergabeende nicht mehr mehrfach aggressiv, wenn Kodi die Zielposition bereits erreicht hat.
+
 ## [2026.09.04.2] - 2026-09-04
 
 - Filme und TV-Serien können in den TMDb-Rubriken zusätzlich nach Streaming-Anbietern im deutschen Markt gefiltert werden; die Wiedergabe nutzt danach weiterhin die normale xVAULT-Quellen- und Resolverlogik.

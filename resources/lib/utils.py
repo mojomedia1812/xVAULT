@@ -440,6 +440,13 @@ def _container_item_position(pos):
     return pos, index
 
 
+def _current_container_item():
+    try:
+        return int(getInfoLabel('Container().CurrentItem'))
+    except:
+        return None
+
+
 def _safeSetFocusPosition(pos, _name='', content='', timeout=3.0, settle_delay=0.15):
     """Select a list position without touching xbmcgui.ControlList directly."""
     import time
@@ -453,6 +460,9 @@ def _safeSetFocusPosition(pos, _name='', content='', timeout=3.0, settle_delay=0
     monitor = xbmc.Monitor()
     deadline = time.time() + float(timeout)
     last_control_id = ''
+    last_focus_control_id = None
+    last_focus_at = 0
+    focus_attempts = 0
 
     while time.time() < deadline and not monitor.abortRequested():
         try:
@@ -468,10 +478,26 @@ def _safeSetFocusPosition(pos, _name='', content='', timeout=3.0, settle_delay=0
                 monitor.waitForAbort(settle_delay)
                 continue
 
+            current_item = _current_container_item()
+            if current_item == pos:
+                if isdebug:
+                    log_utils.log('%s - list position already selected: %s' % (_name, pos), log_utils.LOGINFO)
+                return True
+
             control_id = getInfoLabel('System.CurrentControlID')
             last_control_id = control_id
             control_id_int = int(control_id)
             if control_id_int <= 0:
+                monitor.waitForAbort(settle_delay)
+                continue
+
+            now = time.time()
+            if control_id_int != last_focus_control_id:
+                focus_attempts = 0
+            if focus_attempts > 0 and control_id_int == last_focus_control_id and now - last_focus_at < 0.9:
+                monitor.waitForAbort(settle_delay)
+                continue
+            if focus_attempts >= 3 and control_id_int == last_focus_control_id:
                 monitor.waitForAbort(settle_delay)
                 continue
 
@@ -480,14 +506,17 @@ def _safeSetFocusPosition(pos, _name='', content='', timeout=3.0, settle_delay=0
             # SIGSEGV-Abstuerze ausloesen und werden deshalb vermieden.
             import xbmc as _xbmc
             _xbmc.executebuiltin('SetFocus(%i,%i)' % (control_id_int, index))
-            monitor.waitForAbort(0.2)
+            last_focus_control_id = control_id_int
+            last_focus_at = now
+            focus_attempts += 1
+            monitor.waitForAbort(0.35)
 
-            try:
-                if int(getInfoLabel('Container().CurrentItem')) == pos:
-                    if isdebug:
-                        log_utils.log('%s - list position restored via SetFocus: %s' % (_name, pos), log_utils.LOGINFO)
-                    return True
-            except:
+            current_item = _current_container_item()
+            if current_item == pos:
+                if isdebug:
+                    log_utils.log('%s - list position restored via SetFocus: %s' % (_name, pos), log_utils.LOGINFO)
+                return True
+            if current_item is None:
                 if isdebug:
                     log_utils.log('%s - SetFocus requested for list position: %s' % (_name, pos), log_utils.LOGINFO)
                 return True
@@ -495,7 +524,7 @@ def _safeSetFocusPosition(pos, _name='', content='', timeout=3.0, settle_delay=0
             monitor.waitForAbort(settle_delay)
 
     if isdebug:
-        log_utils.log('%s - list position restore skipped: pos=%s content=%s control=%s' % (_name, pos, content, last_control_id), log_utils.LOGWARNING)
+        log_utils.log('%s - list position restore skipped: pos=%s content=%s control=%s attempts=%s' % (_name, pos, content, last_control_id, focus_attempts), log_utils.LOGWARNING)
     return False
 
 
@@ -516,6 +545,9 @@ def restoreListPosition(pos, content='', _name=''):
     deadline = time.time() + 12
     monitor = xbmc.Monitor()
     stable_checks = 0
+    focus_attempts = 0
+    last_focus_at = 0
+    last_focus_control_id = None
     monitor.waitForAbort(0.5)
 
     while time.time() < deadline and not monitor.abortRequested():
@@ -538,15 +570,41 @@ def restoreListPosition(pos, content='', _name=''):
                 stable_checks = 0
                 monitor.waitForAbort(0.2)
                 continue
-            xbmc.executebuiltin('SetFocus(%i,%i)' % (control_id, index))
-            monitor.waitForAbort(0.25)
 
-            if int(getInfoLabel('Container().CurrentItem')) == pos:
+            current_item = _current_container_item()
+            if current_item == pos:
                 stable_checks += 1
                 if stable_checks >= 3:
                     if getSetting('status.debug') == 'true':
                         log_utils.log('%s - restored list position: %s' % (_name, pos), log_utils.LOGINFO)
                     return True
+                monitor.waitForAbort(0.2)
+                continue
+
+            stable_checks = 0
+            now = time.time()
+            if control_id != last_focus_control_id:
+                focus_attempts = 0
+            if focus_attempts > 0 and control_id == last_focus_control_id and now - last_focus_at < 1.0:
+                monitor.waitForAbort(0.2)
+                continue
+            if focus_attempts >= 3 and control_id == last_focus_control_id:
+                monitor.waitForAbort(0.2)
+                continue
+
+            xbmc.executebuiltin('SetFocus(%i,%i)' % (control_id, index))
+            last_focus_control_id = control_id
+            last_focus_at = now
+            focus_attempts += 1
+            monitor.waitForAbort(0.35)
+
+            current_item = _current_container_item()
+            if current_item == pos:
+                stable_checks = 1
+            elif current_item is None:
+                if getSetting('status.debug') == 'true':
+                    log_utils.log('%s - requested list position restore: %s' % (_name, pos), log_utils.LOGINFO)
+                return True
             else:
                 stable_checks = 0
         except:
@@ -554,7 +612,7 @@ def restoreListPosition(pos, content='', _name=''):
         monitor.waitForAbort(0.2)
 
     if getSetting('status.debug') == 'true':
-        log_utils.log('%s - failed to restore list position: %s' % (_name, pos), log_utils.LOGWARNING)
+        log_utils.log('%s - failed to restore list position: %s attempts=%s' % (_name, pos, focus_attempts), log_utils.LOGWARNING)
     return False
 
 
