@@ -6,6 +6,7 @@
 
 - LiveTV-Senderlogos werden fuer die verfuegbaren DE/AT/CH-Sender ueber iptv-org-Sender-, Feed- und Alternativnamen robuster zugeordnet.
 - LiveTV lite reichert 2ix2- und Nydus-Senderlisten jetzt ebenfalls mit passenden Senderlogos an.
+- Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv wurden auf 2026.09.13.1 aktualisiert.
 
 ## [2026.09.05.1] - 2026-09-05
 
