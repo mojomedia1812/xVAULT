@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2026.09.13.1] - 2026-09-13
+
+- LiveTV-Senderlogos werden fuer die verfuegbaren DE/AT/CH-Sender ueber iptv-org-Sender-, Feed- und Alternativnamen robuster zugeordnet.
+- LiveTV lite reichert 2ix2- und Nydus-Senderlisten jetzt ebenfalls mit passenden Senderlogos an.
+
 ## [2026.09.05.1] - 2026-09-05
 
 - LiveTV-Streamsegmentprüfung toleranter gemacht: xVAULT blockiert auf Fire TV, Android und vergleichbaren Systemen lauffähige HLS-Streams nicht mehr nur wegen unklarer Segment-Probe, sondern lässt Kodi bei nicht fatalen Prüfantworten entscheiden.

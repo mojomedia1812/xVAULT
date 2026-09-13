@@ -154,14 +154,14 @@ def _catalog(refresh=False):
     if not refresh and cached:
         timestamp = int(cached.get("timestamp") or 0)
         if cached_channels and time.time() - timestamp < CACHE_TTL:
-            return cached_channels
+            return _with_logos(cached_channels)
 
-    channels = _load_channels()
+    channels = _with_logos(_load_channels())
     if channels:
         _write_cache(channels)
         return channels
 
-    fallback = _load_nydus_channels()
+    fallback = _with_logos(_load_nydus_channels())
     if fallback:
         log_utils.log("LiveTV lite nutzt Nydus als Ersatzquelle: %d Sender" % len(fallback), log_utils.LOGWARNING)
         _write_cache(fallback)
@@ -169,7 +169,7 @@ def _catalog(refresh=False):
         return fallback
     if cached_channels:
         control.infoDialog("LiveTV lite nutzt die gespeicherte Senderliste.", icon="WARNING", time=3500)
-        return cached_channels
+        return _with_logos(cached_channels)
     return []
 
 
@@ -384,6 +384,31 @@ def _dedupe_channels(channels):
     return result
 
 
+def _with_logos(channels):
+    channels = [dict(channel) for channel in channels or []]
+    if not any(not channel.get("logo_url") for channel in channels):
+        return channels
+
+    logo_lookup = []
+    for channel in channels:
+        logo_lookup.append({
+            "name": channel.get("name") or "",
+            "logo": channel.get("logo_url") or "",
+        })
+
+    try:
+        enriched = linear_tv._enrich_channel_logos(logo_lookup)
+    except Exception as exc:
+        log_utils.log("LiveTV lite logo lookup failed: %s" % str(exc), log_utils.LOGWARNING)
+        return channels
+
+    for channel, logo_channel in zip(channels, enriched):
+        logo = logo_channel.get("logo") or ""
+        if logo and not channel.get("logo_url"):
+            channel["logo_url"] = logo
+    return channels
+
+
 def _channel_by_id(channels, channel_id):
     channel_id = str(channel_id or "")
     for channel in channels or []:
@@ -441,7 +466,7 @@ def _category(slug):
 
 def _art(channel):
     icon = channel.get("logo_url") or control.addonIcon()
-    return {"icon": icon, "thumb": icon}
+    return {"icon": icon, "thumb": icon, "poster": icon, "clearlogo": icon}
 
 
 def _plot(channel):

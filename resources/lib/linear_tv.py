@@ -28,9 +28,13 @@ CATALOG_PATH = "/mediaurl-catalog.json"
 RESOLVE_PATH = "/mediaurl-resolve.json"
 EPG_URL = "https://epgshare01.online/epgshare01/epg_ripper_DE1.xml.gz"
 LOGOS_URL = "https://iptv-org.github.io/api/logos.json"
+LOGOS_CHANNELS_URL = "https://iptv-org.github.io/api/channels.json"
+LOGOS_FEEDS_URL = "https://iptv-org.github.io/api/feeds.json"
 MEDIA_USER_AGENT = "MediaUrl/2"
 CLIENT_VERSION = "3.1.0"
 CATALOG_GROUPS = ("Germany", "GERMANY")
+LOGO_COUNTRY_CODES = ("DE", "AT", "CH")
+LOGO_COUNTRY_SUFFIXES = tuple(".%s" % country.lower() for country in LOGO_COUNTRY_CODES)
 CATALOG_FILE = os.path.join(control.addonProfilePath, "linear-tv-catalog.json")
 FAVORITES_FILE = os.path.join(control.addonProfilePath, "linear-tv-favorites.json")
 EPG_FILE = os.path.join(control.addonProfilePath, "linear-tv-epg.json")
@@ -140,7 +144,7 @@ _HIDDEN_TOKENS = ("BACKUP", "EVENT", "RAW", "LIVE DURING EVENTS", "TEST")
 
 _XMLTV_TIME_RE = re.compile(r"^(\d{14})(?:\s*([+-])(\d{2})(\d{2}))?")
 _EPG_DROP_RE = re.compile(
-    r"\b(HD|FHD|UHD|SD|RAW|BACKUP|EVENT|EVENTS|OPTION|SELECT|NUR|STREAMING|STREAM)\b",
+    r"\b(HD|FHD|UHD|SD|RAW|BACKUP|EVENT|EVENTS|OPTION|SELECT|NUR|STREAMING|STREAM|LIVE|WEB)\b",
     re.IGNORECASE,
 )
 _EPG_ALIAS_REPLACEMENTS = (
@@ -154,6 +158,14 @@ _EPG_ALIAS_REPLACEMENTS = (
     ("13thstreet", "13thstreetuniversal"),
     ("rtlsuper", "superrtl"),
     ("superrtl", "rtlsuper"),
+    ("srf1", "srfeins"),
+    ("srfeins", "srf1"),
+    ("srf2", "srfzwei"),
+    ("srfzwei", "srf2"),
+    ("orf3", "orfiii"),
+    ("orfiii", "orf3"),
+    ("ardalpha", "bralpha"),
+    ("bralpha", "ardalpha"),
 )
 
 
@@ -2140,10 +2152,27 @@ def _download_logo_data():
     progress.create(control.addonName, "LiveTV-Senderlogos werden geladen")
     progress.update(10)
     try:
-        response = requests.get(LOGOS_URL, headers=_epg_headers(), timeout=45)
-        response.raise_for_status()
+        logos_response = requests.get(LOGOS_URL, headers=_epg_headers(), timeout=45)
+        logos_response.raise_for_status()
+        logo_items = logos_response.json()
+        channel_items = []
+        feed_items = []
+        progress.update(35, "LiveTV-Senderlogos werden geladen")
+        try:
+            channels_response = requests.get(LOGOS_CHANNELS_URL, headers=_epg_headers(), timeout=45)
+            channels_response.raise_for_status()
+            channel_items = channels_response.json()
+        except Exception as exc:
+            log_utils.log("LiveTV logo channel metadata failed: %s" % str(exc), log_utils.LOGWARNING)
+        progress.update(50, "LiveTV-Sendernamen werden geladen")
+        try:
+            feeds_response = requests.get(LOGOS_FEEDS_URL, headers=_epg_headers(), timeout=45)
+            feeds_response.raise_for_status()
+            feed_items = feeds_response.json()
+        except Exception as exc:
+            log_utils.log("LiveTV logo feed metadata failed: %s" % str(exc), log_utils.LOGWARNING)
         progress.update(60, "LiveTV-Senderlogos werden zugeordnet")
-        return _parse_logo_data(response.json())
+        return _parse_logo_data(logo_items, channel_items, feed_items)
     except Exception as exc:
         log_utils.log("LiveTV logo catalog failed: %s" % str(exc), log_utils.LOGWARNING)
         return {}
@@ -2154,25 +2183,102 @@ def _download_logo_data():
             pass
 
 
-def _parse_logo_data(items):
+def _parse_logo_data(items, channels=None, feeds=None):
     if not isinstance(items, list):
         return {}
 
+    channel_aliases = {}
+    if isinstance(channels, list):
+        for channel in channels:
+            channel_id = channel.get("id") or ""
+            if not _logo_country_allowed(channel_id, channel.get("country")):
+                continue
+            channel_aliases[channel_id] = _logo_channel_aliases(channel_id, channel)
+
+    feed_aliases = {}
+    if isinstance(feeds, list):
+        for feed in feeds:
+            channel_id = feed.get("channel") or ""
+            if not _logo_country_allowed(channel_id):
+                continue
+            feed_id = feed.get("id") or ""
+            aliases = _logo_feed_aliases(feed, channel_aliases.get(channel_id, set()))
+            if aliases:
+                feed_aliases[(channel_id, feed_id)] = aliases
+
     logos = {}
+    scores = {}
     for item in items:
         channel_id = item.get("channel") or ""
-        if not channel_id.lower().endswith(".de"):
+        if not _logo_country_allowed(channel_id):
             continue
         logo = _logo_value(item.get("url"))
         if not logo:
             continue
-        for alias in _epg_aliases(channel_id, []):
-            logos.setdefault(alias, logo)
+        aliases = set(channel_aliases.get(channel_id) or _epg_aliases(channel_id, []))
+        aliases.update(feed_aliases.get((channel_id, item.get("feed") or ""), set()))
+        for alias in aliases:
+            _set_logo_candidate(logos, scores, alias, logo, item)
     return {
         "updated_at": int(time.time()),
         "source": LOGOS_URL,
         "logos": logos,
     } if logos else {}
+
+
+def _logo_country_allowed(channel_id, country=None):
+    if country and str(country).upper() in LOGO_COUNTRY_CODES:
+        return True
+    return str(channel_id or "").lower().endswith(LOGO_COUNTRY_SUFFIXES)
+
+
+def _logo_channel_aliases(channel_id, channel):
+    names = [
+        channel.get("name"),
+        channel.get("network"),
+    ]
+    names.extend(channel.get("alt_names") or [])
+    return _epg_aliases(channel_id, [name for name in names if name])
+
+
+def _logo_feed_aliases(feed, channel_aliases):
+    feed_names = [feed.get("id"), feed.get("name")]
+    feed_names.extend(feed.get("alt_names") or [])
+    feed_names = [name for name in feed_names if name]
+    aliases = set()
+    for channel_alias in channel_aliases:
+        for feed_name in feed_names:
+            aliases.update(_alias_variants(_normalise_channel_name("%s %s" % (channel_alias, feed_name))))
+    return set([alias for alias in aliases if alias])
+
+
+def _set_logo_candidate(logos, scores, alias, logo, item):
+    if not alias or not logo:
+        return
+    score = _logo_score(item)
+    if score > scores.get(alias, -1):
+        logos[alias] = logo
+        scores[alias] = score
+
+
+def _logo_score(item):
+    score = 100 if item.get("in_use") else 0
+    logo_format = str(item.get("format") or "").upper()
+    score += {
+        "PNG": 30,
+        "JPEG": 25,
+        "JPG": 25,
+        "SVG": 20,
+        "WEBP": 10,
+    }.get(logo_format, 0)
+    tags = set([str(tag).lower() for tag in item.get("tags") or []])
+    if "horizontal" in tags:
+        score += 5
+    try:
+        score += min(int(item.get("width") or 0), 2000) // 100
+    except Exception:
+        pass
+    return score
 
 
 def _logo_value(value):
@@ -2196,11 +2302,22 @@ def _logo_value(value):
 
 def _epg_aliases(channel_id, names):
     aliases = set()
-    parts = [channel_id.rsplit(".", 1)[0] if channel_id.lower().endswith(".de") else channel_id]
+    parts = [_channel_id_base(channel_id)]
     parts.extend(names or [])
     for value in parts:
         aliases.update(_alias_variants(_normalise_channel_name(value)))
     return set([alias for alias in aliases if alias])
+
+
+def _channel_id_base(channel_id):
+    value = str(channel_id or "")
+    lower = value.lower()
+    for suffix in LOGO_COUNTRY_SUFFIXES:
+        if lower.endswith(suffix):
+            return value[:-len(suffix)]
+    if re.search(r"\.[a-z]{2}$", lower):
+        return value.rsplit(".", 1)[0]
+    return value
 
 
 def _live_channel_aliases(channel):
@@ -2221,6 +2338,15 @@ def _strip_live_suffixes(value):
 
 def _normalise_channel_name(value):
     value = _strip_live_suffixes(value)
+    value = (
+        value.replace("Ä", "Ae")
+        .replace("Ö", "Oe")
+        .replace("Ü", "Ue")
+        .replace("ä", "ae")
+        .replace("ö", "oe")
+        .replace("ü", "ue")
+        .replace("ß", "ss")
+    )
     value = value.replace("&", " und ")
     value = value.replace("+", " plus ")
     return re.sub(r"[^a-z0-9]+", "", value.lower())
@@ -2232,6 +2358,10 @@ def _alias_variants(alias):
         aliases.add(alias[:-4] + "up")
     if alias.endswith("up"):
         aliases.add(alias[:-2] + "plus")
+    if alias.endswith("fernsehen"):
+        aliases.add(alias[:-9])
+    if alias.endswith("tv") and len(alias) > 4:
+        aliases.add(alias[:-2])
     for old, new in _EPG_ALIAS_REPLACEMENTS:
         if old in alias:
             aliases.add(alias.replace(old, new))
