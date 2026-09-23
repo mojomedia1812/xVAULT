@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [2026.09.23.3] - 2026-09-23
+
+- ResolveURL-Mehrfachqualitaeten werden bei Streamauswahl und Autoplay automatisch aufgeloest, damit VOE-Quellen nicht an einem versteckten Qualitaetsdialog haengen bleiben.
+- Dood-Hosterlinks mit `/w/`-Pfad werden vor dem Resolver auf die von ResolveURL erwartete `/d/`-Form normalisiert.
+- VixSrc nutzt die aktuellen `vixsrc.to`-Embed- und Playlist-URLs inklusive vorhandener Playlist-Parameter; der Kodi-Livetest bestaetigt den OHA/VOE-Resolverpfad lokal.
+- Die Standarddomains fuer KinoGer und Streamcloud wurden auf `kinoger.fun` bzw. `streamcloud.date` aktualisiert.
+- Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv wurden auf 2026.09.23.3 aktualisiert.
+
 ## [2026.09.23.2] - 2026-09-23
 
 - Film- und Serienquellen nutzen jetzt die OHA-VOD-Schnittstelle ueber `oha.to`, nachdem die bisherige `huhu.to`-VOD-Quelle nicht mehr erreichbar ist.

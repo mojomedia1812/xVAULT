@@ -5,7 +5,7 @@ from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import dom_parser, source_utils, cleantitle
 from resources.lib import log_utils, hoster_compat
 SITE_IDENTIFIER = 'kinoger'
-SITE_DOMAIN = 'kinoger.com'
+SITE_DOMAIN = 'kinoger.fun'
 SITE_NAME = SITE_IDENTIFIER.upper()
 
 DOOD_DOMAINS = ('dood.sbs', 'dood.re', 'dood.cx', 'dood.la', 'dood.so', 'dood.pm', 'dood.to', 'dood.watch')
@@ -49,7 +49,7 @@ def _kinoger_resolver_source(url, fallback=''):
 def _kinoger_resolver_url(url):
     try:
         if 'kinoger.be' in str(url or '').lower() and '$$' not in str(url or ''):
-            return '%s$$https://kinoger.com/' % url
+            return '%s$$https://kinoger.fun/' % url
     except:
         pass
     return url

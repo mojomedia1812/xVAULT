@@ -6,7 +6,7 @@ from scrapers.modules import cleantitle, dom_parser, source_utils
 from resources.lib.control import getSetting, setSetting
 import xbmcgui
 SITE_IDENTIFIER = 'streamcloud'
-SITE_DOMAIN = 'streamcloud.my'
+SITE_DOMAIN = 'streamcloud.date'
 SITE_NAME = SITE_IDENTIFIER.upper()
 
 class source:

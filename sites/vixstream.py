@@ -15,7 +15,6 @@ from resources.lib.tools import logger
 SITE_IDENTIFIER = 'vixstream'
 SITE_DOMAIN = 'vixsrc.to'
 SITE_NAME = SITE_IDENTIFIER.upper()
-VIXCLOUD = 'vixcloud.co'
 _K = base64.b64decode('ZWRkZTZiNWU0MTI0NmFiNzlhMjY5N2NkMTI1ZTE3ODE=').decode()
 KEY_URI_RE = re.compile(r'URI=(?:"([^"]+)"|([^,\s]+))', flags=re.I)
 
@@ -106,7 +105,7 @@ class source:
             api_url = 'https://%s/api/movie/%s' % (self.domain, tmdb_id)
             media_type = 'movie'
         else:
-            page_url = 'https://%s/tv/%s' % (self.domain, tmdb_id)
+            page_url = 'https://%s/tv/%s/%s/%s' % (self.domain, tmdb_id, str(season), str(episode))
             api_url = 'https://%s/api/tv/%s/%s/%s' % (self.domain, tmdb_id, str(season), str(episode))
             media_type = 'tv'
         return media_type, page_url, api_url
@@ -148,7 +147,10 @@ class source:
             logger.warning('[%s] Kein src in API-Response gefunden' % SITE_NAME)
             return None, None
 
-        embed_url = 'https://%s%s' % (VIXCLOUD, self._src_with_language(src, language))
+        embed_url = urllib.parse.urljoin(
+            'https://%s/' % self.domain,
+            self._src_with_language(src, language).lstrip('/')
+        )
         logger.info('[%s] Frischer Embed: type=%s tmdb=%s lang=%s' % (SITE_NAME, media_type, tmdb_id, language))
         return embed_url, page_url
 
@@ -166,7 +168,7 @@ class source:
 
         token_match = re.search(r"['\"]token['\"]?\s*:\s*['\"]([a-f0-9]+)['\"]", html)
         expires_match = re.search(r"['\"]expires['\"]?\s*:\s*['\"]?(\d+)['\"]?", html)
-        url_match = re.search(r"url\s*:\s*['\"]([^'\"]+/playlist/\d+)['\"]", html)
+        url_match = re.search(r"url\s*:\s*['\"]([^'\"]+/playlist/\d+(?:\?[^'\"]*)?)['\"]", html)
 
         if not (token_match and expires_match and url_match):
             logger.error('[%s] Playlist-Parameter unvollstaendig: token=%s expires=%s url=%s' % (
@@ -174,14 +176,22 @@ class source:
             ))
             return None, None, None
 
-        playlist_url = '%s?token=%s&expires=%s&h=1&lang=%s' % (
-            url_match.group(1), token_match.group(1), expires_match.group(1), stream_language
+        playlist_base = url_match.group(1).replace('\\/', '/')
+        separator = '&' if '?' in playlist_base else '?'
+        playlist_url = '%s%stoken=%s&expires=%s&h=1&lang=%s' % (
+            playlist_base,
+            separator,
+            token_match.group(1),
+            expires_match.group(1),
+            stream_language
         )
+        embed_parts = urllib.parse.urlparse(embed_url)
+        embed_origin = '%s://%s' % (embed_parts.scheme, embed_parts.netloc)
         playlist_headers = {
             'User-Agent': self.ua,
             'Accept': '*/*',
             'Referer': embed_url,
-            'Origin': 'https://' + VIXCLOUD,
+            'Origin': embed_origin,
         }
         playlist_headers.update(self._language_headers(stream_language))
 

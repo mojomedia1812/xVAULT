@@ -1752,6 +1752,7 @@ class sources:
             provider = item['provider']
             call = [i[1] for i in self.sourceDict if i[0] == provider][0]
             url = call.resolve(url)
+            url = self._normalizeResolverUrl(url, item)
 
             if not direct == True:
                 resolved = False
@@ -1762,11 +1763,11 @@ class sources:
                 else:
                     try:
                         include_popups = item.get('prioHoster', 0) >= 999
-                        hmf = _resolveurl().HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=include_popups)
-                        if not hmf.valid_url() and not include_popups:
-                            hmf = _resolveurl().HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=True)
-                        if hmf.valid_url():
-                            url = hmf.resolve()
+                        resolved_url = self._resolveWithResolveUrl(url, include_popups=include_popups)
+                        if not resolved_url and not include_popups:
+                            resolved_url = self._resolveWithResolveUrl(url, include_popups=True)
+                        if resolved_url:
+                            url = resolved_url
                             resolved = True
                             if url == False or url == None or url == '': url = None # raise Exception()
                     except:
@@ -1784,10 +1785,8 @@ class sources:
                     url = None
             elif item.get('prioHoster', 0) >= 999:
                 try:
-                    hmf = _resolveurl().HostedMediaFile(url=url, include_disabled=True, include_universal=False, include_popups=True)
-                    if hmf.valid_url():
-                        url = hmf.resolve()
-                        if url == False or url == None or url == '': url = None
+                    url = self._resolveWithResolveUrl(url, include_popups=True)
+                    if url == False or url == None or url == '': url = None
                 except:
                     url = None
                 compat_url = hoster_compat.resolve(url) or hoster_compat.resolve(raw_url)
@@ -1815,6 +1814,63 @@ class sources:
         except:
             if info: self.errorForSources()
             return
+
+    def _normalizeResolverUrl(self, url, item=None):
+        try:
+            raw_url = str(url or '').split('|', 1)[0].strip()
+            if not raw_url:
+                return url
+
+            parsed = urlparse(raw_url)
+            host = (parsed.hostname or '').lower()
+            path = parsed.path or ''
+            if re.search(r'(^|\.)dood(?:stream)?\.|(^|\.)do+0*d\.|(^|\.)playmogo\.', host):
+                match = re.match(r'^/w/([0-9A-Za-z]+)', path)
+                if match:
+                    normalized = '%s://%s/d/%s' % (parsed.scheme or 'https', parsed.netloc, match.group(1))
+                    if parsed.query:
+                        normalized += '?' + parsed.query
+                    if '|' in str(url):
+                        normalized += '|' + str(url).split('|', 1)[1]
+                    log_utils.log('Dood-Resolver-URL normalisiert: %s' % normalized.split('|', 1)[0], log_utils.LOGINFO)
+                    return normalized
+        except:
+            pass
+        return url
+
+    def _resolveWithResolveUrl(self, url, include_popups=False):
+        try:
+            if not url:
+                return None
+            hmf = _resolveurl().HostedMediaFile(
+                url=url,
+                include_disabled=True,
+                include_universal=False,
+                include_popups=include_popups
+            )
+            if not hmf.valid_url():
+                return None
+            return self._resolveHostedMediaFileAutoPick(hmf)
+        except Exception as e:
+            log_utils.log('ResolveURL-Aufloesung fehlgeschlagen: %s' % str(e), log_utils.LOGWARNING)
+            return None
+
+    def _resolveHostedMediaFileAutoPick(self, hmf):
+        try:
+            from resolveurl.lib import helpers
+        except:
+            return hmf.resolve()
+
+        original_pick_source = helpers.pick_source
+
+        def pick_first_source(sources, auto_pick=None):
+            return original_pick_source(sources, True)
+
+        helpers.pick_source = pick_first_source
+        try:
+            return hmf.resolve()
+        finally:
+            helpers.pick_source = original_pick_source
 
     def _isUsableResolvedUrl(self, url, local=False):
         try:
