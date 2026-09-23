@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.09.23.2] - 2026-09-23
+
+- Film- und Serienquellen nutzen jetzt die OHA-VOD-Schnittstelle ueber `oha.to`, nachdem die bisherige `huhu.to`-VOD-Quelle nicht mehr erreichbar ist.
+- Die OHA-Quelle liefert Filme und Serien direkt ueber IMDb-IDs und erkennt die aktuellen OHA-Hoster wie VOE, Filemoon, Dood, Mixdrop, Supervideo und Vidsonic.
+- Die sichtbare Provider-Beschriftung wurde von Huhu auf OHA aktualisiert; interne Einstellungs-IDs bleiben fuer vorhandene Installationen kompatibel.
+- Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv wurden auf 2026.09.23.2 aktualisiert.
+
 ## [2026.09.23.1] - 2026-09-23
 
 - LiveTV laedt die Senderliste jetzt ueber `oha.to` mit den aktuellen OHA-Ausweichdomains, nachdem `huhu.to` fuer die Live-TV-Liste nicht mehr erreichbar ist.

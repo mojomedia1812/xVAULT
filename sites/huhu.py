@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
-from resources.lib.control import getSetting
 import urllib.parse
+from urllib.parse import urlparse
 from resources.lib.requestHandler import cRequestHandler
 
 try:
@@ -13,12 +13,13 @@ except ImportError:
 
 from scrapers.modules import source_utils
 SITE_IDENTIFIER = 'huhu'
-DOMAIN = 'www.huhu.to'
+DOMAIN = 'oha.to'
 SITE_DOMAIN = DOMAIN
-SITE_NAME = SITE_IDENTIFIER.upper()
-URL_MAIN = f'https://{DOMAIN}/web-vod/'
-URL_LINKS = URL_MAIN + 'api/links?id=%s'
-URL_GET = URL_MAIN + 'api/get?link='
+SITE_NAME = 'OHA'
+URL_MAIN = f'https://{DOMAIN}/'
+URL_VOD = URL_MAIN + 'vod'
+URL_SOURCE = URL_VOD + '/source/%s/%s.json'
+URL_RESOLVE = URL_VOD + '/resolve?url=%s'
 
 
 def _request_json(url, headers=None):
@@ -45,21 +46,12 @@ def _request_real_url(url, headers=None):
         return None
 
 def get_media_data(imdb='', season=0, episode=0):
-    try:
-        find_url = 'https://api.themoviedb.org/3/find/%s?api_key=%s&external_source=imdb_id' % (imdb, getSetting("api.tmdb"))
-        data = _request_json(find_url)
-        if not data:
-            return None
-        if season == 0:
-            result = data["movie_results"][0]
-            media_id = f'movie.{result["id"]}'
-        else:
-            result = data["tv_results"][0]
-            media_id = f'series.{result["id"]}.{season}.{episode}'
-        
-        return media_id
-    except:
-        return None
+    imdb = (imdb or '').strip()
+    if not imdb:
+        return None, None
+    if season and episode:
+        return 'series', 'imdb:%s:%s:%s' % (imdb, int(season), int(episode))
+    return 'video', 'imdb:%s' % imdb
 
 def make_request(url):
     headers = {
@@ -98,28 +90,68 @@ def parse_quality(name):
     return 'SD'
 
 def parse_hoster(name):
-    name = name.split('(')[0].strip()
-    
-    if 'Server P2' in name:
+    name = (name or '').split('(')[0].strip()
+    upper = name.upper()
+
+    if 'SERVER P2' in upper:
         return 'Streamtape'
-    elif 'Server W2' in name:
+    elif 'SERVER W2' in upper:
         return 'Doodstream'
-    elif 'Server O' in name:
+    elif 'SERVER O' in upper:
         return 'Vidoza'
-    elif 'Server E' in name:
+    elif 'SERVER E' in upper:
         return 'Mixdrop'
-    elif 'Server M2' in name:
+    elif 'SERVER M2' in upper:
         return 'Supervideo'
-    elif 'Server G2' in name:
+    elif 'SERVER G2' in upper:
         return 'Luluvideo'
+    elif 'SERVER C' in upper:
+        return 'VOE'
+    elif 'SERVER Z' in upper:
+        return 'Filemoon'
+    elif 'SERVER A' in upper or 'SERVER B' in upper:
+        return 'Doodstream'
+    elif 'SERVER R' in upper:
+        return 'Vidsonic'
     else:
         return name
+
+def parse_hoster_from_url(url):
+    try:
+        host = (urlparse(url).hostname or '').lower().replace('www.', '')
+        if not host:
+            return ''
+        if 'voe.' in host:
+            return 'VOE'
+        if 'dood' in host or 'playmogo' in host or 'myvidplay' in host:
+            return 'Doodstream'
+        if 'filemoon' in host:
+            return 'Filemoon'
+        if 'mixdrop' in host:
+            return 'Mixdrop'
+        if 'supervideo' in host:
+            return 'Supervideo'
+        if 'veev' in host:
+            return 'Veev'
+        if 'poophq' in host:
+            return 'PoopHD'
+        if 'vidsonic' in host:
+            return 'Vidsonic'
+        return host.split('.')[0].title()
+    except:
+        return ''
+
+def parse_language(link):
+    languages = link.get('languages')
+    if isinstance(languages, list) and languages:
+        return str(languages[0]).split('(')[0].strip() or 'de'
+    return str(link.get('language') or 'de').split('(')[0].strip() or 'de'
 
 class source:
     def __init__(self):
         self.priority = 1
         self.language = ['de', 'en']
-        self.domains = ['huhu.to']
+        self.domains = ['oha.to', 'oha.cx', 'oha.online']
     
     def run(self, titles, year, season=0, episode=0, imdb='', hostDict=None):
         sources = []
@@ -128,16 +160,18 @@ class source:
             return sources
         
         try:
-            media_id = get_media_data(imdb, season, episode)
+            media_type, media_id = get_media_data(imdb, season, episode)
             if not media_id:
                 return sources
             
-            links_url = URL_LINKS % media_id
+            links_url = URL_SOURCE % (media_type, urllib.parse.quote(media_id, safe=':'))
             links_data = make_request(links_url)
             
             if not links_data:
                 return sources
             
+            if isinstance(links_data, dict):
+                links_data = links_data.get('sources') or []
             if not isinstance(links_data, list):
                 return sources
             
@@ -151,17 +185,15 @@ class source:
                         continue
                     
                     link_name = link.get('name', '')
-                    quality = parse_quality(link_name)
-                    hoster = parse_hoster(link_name)
-                    language = link.get('language', 'de').split('(')[0].strip()
-                    
-                    final_url = URL_GET + hoster_url
+                    quality = link.get('quality') or parse_quality(link_name)
+                    hoster = parse_hoster(link_name) or parse_hoster_from_url(hoster_url)
+                    language = parse_language(link)
                     
                     source_entry = {
                         'source': hoster,
                         'quality': quality,
                         'language': language,
-                        'url': final_url,
+                        'url': hoster_url,
                         'direct': False,
                         'debridonly': False,
                         'info': link_name
@@ -182,9 +214,12 @@ class source:
             headers = {
                 'Referer': URL_MAIN,
                 'Origin': f'https://{DOMAIN}',
-                'User-Agent': 'Mozilla/5.0'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             }
-            return _request_real_url(url, headers)
+            resolved = _request_json(URL_RESOLVE % urllib.parse.quote(url, safe=''), headers)
+            if isinstance(resolved, dict) and resolved.get('url'):
+                return resolved.get('url')
+            return url
         
         except:
             return None

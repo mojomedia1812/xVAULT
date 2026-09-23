@@ -66,9 +66,9 @@
         <setting id="provider.fhdfilme" type="bool" label="FHD Filme" default="true" />
         <setting id="provider.fhdfilme.domain" label="[B][COLOR red]FHD Filme: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.fhdfilme.check" label="FHD Filme Check" type="bool" default="true" visible="false" />
-        <setting id="provider.huhu" type="bool" label="Huhu" default="true" />
-        <setting id="provider.huhu.domain" label="[B][COLOR red]Huhu: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
-        <setting id="provider.huhu.check" label="Huhu Check" type="bool" default="true" visible="false" />
+        <setting id="provider.huhu" type="bool" label="OHA" default="true" />
+        <setting id="provider.huhu.domain" label="[B][COLOR red]OHA: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
+        <setting id="provider.huhu.check" label="OHA Check" type="bool" default="true" visible="false" />
         <setting id="provider.kinoger" type="bool" label="KinoGer" default="true" />
         <setting id="provider.kinoger.domain" label="[B][COLOR red]KinoGer: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.kinoger.check" label="KinoGer Check" type="bool" default="true" visible="false" />
