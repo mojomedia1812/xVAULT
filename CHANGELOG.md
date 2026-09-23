@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.09.23.1] - 2026-09-23
+
+- LiveTV laedt die Senderliste jetzt ueber `oha.to` mit den aktuellen OHA-Ausweichdomains, nachdem `huhu.to` fuer die Live-TV-Liste nicht mehr erreichbar ist.
+- Alte LiveTV-Caches und Favoriten mit `huhu.to`-Abspielseiten werden automatisch auf `oha.to` normalisiert, damit vorhandene Eintraege wieder aufloesbar bleiben.
+- Der LiveTV-Resolve-Schritt nutzt OHA robuster und kann gueltige HLS-Streams auch dann starten, wenn der externe Signatur-Ping kein Token liefert.
+- Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv wurden auf 2026.09.23.1 aktualisiert.
+
 ## [2026.09.13.1] - 2026-09-13
 
 - LiveTV-Senderlogos werden fuer die verfuegbaren DE/AT/CH-Sender ueber iptv-org-Sender-, Feed- und Alternativnamen robuster zugeordnet.

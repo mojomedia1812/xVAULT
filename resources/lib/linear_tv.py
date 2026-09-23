@@ -9,7 +9,7 @@ import sys
 import time
 import uuid
 import xml.etree.ElementTree as ET
-from urllib.parse import urlencode, urljoin
+from urllib.parse import urlencode, urljoin, urlparse, urlunparse
 
 import xbmc
 import xbmcaddon
@@ -22,7 +22,16 @@ except Exception:
 from resources.lib import control, log_utils
 
 
-BASE_URLS = ("https://huhu.to", "https://www.huhu.to")
+BASE_URLS = (
+    "https://oha.to",
+    "https://www.oha.to",
+    "https://oha.cx",
+    "https://www.oha.cx",
+    "https://oha.online",
+    "https://www.oha.online",
+)
+CATALOG_SOURCE = "oha.to"
+LEGACY_LIVE_HOSTS = ("huhu.to", "www.huhu.to")
 PING_URL = "https://www.vypn.net/api/app/ping"
 CATALOG_PATH = "/mediaurl-catalog.json"
 RESOLVE_PATH = "/mediaurl-resolve.json"
@@ -859,7 +868,7 @@ def _catalog(force=False):
     channels = _download_catalog()
     if channels:
         channels = _apply_current_categories(channels)
-        _write_json(CATALOG_FILE, {"updated_at": int(time.time()), "channels": channels})
+        _write_json(CATALOG_FILE, {"source": CATALOG_SOURCE, "updated_at": int(time.time()), "channels": channels})
         return _visible_channels(channels)
 
     cached = _read_json(CATALOG_FILE, {})
@@ -943,7 +952,7 @@ def _parse_catalog_items(items):
         if item.get("type") != "iptv":
             continue
         channel_id = (item.get("ids") or {}).get("id") or item.get("id")
-        stream_page = item.get("url")
+        stream_page = _normalise_live_url(item.get("url"))
         if not channel_id or not stream_page:
             continue
         name = _clean_name(item.get("name") or item.get("title") or "LiveTV")
@@ -963,9 +972,8 @@ def _resolve(channel_url, force_signature=False):
     if not channel_url or requests is None:
         return ""
 
+    channel_url = _normalise_live_url(channel_url)
     signature = _signature(force=force_signature)
-    if not signature:
-        return ""
 
     for attempt in range(3):
         try:
@@ -2420,12 +2428,43 @@ def _channel_by_id(channels, channel_id):
 def _cache_valid(data):
     if not isinstance(data, dict) or not data.get("channels"):
         return False
+    if data.get("source") != CATALOG_SOURCE:
+        return False
+    if _catalog_has_legacy_urls(data.get("channels")):
+        return False
     try:
         hours = _setting_int("livetv.cache.hours", DEFAULT_CACHE_HOURS, 1, 24)
     except Exception:
         hours = DEFAULT_CACHE_HOURS
     ttl = max(1, hours) * 3600
     return time.time() - int(data.get("updated_at") or 0) < ttl
+
+
+def _catalog_has_legacy_urls(channels):
+    for channel in channels or []:
+        if _is_legacy_live_url((channel or {}).get("url")):
+            return True
+    return False
+
+
+def _is_legacy_live_url(value):
+    try:
+        host = (urlparse(value or "").hostname or "").lower()
+        return host in LEGACY_LIVE_HOSTS
+    except Exception:
+        return False
+
+
+def _normalise_live_url(value):
+    value = value or ""
+    try:
+        parsed = urlparse(value)
+        host = (parsed.hostname or "").lower()
+        if host in LEGACY_LIVE_HOSTS:
+            return urlunparse(parsed._replace(scheme="https", netloc=urlparse(BASE_URLS[0]).netloc))
+    except Exception:
+        pass
+    return value
 
 
 def _setting_int(name, default, minimum=None, maximum=None):
