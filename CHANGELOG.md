@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [2026.09.30.1] - 2026-09-30
+
+- MoFlix faellt bei Cloudflare-/HTTP-403-Antworten der JSON-API auf die Browser-Daten aus den HTML-Seiten zurueck, findet dadurch wieder die aktuellen Mirror-Links und loest FileLions/Mirror-2-HLS-Links robuster auf.
+- Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv wurden auf 2026.09.30.1 aktualisiert.
+
 ## [2026.09.23.3] - 2026-09-23
 
 - ResolveURL-Mehrfachqualitaeten werden bei Streamauswahl und Autoplay automatisch aufgeloest, damit VOE-Quellen nicht an einem versteckten Qualitaetsdialog haengen bleiben.

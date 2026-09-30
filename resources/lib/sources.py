@@ -686,7 +686,7 @@ class sources:
     def _playbackMetaForSourceItem(self, params):
         context = params.get('context') if isinstance(params, dict) else ''
         meta = self._readSourceContext(context)
-        if isinstance(meta, dict):
+        if isinstance(meta, dict) and meta:
             return meta
 
         candidates = []
@@ -1360,7 +1360,9 @@ class sources:
             self.sources.extend(sources)
             return {'provider': source, 'count': len(sources), 'status': 'ok'}
         except Exception as e:
-            self._markProviderTemporarilyBlocked(source, 'error', PROVIDER_ERROR_TTL)
+            reason = getattr(e, 'xvault_provider_reason', 'error')
+            ttl = getattr(e, 'xvault_provider_ttl', PROVIDER_ERROR_TTL)
+            self._markProviderTemporarilyBlocked(source, reason, ttl)
             log_utils.log('Indexseite Fehler: %s / %s' % (source, str(e)), log_utils.LOGWARNING)
             return {'provider': source, 'count': 0, 'status': 'error'}
 
@@ -1750,8 +1752,19 @@ class sources:
             direct = item['direct']
             local = item.get('local', False)
             provider = item['provider']
-            call = [i[1] for i in self.sourceDict if i[0] == provider][0]
-            url = call.resolve(url)
+            try:
+                call = [i[1] for i in self.sourceDict if i[0] == provider][0]
+                url = call.resolve(url)
+            except Exception as exc:
+                host = (urlparse(str(raw_url).split('|', 1)[0]).hostname or '').lower()
+                if not hoster_compat.is_supported_host(host):
+                    raise
+                log_utils.log(
+                    'Provider-Resolver nicht verfuegbar, nutze Hoster-Resolver: %s / %s / %s' %
+                    (provider, item.get('source'), str(exc)),
+                    log_utils.LOGWARNING
+                )
+                url = raw_url
             url = self._normalizeResolverUrl(url, item)
 
             if not direct == True:

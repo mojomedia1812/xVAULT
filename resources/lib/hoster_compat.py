@@ -125,6 +125,9 @@ def resolve(url):
 
     host, media_id = _match_filelions(url)
     if host and media_id:
+        direct_url = _resolve_filelions_embed(host, media_id)
+        if direct_url:
+            return direct_url
         return _resolve_existing_plugin('filelions', 'FileLionsResolver', host, media_id)
 
     host, media_id = _match_byse(url)
@@ -254,6 +257,54 @@ def _resolve_kinoger_filelions(host, media_id):
         return _resolve_existing_plugin('filelions', 'FileLionsResolver', host, fallback_media_id)
     except Exception as exc:
         log_utils.log('KinoGer/FileLions-Kompatibilitaet fehlgeschlagen: %s' % str(exc), log_utils.LOGWARNING)
+        return None
+
+
+def _resolve_filelions_embed(host, media_id):
+    try:
+        import requests
+        from resources.lib.requestHandler import cRequestHandler
+
+        if '$$' in media_id:
+            media_id, referer = media_id.split('$$', 1)
+            referer = urllib_parse.urljoin(referer, '/')
+        else:
+            referer = 'https://%s/' % host
+
+        web_url = 'https://%s/%s' % (host, media_id.lstrip('/'))
+        headers = {
+            'User-Agent': cRequestHandler.RandomUA(),
+            'Referer': referer,
+        }
+        response = requests.get(web_url, headers=headers, timeout=12)
+        html = response.text or ''
+        try:
+            from resolveurl.lib import helpers
+            html += helpers.get_packed_data(html)
+        except:
+            pass
+
+        links = re.search(r'var\s+links\s*=\s*({[^;]+})', html)
+        if not links:
+            return None
+        links = ast.literal_eval(links.group(1))
+        source = links.get('hls4') or links.get('hls3') or links.get('hls2')
+        if not source:
+            return None
+        if source.startswith('/'):
+            source = urllib_parse.urljoin(web_url, source)
+
+        stream_ref = urllib_parse.urljoin(web_url, '/')
+        stream_headers = {
+            'User-Agent': headers['User-Agent'],
+            'Referer': stream_ref,
+            'Origin': stream_ref[:-1],
+            'verifypeer': 'false',
+        }
+        log_utils.log('Hoster-Kompatibilitaet aufgeloest: FileLions / %s' % host, log_utils.LOGINFO)
+        return '%s|%s' % (source, urllib_parse.urlencode(stream_headers))
+    except Exception as exc:
+        log_utils.log('FileLions-Kompatibilitaet fehlgeschlagen: %s / %s' % (host, str(exc)), log_utils.LOGWARNING)
         return None
 
 

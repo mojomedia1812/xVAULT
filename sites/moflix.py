@@ -2,6 +2,7 @@
 
 import json
 import re
+import unicodedata
 from html import unescape as html_unescape
 from urllib.parse import quote, quote_plus, urlencode, urljoin, urlparse
 
@@ -19,6 +20,11 @@ SITE_NAME = 'MoFlix'
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36'
 
 
+class MoflixTemporarilyUnavailable(Exception):
+    xvault_provider_reason = 'cloudflare'
+    xvault_provider_ttl = 30 * 60
+
+
 class source:
     def __init__(self):
         self.priority = 4
@@ -29,6 +35,9 @@ class source:
         self.detail_link = self.base_link + '/api/v1/titles/%s?load=images,genres,productionCountries,keywords,videos,primaryVideo,seasons,compactCredits'
         self.episode_link = self.base_link + '/api/v1/titles/%s/seasons/%s/episodes/%s?load=videos,compactCredits,primaryVideo'
         self.episodes_link = self.base_link + '/api/v1/titles/%s/seasons/%s/episodes?perPage=100&query=&page=1'
+        self.html_search_link = self.base_link + '/search/%s'
+        self.html_title_link = self.base_link + '/titles/%s/%s'
+        self.html_episode_link = self.base_link + '/titles/%s/%s/season/%s/episode/%s'
         self.sources = []
         self._seen = set()
 
@@ -39,13 +48,14 @@ class source:
                 return self.sources
 
             if int(season or 0) > 0 and int(episode or 0) > 0:
-                videos = self._episode_videos(item.get('id'), season, episode)
+                videos = self._episode_videos_with_fallback(item, season, episode)
             else:
-                detail = self._json(self.detail_link % item.get('id'), self.base_link + '/')
-                title = detail.get('title') if isinstance(detail.get('title'), dict) else {}
-                videos = title.get('videos') or []
+                videos = self._title_videos(item)
 
             self._add_videos(videos)
+        except MoflixTemporarilyUnavailable as exc:
+            logger.warning('[%s] Temporaer nicht verfuegbar: %s' % (SITE_NAME, exc))
+            raise
         except Exception as exc:
             logger.error('[%s] Fehler: %s' % (SITE_NAME, exc))
         return self.sources
@@ -56,9 +66,26 @@ class source:
     def _best_match(self, titles, year, season, imdb):
         candidates = []
         seen = set()
+        last_block = None
+        html_fallback_ok = False
         for title in self._search_titles(titles):
-            data = self._json(self.search_link % (quote(title), quote_plus(title)), self.base_link + '/')
-            results = data.get('results') if isinstance(data, dict) else []
+            results = []
+            try:
+                data = self._json(self.search_link % (quote(title), quote_plus(title)), self.base_link + '/')
+                results = data.get('results') if isinstance(data, dict) else []
+            except MoflixTemporarilyUnavailable as exc:
+                last_block = exc
+                logger.info('[%s] API-Suche blockiert, nutze HTML-Fallback fuer "%s": %s' % (SITE_NAME, title, exc))
+
+            if not results:
+                try:
+                    html_results = self._html_search(title)
+                    html_fallback_ok = True
+                    if html_results:
+                        results = html_results
+                except MoflixTemporarilyUnavailable as exc:
+                    last_block = exc
+
             for item in results or []:
                 if not isinstance(item, dict):
                     continue
@@ -72,7 +99,11 @@ class source:
                 if score > 0:
                     candidates.append((score, item))
         candidates.sort(key=lambda value: value[0], reverse=True)
-        return candidates[0][1] if candidates else None
+        if candidates:
+            return candidates[0][1]
+        if last_block and not html_fallback_ok:
+            raise last_block
+        return None
 
     def _match_score(self, item, titles, year, season, imdb):
         want_series = int(season or 0) > 0
@@ -139,6 +170,30 @@ class source:
                 pass
         return []
 
+    def _title_videos(self, item):
+        videos = []
+        try:
+            detail = self._json(self.detail_link % item.get('id'), self.base_link + '/')
+            title = detail.get('title') if isinstance(detail.get('title'), dict) else {}
+            videos = title.get('videos') or []
+        except MoflixTemporarilyUnavailable as exc:
+            logger.info('[%s] API-Details blockiert, nutze HTML-Fallback: %s' % (SITE_NAME, exc))
+
+        if videos:
+            return videos
+        return self._html_title_videos(item)
+
+    def _episode_videos_with_fallback(self, item, season, episode):
+        videos = []
+        try:
+            videos = self._episode_videos(item.get('id'), season, episode)
+        except MoflixTemporarilyUnavailable as exc:
+            logger.info('[%s] API-Episode blockiert, nutze HTML-Fallback: %s' % (SITE_NAME, exc))
+
+        if videos:
+            return videos
+        return self._html_episode_videos(item, season, episode)
+
     def _add_videos(self, videos):
         for video in videos or []:
             if not isinstance(video, dict):
@@ -186,12 +241,171 @@ class source:
             request.addHeaderEntry('X-Requested-With', 'XMLHttpRequest')
             request.addHeaderEntry('Referer', referer or self.base_link + '/')
             payload = request.request()
-            if not payload or str(request.getStatus()) not in ['', '200', '301', '302']:
+            status = str(request.getStatus() or '')
+            if self._is_cloudflare_challenge(payload, status):
+                raise MoflixTemporarilyUnavailable('Cloudflare-Schutz aktiv (%s)' % (status or 'unbekannter Status'))
+            if status == '403':
+                raise MoflixTemporarilyUnavailable('HTTP 403 von %s' % self.domain)
+            if not payload or status not in ['', '200', '301', '302']:
                 return {}
             return json.loads(payload)
+        except MoflixTemporarilyUnavailable:
+            raise
         except Exception as exc:
             logger.error('[%s] Request fehlgeschlagen: %s (%s)' % (SITE_NAME, url, exc))
             return {}
+
+    def _html_search(self, title):
+        data = self._html_bootstrap(self.html_search_link % quote(title, safe=''), self.base_link + '/')
+        loaders = data.get('loaders') if isinstance(data.get('loaders'), dict) else {}
+        search_page = loaders.get('searchPage') if isinstance(loaders.get('searchPage'), dict) else {}
+        results = search_page.get('results') or []
+        return results if isinstance(results, list) else []
+
+    def _html_title_videos(self, item):
+        data = self._html_bootstrap(self._html_title_url(item), self.base_link + '/')
+        return self._videos_from_bootstrap(data)
+
+    def _html_episode_videos(self, item, season, episode):
+        title_id = item.get('id')
+        slug = self._title_slug(item)
+        url = self.html_episode_link % (
+            quote(str(title_id), safe=''),
+            quote(slug, safe=''),
+            int(season or 0),
+            int(episode or 0)
+        )
+        data = self._html_bootstrap(url, self._html_title_url(item))
+        return self._videos_from_bootstrap(data)
+
+    def _html_title_url(self, item):
+        title_id = item.get('id')
+        return self.html_title_link % (quote(str(title_id), safe=''), quote(self._title_slug(item), safe=''))
+
+    def _html_bootstrap(self, url, referer=None):
+        payload, status = self._request_html(url, referer)
+        if self._is_cloudflare_challenge(payload, status):
+            raise MoflixTemporarilyUnavailable('Cloudflare-Schutz auf HTML-Seite aktiv (%s)' % (status or 'unbekannter Status'))
+        if not payload or status not in ['', '200', '301', '302']:
+            logger.warning('[%s] HTML-Fallback ohne Antwort: %s (%s)' % (SITE_NAME, url, status or 'kein Status'))
+            return {}
+        data = self._extract_bootstrap_data(payload)
+        if not data:
+            logger.warning('[%s] HTML-Fallback ohne bootstrapData: %s' % (SITE_NAME, url))
+        return data
+
+    def _request_html(self, url, referer=None):
+        try:
+            request = cRequestHandler(url, caching=True, preserve_url=True)
+            request.removeNewLines(False)
+            request.removeBreakLines(False)
+            request.addHeaderEntry('User-Agent', UA)
+            request.addHeaderEntry('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8')
+            request.addHeaderEntry('Accept-Language', 'de-DE,de;q=0.9,en;q=0.8')
+            request.addHeaderEntry('Referer', referer or self.base_link + '/')
+            request.addHeaderEntry('Upgrade-Insecure-Requests', '1')
+            request.addHeaderEntry('Sec-Fetch-Dest', 'document')
+            request.addHeaderEntry('Sec-Fetch-Mode', 'navigate')
+            request.addHeaderEntry('Sec-Fetch-Site', 'same-origin')
+            payload = request.request()
+            status = str(request.getStatus() or '')
+            return payload or '', status
+        except Exception:
+            return '', ''
+
+    @staticmethod
+    def _extract_bootstrap_data(payload):
+        marker = 'window.bootstrapData'
+        start = (payload or '').find(marker)
+        if start < 0:
+            return {}
+        start = (payload or '').find('{', start)
+        if start < 0:
+            return {}
+
+        depth = 0
+        in_string = False
+        escape = False
+        end = -1
+        for index in range(start, len(payload or '')):
+            char = payload[index]
+            if in_string:
+                if escape:
+                    escape = False
+                elif char == '\\':
+                    escape = True
+                elif char == '"':
+                    in_string = False
+                continue
+            if char == '"':
+                in_string = True
+            elif char == '{':
+                depth += 1
+            elif char == '}':
+                depth -= 1
+                if depth == 0:
+                    end = index + 1
+                    break
+        if end < 0:
+            return {}
+
+        try:
+            data = json.loads(payload[start:end])
+            return data if isinstance(data, dict) else {}
+        except Exception:
+            return {}
+
+    @staticmethod
+    def _videos_from_bootstrap(data):
+        loaders = data.get('loaders') if isinstance(data, dict) else {}
+        if not isinstance(loaders, dict):
+            return []
+        for page_key, data_keys in [
+            ('episodePage', ['episode', 'video', 'title']),
+            ('titlePage', ['title', 'video']),
+            ('watchPage', ['video', 'title', 'episode'])
+        ]:
+            page = loaders.get(page_key)
+            if not isinstance(page, dict):
+                continue
+            for data_key in data_keys:
+                node = page.get(data_key)
+                if isinstance(node, dict) and isinstance(node.get('videos'), list) and node.get('videos'):
+                    return node.get('videos') or []
+        return source._find_videos(loaders)
+
+    @staticmethod
+    def _find_videos(value):
+        if isinstance(value, dict):
+            videos = value.get('videos')
+            if isinstance(videos, list) and videos:
+                return videos
+            for child in value.values():
+                found = source._find_videos(child)
+                if found:
+                    return found
+        elif isinstance(value, list):
+            for child in value:
+                found = source._find_videos(child)
+                if found:
+                    return found
+        return []
+
+    def _title_slug(self, item):
+        for key in ['name', 'title', 'original_title']:
+            value = item.get(key)
+            if value:
+                return self._slug(value)
+        return self._slug(item.get('id'))
+
+    @staticmethod
+    def _slug(value):
+        text = html_unescape(str(value or '')).strip().lower()
+        for old, new in [('ä', 'ae'), ('ö', 'oe'), ('ü', 'ue'), ('ß', 'ss')]:
+            text = text.replace(old, new)
+        text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
+        text = re.sub(r'[^a-z0-9]+', '-', text).strip('-')
+        return text or 'title'
 
     def _request_text(self, url, referer=None, caching=False):
         try:
@@ -232,6 +446,23 @@ class source:
             if '.m3u' in line.lower():
                 return line
         return ''
+
+    @staticmethod
+    def _is_cloudflare_challenge(payload, status):
+        text = str(payload or '').lower()
+        if payload == 'CLOUDFLARE-SCHUTZ AKTIV':
+            return True
+        if (
+            'cf-mitigated' in text or
+            'just a moment' in text or
+            'enable javascript and cookies' in text
+        ):
+            return True
+        if status == '403' and (
+            'cloudflare' in text
+        ):
+            return True
+        return False
 
     def _search_titles(self, titles):
         seen = set()
