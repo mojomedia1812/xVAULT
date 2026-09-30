@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.09.30.2] - 2026-09-30
+
+- MoFlix wird nicht mehr wegen eines fehlgeschlagenen Start-Healthchecks uebersprungen; xVAULT prueft die funktionierende HTML-Suchseite und laedt MoFlix auch dann, wenn eine alte `provider.moflix.check=false`-Einstellung im Kodi-Profil steht.
+- Erfolgreiche MoFlix-Quellensuchen setzen den Provider-Status wieder auf verfuegbar, damit Nutzer nach dem Update nicht manuell in den Einstellungen aufraeumen muessen.
+- Live in Kodi bestaetigt: `Terminator` liefert wieder vier MoFlix-Quellen, und `MoFlix / Veev / Mirror 2` startet die Wiedergabe.
+- Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv wurden auf 2026.09.30.2 aktualisiert.
+
 ## [2026.09.30.1] - 2026-09-30
 
 - MoFlix faellt bei Cloudflare-/HTTP-403-Antworten der JSON-API auf die Browser-Daten aus den HTML-Seiten zurueck, findet dadurch wieder die aktuellen Mirror-Links und loest FileLions/Mirror-2-HLS-Links robuster auf.

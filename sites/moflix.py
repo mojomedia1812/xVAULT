@@ -6,7 +6,7 @@ import unicodedata
 from html import unescape as html_unescape
 from urllib.parse import quote, quote_plus, urlencode, urljoin, urlparse
 
-from resources.lib.control import getSetting
+from resources.lib.control import getSetting, setSetting
 from resources.lib.requestHandler import cRequestHandler
 from resources.lib.tools import logger
 from resources.lib.utils import isBlockedHoster
@@ -53,6 +53,8 @@ class source:
                 videos = self._title_videos(item)
 
             self._add_videos(videos)
+            if self.sources:
+                self._mark_available()
         except MoflixTemporarilyUnavailable as exc:
             logger.warning('[%s] Temporaer nicht verfuegbar: %s' % (SITE_NAME, exc))
             raise
@@ -312,6 +314,14 @@ class source:
             return payload or '', status
         except Exception:
             return '', ''
+
+    def _mark_available(self):
+        try:
+            setSetting('provider.' + SITE_IDENTIFIER + '.check', 'true')
+            if self.domain:
+                setSetting('provider.' + SITE_IDENTIFIER + '.domain', self.domain)
+        except Exception:
+            pass
 
     @staticmethod
     def _extract_bootstrap_data(payload):

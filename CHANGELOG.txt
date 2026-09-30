@@ -1,3 +1,11 @@
+xVAULT 2026.09.30.2
+Entwickler: mojomedia1812
+
+- MoFlix wird nicht mehr wegen eines fehlgeschlagenen Start-Healthchecks uebersprungen; xVAULT prueft die funktionierende HTML-Suchseite und laedt MoFlix auch dann, wenn eine alte provider.moflix.check=false-Einstellung im Kodi-Profil steht.
+- Erfolgreiche MoFlix-Quellensuchen setzen den Provider-Status wieder auf verfuegbar, damit Nutzer nach dem Update nicht manuell in den Einstellungen aufraeumen muessen.
+- Live in Kodi bestaetigt: Terminator liefert wieder vier MoFlix-Quellen, und MoFlix / Veev / Mirror 2 startet die Wiedergabe.
+- Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv wurden auf 2026.09.30.2 aktualisiert.
+
 xVAULT 2026.09.30.1
 Entwickler: mojomedia1812
 

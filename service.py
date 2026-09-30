@@ -235,6 +235,21 @@ def _checkdomain_with_doh(domain):
         if isLogger: logger.warning(' -> [service]: DoH domain check failed for %s: %s' % (domain, str(exc)))
     return False, domain, None
 
+def _check_moflix_domain(domain, base_link, headers):
+    try:
+        import requests
+        probe_url = base_link.rstrip('/') + '/search/terminator'
+        r = requests.get(probe_url, verify=False, headers=headers, timeout=12)
+        status = r.status_code
+        real_domain = urlparse(r.url or base_link).hostname or domain
+        content = r.text or ''
+        if status in (200, 301, 302) and 'window.bootstrapData' in content:
+            return 'true', real_domain, status
+        return 'false', real_domain, status
+    except Exception as exc:
+        if isLogger: logger.warning(' -> [service]: MoFlix domain check failed for %s: %s' % (domain, str(exc)))
+    return 'false', domain, None
+
 def _checkdomain(_domain, _provider):
     try:
         import requests
@@ -250,18 +265,21 @@ def _checkdomain(_domain, _provider):
                 "referer": base_link,
                 "user-agent": UA,
             }
-            r = requests.head(base_link, verify=False, headers=headers, timeout=8)
-            status_code = r.status_code
-            if 300 <= status_code <= 400:
-                from urllib.parse import urljoin
-                url = urljoin(base_link, r.headers.get('Location', ''))
-                domain = urlparse(url).hostname
-                check = 'true' if domain else 'false'
-            elif status_code == 200:
-                domain = urlparse(base_link).hostname
-                check = 'true'
+            if _provider == 'moflix':
+                check, domain, status_code = _check_moflix_domain(domain, base_link, headers)
             else:
-                check = 'false'
+                r = requests.head(base_link, verify=False, headers=headers, timeout=8)
+                status_code = r.status_code
+                if 300 <= status_code <= 400:
+                    from urllib.parse import urljoin
+                    url = urljoin(base_link, r.headers.get('Location', ''))
+                    domain = urlparse(url).hostname
+                    check = 'true' if domain else 'false'
+                elif status_code == 200:
+                    domain = urlparse(base_link).hostname
+                    check = 'true'
+                else:
+                    check = 'false'
         except:
             check = 'false'
             #pass

@@ -17,6 +17,7 @@ _SITES_FOLDER = os.path.join(_ADDON_ROOT, 'sites')
 _LEGACY_FOLDER = os.path.join(_SCRAPERS_ROOT, 'scrapers_source', 'de')
 _MODULE_CACHE = {}
 _HIDDEN_PROVIDERS = set(['bsto'])
+_CHECK_OPTIONAL_PROVIDERS = set(['moflix'])
 
 
 def _folder_has_providers(folder):
@@ -102,7 +103,9 @@ def enabledCheck(module_name):
     if module_name in _HIDDEN_PROVIDERS:
         return False
     if control is not None:
-        if control.getSetting('provider.' + module_name) == 'false' or control.getSetting('provider.' + module_name + '.check') == 'false':
+        if control.getSetting('provider.' + module_name) == 'false':
+            return False
+        if module_name not in _CHECK_OPTIONAL_PROVIDERS and control.getSetting('provider.' + module_name + '.check') == 'false':
             return False
     return True
 
