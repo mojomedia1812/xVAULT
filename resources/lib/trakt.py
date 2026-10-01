@@ -2,6 +2,7 @@ import base64
 import json
 import sys
 import time
+from urllib.parse import quote
 
 try:
     import requests
@@ -787,9 +788,11 @@ def _list_tmdb_ids(list_type, media_type):
     ids = []
     if list_type == 'collection':
         path = '/sync/collection/%s' % trakt_type
-        pages = [(None, None)]
+        pages = []
+        for page in range(1, MAX_LIST_PAGES + 1):
+            pages.append((page, 100))
     else:
-        path = '/sync/watchlist/%s/rank/asc' % trakt_type
+        path = _watchlist_path(trakt_type)
         pages = []
         for page in range(1, MAX_LIST_PAGES + 1):
             pages.append((page, 100))
@@ -804,8 +807,6 @@ def _list_tmdb_ids(list_type, media_type):
             tmdb_id = ids_obj.get('tmdb')
             if tmdb_id and tmdb_id not in ids:
                 ids.append(tmdb_id)
-        if not page:
-            break
         try:
             page_count = int(headers.get('X-Pagination-Page-Count') or page)
             if page >= page_count:
@@ -814,6 +815,42 @@ def _list_tmdb_ids(list_type, media_type):
             if not data:
                 break
     return ids
+
+
+def _watchlist_path(trakt_type):
+    try:
+        return _working_watchlist_path(trakt_type)
+    except TraktError:
+        return '/sync/watchlist/%s/rank/asc' % trakt_type
+
+
+def _working_watchlist_path(trakt_type):
+    sync_path = '/sync/watchlist/%s/rank/asc' % trakt_type
+    try:
+        _request('GET', sync_path, params={'page': 1, 'limit': 1}, oauth=True, timeout=10)
+        return sync_path
+    except TraktError as exc:
+        if exc.status and int(exc.status) < 500:
+            raise
+        fallback = _user_watchlist_path(trakt_type)
+        if fallback:
+            _log('Watchlist Sync-Endpunkt nicht verfuegbar, nutze User-Watchlist: %s' % trakt_type, log_utils.LOGWARNING)
+            return fallback
+        raise
+
+
+def _user_watchlist_path(trakt_type):
+    username = _trakt_username()
+    if not username:
+        _refresh_user_status()
+        username = _trakt_username()
+    if not username:
+        return ''
+    return '/users/%s/watchlist/%s/rank/asc' % (quote(username, safe=''), trakt_type)
+
+
+def _trakt_username():
+    return (_auth_value('username') or _setting('trakt.username') or '').strip()
 
 
 def _render_tmdb_ids(ids, media_type):

@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.10.01.1] - 2026-10-01
+
+- Trakt-Watchlists nutzen bei temporaeren 5xx-Fehlern des Trakt-Sync-Endpunkts automatisch den funktionierenden Benutzer-Watchlist-Endpunkt als Fallback.
+- Trakt-Collections werden jetzt wie von der aktuellen Trakt-API erwartet mit `page` und `limit` paginiert geladen.
+- Live in Kodi bestaetigt: Trakt-Watchlist und Trakt-Collection unter Filme und Serien lassen sich ohne `Trakt Fehler` oeffnen.
+- Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv wurden auf 2026.10.01.1 aktualisiert.
+
 ## [2026.09.30.2] - 2026-09-30
 
 - MoFlix wird nicht mehr wegen eines fehlgeschlagenen Start-Healthchecks uebersprungen; xVAULT prueft die funktionierende HTML-Suchseite und laedt MoFlix auch dann, wenn eine alte `provider.moflix.check=false`-Einstellung im Kodi-Profil steht.

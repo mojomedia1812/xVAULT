@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.09.30.2`
+Aktueller Stand: `2026.10.01.1`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.09.30.2.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.10.01.1.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -56,6 +56,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Fehlerhafte oder hängende Hoster-Auflösungen werden ebenfalls kurzzeitig pro Provider-/Hoster-Kombination übersprungen, damit ein erneuter Quellenwechsel nicht sofort wieder an derselben problematischen Quelle startet.
 - Die parallele Quellensuche passt die Thread-Anzahl an die Plattform an und bereitet bei Autoplay mehrere aussichtsreiche Quellen parallel vor, behält aber die bisherige Sortier- und Auswahlreihenfolge bei.
 - Streamquellen für Filme und Serien können nach bevorzugter Sprache sortiert oder gefiltert werden; mehrere Scraper liefern Deutsch/Englisch-Varianten sauber an die Quellenliste, und Autoplay wird bei Sprache `Alle` automatisch in Dialog oder Verzeichnis umgestellt.
+- Trakt-Watchlists fallen bei temporaeren Trakt-Serverfehlern des Sync-Endpunkts automatisch auf den Benutzer-Watchlist-Endpunkt zurueck; Trakt-Collections werden paginiert geladen.
 - Die Standard-Aktion `Dialog`, `Verzeichnis` oder `Autoplay` wird beim Start von Filmen und Folgen frisch aus Kodis aktuellem Add-on-Setting gelesen; die Profil-Datei dient als Rückfall. Alte Favoriten oder externe Aufrufe frieren die Auswahl nicht mehr auf einen früheren Wert ein.
 - Die Standard-Aktion wird über einen xVAULT-eigenen Auswahl-Dialog gespeichert und migriert alte `hosts.mode.v2`-/`hosts.mode`-/`default.action`-Werte automatisch, damit Kodi-Defaultwerte die Auswahl nicht mehr auf Autoplay zurücksetzen.
 - xVAULT schreibt Kodi-Settings nur, wenn sich der Zielwert wirklich geändert hat; identische Werte werden übersprungen, um die Profil-Settings zu schonen.
