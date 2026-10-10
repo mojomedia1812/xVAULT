@@ -1040,14 +1040,34 @@ class sources:
             items = entry.get('items')
             if not isinstance(items, list) or len(items) == 0:
                 return None, False
+            if self._hasVolatileSourceUrls(items):
+                log_utils.log('Quellen-Cache wegen kurzlebiger Redirects verworfen', log_utils.LOGINFO)
+                return None, False
             return items, stale
         except Exception as e:
             log_utils.log('Quellen-Cache konnte nicht gelesen werden: %s' % str(e), log_utils.LOGWARNING)
             return None, False
 
+    def _hasVolatileSourceUrls(self, items):
+        for item in items or []:
+            try:
+                raw_url = str(item.get('url') or '').split('|', 1)[0].strip()
+                parsed = urlparse(raw_url)
+                host = (parsed.hostname or '').lower()
+                path = parsed.path or ''
+                provider = str(item.get('provider') or '').lower()
+                if provider == 'serienstream' and (host == 'serienstream.to' or host.endswith('.serienstream.to')) and path.rstrip('/') == '/r':
+                    return True
+            except:
+                pass
+        return False
+
     def _writeSourceCache(self, cache_key, items):
         try:
             if not isinstance(items, list) or len(items) == 0:
+                return
+            if self._hasVolatileSourceUrls(items):
+                log_utils.log('Quellen-Cache wegen kurzlebiger Redirects nicht gespeichert', log_utils.LOGINFO)
                 return
             payload = self._readSourceCachePayload()
             entries = payload.get('entries')
@@ -1766,6 +1786,10 @@ class sources:
                 )
                 url = raw_url
             url = self._normalizeResolverUrl(url, item)
+
+            if not url and not direct == True:
+                log_utils.log('Provider-Resolver lieferte keinen Redirect: Provider %s / %s' % (item['provider'], item['source']), log_utils.LOGWARNING)
+                raise Exception()
 
             if not direct == True:
                 resolved = False

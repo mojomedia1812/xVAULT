@@ -101,6 +101,8 @@ def addon_files():
             continue
         if any(part in EXCLUDED_PARTS for part in relative.parts):
             continue
+        if any(part.startswith("firetv_logs_") for part in relative.parts):
+            continue
         if path.name in EXCLUDED_FILES or path.suffix.lower() in EXCLUDED_SUFFIXES:
             continue
         yield path, relative

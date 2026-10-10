@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [2026.10.10.1] - 2026-10-10
+
+- SerienStream-/VOE-Quellen mit kurzlebigen `serienstream.to/r`-Weiterleitungen werden nicht mehr aus dem Quellen-Cache wiederverwendet oder erneut gespeichert.
+- Der Resolver bricht sauber ab, wenn SerienStream keinen Redirect mehr liefert, statt VOE mit einer ungueltigen `None`-URL aufzurufen.
+- Live am installierten Fire-TV-Kodi geprueft: Die Logs fuer Phineas und Ferb zeigen den alten Cache-/Redirect-Fehler; der Fix wurde in Kodi eingespielt und die temporaeren SerienStream-Hoster-Sperren wurden entfernt.
+- Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv wurden auf 2026.10.10.1 aktualisiert.
+
 ## [2026.10.01.1] - 2026-10-01
 
 - Trakt-Watchlists nutzen bei temporaeren 5xx-Fehlern des Trakt-Sync-Endpunkts automatisch den funktionierenden Benutzer-Watchlist-Endpunkt als Fallback.
