@@ -116,7 +116,7 @@ def sync_now():
     track_sync('sync_started', 'manual')
     try:
         client = Client()
-        favorites_sync.check_and_push_if_changed(silent=True, client=client, require_enabled=False)
+        favorites_sync.check_and_push_if_changed(silent=True, client=client, require_enabled=False, raise_errors=True)
         binge_sync.push_local(silent=True, client=client, require_login=False)
         binge_sync.pull_remote(apply_bookmarks=True, silent=True, client=client, require_login=False)
         storage.update_last_sync(time.strftime('%Y-%m-%d %H:%M:%S'))
@@ -133,6 +133,7 @@ def sync_now():
 
 
 def show_status():
+    storage.reconcile_auth_settings()
     status = 'Angemeldet als %s' % storage.email() if storage.is_logged_in() else 'Nicht angemeldet'
     lines = [
         status,

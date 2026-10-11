@@ -1160,7 +1160,6 @@ def _configure_ffmpeg_direct_stream(item):
     item.setProperty("inputstream.ffmpegdirect.open_mode", "ffmpeg")
     item.setProperty("inputstream.ffmpegdirect.is_realtime_stream", "true")
     item.setProperty("inputstream.ffmpegdirect.playback_as_live", "true")
-    item.setProperty("inputstream.ffmpegdirect.stream_mode", "timeshift")
     log_utils.log("LiveTV uses InputStream FFmpeg Direct for HLS playback", log_utils.LOGINFO)
     return True
 

@@ -73,7 +73,7 @@ def _is_xvault_path(path_text):
     return 'plugin.video.xvault' in path_text or 'plugin.video.xvaultalpha' in path_text
 
 
-def check_and_push_if_changed(silent=True, client=None, require_enabled=True, force=False):
+def check_and_push_if_changed(silent=True, client=None, require_enabled=True, force=False, raise_errors=False):
     if require_enabled and (not storage.is_enabled() or not storage.is_logged_in()):
         return False
     if not require_enabled and client is None and not storage.is_logged_in():
@@ -85,9 +85,21 @@ def check_and_push_if_changed(silent=True, client=None, require_enabled=True, fo
         if _should_use_legacy_favorites_sync(exc):
             log_utils.log('xVAULT sync: favorites delta not available, using legacy sync: %s' % exc, log_utils.LOGWARNING)
             return _sync_favorites_full(silent=silent, client=client, force=force)
+        if exc.code == 'UNAUTHORIZED':
+            _handle_unauthorized()
+        if raise_errors:
+            raise
         if not silent:
             control.infoDialog(str(exc), icon='WARNING')
         return False
+
+
+def _handle_unauthorized():
+    try:
+        storage.clear_login()
+        log_utils.log('xVAULT sync: favorites auth rejected, login cleared', log_utils.LOGWARNING)
+    except Exception as exc:
+        log_utils.log('xVAULT sync: failed to clear rejected login: %s' % exc, log_utils.LOGWARNING)
 
 
 def _sync_favorites_delta(silent=True, client=None, force=False):

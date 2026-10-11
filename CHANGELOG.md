@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [2026.10.11.1] - 2026-10-11
+
+- Favoriten-Sync repariert die sichtbare "Letzte Synchronisation"-Anzeige aus dem echten lokalen Sync-Status, wenn der eigentliche Favoritenabgleich bereits erfolgreich war.
+- Manuelle Favoriten-Synchronisation meldet API-Anmeldefehler nicht mehr als Erfolg und entfernt abgelehnte Zugangsdaten sauber.
+- LiveTV/LiveTV lite erzwingen bei FFmpeg Direct keinen Timeshift-Modus mehr, damit Fire-TV-Installationen nicht an einem nicht beschreibbaren Timeshift-Pufferpfad abbrechen.
+- Live am installierten Fire-TV-Kodi geprueft: Favoriten-Sync aktualisiert den Zeitstempel, und `LiveTV lite > Deutsche TV > Pro7` startet und bleibt aktiv.
+- Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv wurden auf 2026.10.11.1 aktualisiert.
+
 ## [2026.10.10.1] - 2026-10-10
 
 - SerienStream-/VOE-Quellen mit kurzlebigen `serienstream.to/r`-Weiterleitungen werden nicht mehr aus dem Quellen-Cache wiederverwendet oder erneut gespeichert.
