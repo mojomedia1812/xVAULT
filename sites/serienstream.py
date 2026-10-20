@@ -364,8 +364,9 @@ class source:
                 logger.info('SerienStream - Episode: %s' % full_url)
 
             sHtmlContent = self._request_page(full_url)
+            mapped_episode = None
 
-            if self._should_find_matching_episode(sHtmlContent, season):
+            if self._should_find_matching_episode(sHtmlContent, season, episode):
                 mapped_episode = self._find_matching_episode_page(
                     url,
                     season,
@@ -377,9 +378,13 @@ class source:
                 if mapped_episode:
                     full_url, sHtmlContent = mapped_episode
                     if log_utils:
-                        logger.info('SerienStream - Episode title/date fallback: %s' % full_url)
+                        logger.info('SerienStream - Episode title fallback: %s' % full_url)
 
             if len(sHtmlContent) == 0:
+                return self.sources
+
+            page_numbers = self._episode_numbers(sHtmlContent)
+            if not mapped_episode and page_numbers and page_numbers != (int(season), int(episode)):
                 return self.sources
 
             if imdb:
@@ -466,12 +471,18 @@ class source:
     @staticmethod
     def _parse_stream_link_buttons(html):
         pattern = r'<[^>]+data-link-id=["\'][^"\']+["\'][^>]*>'
-        return re.findall(pattern, html or '', re.DOTALL | re.IGNORECASE)
+        return [tag for tag in re.findall(pattern, html or '', re.DOTALL | re.IGNORECASE)
+                if source._attr(tag, 'data-provider-name').lower() not in ('', 'provider')]
 
     def _has_stream_links(self, html):
         return bool(self._parse_stream_link_buttons(html))
 
-    def _should_find_matching_episode(self, html, season):
+    @staticmethod
+    def _episode_numbers(html):
+        match = re.search(r'<h2[^>]*>\s*S(\d+)E(\d+)\s*:', html or '', re.IGNORECASE)
+        return (int(match.group(1)), int(match.group(2))) if match else None
+
+    def _should_find_matching_episode(self, html, season, episode=None):
         if int(season or 0) == 0:
             return False
 
@@ -483,24 +494,28 @@ class source:
         if not self._has_stream_links(html):
             return True
 
+        page_numbers = self._episode_numbers(html)
+        if episode is not None and page_numbers and page_numbers != (int(season), int(episode)):
+            return True
+
         page_title = self._extract_episode_title(html)
         if episode_title and page_title:
+            # The site uses an empty German title followed by (Original Title)
+            # when only the original-language episode is available. A localized
+            # metadata title must not send that numbered page to another episode.
+            if (page_title.startswith('(') and page_title.endswith(')')
+                    and episode is not None and page_numbers == (int(season), int(episode))):
+                return False
             if not self._episode_titles_match(episode_title, page_title):
                 if log_utils:
                     logger.info('SerienStream - Direct episode title mismatch: request=%s | page=%s' % (episode_title, page_title))
                 return True
             return False
 
-        page_date = self._extract_publish_date(html)
-        if episode_premiered and page_date and not self._dates_match(episode_premiered, page_date):
-            if log_utils:
-                logger.info('SerienStream - Direct episode date mismatch: request=%s | page=%s' % (episode_premiered, page_date))
-            return True
-
         return False
 
     def _find_matching_episode_page(self, series_url, season=0, episode=0, episode_title=None, episode_premiered=None, direct_url=''):
-        if not episode_title and not episode_premiered:
+        if not episode_title:
             return None
 
         season_numbers = self._available_seasons(series_url, season)
@@ -515,7 +530,7 @@ class source:
             ))
 
         direct_path = self._normalise_episode_path(direct_url)
-        date_matches = []
+        title_matches = {}
         for season_number in season_numbers:
             season_url = '%s/staffel-%d' % (series_url.rstrip('/'), int(season_number))
             season_full_url = urljoin(self.base_link, season_url)
@@ -539,24 +554,14 @@ class source:
 
                 page_title = self._extract_episode_title(html)
                 if episode_title and self._episode_titles_match(episode_title, page_title):
-                    return full_url, html
+                    title_matches[self._normalise_episode_path(full_url)] = (full_url, html)
 
-                page_date = self._extract_publish_date(html)
-                if episode_premiered and self._dates_match(episode_premiered, page_date):
-                    if episode_title:
-                        date_matches.append((full_url, html))
-                    else:
-                        return full_url, html
-
-        if episode_title and len(date_matches) == 1:
-            if log_utils:
-                logger.info('SerienStream - Unique episode date fallback: %s' % date_matches[0][0])
-            return date_matches[0]
-        if episode_title and len(date_matches) > 1 and log_utils:
-            logger.info('SerienStream - Episode date fallback ignored because %d candidates share %s' % (
-                len(date_matches),
-                episode_premiered
-            ))
+        # "Veröffentlicht am" is the site's upload date, not an air date.
+        # Remap only when a title identifies exactly one other episode.
+        if len(title_matches) == 1:
+            return next(iter(title_matches.values()))
+        if len(title_matches) > 1 and log_utils:
+            logger.info('SerienStream - Ambiguous episode title fallback ignored: %s' % episode_title)
 
         return None
 
@@ -669,16 +674,8 @@ class source:
 
         for req in requested_variants:
             for cand in candidate_variants:
-                if len(req) >= 6 and len(cand) >= 6 and (req in cand or cand in req):
+                if len(req) >= 3 and req == cand:
                     return True
-
-        requested_tokens = self._episode_title_tokens(requested)
-        candidate_tokens = self._episode_title_tokens(candidate)
-        if requested_tokens and candidate_tokens:
-            overlap = requested_tokens.intersection(candidate_tokens)
-            shortest = float(min(len(requested_tokens), len(candidate_tokens)) or 1)
-            if len(overlap) >= 2 and (len(overlap) / shortest) >= 0.45:
-                return True
         return False
 
     @staticmethod

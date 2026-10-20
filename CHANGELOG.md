@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [2026.10.20.1] - 2026-10-20
+
+- SerienStream uebernimmt generische "Provider"-Eintraege nicht mehr als abspielbare Hoster.
+- SerienStream verwendet Upload-Daten nicht mehr zur Episodenzuordnung. Titelabgleiche muessen eindeutig sein; nur englisch verfuegbare Folgen werden nicht mehr durch fruehere deutsche Folgen ersetzt.
+- Der Providercheck im Hintergrunddienst beachtet dieselbe DNS-over-HTTPS-Einstellung wie die Quellensuche. Voruebergehende Netzwerkfehler sperren Anbieter nicht mehr dauerhaft.
+- Live im lokalen Kodi 22 RC1 geprueft: Slow Horses S5E1-6 und FBI S8E18-22 liefern die richtigen Quellen; Slow Horses S5E1 und FBI S8E18 starten ueber VOE.
+- Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv auf 2026.10.20.1 aktualisiert.
+
 ## [2026.10.11.1] - 2026-10-11
 
 - Favoriten-Sync repariert die sichtbare "Letzte Synchronisation"-Anzeige aus dem echten lokalen Sync-Status, wenn der eigentliche Favoritenabgleich bereits erfolgreich war.

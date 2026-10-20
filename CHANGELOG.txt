@@ -1,3 +1,11 @@
+xVAULT 2026.10.20.1
+Entwickler: mojomedia1812
+
+- SerienStream filtert generische Provider-Eintraege und ordnet Folgen nur ueber eindeutige Episodentitel zu. Upload-Daten ersetzen keine Episodenidentitaet; englische Folgen bleiben korrekt zugeordnet.
+- Der Providercheck beachtet dieselbe DNS-over-HTTPS-Einstellung wie die Quellensuche. Voruebergehende Netzwerkfehler sperren Anbieter nicht mehr dauerhaft.
+- Live im lokalen Kodi 22 RC1 geprueft: Slow Horses S5E1-6 und FBI S8E18-22 liefern die richtigen Quellen; Slow Horses S5E1 und FBI S8E18 starten ueber VOE.
+- Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv auf 2026.10.20.1 aktualisiert.
+
 xVAULT 2026.10.11.1
 Entwickler: mojomedia1812
 

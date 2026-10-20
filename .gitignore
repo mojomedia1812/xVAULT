@@ -20,3 +20,12 @@ backups/
 secrets/
 supabase/.temp/
 .tmp-kodi-profile/
+
+# Local diagnostics may contain authentication data and private playback history.
+/tools/diagnostics/private/
+
+# Workstation inventory, reconciliation notes and the deferred statistics draft.
+/tools/CODEX_PROJECT_MEMORY.md
+/tools/WORKSPACE_STATUS.md
+/tools/codex_code_inventory.json
+/tools/stats2/

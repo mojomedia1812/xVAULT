@@ -987,7 +987,7 @@ class sources:
             settings[setting] = control.getSetting(setting)
 
         key = {
-            'version': 8,
+            'version': 9,
             'addon': control.addonVersion,
             'mediatype': getattr(self, 'mediatype', None),
             'title': py2_decode(title),

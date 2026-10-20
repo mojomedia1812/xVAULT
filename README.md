@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.10.11.1`
+Aktueller Stand: `2026.10.20.1`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.10.11.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.10.20.1.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -41,7 +41,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - SerienStream verwendet `serienstream.to`; alte gespeicherte Domainwerte werden automatisch auf diese Domain migriert.
 - SerienStream.to arbeitet ohne Zugangsdatenpflicht; die Quellensuche läuft auch ohne hinterlegte Login-Daten.
 - SerienStream und AniWorld gleichen Serien- und Episodentreffer über Titel, Slugs, Jahr, Kapitelnummern und deutsche/englische Episodentitel robuster ab; Untertitelvarianten werden nicht mehr als Tonspur-Sprache gewertet.
-- SerienStream prüft bei abweichender Anbieter-Staffelzählung Episodentitel und Erstausstrahlung, damit Folgen auch dann gefunden werden, wenn TMDB/xVAULT und Anbieter die Staffeln unterschiedlich schneiden; gleiche Veröffentlichungsdaten mehrerer Folgen werden dabei nicht mehr als eindeutiger Treffer behandelt.
+- SerienStream gleicht abweichende Anbieter-Staffelzählungen über eindeutige Episodentitel und Kapitelnummern ab. Upload-Daten der Webseite werden nicht als Erstausstrahlung gewertet; Folgen ohne deutsche Fassung behalten ihre englischen Quellen. Generische Einträge mit dem Hosternamen `Provider` werden ausgelassen.
 - Serienwiedergaben starten auch dann stabil, wenn Metadaten aus Favoriten, alten Listen oder Android/Kodi-Varianten nur `imdb_id` statt `imdbnumber` liefern; Startfehler werden im Kodi-Log klarer protokolliert.
 - VOE-Quellen können direkt in xVAULT aufgelöst werden, wenn die installierte ResolveURL-Version die aktuelle VOE-Ausweichdomain noch nicht kennt.
 - xVAULT kennt zusätzliche VOE-, Streamix-, Playmate- und FireStream-Ausweichdomains, damit Quellen auch dann nutzbar bleiben, wenn die installierte ResolveURL-Version diese Domains noch nicht selbst enthält.
@@ -83,7 +83,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Gesehen/Ungesehen-Status für Filme, Folgen, Staffeln und Serien.
 - Nach beendeter Wiedergabe wird der Gesehen-Status aktualisiert, ohne dass die Auswahl mehrfach zwischen alter Position und nächster ungesehener Folge springt.
 - Nach dem Stoppen oder Ende eines Streams nutzt xVAULT keine blinde Kodi-ParentDir-Navigation mehr, sondern kehrt über den gespeicherten xVAULT-Containerpfad zurück, damit Kodi auf verschiedenen Plattformen geöffnet bleibt.
-- DNS over HTTPS ist standardmäßig aktiv und kann in den allgemeinen Einstellungen deaktiviert werden. xVAULT nutzt Cloudflare für die DNS-Auflösung seiner HTTP-Anfragen; die aktivierten Indexseiten laufen über dieselbe RequestHandler-Logik, feste IPs bleiben nur Rückfall.
+- DNS over HTTPS ist standardmäßig aktiv und kann in den allgemeinen Einstellungen deaktiviert werden. xVAULT nutzt Cloudflare für die DNS-Auflösung seiner HTTP-Anfragen; die aktivierten Indexseiten laufen über dieselbe RequestHandler-Logik, feste IPs bleiben nur Rückfall. Der Providercheck im Hintergrunddienst beachtet dieselbe Einstellung und sperrt Anbieter bei vorübergehenden Netzwerkfehlern nicht dauerhaft.
 - xVAULT-Synchronisation für Favoriten und Wiedergabestände.
 - Die xVAULT-Synchronisation nutzt den API-Host `all-stats.de` für Favoriten- und Binge-/Wiedergabestände.
 - Bei der Sync-Registrierung prüft xVAULT die E-Mail-Adresse auf plausibles Format und die API zusätzlich, ob die angegebene Domain per DNS erreichbar ist.

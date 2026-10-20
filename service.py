@@ -216,7 +216,10 @@ def RandomUA():
     return choice(_User_Agents)
 
 def _doh_enabled():
-    return getSetting('bypassDNSlock', 'false') == 'true'
+    value = getSetting('bypassDNSlock.enabled', '')
+    if value in ('true', 'false'):
+        return value == 'true'
+    return True
 
 def _checkdomain_with_doh(domain):
     try:
@@ -280,9 +283,9 @@ def _checkdomain(_domain, _provider):
                     check = 'true'
                 else:
                     check = 'false'
-        except:
-            check = 'false'
-            #pass
+        except Exception as exc:
+            check = ''
+            if isLogger: logger.warning(' -> [service]: Provider domain check failed for %s: %s' % (domain, str(exc)))
         finally:
             wrongDomain = 'site-maps.cc', 'www.drei.at', 'notice.cuii.info'
             doh_enabled = _doh_enabled()
