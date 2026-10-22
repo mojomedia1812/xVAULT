@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.10.20.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.10.22.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.10.20.1.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.10.22.1.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -596,6 +596,10 @@
       <p>Film- und Serienfavoriten stammen aus Kodis Favoriten- beziehungsweise xVAULT-Listenlogik. LiveTV und LiveTV lite speichern TV-Favoriten im jeweiligen xVAULT-Profilbereich. Der Kontextmenüpunkt <strong>Zu TV Favoriten hinzufügen</strong> legt Sender deshalb in den Favoritenordnern der LiveTV-Bereiche ab und nicht in Kodis allgemeinen Favoriten.</p>
       <h3>Synchronisation anmelden</h3>
       <p>Im Bereich Konten kann ein xVAULT-Konto registriert, angemeldet, abgemeldet oder das Passwort zurückgesetzt werden. Nach erfolgreicher Anmeldung ist die erste Synchronisierung sofort verfügbar, ohne die Einstellungen verlassen und erneut öffnen zu müssen.</p>
+      <h3>Mehrere Geräte verwenden</h3>
+      <p>Ein Konto kann auf mindestens fünf Geräten gleichzeitig angemeldet bleiben. Jede Installation erhält einen eigenen Zugangsschlüssel. Das Kennwort muss nach einer erfolgreichen Anmeldung nicht bei jedem Gerätewechsel neu eingegeben werden. Alle beteiligten Geräte benötigen Version 2026.10.22.1 oder neuer; eine bereits ungültige alte Anmeldung muss einmalig erneuert werden.</p>
+      <p>Unter <strong>Konten &amp; Sync &gt; Geräte &amp; Sync-Verlauf</strong> sind Gerätenamen, letzte Nutzung, Änderungen und ihr Ursprungsgerät sichtbar. Ein einzelnes Gerät kann abgemeldet werden, ohne die anderen Geräte abzumelden. Ein Kennwort-Reset widerruft sämtliche Anmeldungen.</p>
+      <p>xVAULT gleicht beim Start, nach dem Aufwachen, vor einer Wiedergabe und etwa alle 30 Sekunden im Hintergrund ab. Offline-Änderungen bleiben in einer dauerhaften Warteschlange. Unabhängige Änderungen werden zusammengeführt; widersprüchliche Änderungen bleiben zur Auswahl erhalten. Bei parallelen Wiedergaben kann vor dem Fortsetzen zwischen den gespeicherten Positionen gewählt werden. Während einer laufenden Wiedergabe ersetzt ein anderer Gerätestand keine lokalen Sprungmarken.</p>
       <h3>Registrierung und Kennwort</h3>
       <p>Bei der Registrierung prüft xVAULT, ob die eingegebene E-Mail-Adresse bereits registriert ist. In diesem Fall weist xVAULT darauf hin und schlägt Anmeldung oder Kennwort-Wiederherstellung vor.</p>
       <p>Zusätzlich prüft xVAULT die E-Mail-Adresse auf ein plausibles Format. Die Sync-API lehnt neue Registrierungen außerdem ab, wenn die angegebene Domain keine nutzbaren DNS-/Mail-Einträge besitzt. So werden offensichtliche Tippfehler und frei erfundene Domains bereits vor dem Anlegen eines Kontos abgefangen.</p>
@@ -610,10 +614,10 @@
       <h3>Entfernen und sofort synchronisieren</h3>
       <p>Wird ein Favorit entfernt, stößt xVAULT direkt eine Synchronisation an. So wird der entfernte Zustand nicht unnötig lange lokal gehalten.</p>
       <h3>Playcount sicher kombinieren</h3>
-      <p>Lokale und synchronisierte Wiedergabestände werden kombiniert. Bereits lokal gesehene Filme oder Episoden werden nicht durch ältere Serverdaten überschrieben. Ziel ist immer, keinen gesehenen Stand zu verlieren.</p>
-      <p>Wiedergabestände werden deshalb als gemeinsamer Zustand betrachtet: lokal gesehene Inhalte bleiben gesehen, vom Server kommende gesehene Inhalte werden ergänzt, und Fortsetzen-Informationen werden so angewendet, dass vorhandene Fortschritte nicht unnötig verloren gehen.</p>
+      <p>Serverrevisionen schützen Wiedergabe- und Gesehen-Stände vor veralteten Updates. Bewusste Gesehen- und Ungesehen-Markierungen werden getrennt von der Wiedergabeposition abgeglichen. Widersprüchliche Änderungen bleiben im Geräteverlauf nachvollziehbar.</p>
+      <p>Konkurrierende Wiedergabesitzungen behalten ihre gespeicherten Positionen als Alternativen. Bewusstes Zurückspulen bleibt möglich; verspätete Zwischenstände derselben Sitzung werden ignoriert.</p>
       <h3>Weitere Konto-Aktionen</h3>
-      <p>Die Konten-Einstellungen bieten zusätzlich <strong>Jetzt synchronisieren</strong>, <strong>Backup vom Server wiederherstellen</strong>, <strong>Status anzeigen</strong>, <strong>Datenschutz-Hinweis anzeigen</strong> und <strong>Abmelden</strong>. Damit lassen sich Synchronisation, Serverstand, Kontostatus und Abmeldung direkt aus den Einstellungen steuern.</p>
+      <p>Die Konten-Einstellungen bieten zusätzlich <strong>Jetzt synchronisieren</strong>, <strong>Backup vom Server wiederherstellen</strong>, <strong>Status anzeigen</strong>, <strong>Geräte &amp; Sync-Verlauf</strong>, <strong>Datenschutz-Hinweis anzeigen</strong> und <strong>Abmelden</strong>. Damit lassen sich Synchronisation, Serverstand, Kontostatus und Abmeldung direkt aus den Einstellungen steuern.</p>
       <table class="manual-table">
         <thead>
           <tr><th>Aktion</th><th>Beschreibung</th></tr>
@@ -929,7 +933,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.10.20.1</span>
+      <span>Handbuch zu xVAULT 2026.10.22.1</span>
     </footer>
   </main>
 </body>

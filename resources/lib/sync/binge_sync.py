@@ -9,7 +9,7 @@ from resources.lib.sync.api_client import ApiError, Client
 FILENAME = 'sync_binge_state.json'
 
 
-def record_playback(meta, name, year, current_time, total_time, completed=None, push=True):
+def record_playback(meta, name, year, current_time, total_time, completed=None, push=True, session_id=None, base_revision=None, sequence=0, watch_base_revision=None, record_completion=True):
     try:
         duration = int(total_time or 0)
         position = int(current_time or 0)
@@ -40,7 +40,12 @@ def record_playback(meta, name, year, current_time, total_time, completed=None, 
             'tmdb_id': meta.get('tmdb_id'),
         },
     }
+    item['sequence'] = sequence
     save_items([item])
+    from resources.lib.sync import engine
+    engine.record(item, session_id=session_id, base_revision=base_revision)
+    if completed and record_completion:
+        engine.record(item, kind='watch', base_revision=watch_base_revision)
     if push and storage.is_enabled() and storage.is_logged_in():
         push_local(silent=True)
     return True
@@ -61,19 +66,41 @@ def update_watch_status(meta, watched=True, push=True):
     if not item:
         return False
     save_items([item])
+    from resources.lib.sync import engine
+    engine.record(item, kind='watch')
     if push and storage.is_enabled() and storage.is_logged_in():
         push_local(silent=True)
     return True
 
 
 def item_key(meta, name, year):
-    if meta.get('tmdb_id'):
-        base = 'tmdb:%s:%s:%s' % (meta.get('tmdb_id'), meta.get('season', ''), meta.get('episode', ''))
-    elif meta.get('imdb_id') or meta.get('imdb'):
-        base = 'imdb:%s:%s:%s' % (meta.get('imdb_id') or meta.get('imdb'), meta.get('season', ''), meta.get('episode', ''))
+    season = _maybe_int(meta.get('season'))
+    episode = _maybe_int(meta.get('episode'))
+    kind = meta.get('mediatype') or ('episode' if episode is not None else 'movie')
+    if kind == 'movie':
+        season = episode = None
+    elif season is not None and episode is not None and episode > 0:
+        kind = 'episode'
+    elif kind == 'season':
+        episode = None
     else:
-        base = 'name:%s:%s:%s:%s' % (name, year, meta.get('season', ''), meta.get('episode', ''))
+        kind, season, episode = 'tvshow', None, None
+    suffix = '%s:%s' % (season if season is not None else '', episode if episode is not None else '')
+    if meta.get('tmdb_id'):
+        base = '%s:tmdb:%s:%s' % (kind, meta.get('tmdb_id'), suffix)
+    elif meta.get('imdb_id') or meta.get('imdb'):
+        base = '%s:imdb:%s:%s' % (kind, meta.get('imdb_id') or meta.get('imdb'), suffix)
+    else:
+        base = '%s:name:%s:%s:%s' % (kind, (meta.get('title') or name).strip(), year, suffix)
     return hashlib.sha256(base.encode('utf-8')).hexdigest()
+
+
+def normalize_legacy_item(item):
+    value = dict(item)
+    meta = dict(item.get('extra') or {})
+    meta.update(title=item.get('title') or item.get('name'), season=item.get('season'), episode=item.get('episode'))
+    value['item_key'] = item_key(meta, item.get('name') or item.get('title') or '', str(item.get('year') or '0'))
+    return value
 
 
 def load_items():
@@ -319,45 +346,22 @@ def combined_items():
 
 
 def push_local(silent=False, client=None, require_login=True):
-    if require_login and not storage.is_logged_in():
-        if not silent:
-            control.infoDialog('Bitte zuerst anmelden.', icon='WARNING')
-        return False
+    from resources.lib.sync import engine
     try:
-        client = client or Client()
-        items = combined_items()
-        if not items:
-            return False
-        client.push_binge_state(items, device.get_device_id())
-        storage.update_last_sync(iso_now())
-        return True
-    except ApiError as exc:
+        return engine.synchronize(client=client)
+    except Exception as exc:
+        log_sync_warning('device sync pending: %s' % exc)
         if not silent:
-            control.infoDialog(str(exc), icon='WARNING')
+            control.infoDialog('Abgleich ausstehend. Lokale Änderungen bleiben gespeichert.', icon='WARNING')
         return False
 
 
 def pull_remote(apply_bookmarks=True, silent=False, client=None, require_login=True):
-    if require_login and not storage.is_logged_in():
-        if not silent:
-            control.infoDialog('Bitte zuerst anmelden.', icon='WARNING')
-        return False
+    from resources.lib.sync import engine
     try:
-        client = client or Client()
-        data = client.pull_binge_state()
-        sync_local_playcounts()
-        items = data.get('items', [])
-        save_items(items)
-        merged_items = combined_items()
-        if apply_bookmarks:
-            apply_to_bookmarks(merged_items)
-        if _state_signature(merged_items) != _state_signature(items):
-            client.push_binge_state(merged_items, device.get_device_id())
-        storage.update_last_sync(iso_now())
-        return True
-    except ApiError as exc:
-        if not silent:
-            control.infoDialog(str(exc), icon='WARNING')
+        return engine.synchronize(client=client, apply_bookmarks=apply_bookmarks)
+    except Exception as exc:
+        log_sync_warning('device sync pending: %s' % exc)
         return False
 
 
@@ -503,6 +507,8 @@ def completed_items():
 def _item_completed(item):
     if _is_unwatched_marker(item):
         return False
+    if item.get('watch_state') == 'watched':
+        return True
     try:
         position = int(float(item.get('position_seconds') or 0))
         duration = int(float(item.get('duration_seconds') or 0))
@@ -613,6 +619,7 @@ def _manual_watch_item(meta, watched):
     year = str(meta.get('year') or '0')
     key_meta = {
         'mediatype': mediatype,
+        'title': title,
         'imdb_id': meta.get('imdb_id') or meta.get('imdb') or meta.get('imdbnumber'),
         'tmdb_id': meta.get('tmdb_id'),
         'season': season,

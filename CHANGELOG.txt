@@ -1,3 +1,14 @@
+xVAULT 2026.10.22.1
+Entwickler: mojomedia1812
+
+- LiveTV nutzt die neue OHA-API unter /live/ statt der entfernten MediaUrl-Endpunkte. Alte Caches werden gesichert, Sender neu geladen und Streams per GET aufgeloest.
+- Mehrgeraete-Sync mit getrennten Anmeldungen, Geraeteuebersicht, Aenderungsverlauf und Konfliktauswahl.
+- Offline-Aenderungen bleiben dauerhaft gespeichert. Serverrevisionen ersetzen den Vergleich ueber Geraeteuhren.
+- Wiedergabe und manuelle Markierungen verwenden gemeinsame Inhaltsschluessel.
+- API und Plugin gemeinsam aktualisiert. Alle beteiligten Geraete auf diese Version aktualisieren.
+- 47 automatisierte Tests bestanden; Sync und LiveTV im lokal installierten Kodi geprueft.
+- Repository-Page, Handbuch, Kodi-Index und Download-Pakete aktualisiert.
+
 xVAULT 2026.10.20.1
 Entwickler: mojomedia1812
 

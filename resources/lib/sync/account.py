@@ -4,7 +4,7 @@ import time
 import xbmcgui
 
 from resources.lib import control, log_utils
-from resources.lib.sync import binge_sync, favorites_sync, storage
+from resources.lib.sync import binge_sync, favorites_sync, storage, engine, device
 from resources.lib.sync.api_client import ApiError, Client
 
 
@@ -33,6 +33,8 @@ def dispatch(action):
         show_status()
     elif action == 'syncPrivacy':
         control.dialog.ok(control.addonName, PRIVACY_TEXT)
+    elif action == 'syncDevices':
+        manage_devices()
 
 
 def track_sync(event_name, area='manual', error_group=None):
@@ -104,6 +106,13 @@ def reset_password():
 
 
 def logout():
+    if storage.is_logged_in():
+        try:
+            Client().exchange({'device_id': device.get_device_id(), 'device_name': device.get_device_name(), 'revoke_device': device.get_device_id()})
+        except Exception:
+            # Local logout must also work offline. Remote revocation remains
+            # available from another signed-in device.
+            pass
     storage.clear_login()
     control.infoDialog('Du bist abgemeldet.', icon='INFO')
 
@@ -116,9 +125,9 @@ def sync_now():
     track_sync('sync_started', 'manual')
     try:
         client = Client()
-        favorites_sync.check_and_push_if_changed(silent=True, client=client, require_enabled=False, raise_errors=True)
-        binge_sync.push_local(silent=True, client=client, require_login=False)
-        binge_sync.pull_remote(apply_bookmarks=True, silent=True, client=client, require_login=False)
+        if not engine.synchronize(client=client, active=True):
+            control.infoDialog('Abgleich läuft bereits oder Synchronisation ist deaktiviert.', icon='INFO')
+            return
         storage.update_last_sync(time.strftime('%Y-%m-%d %H:%M:%S'))
         storage.set_status('Angemeldet als %s' % storage.email())
         track_sync('sync_finished', 'manual')
@@ -155,18 +164,144 @@ def finish_login(email, api_key, message):
 
 
 def initial_sync(client, email):
-    changed = False
-    changed = favorites_sync.check_and_push_if_changed(
-        silent=True,
-        client=client,
-        require_enabled=False,
-        force=True,
-    ) or changed
-    changed = binge_sync.push_local(silent=True, client=client, require_login=False) or changed
-    changed = binge_sync.pull_remote(apply_bookmarks=True, silent=True, client=client, require_login=False) or changed
-    storage.update_last_sync(time.strftime('%Y-%m-%d %H:%M:%S'))
-    storage.set_status('Angemeldet als %s' % email)
-    return changed
+    try:
+        return engine.synchronize(client=client, active=True)
+    except Exception as exc:
+        log_utils.log('xVAULT sync: initial device sync pending: %s' % exc, log_utils.LOGWARNING)
+        return False
+
+
+def choose_resume(key):
+    import json
+    state = engine.inspect()
+    conflicts = [c for c in state.get('conflicts', [])
+                 if (lambda op: op['kind'] == 'progress' and op['key'] == key)(json.loads(c['operation_json']))]
+    if not conflicts:
+        return True
+    names = {d['device_id']: d['name'] for d in state.get('devices', [])}
+    current = next((e for e in state['entities'] if e['kind'] == 'progress' and e['key'] == key), None)
+    def label(value, device_id):
+        seconds = int(value.get('position_seconds') or 0)
+        return '%s: %02d:%02d' % (names.get(device_id, device_id or 'Kontostand'), seconds // 60, seconds % 60)
+    labels = [label((current or {}).get('data', {}).get('value', {}), (current or {}).get('device_id'))]
+    labels += [label(json.loads(c['operation_json'])['patch']['value'], c['device_id']) for c in conflicts]
+    selected = control.dialog.select('Unterschiedliche Wiedergabestände – welchen fortsetzen?', labels)
+    if selected < 0:
+        return False
+    try:
+        chosen = conflicts[selected - 1] if selected else None
+        if chosen:
+            engine.resolve(chosen, use_local=True)
+            if not engine.synchronize(active=True):
+                return False
+            if any(c['operation_id'] == chosen['operation_id'] for c in engine.inspect().get('conflicts', [])):
+                return False
+        for conflict in conflicts:
+            if conflict is not chosen:
+                engine.resolve(conflict, use_local=False)
+        return engine.synchronize(active=True)
+    except Exception:
+        control.infoDialog('Auswahl konnte noch nicht abgeglichen werden. Bitte erneut versuchen.', icon='WARNING')
+        return False
+
+
+def manage_devices():
+    if not storage.is_logged_in():
+        control.infoDialog('Bitte zuerst anmelden.', icon='WARNING')
+        return
+    try:
+        engine.synchronize(active=True)
+    except Exception:
+        control.infoDialog('Server nicht erreichbar. Zeige zuletzt gespeicherten Stand.', icon='WARNING')
+    state = engine.inspect()
+    choice = control.dialog.select('Geräte & Sync-Verlauf', [
+        'Geräte anzeigen / abmelden', 'Änderungsverlauf',
+        'Konflikte lösen (%s)' % len(state.get('conflicts', [])),
+        'Ausstehende Änderungen: %s' % state['pending'],
+    ])
+    names = {d['device_id']: d['name'] for d in state.get('devices', [])}
+    if choice == 0:
+        devices = state.get('devices', [])
+        labels = ['%s%s | benutzt: %s%s' % (
+            d['name'], ' (dieses Gerät)' if d['device_id'] == device.get_device_id() else '',
+            d.get('last_used_at') or '-',
+            '' if d.get('authenticated') else ' (abgemeldet)') for d in devices]
+        selected = control.dialog.select('Geräte – Auswahl für Details', labels)
+        if selected < 0:
+            return
+        selected_device = devices[selected]
+        action = control.dialog.contextmenu(['Geräteinformationen', 'Gerät abmelden'])
+        if action == 0:
+            control.dialog.textviewer(selected_device['name'], '\n'.join([
+                'Zuletzt benutzt: %s' % (selected_device.get('last_used_at') or '–'),
+                'Zuletzt erreichbar: %s' % selected_device['last_seen_at'],
+                'Letzte Änderung: %s' % (selected_device.get('last_changed_at') or '–'),
+                'Anmeldung: %s' % ('aktiv' if selected_device.get('authenticated') else 'abgemeldet'),
+                'Zeitangaben: Serverzeit',
+            ]))
+        elif action == 1 and control.yesnoDialog('Gerät abmelden?', selected_device['name'], 'Erneute Anmeldung ist anschließend erforderlich.'):
+            try:
+                Client().exchange({'device_id': device.get_device_id(), 'device_name': device.get_device_name(), 'revoke_device': devices[selected]['device_id']})
+                if devices[selected]['device_id'] == device.get_device_id():
+                    storage.clear_login()
+                control.infoDialog('Gerät abgemeldet.', icon='INFO')
+            except ApiError as exc:
+                control.infoDialog(str(exc), icon='WARNING')
+    elif choice == 1:
+        lines = []
+        for event in state.get('activity', []):
+            import json
+            op = json.loads(event['operation_json'])
+            result = json.loads(event['result_json'])
+            value = op.get('patch', {}).get('value', {})
+            label = op.get('patch', {}).get('label') or value.get('title') or op['key'][:12]
+            action = 'gelöscht' if op.get('deleted') else 'geändert'
+            if result.get('unchanged'):
+                action = 'unverändert / Zwischenstand ignoriert'
+            detail = ''
+            if op['kind'] == 'progress':
+                seconds = int(value.get('position_seconds') or 0)
+                detail = ' bei %02d:%02d' % (seconds // 60, seconds % 60)
+            elif op['kind'] == 'watch':
+                detail = ': gesehen' if value.get('completed') else ': ungesehen'
+            elif not op.get('deleted'):
+                before = (result.get('before') or {}).get('data', {})
+                fields = {'order': 'Reihenfolge', 'label': 'Bezeichnung', 'thumb': 'Vorschaubild', 'path': 'Ziel'}
+                detail = '\n  ' + '\n  '.join('%s: %s → %s' % (fields.get(field, field), before.get(field, '–'), new) for field, new in op['patch'].items())
+            status = {'accepted': 'übernommen', 'conflict': 'Konflikt'}.get(result['status'], result['status'])
+            lines.append('%s · %s · %s %s%s · %s%s' % (event['created_at'], names.get(event['device_id'], event['device_id']), label, action, detail, status, ' (gelöst)' if event['resolved'] else ''))
+        control.dialog.textviewer('Sync-Verlauf (letzte 100 Änderungen)', '\n'.join(lines) or 'Noch keine Änderungen.')
+    elif choice == 2:
+        conflicts = state.get('conflicts', [])
+        labels = []
+        import json
+        for conflict in conflicts:
+            op = json.loads(conflict['operation_json'])
+            value = op.get('patch', {}).get('value', {})
+            kind = {'favorite': 'Favorit', 'progress': 'Wiedergabestand', 'watch': 'Gesehen-Status'}.get(op['kind'], op['kind'])
+            labels.append('%s · %s · %s' % (names.get(conflict['device_id'], conflict['device_id']), kind, op.get('patch', {}).get('label') or value.get('title') or op['key'][:12]))
+        selected = control.dialog.select('Offene Sync-Konflikte', labels)
+        if selected >= 0:
+            conflict = conflicts[selected]
+            op = json.loads(conflict['operation_json'])
+            current = next((e for e in state['entities'] if e['kind'] == op['kind'] and e['key'] == op['key']), {})
+            def describe(data, deleted=False):
+                if deleted:
+                    return 'gelöscht'
+                value = data.get('value', {})
+                if op['kind'] == 'progress':
+                    seconds = int(value.get('position_seconds') or 0)
+                    return '%s – %02d:%02d' % (value.get('title', ''), seconds // 60, seconds % 60)
+                if op['kind'] == 'watch':
+                    return 'gesehen' if value.get('completed') else 'ungesehen'
+                return ', '.join('%s: %s' % (k, v) for k, v in data.items())
+            decision = control.dialog.select('Welche Änderung übernehmen?', [
+                'Kontostand: ' + describe(current.get('data', {}), current.get('deleted')),
+                names.get(conflict['device_id'], conflict['device_id']) + ': ' + describe(op['patch'], op.get('deleted')),
+            ])
+            if decision >= 0:
+                engine.resolve(conflict, use_local=decision == 1)
+                sync_now()
 
 
 def ask_email(default=''):

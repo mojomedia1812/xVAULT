@@ -1,6 +1,14 @@
 # Changelog
 
-## [Unreleased]
+## [2026.10.22.1] - 2026-10-22
+
+- LiveTV an die neue OHA-API angepasst: GET-Katalog und -Auflösung unter `/live/`, neuer Sendertyp, Deutschlandfilter, EPG-Kennungen und Domain-Fallback auch bei HTTP 404. Alte Caches werden gesichert und durch kompatible Senderlisten ersetzt; der alte Signatur-Ping entfällt.
+- Lokal im installierten Kodi geprüft: ZDF HD und Pro7 MAXX spielen wieder; M3U/XMLTV wurden neu erstellt und ZDF HD funktioniert auch über die Kodi-TV-Integration. Details in `tools/diagnostics/LIVETV_OHA_2026-10-22.md`.
+- Geräteabgleich mit getrennten Anmeldungen, Geräteübersicht, Änderungsprotokoll, dauerhafter Offline-Warteschlange und serverseitiger Konfliktprüfung für Favoriten, Gesehen-Status und Wiedergabestände.
+- Gerätewechsel übernehmen den bestätigten Kontostand. Konkurrierende Wiedergaben behalten ihre Alternativen; eine bewusste Auswahl schützt vor verspäteten Zwischenständen alter Sitzungen.
+- Wiedergabe und manuelle Gesehen-/Ungesehen-Markierungen verwenden dieselben normalisierten Inhaltsschlüssel. Bestehende Serverstände werden beim ersten Geräteabgleich übernommen.
+- Sync-API und Plugin gemeinsam aktualisiert. Alle beteiligten Geräte benötigen die neue Plugin-Version. 47 automatisierte Tests einschließlich echter MariaDB-Konkurrenzprüfung bestanden; lokale Kodi-Prüfungen sind in `tools/diagnostics/DEVICE_SYNC_2026-10-20.md` dokumentiert.
+- Repository-Page, Handbuch, Kodi-Index und Download-Pakete aktualisiert.
 
 ## [2026.10.20.1] - 2026-10-20
 

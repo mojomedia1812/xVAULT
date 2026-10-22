@@ -157,9 +157,10 @@ def _replace_file(source, destination):
 
 def _auth_data():
     global _AUTH_CACHE
-    if _AUTH_CACHE is None:
-        data = read_json(AUTH_FILE, {})
-        _AUTH_CACHE = data if isinstance(data, dict) else {}
+    # Service and plugin run in different interpreters. Do not retain a login
+    # that another interpreter has logged out or replaced.
+    data = read_json(AUTH_FILE, {})
+    _AUTH_CACHE = data if isinstance(data, dict) else {}
     return _AUTH_CACHE
 
 

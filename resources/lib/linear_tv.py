@@ -32,16 +32,14 @@ BASE_URLS = (
 )
 CATALOG_SOURCE = "oha.to"
 LEGACY_LIVE_HOSTS = ("huhu.to", "www.huhu.to")
-PING_URL = "https://www.vypn.net/api/app/ping"
-CATALOG_PATH = "/mediaurl-catalog.json"
-RESOLVE_PATH = "/mediaurl-resolve.json"
+CATALOG_PATH = "/live/catalog/live/channels.json"
+RESOLVE_PATH = "/live/resolve"
+CATALOG_SCHEMA = 2
 EPG_URL = "https://epgshare01.online/epgshare01/epg_ripper_DE1.xml.gz"
 LOGOS_URL = "https://iptv-org.github.io/api/logos.json"
 LOGOS_CHANNELS_URL = "https://iptv-org.github.io/api/channels.json"
 LOGOS_FEEDS_URL = "https://iptv-org.github.io/api/feeds.json"
-MEDIA_USER_AGENT = "MediaUrl/2"
-CLIENT_VERSION = "3.1.0"
-CATALOG_GROUPS = ("Germany", "GERMANY")
+CATALOG_GROUPS = ("Germany",)
 LOGO_COUNTRY_CODES = ("DE", "AT", "CH")
 LOGO_COUNTRY_SUFFIXES = tuple(".%s" % country.lower() for country in LOGO_COUNTRY_CODES)
 CATALOG_FILE = os.path.join(control.addonProfilePath, "linear-tv-catalog.json")
@@ -51,7 +49,6 @@ LOGOS_FILE = os.path.join(control.addonProfilePath, "linear-tv-logos.json")
 HEALTH_FILE = os.path.join(control.addonProfilePath, "linear-tv-health-session.json")
 PVR_PLAYLIST_FILE = os.path.join(control.addonProfilePath, "xvault-livetv.m3u8")
 PVR_EPG_FILE = os.path.join(control.addonProfilePath, "xvault-livetv.xml")
-SIGNATURE_TTL = 7 * 60
 DEFAULT_CACHE_HOURS = 1
 DEFAULT_EPG_CACHE_HOURS = 6
 EPG_LOOKAHEAD_HOURS = 24
@@ -75,7 +72,6 @@ PLAYBACK_ENGINE_NATIVE = 1
 PLAYBACK_ENGINE_FFMPEG_DIRECT = 2
 PLAYBACK_ENGINE_ADAPTIVE = 3
 
-_signature_cache = {"value": "", "timestamp": 0}
 _epg_memory_cache = {"data": None, "mtime": 0}
 _logo_memory_cache = {"data": None, "mtime": 0}
 _base_index = 0
@@ -242,7 +238,6 @@ def check_channel_health():
     progress.update(0, "Vorbereitung")
 
     try:
-        _signature(force=True)
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=HEALTH_CHECK_WORKERS)
         futures = {}
         try:
@@ -860,19 +855,24 @@ def _show_channels(channels, title, favorites=False):
 
 def _catalog(force=False):
     _ensure_profile()
+    cached = _read_json(CATALOG_FILE, {})
     if not force:
-        cached = _read_json(CATALOG_FILE, {})
         if _cache_valid(cached):
             return _visible_channels(_apply_current_categories(cached.get("channels", [])))
 
     channels = _download_catalog()
     if channels:
         channels = _apply_current_categories(channels)
-        _write_json(CATALOG_FILE, {"source": CATALOG_SOURCE, "updated_at": int(time.time()), "channels": channels})
+        _retain_channel_aliases(channels, cached.get("channels", []))
+        if cached.get("schema_version") != CATALOG_SCHEMA and cached.get("channels"):
+            _write_json(CATALOG_FILE + ".legacy-backup", cached)
+        _write_json(CATALOG_FILE, {"source": CATALOG_SOURCE, "schema_version": CATALOG_SCHEMA, "updated_at": int(time.time()), "channels": channels})
         return _visible_channels(channels)
 
     cached = _read_json(CATALOG_FILE, {})
-    fallback = _apply_current_categories(cached.get("channels", []))
+    compatible = (cached.get("schema_version") == CATALOG_SCHEMA and cached.get("source") == CATALOG_SOURCE
+                  and not _catalog_has_legacy_urls(cached.get("channels", [])))
+    fallback = _apply_current_categories(cached.get("channels", [])) if compatible else []
     if fallback:
         control.infoDialog("LiveTV nutzt die gespeicherte Senderliste.", icon="WARNING", time=4000)
         return _visible_channels(fallback)
@@ -895,6 +895,7 @@ def _download_catalog():
         done_steps = 0
         for group in CATALOG_GROUPS:
             cursor = None
+            seen_cursors = set()
             for page in range(MAX_PAGES_PER_GROUP):
                 if progress.iscanceled():
                     return []
@@ -908,6 +909,11 @@ def _download_catalog():
                 cursor = data.get("nextCursor")
                 if not cursor:
                     break
+                if str(cursor) in seen_cursors:
+                    raise ValueError("LiveTV catalog repeated a page cursor")
+                seen_cursors.add(str(cursor))
+            if cursor:
+                raise ValueError("LiveTV catalog exceeded pagination limit")
         return list(merged.values())
     except Exception as exc:
         log_utils.log("LiveTV catalog failed: %s" % str(exc), log_utils.LOGWARNING)
@@ -920,36 +926,47 @@ def _download_catalog():
 
 
 def _catalog_page(group, cursor, attempts=0):
-    response = requests.post(
-        _base_url() + CATALOG_PATH,
-        json={
-            "language": "en",
-            "region": "US",
-            "catalogId": "iptv",
-            "id": "iptv",
-            "adult": False,
-            "search": "",
-            "sort": "",
-            "filter": {"group": group},
-            "cursor": cursor,
-            "clientVersion": CLIENT_VERSION,
-        },
-        headers=_media_headers(),
-        timeout=30,
-    )
-    if response.status_code == 451:
-        if attempts >= len(BASE_URLS):
-            response.raise_for_status()
-        _switch_base()
-        return _catalog_page(group, cursor, attempts + 1)
-    response.raise_for_status()
-    return response.json()
+    params = {"filter[group]": group}
+    if cursor is not None:
+        params["cursor"] = cursor
+    return _live_api_get(CATALOG_PATH, params)
+
+
+def _live_api_get(path, params):
+    deadline = time.monotonic() + 30
+    last_error = None
+    for _ in BASE_URLS:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        try:
+            response = requests.get(
+                _base_url() + path, params=params,
+                headers={"User-Agent": _browser_user_agent(), "Accept": "application/json"},
+                timeout=min(10, remaining),
+            )
+            try:
+                response.raise_for_status()
+                data = response.json()
+                if not isinstance(data, dict):
+                    raise ValueError("LiveTV API returned no object")
+                return data
+            finally:
+                response.close()
+        except Exception as exc:
+            last_error = exc
+            # Do not log resolver request URLs: they may include playback tokens.
+            status = getattr(getattr(exc, "response", None), "status_code", None)
+            if status is not None and status not in (404, 451) and status < 500:
+                raise
+            _switch_base()
+    raise RuntimeError("LiveTV API nicht erreichbar (%s)" % type(last_error).__name__)
 
 
 def _parse_catalog_items(items):
     channels = []
     for item in items:
-        if item.get("type") != "iptv":
+        if item.get("type") != "live":
             continue
         channel_id = (item.get("ids") or {}).get("id") or item.get("id")
         stream_page = _normalise_live_url(item.get("url"))
@@ -962,46 +979,39 @@ def _parse_catalog_items(items):
             "name": name,
             "url": stream_page,
             "logo": logo,
-            "group": item.get("group") or "Germany",
+            "group": item.get("group") or next(iter(item.get("tags") or []), "Germany"),
+            "epg_id": (item.get("ids") or {}).get("tvg") or "",
             "category": _category_for(name),
         })
     return channels
 
 
 def _resolve(channel_url, force_signature=False):
+    # Retain the old keyword for callers; v2 always fetches a fresh URL and
+    # does not need the removed MediaUrl signature service.
     if not channel_url or requests is None:
         return ""
 
     channel_url = _normalise_live_url(channel_url)
-    signature = _signature(force=force_signature)
-
-    for attempt in range(3):
+    if urlparse(channel_url).path.startswith("/live/play/"):
         try:
-            response = requests.post(
-                _base_url() + RESOLVE_PATH,
-                json={
-                    "language": "en",
-                    "region": "US",
-                    "url": channel_url,
-                    "clientVersion": CLIENT_VERSION,
-                },
-                headers=_media_headers(signature),
-                timeout=30,
-            )
-            if response.status_code == 451:
-                _switch_base()
-                continue
-            response.raise_for_status()
-            data = response.json()
-            if isinstance(data, list) and data:
-                return data[0].get("url") or ""
-            if isinstance(data, dict):
-                return data.get("url") or data.get("streamUrl") or ""
+            data = _live_api_get(RESOLVE_PATH, {"url": channel_url})
+            return data.get("url") or ""
         except Exception as exc:
-            log_utils.log("LiveTV resolve attempt %d failed: %s" % (attempt + 1, str(exc)), log_utils.LOGWARNING)
-            if attempt == 0:
-                signature = _signature(force=True)
+            log_utils.log("LiveTV resolve failed: %s" % type(exc).__name__, log_utils.LOGWARNING)
     return ""
+
+
+def _retain_channel_aliases(channels, previous):
+    by_name = {}
+    for channel in channels:
+        by_name.setdefault(channel.get("name", "").strip().casefold(), []).append(channel)
+    for old in previous:
+        matches = by_name.get(old.get("name", "").strip().casefold(), [])
+        if len(matches) == 1:
+            target = matches[0]
+            aliases = set(target.get("legacy_ids", [])) | set(old.get("legacy_ids", [])) | {str(old.get("id") or "")}
+            target["legacy_ids"] = sorted(aliases - {"", str(target["id"])})
 
 
 def _check_channel_reachable(channel):
@@ -1048,77 +1058,6 @@ def _health_stream_reachable(stream_url):
         if _hls_status_fatal(status):
             return {"ok": False, "reason": _truncate(str(exc), 120)}
         return {"ok": True, "reason": "Segmentprüfung unklar, Kodi entscheidet"}
-
-
-def _signature(force=False):
-    now = time.time()
-    if not force and _signature_cache["value"] and (now - _signature_cache["timestamp"]) < SIGNATURE_TTL:
-        return _signature_cache["value"]
-
-    if requests is None:
-        return ""
-
-    timestamp = int(time.time() * 1000)
-    try:
-        response = requests.post(
-            PING_URL,
-            json={
-                "reason": "app-focus",
-                "locale": "en",
-                "theme": "dark",
-                "metadata": {
-                    "device": {"type": "desktop", "uniqueId": str(uuid.uuid4())},
-                    "os": {"name": "win32", "version": "Windows 10", "abis": ["x64"], "host": "Kodi"},
-                    "app": {"platform": "electron"},
-                    "version": {"package": "net.vypn.app", "binary": CLIENT_VERSION, "js": CLIENT_VERSION},
-                },
-                "appFocusTime": 0,
-                "playerActive": False,
-                "playDuration": 0,
-                "devMode": False,
-                "hasAddon": True,
-                "castConnected": False,
-                "package": "net.vypn.app",
-                "version": CLIENT_VERSION,
-                "process": "app",
-                "firstAppStart": timestamp,
-                "lastAppStart": timestamp,
-                "ipLocation": None,
-                "adblockEnabled": True,
-                "proxy": {"supported": ["ss"], "engine": "Mu", "enabled": False, "autoServer": True},
-                "iap": {"supported": False},
-            },
-            headers={
-                "accept": "*/*",
-                "user-agent": _browser_user_agent(),
-                "Accept-Encoding": "gzip, deflate",
-                "Connection": "close",
-            },
-            timeout=15,
-        )
-        response.raise_for_status()
-        data = response.json()
-        signature = data.get("addonSig") or data.get("sig") or data.get("token") or ""
-        if signature:
-            _signature_cache["value"] = signature
-            _signature_cache["timestamp"] = time.time()
-        return signature
-    except Exception as exc:
-        log_utils.log("LiveTV signature failed: %s" % str(exc), log_utils.LOGWARNING)
-        return ""
-
-
-def _media_headers(signature=""):
-    headers = {
-        "content-type": "application/json; charset=utf-8",
-        "user-agent": MEDIA_USER_AGENT,
-        "accept": "*/*",
-        "Accept-Language": "en",
-        "Connection": "close",
-    }
-    if signature:
-        headers["mediaurl-signature"] = signature
-    return headers
 
 
 def _configure_stream(item, stream_url):
@@ -2330,6 +2269,8 @@ def _channel_id_base(channel_id):
 def _live_channel_aliases(channel):
     name = channel.get("name") or ""
     aliases = set()
+    if channel.get("epg_id"):
+        aliases.update(_epg_aliases(channel["epg_id"], []))
     aliases.update(_alias_variants(_normalise_channel_name(name)))
     aliases.update(_alias_variants(_normalise_channel_name(_strip_live_suffixes(name))))
     return sorted([alias for alias in aliases if alias], key=len, reverse=True)
@@ -2403,6 +2344,8 @@ def _favorite_record(channel):
         "logo": channel.get("logo") or "",
         "group": channel.get("group") or "Germany",
         "category": channel.get("category") or "Sonstige",
+        "epg_id": channel.get("epg_id") or "",
+        "legacy_ids": channel.get("legacy_ids") or [],
     }
 
 
@@ -2419,7 +2362,7 @@ def _save_favorites(favorites):
 def _channel_by_id(channels, channel_id):
     channel_id = str(channel_id or "")
     for channel in channels:
-        if str(channel.get("id") or "") == channel_id:
+        if str(channel.get("id") or "") == channel_id or channel_id in channel.get("legacy_ids", []):
             return channel
     return None
 
@@ -2428,6 +2371,8 @@ def _cache_valid(data):
     if not isinstance(data, dict) or not data.get("channels"):
         return False
     if data.get("source") != CATALOG_SOURCE:
+        return False
+    if data.get("schema_version") != CATALOG_SCHEMA:
         return False
     if _catalog_has_legacy_urls(data.get("channels")):
         return False
@@ -2449,7 +2394,7 @@ def _catalog_has_legacy_urls(channels):
 def _is_legacy_live_url(value):
     try:
         host = (urlparse(value or "").hostname or "").lower()
-        return host in LEGACY_LIVE_HOSTS
+        return host in LEGACY_LIVE_HOSTS or urlparse(value or "").path.startswith("/oha-iptv/")
     except Exception:
         return False
 

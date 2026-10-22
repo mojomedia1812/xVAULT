@@ -21,3 +21,5 @@ python -B tools/kodi_firetv_test.py all --profile aftmm --iterations 100
 Die Simulation bestaetigt keine Fire-TV-Medienwiedergabe. Fuer einen echten Fire-TV-Test muessen das Geraet und sein Kodi erreichbar sein.
 
 Gezielte Tests des Providerchecks: `python -B -m unittest discover -s tools/tests -v`.
+
+Die Testauswahl enthält inzwischen auch den Geräteabgleich. Voraussetzungen und der MariaDB-Sperrentest stehen in [api/README.md](../../api/README.md). Die lokale Kodi-Abnahme des Geräteabgleichs ist in [DEVICE_SYNC_2026-10-20.md](DEVICE_SYNC_2026-10-20.md) dokumentiert. `tools/kodi_sync_smoke.py` verwendet ausschließlich einen privaten Loopback-Testserver und getrennte Testprofile.

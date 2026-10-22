@@ -12,7 +12,7 @@ from resources.lib.sync.api_client import ApiError, Client
 
 
 STATE_FILE = 'sync_favorites_state.json'
-REMOTE_PULL_INTERVAL = 45
+REMOTE_PULL_INTERVAL = 30
 REMOTE_DIFFERENCE_NOTICE = 'remote_difference_notice'
 REMOTE_DIFFERENCE_NOTICE_AT = 'remote_difference_notice_at'
 
@@ -73,24 +73,27 @@ def _is_xvault_path(path_text):
     return 'plugin.video.xvault' in path_text or 'plugin.video.xvaultalpha' in path_text
 
 
-def check_and_push_if_changed(silent=True, client=None, require_enabled=True, force=False, raise_errors=False):
+def check_and_push_if_changed(silent=True, client=None, require_enabled=True, force=False, raise_errors=False, active=False):
     if require_enabled and (not storage.is_enabled() or not storage.is_logged_in()):
         return False
     if not require_enabled and client is None and not storage.is_logged_in():
         return False
     client = client or Client()
     try:
-        return _sync_favorites_delta(silent=silent, client=client, force=force)
+        from resources.lib.sync import engine
+        return engine.synchronize(client=client, active=active)
     except ApiError as exc:
-        if _should_use_legacy_favorites_sync(exc):
-            log_utils.log('xVAULT sync: favorites delta not available, using legacy sync: %s' % exc, log_utils.LOGWARNING)
-            return _sync_favorites_full(silent=silent, client=client, force=force)
         if exc.code == 'UNAUTHORIZED':
             _handle_unauthorized()
         if raise_errors:
             raise
         if not silent:
             control.infoDialog(str(exc), icon='WARNING')
+        return False
+    except Exception as exc:
+        log_utils.log('xVAULT sync: device exchange pending: %s' % exc, log_utils.LOGWARNING)
+        if raise_errors:
+            raise
         return False
 
 
@@ -190,50 +193,10 @@ def _sync_favorites_full(silent=True, client=None, force=False):
 
 
 def restore_from_server(mode='ask', client=None, require_login=True):
-    if require_login and not storage.is_logged_in():
-        control.infoDialog('Bitte zuerst anmelden.', icon='WARNING')
-        return False
-    client = client or Client()
-    try:
-        data = client.favorites_state()
-    except ApiError as exc:
-        if not _should_use_legacy_favorites_sync(exc):
-            control.infoDialog(str(exc), icon='WARNING')
-            return False
-        try:
-            data = client.pull_favorites()
-        except ApiError as pull_exc:
-            control.infoDialog(str(pull_exc), icon='WARNING')
-            return False
-    favorites = data.get('favorites') or {}
-    if not favorites:
-        control.infoDialog('Keine Serverdaten gefunden.', icon='WARNING')
-        return False
-
-    if mode == 'ask':
-        choice = control.dialog.contextmenu(['Serverstand überschreibt lokalen Stand', 'Serverstand mit lokalem Stand zusammenführen'])
-        if choice < 0:
-            return False
-        mode = 'overwrite' if choice == 0 else 'merge'
-
-    if not control.yesnoDialog('Lokale Favoriten werden geändert.', 'Vorher wird automatisch eine Sicherung erstellt.', 'Fortfahren?', yeslabel='Ja', nolabel='Nein'):
-        return False
-
-    raw_xml = _payload_raw_xml(favorites)
-    if mode == 'merge':
-        raw_xml = merge_favorites(read_favourites(), raw_xml, deletion_aware=False)
-    if not raw_xml.strip():
-        raw_xml = '<favourites />\n'
-
-    write_favourites(raw_xml, backup=True)
-    revision = data.get('revision') or favorites.get('revision') or 0
-    if revision:
-        mark_delta_synced(raw_xml, revision)
-    else:
-        mark_synced(raw_xml)
-    storage.update_last_sync(iso_now())
-    control.infoDialog('Favoriten wurden wiederhergestellt. Bitte Kodi ggf. neu starten.', icon='INFO', time=6000)
-    return True
+    from resources.lib.sync import engine
+    if engine.synchronize(client=client):
+        control.infoDialog('Aktueller Kontostand übernommen. Offene Konflikte unter Geräte & Sync-Verlauf prüfen.', icon='INFO')
+    return
 
 
 def merge_favorites(local_xml, server_xml, deletion_aware=False):
@@ -556,7 +519,12 @@ def has_local_changes():
 def monitor_changes(interval=5):
     try:
         import xbmc
-        monitor = xbmc.Monitor()
+        class SyncMonitor(xbmc.Monitor):
+            def onNotification(self, sender, method, data):
+                if method in ('System.OnWake', 'System.OnScreensaverDeactivated'):
+                    from resources.lib.sync import engine
+                    engine.on_wake()
+        monitor = SyncMonitor()
         next_remote_pull = 0
         while not monitor.abortRequested():
             if monitor.waitForAbort(interval):
@@ -567,12 +535,6 @@ def monitor_changes(interval=5):
                 next_remote_pull = now + REMOTE_PULL_INTERVAL
             elif now >= next_remote_pull:
                 check_and_push_if_changed(silent=True)
-                if storage.is_enabled() and storage.is_logged_in():
-                    try:
-                        from resources.lib.sync import binge_sync
-                        binge_sync.pull_remote(apply_bookmarks=True, silent=True)
-                    except Exception as exc:
-                        log_utils.log('xVAULT sync: binge remote monitor failed: %s' % exc, log_utils.LOGWARNING)
                 next_remote_pull = now + REMOTE_PULL_INTERVAL
     except Exception as exc:
         log_utils.log('xVAULT sync: favorites monitor stopped: %s' % exc, log_utils.LOGWARNING)

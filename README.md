@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.10.20.1`
+Aktueller Stand: `2026.10.22.1`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.10.20.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.10.22.1.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -85,10 +85,14 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Nach dem Stoppen oder Ende eines Streams nutzt xVAULT keine blinde Kodi-ParentDir-Navigation mehr, sondern kehrt über den gespeicherten xVAULT-Containerpfad zurück, damit Kodi auf verschiedenen Plattformen geöffnet bleibt.
 - DNS over HTTPS ist standardmäßig aktiv und kann in den allgemeinen Einstellungen deaktiviert werden. xVAULT nutzt Cloudflare für die DNS-Auflösung seiner HTTP-Anfragen; die aktivierten Indexseiten laufen über dieselbe RequestHandler-Logik, feste IPs bleiben nur Rückfall. Der Providercheck im Hintergrunddienst beachtet dieselbe Einstellung und sperrt Anbieter bei vorübergehenden Netzwerkfehlern nicht dauerhaft.
 - xVAULT-Synchronisation für Favoriten und Wiedergabestände.
+- Der Geräteabgleich unterstützt mindestens fünf gleichzeitig angemeldete Geräte mit eigenen Zugangsschlüsseln. Alle beteiligten Geräte müssen auf Version 2026.10.22.1 oder neuer aktualisiert werden. Eine bereits ungültige Anmeldung erfordert einmalig eine neue Anmeldung.
+- Unter **Konten & Sync > Geräte & Sync-Verlauf** sind Gerätenamen, letzte Nutzung, Änderungen mit ihrem Ursprungsgerät und offene Konflikte einsehbar. Ein einzelnes Gerät lässt sich abmelden, ohne andere Geräte abzumelden.
+- Beim Start von xVAULT, nach dem Aufwachen, vor der Wiedergabe und im Hintergrund etwa alle 30 Sekunden wird der Kontostand abgeglichen. Änderungen während einer Netzunterbrechung bleiben in einer lokalen SQLite-Warteschlange erhalten.
+- Serverrevisionen schützen vor veralteten Updates und falschen Geräteuhren. Unabhängige Favoritenfelder werden zusammengeführt; widersprüchliche Änderungen bleiben zur Auswahl erhalten. Bei konkurrierenden Wiedergaben bietet xVAULT vor dem Fortsetzen die gespeicherten Positionen an.
 - Die xVAULT-Synchronisation nutzt den API-Host `all-stats.de` für Favoriten- und Binge-/Wiedergabestände.
 - Bei der Sync-Registrierung prüft xVAULT die E-Mail-Adresse auf plausibles Format und die API zusätzlich, ob die angegebene Domain per DNS erreichbar ist.
 - Favoriten werden revisionsbasiert als einzelne Einträge mit Löschmarken synchronisiert; Geräte übertragen nur neue, geänderte oder gelöschte Favoriten, statt bei jedem Abgleich den kompletten Favoritenbestand zu senden.
-- Die Synchronisation gleicht gespeicherte Login-Daten automatisch ab, damit Server-Backups auch nach einem veralteten lokalen API-Key wiederhergestellt werden können.
+- Die Anmeldung bleibt über einen lokal gespeicherten Zugangsschlüssel erhalten. Das Kontopasswort wird dafür nicht lokal gespeichert. Ein Kennwort-Reset widerruft alle Geräteanmeldungen.
 - `Jetzt synchronisieren` bereinigt doppelte lokale Fortsetzen-Einträge und bricht dadurch nicht mehr mit einem PluginError ab, wenn alte Bookmark-Daten mehrfach vorhanden sind.
 - Sync-Zustandsdateien werden bei kurz gesperrten Profil-Dateien mit Retry und Fallback geschrieben, damit Wiedergabeende und Synchronisation keine unnötigen Datei-Zugriffsfehler erzeugen.
 - Über **Werkzeuge > Support** kann ein redigiertes Diagnosepaket erstellt, nach Bestätigung hochgeladen und über eine kurze Service-ID weitergegeben werden; lokale ZIP-Dateien werden nach dem Upload gelöscht.
@@ -97,6 +101,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - LiveTV-Senderliste mit lokalem Cache, Kategorien, Suche, eigenen TV-Favoriten, Senderlogos, einstellbarer Stream-Puffergröße, plattformneutraler HLS-Wiedergabe-Engine, wahlweiser reiner M3U/XMLTV-Erstellung, nutzergesteuerter Kodi-TV/IPTV-Simple-Integration, wiederholter HLS-Stabilitätsprüfung, passendem Ersatzstream-Fallback, EPG-Vorschau für aktuell laufende und folgende Sendungen sowie einer Senderlisten-Prüfung, die vor dem Start warnt, am Ende per Ergebnisdialog geprüfte, funktionierende und temporär gesperrte Sender zählt und nicht erreichbare Sender temporär bis zum nächsten xVAULT-Hauptstart ausblendet.
 - LiveTV lite liest Deutsche TV-, Österreichische TV- und Schweizer TV-Sender direkt aus der 2ix2-WordPress-API, besitzt einen eigenen TV-Favoritenordner und startet die dort hinterlegten HLS-Streams schlank ohne EPG-Schicht; wenn 2ix2 temporär nicht erreichbar ist, nutzt xVAULT Nydus als Ersatzquelle und löst dort echte HLS-Streams beim Start dynamisch auf.
 - Interne Downloads und externe Download-Manager sind getrennt: lokale Downloads benötigen Zielordner, My.JDownloader/JDownloader/PyLoad erscheinen unabhängig davon im Kontextmenü einzelner Quellen, wenn die Quellenansicht als Verzeichnis geöffnet wird.
+- LiveTV verwendet die neue OHA-Schnittstelle unter `/live/`: Senderliste mit Deutschlandfilter und Cursor-Paginierung, Typ `live` und Stream-Auflösung per GET. Alte Kataloge werden gesichert und neu geladen; eindeutig gleichnamige Sender behalten alte Kennungen als Alias. Das frühere Signatur-Ping ist nicht mehr erforderlich.
 
 ## Fehler und Vorschläge melden
 

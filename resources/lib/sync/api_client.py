@@ -36,10 +36,15 @@ class Client(object):
         self._challenge_cookies = {}
 
     def register(self, email, password):
-        return self._post('register', {'email': email, 'password': password}, auth=False)
+        from resources.lib.sync import device
+        return self._post('register', {'email': email, 'password': password, 'device_id': device.get_device_id()}, auth=False)
 
     def login(self, email, password):
-        return self._post('login', {'email': email, 'password': password}, auth=False)
+        from resources.lib.sync import device
+        return self._post('login', {'email': email, 'password': password, 'device_id': device.get_device_id()}, auth=False)
+
+    def exchange(self, payload):
+        return self._post('sync_exchange', payload)
 
     def reset_password(self, email):
         return self._post('password_reset', {'email': email}, auth=False)

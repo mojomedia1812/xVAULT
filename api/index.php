@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/sync_v2.php';
 
 $configFile = __DIR__ . '/config.php';
 if (!is_file($configFile)) {
@@ -46,6 +47,7 @@ function db(array $config): PDO
 
 function ensure_schema(PDO $pdo): void
 {
+    sync2_schema($pdo);
     $pdo->exec("CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         email VARCHAR(255) NOT NULL UNIQUE,
@@ -309,6 +311,18 @@ function dispatch(PDO $pdo, array $config): void
     }
 
     $user = require_user($pdo);
+    if ($action === 'sync_exchange') {
+        require_method('POST');
+        try {
+            respond(true, 'Synchronisiert', sync2_exchange($pdo, $user, input_json()));
+        } catch (InvalidArgumentException $e) {
+            respond(false, 'Ungültige Sync-Anfrage', null, 'INVALID_SYNC', 400);
+        }
+    }
+    if (in_array($action, ['favorites_push', 'favorites_delta', 'binge_push', 'sync_push'], true)
+        && sync2_query($pdo, 'SELECT user_id FROM sync_accounts WHERE user_id = ?', [$user['id']])->fetch()) {
+        respond(false, 'Bitte xVAULT auf diesem Gerät aktualisieren. Das Konto verwendet den Geräteabgleich.', null, 'CLIENT_UPDATE_REQUIRED', 409);
+    }
     switch ($action) {
         case 'favorites_push':
             require_method('POST');
@@ -403,6 +417,9 @@ function register_user(PDO $pdo, array $data): void
         $now,
         $now,
     ]);
+    $userId = (int)$pdo->lastInsertId();
+    // Keep the registration key as a legacy-compatible session.
+    sync2_query($pdo, 'INSERT INTO sync_sessions (token_hash, user_id, device_id, created_at) VALUES (?, ?, ?, ?)', [hash('sha256', $apiKey), $userId, $data['device_id'] ?? null, $now]);
     respond(true, 'Registrierung erfolgreich', ['email' => $email, 'api_key' => $apiKey]);
 }
 
@@ -416,10 +433,17 @@ function login_user(PDO $pdo, array $data): void
         respond(false, 'Ungueltige Zugangsdaten', null, 'INVALID_LOGIN', 401);
     }
 
-    $apiKey = bin2hex(random_bytes(32));
-    $now = now();
-    $stmt = $pdo->prepare('UPDATE users SET api_key_hash = ?, updated_at = ?, last_login_at = ? WHERE id = ?');
-    $stmt->execute([hash('sha256', $apiKey), $now, $now, $user['id']]);
+    $pdo->beginTransaction();
+    sync2_lock($pdo, (int)$user['id']);
+    // Recheck after locking: a concurrent password reset must invalidate this login.
+    $user = sync2_query($pdo, 'SELECT * FROM users WHERE id = ? AND is_active = 1', [$user['id']])->fetch();
+    if (!$user || !password_verify($password, $user['password_hash'])) {
+        $pdo->rollBack();
+        respond(false, 'Ungueltige Zugangsdaten', null, 'INVALID_LOGIN', 401);
+    }
+    $apiKey = sync2_issue_session($pdo, (int)$user['id'], $data);
+    sync2_query($pdo, 'UPDATE users SET updated_at = ?, last_login_at = ? WHERE id = ?', [now(), now(), $user['id']]);
+    $pdo->commit();
     respond(true, 'Anmeldung erfolgreich', ['email' => $email, 'api_key' => $apiKey]);
 }
 
@@ -441,8 +465,12 @@ function reset_password(PDO $pdo, array $data): void
 
     $password = generate_password(9);
     $now = now();
+    $pdo->beginTransaction();
+    sync2_lock($pdo, (int)$user['id']);
     $stmt = $pdo->prepare('UPDATE users SET password_hash = ?, api_key_hash = NULL, updated_at = ? WHERE id = ?');
     $stmt->execute([password_hash($password, PASSWORD_DEFAULT), $now, $user['id']]);
+    sync2_query($pdo, 'DELETE FROM sync_sessions WHERE user_id = ?', [$user['id']]);
+    $pdo->commit();
     respond(true, 'Neues Kennwort wurde erstellt', ['email' => $email, 'password' => $password]);
 }
 
@@ -530,12 +558,16 @@ function require_user(PDO $pdo): array
     if ($key === '') {
         respond(false, 'Nicht angemeldet', null, 'UNAUTHORIZED', 401);
     }
-    $stmt = $pdo->prepare('SELECT * FROM users WHERE api_key_hash = ? AND is_active = 1');
+    $stmt = $pdo->prepare('SELECT u.*, s.device_id AS _device_id FROM users u JOIN sync_sessions s ON s.user_id = u.id WHERE s.token_hash = ? AND u.is_active = 1');
     $stmt->execute([hash('sha256', $key)]);
     $user = $stmt->fetch();
     if (!$user) {
+        $user = sync2_query($pdo, 'SELECT * FROM users WHERE api_key_hash = ? AND is_active = 1', [hash('sha256', $key)])->fetch();
+    }
+    if (!$user) {
         respond(false, 'Nicht angemeldet', null, 'UNAUTHORIZED', 401);
     }
+    $user['_auth_hash'] = hash('sha256', $key);
     return $user;
 }
 
