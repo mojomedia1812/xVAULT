@@ -525,17 +525,28 @@ def monitor_changes(interval=5):
                     from resources.lib.sync import engine
                     engine.on_wake()
         monitor = SyncMonitor()
-        next_remote_pull = 0
+        from resources.lib.sync import engine
+        next_remote_pull = time.time() + REMOTE_PULL_INTERVAL
+        next_local_check = 0
+        next_attempt = 0
+        handled_request = ''
         while not monitor.abortRequested():
-            if monitor.waitForAbort(interval):
+            if monitor.waitForAbort(1):
                 break
             now = time.time()
-            if has_local_changes():
-                check_and_push_if_changed(silent=True)
-                next_remote_pull = now + REMOTE_PULL_INTERVAL
-            elif now >= next_remote_pull:
-                check_and_push_if_changed(silent=True)
-                next_remote_pull = now + REMOTE_PULL_INTERVAL
+            if now < next_attempt:
+                continue
+            request = engine.background_request()
+            requested = bool(request.get('id') and request['id'] != handled_request)
+            changed = now >= next_local_check and has_local_changes()
+            if now >= next_local_check:
+                next_local_check = now + interval
+            if requested or changed or now >= next_remote_pull:
+                success = check_and_push_if_changed(silent=True, active=requested and request.get('active', False))
+                if success and requested:
+                    handled_request = request['id']
+                next_attempt = time.time() + (1 if success else interval)
+                next_remote_pull = time.time() + REMOTE_PULL_INTERVAL
     except Exception as exc:
         log_utils.log('xVAULT sync: favorites monitor stopped: %s' % exc, log_utils.LOGWARNING)
 

@@ -40,12 +40,12 @@
         <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
         <tr><th colspan="4"><hr></th></tr>
         <tr><td>[PARENTDIR]</td><td><a href="../" data-umami-event="Verzeichnisnavigation geöffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">22.Oct.2026 05:49:19</td><td align="right">-</td></tr>
+        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">23.Oct.2026 14:03:40</td><td align="right">-</td></tr>
         <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geöffnet">repository.xvault/</a></td><td align="right">30.Sep.2026 17:54:47</td><td align="right">-</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">22.Oct.2026 05:54:21</td><td align="right">3.57 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">22.Oct.2026 05:54:21</td><td align="right">32.00 B</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">22.Oct.2026 05:54:21</td><td align="right">330.06 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">22.Oct.2026 05:54:21</td><td align="right">330.06 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">23.Oct.2026 14:03:40</td><td align="right">3.57 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">23.Oct.2026 14:03:40</td><td align="right">32.00 B</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">23.Oct.2026 14:03:39</td><td align="right">330.06 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.2.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.2.zip</a></td><td align="right">23.Oct.2026 14:03:39</td><td align="right">330.06 KB</td></tr>
         <tr><th colspan="4"><hr></th></tr>
       </tbody>
     </table>
@@ -61,10 +61,10 @@
 
         <div class="release">
           <span>Aktuelle Version</span>
-          <strong>2026.10.22.1</strong>
+          <strong>2026.10.23.1</strong>
         </div>
 
-        <a class="download" href="downloads/plugin.video.xvault-2026.10.22.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
+        <a class="download" href="downloads/plugin.video.xvault-2026.10.23.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
           Installations-ZIP herunterladen
         </a>
 
@@ -123,6 +123,19 @@
 
     <!-- release-notes:start -->
     <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.10.23.1</p>
+      <h2>Änderungen im Überblick</h2>
+      <ul class="update-list">
+        <li>Einschalten/vide0.net: Bereits aufgeloeste Direktstreams ohne Dateiendung werden nicht erneut als Hoster-Link aufgeloest und verworfen.</li>
+        <li>Stream-Pruefung per kleinem GET mit Inhaltspruefung: gueltige Streams brauchen keine HEAD-Unterstuetzung; HTML-/Werbeweiterleitungen hinter Video-Adressen werden verworfen, Ersatzquellen bleiben verfuegbar.</li>
+        <li>Hauptmenue und Zurueck-Navigation warten nicht mehr auf den Geraete-Sync. Der Hintergrunddienst uebernimmt den kontogebundenen Auftrag.</li>
+        <li>Unveraenderte Wiedergabe- und Gesehen-Staende werden uebersprungen; Aenderungen werden in gemeinsamen Schreibvorgaengen uebernommen.</li>
+        <li>Sync-Status und Fortsetzen lesen ohne Schreibsperre. Auf dem echten Fire-TV-Stick sinkt die Zurueck-Zeit auf rund 2,2 Sekunden.</li>
+        <li>Repository-Page, Handbuch, Kodi-Index und Download-Pakete aktualisiert.</li>
+      </ul>
+    </section>
+
+    <section class="panel update-panel">
       <p class="section-kicker">Neu in 2026.10.22.1</p>
       <h2>Änderungen im Überblick</h2>
       <ul class="update-list">
@@ -130,9 +143,6 @@
         <li>Mehrgeraete-Sync mit getrennten Anmeldungen, Geraeteuebersicht, Aenderungsverlauf und Konfliktauswahl.</li>
         <li>Offline-Aenderungen bleiben dauerhaft gespeichert. Serverrevisionen ersetzen den Vergleich ueber Geraeteuhren.</li>
         <li>Wiedergabe und manuelle Markierungen verwenden gemeinsame Inhaltsschluessel.</li>
-        <li>API und Plugin gemeinsam aktualisiert. Alle beteiligten Geraete auf diese Version aktualisieren.</li>
-        <li>47 automatisierte Tests bestanden; Sync und LiveTV im lokal installierten Kodi geprueft.</li>
-        <li>Repository-Page, Handbuch, Kodi-Index und Download-Pakete aktualisiert.</li>
       </ul>
     </section>
 
@@ -166,17 +176,6 @@
         <li>Der Resolver bricht sauber ab, wenn SerienStream keinen Redirect mehr liefert, statt VOE mit einer ungueltigen None-URL aufzurufen.</li>
         <li>Live am installierten Fire-TV-Kodi geprueft: Die Logs fuer Phineas und Ferb zeigen den alten Cache-/Redirect-Fehler; der Fix wurde in Kodi eingespielt und die temporaeren SerienStream-Hoster-Sperren wurden entfernt.</li>
         <li>Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv wurden auf 2026.10.10.1 aktualisiert.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.10.01.1</p>
-      <h2>Änderungen im Überblick</h2>
-      <ul class="update-list">
-        <li>Trakt-Watchlists nutzen bei temporaeren 5xx-Fehlern des Trakt-Sync-Endpunkts automatisch den funktionierenden Benutzer-Watchlist-Endpunkt als Fallback.</li>
-        <li>Trakt-Collections werden jetzt wie von der aktuellen Trakt-API erwartet mit page und limit paginiert geladen.</li>
-        <li>Live in Kodi bestaetigt: Trakt-Watchlist und Trakt-Collection unter Filme und Serien lassen sich ohne Trakt Fehler oeffnen.</li>
-        <li>Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv wurden auf 2026.10.01.1 aktualisiert.</li>
       </ul>
     </section>
     <!-- release-notes:end -->
@@ -243,15 +242,15 @@
     <section class="panel checksum">
       <h2>Dateiprüfung</h2>
       <p>SHA-256</p>
-      <code>40E5141B379FF9EA615B83584BC300A2E8AFFB7F2B845CADCA7486617F5230D5</code>
+      <code>B3698F50FADFA1ED8C1A6C09D8714D3D512178A5087F4E7318E63ADC599720E7</code>
     </section>
 
     <section class="panel archive">
       <h2>Vorherige Versionen</h2>
       <ul class="archive-list">
         <!-- previous-downloads:start -->
+        <li><a href="downloads/plugin.video.xvault-2026.10.22.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.10.22.1 herunterladen</a><span>12,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.10.20.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.10.20.1 herunterladen</a><span>12,7 MB</span></li>
-        <li><a href="downloads/plugin.video.xvault-2026.10.11.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.10.11.1 herunterladen</a><span>12,7 MB</span></li>
         <!-- previous-downloads:end -->
       </ul>
     </section>
@@ -259,7 +258,7 @@
     <footer>
       <a href="handbuch/" data-umami-event="Handbuch geöffnet">Handbuch</a>
       <a href="https://github.com/mojomedia1812/xVAULT" data-umami-event="GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Version 2026.10.22.1</span>
+      <span>Version 2026.10.23.1</span>
     </footer>
   </main>
 </body>

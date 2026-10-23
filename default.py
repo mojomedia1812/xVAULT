@@ -105,8 +105,8 @@ if action is None or action == 'root':
     except Exception as exc:
         _log_startup_warning('startup info: %s' % str(exc))
     try:
-        from resources.lib.sync import favorites_sync
-        favorites_sync.check_and_push_if_changed(silent=True, active=True)
+        from resources.lib.sync import engine
+        engine.request_background(active=True)
     except Exception as exc:
         _log_startup_warning('favorites sync: %s' % str(exc))
     try:

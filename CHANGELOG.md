@@ -1,5 +1,17 @@
 # Changelog
 
+## [2026.10.23.1] - 2026-10-23
+
+- Bereits vom Anbieter aufgelöste, endungslose Direktstreams werden nicht erneut als Hoster-Link aufgelöst und verworfen. Das repariert unter anderem Einschalten/vide0.net bei „The Adam Project“.
+- Die Stream-Prüfung verwendet einen kleinen GET-Abruf mit Inhaltsprüfung. Fehlende HEAD-Unterstützung verhindert keine gültigen Streams; HTML-/Werbeweiterleitungen hinter vermeintlichen Video-/HLS-Adressen werden abgewiesen, damit die vorhandene Ersatzquellen-Suche fortfahren kann.
+- Zusätzliche Regressionstests für Direktstreams, echte HLS-Inhalte, HTML-Zwischenseiten, gelöschte Dateien, Range-Ablehnung und erhaltene Wiedergabe-Header. Diagnose und Kodi-Prüfung in `tools/diagnostics/ADAM_PROJECT_2026-10-23.md`.
+
+- Hauptmenü und Rückkehr aus der Film-/Seriensuche warten nicht mehr auf den Geräteabgleich. Ein kontogebundener Auftrag an den Hintergrunddienst erhält die aktive Gerätenutzung; auch Aufwachen blockiert nicht mehr den Monitor-Callback.
+- Bereits angewendete Wiedergabe-/Gesehen-Stände werden übersprungen. Neue oder geänderte Einträge verwenden eine gemeinsame Playcount-Transaktion und einen gemeinsamen Bookmark-Schreibvorgang. Lokale Änderungen, konkurrierende Wiedergaben und während laufender Videos zurückgestellte Updates bleiben geschützt.
+- Status- und Fortsetzen-Abfragen lesen die Sync-Datenbank ohne Schreibsperre; unveränderte Zustandsdaten werden nicht erneut gespeichert.
+- Auf einem echten Fire-TV-Stick geprüft: Zurück aus der Filmsuche rund 2,2 statt 26–29 Sekunden, aus der Seriensuche rund 2,3 statt 15 Sekunden. Details in `tools/diagnostics/FIRETV_SYNC_PERFORMANCE_2026-10-23.md`.
+- Repository-Page, Handbuch, Kodi-Index und Download-Pakete aktualisiert.
+
 ## [2026.10.22.1] - 2026-10-22
 
 - LiveTV an die neue OHA-API angepasst: GET-Katalog und -Auflösung unter `/live/`, neuer Sendertyp, Deutschlandfilter, EPG-Kennungen und Domain-Fallback auch bei HTTP 404. Alte Caches werden gesichert und durch kompatible Senderlisten ersetzt; der alte Signatur-Ping entfällt.

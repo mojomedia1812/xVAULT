@@ -212,6 +212,17 @@ def remove_query(idFile, filename=None):
         storage['queries'] = [item for item in queries if item.get('idFile') != idFile]
 
 
+def update_queries(updates, removed=(), filename=None):
+    """Apply one sync batch with a single read and atomic file replacement."""
+    if not updates and not removed:
+        return
+    with _get_storage(filename) as storage:
+        replaced = set(updates) | set(removed)
+        retained = [item for item in _get_queries(storage) if item['idFile'] not in replaced]
+        storage['queries'] = [{'idFile': key, 'time': value}
+                              for key, value in reversed(list(updates.items()))] + retained
+
+
 def get_query(idFile, filename=None):
     with _get_storage(filename) as storage:
         for item in _get_queries(storage):

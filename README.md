@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.10.22.1`
+Aktueller Stand: `2026.10.23.1`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
@@ -12,7 +12,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.10.22.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.10.23.1.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -48,6 +48,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - KinoGer-Spezialhosts werden gezielt dem passenden Resolver zugeordnet; bei `kinoger.be` bevorzugt xVAULT echte HLS-Varianten statt problematischer Werbe-Playlists.
 - Der KinoGer-Scraper gibt erkannte Spezialhosts als Resolver-Quellen weiter, damit Dialog, Verzeichnis und Autoplay denselben geprüften Auflösungsweg verwenden.
 - Nicht aufgelöste Hoster-Seiten werden nicht mehr als Video an Kodi übergeben; xVAULT versucht stattdessen weitere Quellen oder meldet, dass keine nutzbare Quelle verfügbar ist.
+- Bereits vom Anbieter aufgelöste Direktstreams werden anhand ihrer Mediendaten erkannt, auch ohne Video-Dateiendung, und nicht erneut als Hoster-Seite aufgelöst. Die Stream-Prüfung verwendet einen kleinen GET-Abruf statt einer vorausgesetzten HEAD-Unterstützung; HTML-/Werbeweiterleitungen werden auch hinter `.m3u8`-Adressen verworfen und die vorhandene Ersatzquellen-Suche kann fortfahren.
 - Beim Wechsel von der Quellensuche in die Quellenliste schließt xVAULT Kodis Busy-Overlay gezielt, damit die fertige Liste nicht hinter einer weiterdrehenden Ladeanzeige liegen bleibt.
 - Autoplay und manuelle Streamauswahl begrenzen hängende Resolver- und Player-Starts per Timeout; bei Autoplay probiert xVAULT danach weitere gefundene Quellen und beendet die Wiedergabeüberwachung auch ohne Kodi-Stop-Callback sauber.
 - Gefundene Quellenlisten für Filme und Serien werden im Kodi-Profil zwischengespeichert. Beim erneuten Quellenwechsel für denselben Titel kann xVAULT die Liste wiederverwenden, während Hoster-Links weiterhin frisch aufgelöst und getestet werden.
@@ -88,6 +89,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Der Geräteabgleich unterstützt mindestens fünf gleichzeitig angemeldete Geräte mit eigenen Zugangsschlüsseln. Alle beteiligten Geräte müssen auf Version 2026.10.22.1 oder neuer aktualisiert werden. Eine bereits ungültige Anmeldung erfordert einmalig eine neue Anmeldung.
 - Unter **Konten & Sync > Geräte & Sync-Verlauf** sind Gerätenamen, letzte Nutzung, Änderungen mit ihrem Ursprungsgerät und offene Konflikte einsehbar. Ein einzelnes Gerät lässt sich abmelden, ohne andere Geräte abzumelden.
 - Beim Start von xVAULT, nach dem Aufwachen, vor der Wiedergabe und im Hintergrund etwa alle 30 Sekunden wird der Kontostand abgeglichen. Änderungen während einer Netzunterbrechung bleiben in einer lokalen SQLite-Warteschlange erhalten.
+- Hauptmenü und Aufwachen beauftragen den Hintergrunddienst, ohne auf den Sync zu warten. Unveränderte Wiedergabe-/Gesehen-Stände werden nicht erneut lokal angewendet; Änderungen werden mit einer gemeinsamen Playcount-Transaktion und einem gemeinsamen Bookmark-Schreibvorgang übernommen. Statusabfragen benötigen keine Sync-Schreibsperre.
 - Serverrevisionen schützen vor veralteten Updates und falschen Geräteuhren. Unabhängige Favoritenfelder werden zusammengeführt; widersprüchliche Änderungen bleiben zur Auswahl erhalten. Bei konkurrierenden Wiedergaben bietet xVAULT vor dem Fortsetzen die gespeicherten Positionen an.
 - Die xVAULT-Synchronisation nutzt den API-Host `all-stats.de` für Favoriten- und Binge-/Wiedergabestände.
 - Bei der Sync-Registrierung prüft xVAULT die E-Mail-Adresse auf plausibles Format und die API zusätzlich, ob die angegebene Domain per DNS erreichbar ist.

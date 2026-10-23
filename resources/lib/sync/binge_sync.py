@@ -384,7 +384,26 @@ def apply_to_bookmarks(items):
             log_sync_warning('failed to apply bookmark state: %s' % exc)
 
 
-def apply_to_playcount(item):
+def apply_local_states(items, clear_bookmarks=()):
+    """Apply only changed keys, with one playcount commit and bookmark flush."""
+    updates, removed = {}, set()
+    with playcountDB.batch_updates():
+        for key, item in items.items():
+            bookmark = _bookmark_id(item.get('name') or item.get('title'), item.get('year') or '0')
+            if item.get('completed'):
+                apply_to_playcount(item, strict=True)
+                removed.add(bookmark)
+            else:
+                if _is_unwatched_marker(item):
+                    apply_to_unwatched(item, strict=True)
+                if key in clear_bookmarks:
+                    removed.add(bookmark)
+                elif item.get('position_seconds'):
+                    updates[bookmark] = str(item['position_seconds'])
+        bookmarkDB.update_queries(updates, removed, 'bookmarks')
+
+
+def apply_to_playcount(item, strict=False):
     title = item.get('title') or item.get('name') or ''
     name = item.get('name') or title
     if not title or not name:
@@ -410,11 +429,13 @@ def apply_to_playcount(item):
             playcountDB.updatePlaycount('episode', title, name, imdb_id, None, season, None, episode, 1)
             return True
     except Exception as exc:
+        if strict:
+            raise
         log_sync_warning('failed to apply watched state: %s' % exc)
     return False
 
 
-def apply_to_unwatched(item):
+def apply_to_unwatched(item, strict=False):
     title = item.get('title') or item.get('name') or ''
     name = item.get('name') or title
     if not title or not name:
@@ -440,6 +461,8 @@ def apply_to_unwatched(item):
             playcountDB.updatePlaycount('episode', title, name, imdb_id, None, season, None, episode, 0)
             return True
     except Exception as exc:
+        if strict:
+            raise
         log_sync_warning('failed to apply unwatched state: %s' % exc)
     return False
 

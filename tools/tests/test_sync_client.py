@@ -37,9 +37,22 @@ class DeviceClientTests(unittest.TestCase):
         vfs = types.SimpleNamespace(exists=lambda p: Path(p).exists(), mkdir=lambda p: Path(p).mkdir(exist_ok=True))
         self.activate('A', init=False)
         modules = {'resources.lib.control': self.control, 'resources.lib.log_utils': log, 'xbmc': xbmc, 'xbmcvfs': vfs}
+        # Another test may already have imported resources.lib. A fresh module
+        # dictionary alone leaves stale attributes on that surviving package,
+        # pointing at a previous test's deleted profile and database.
+        library = types.ModuleType('resources.lib')
+        library.__path__ = [str(ROOT / 'resources/lib')]
+        library.control, library.log_utils = self.control, log
+        sync_package = types.ModuleType('resources.lib.sync')
+        sync_package.__path__ = [str(ROOT / 'resources/lib/sync')]
+        library.sync = sync_package
+        modules.update({'resources.lib': library, 'resources.lib.sync': sync_package})
         module_patch = patch.dict(sys.modules, modules)
         module_patch.start()
         self.addCleanup(module_patch.stop)
+        for key in list(sys.modules):
+            if key.startswith('resources.lib.') and key not in modules:
+                del sys.modules[key]
         self.storage = importlib.import_module('resources.lib.sync.storage')
         self.engine = importlib.import_module('resources.lib.sync.engine')
         self.favorites = importlib.import_module('resources.lib.sync.favorites_sync')
@@ -211,6 +224,78 @@ class DeviceClientTests(unittest.TestCase):
         self.engine.synchronize()
         self.assertEqual(self.engine.inspect()['revision'], before)
         self.assertEqual(len(self.favorites._delta_entries()), 2)
+
+    def test_large_unchanged_snapshot_skips_local_writes_and_batches_initial_apply(self):
+        entities = []
+        for index in range(1000):
+            item = dict(item_key=str(index), title='Volume %s' % index, name='Volume %s (2026)' % index,
+                        year='2026', completed=True, position_seconds=7200, duration_seconds=7200,
+                        extra={'mediatype': 'movie', 'imdb_id': 'tt9%06d' % index})
+            entities.append(dict(kind='progress', key=str(index), revision=index + 1, deleted=False, data={'value': item}))
+        class Snapshot:
+            def exchange(inner, payload):
+                return dict(protocol=2, revision=1000, entities=entities, devices=[], activity=[], conflicts=[], results=[])
+        connect = self.playcounts.db.connect
+        with patch.object(self.playcounts.db, 'connect', wraps=connect) as connections:
+            self.engine.synchronize(client=Snapshot())
+            self.assertEqual(connections.call_count, 1, 'Initial history must use one playcount connection')
+        self.assertEqual(len(self.playcounts.getWatchedItems()['movies']), 1000)
+        with patch.object(self.binge, 'apply_local_states', wraps=self.binge.apply_local_states) as apply, \
+             patch.object(self.storage, 'write_json', wraps=self.storage.write_json) as write:
+            self.engine.synchronize(client=Snapshot())
+            apply.assert_not_called()
+            write.assert_not_called()
+            # A single changed entity must not rewrite the other 999 entries.
+            entities[25]['data']['value']['completed'] = False
+            entities[25]['data']['value']['watch_state'] = 'unwatched'
+            self.engine.synchronize(client=Snapshot())
+            self.assertEqual(set(apply.call_args.args[0]), {'25'})
+        self.assertEqual(self.playcounts.getPlaycount('movie', 'imdb_id', 'tt9000025'), 0)
+
+    def test_background_request_is_nonblocking_and_scoped_to_account(self):
+        properties = {}
+        window = types.SimpleNamespace(setProperty=properties.__setitem__, getProperty=lambda key: properties.get(key, ''))
+        gui = types.SimpleNamespace(Window=lambda _: window)
+        with patch.dict(sys.modules, {'xbmcgui': gui}), \
+             patch.object(self.engine, 'synchronize', side_effect=AssertionError('UI must not run sync')):
+            self.engine.on_wake()
+            request = self.engine.background_request()
+            self.assertTrue(request['active'])
+            self.assertEqual(request['account'], self.api.email)
+            self.assertTrue(request['id'])
+            self.storage.save_login('different@example.com', 'test-only-key')
+            self.assertEqual(self.engine.background_request(), {})
+
+    def test_read_only_status_does_not_wait_for_sync_writer_or_rewrite_state(self):
+        with closing(sqlite3.connect(self.engine._path())) as writer:
+            writer.execute('BEGIN IMMEDIATE')
+            with self.engine.database(readonly=True) as (reader, state):
+                self.assertEqual(reader.execute('PRAGMA query_only').fetchone()[0], 1)
+                self.assertIn('revision', state)
+            self.assertIn('pending', self.engine.inspect())
+            self.assertEqual(self.engine.playback_base('unknown'), -1)
+            writer.rollback()
+
+    def test_batch_failure_rolls_back_playcounts_and_retries_unapplied_state(self):
+        item = dict(item_key='9' * 64, title='Rollback', name='Rollback (2026)', year='2026',
+                    completed=True, extra={'mediatype': 'movie', 'imdb_id': 'tt99112233'})
+        self.engine.record(item)
+        with patch.object(self.bookmarks, 'update_queries', side_effect=OSError('Storage unavailable')):
+            with self.assertRaises(OSError):
+                self.engine.synchronize()
+        self.assertIsNone(self.playcounts.getPlaycount('movie', 'imdb_id', 'tt99112233'))
+        self.engine.synchronize()
+        self.assertEqual(self.playcounts.getPlaycount('movie', 'imdb_id', 'tt99112233'), 1)
+
+    def test_local_conflict_reapplies_unchanged_authoritative_bookmark(self):
+        self.progress(1200)
+        self.activate('B')
+        self.engine.synchronize()
+        key = self.binge._bookmark_id('Sync Test (2026)', '2026')
+        self.bookmarks.save_query(key, '600', 'bookmarks')
+        self.progress(600, session='stale-b', base=-1)
+        self.assertTrue(self.engine.inspect()['conflicts'])
+        self.assertEqual(self.bookmarks.get_query(key, 'bookmarks')[1], '1200')
 
 
 if __name__ == '__main__':

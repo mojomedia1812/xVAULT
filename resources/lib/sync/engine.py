@@ -20,10 +20,22 @@ def _path():
 
 
 @contextlib.contextmanager
-def database(path=None):
+def database(path=None, readonly=False):
     # A SQLite transaction is also the cross-process local lock (service/player/UI).
     conn = sqlite3.connect(path or _path(), timeout=15)
     try:
+        if readonly:
+            conn.execute('PRAGMA query_only=ON')
+            conn.execute('BEGIN')
+            try:
+                row = conn.execute('SELECT data FROM state WHERE id=1').fetchone()
+            except sqlite3.OperationalError as exc:
+                if 'no such table' not in str(exc):
+                    raise
+                yield None, {'revision': 0, 'entities': [], 'favorites': None}
+                return
+            yield conn, json.loads(row[0]) if row else {'revision': 0, 'entities': [], 'favorites': None}
+            return
         conn.execute('CREATE TABLE IF NOT EXISTS state (id INTEGER PRIMARY KEY, data TEXT NOT NULL)')
         conn.execute('CREATE TABLE IF NOT EXISTS outbox (id TEXT PRIMARY KEY, data TEXT NOT NULL, attempted INTEGER NOT NULL DEFAULT 0)')
         conn.execute('CREATE TABLE IF NOT EXISTS events (id TEXT PRIMARY KEY, data TEXT NOT NULL)')
@@ -33,7 +45,9 @@ def database(path=None):
         row = conn.execute('SELECT data FROM state WHERE id=1').fetchone()
         state = json.loads(row[0]) if row else {'revision': 0, 'entities': [], 'favorites': None}
         yield conn, state
-        conn.execute('INSERT OR REPLACE INTO state VALUES (1, ?)', (json.dumps(state),))
+        encoded = json.dumps(state)
+        if not row or encoded != row[0]:
+            conn.execute('INSERT OR REPLACE INTO state VALUES (1, ?)', (encoded,))
         conn.commit()
     except Exception:
         conn.rollback()
@@ -74,6 +88,9 @@ def record(item, kind='progress', session_id=None, base_revision=None):
         # Events are durable even while another worker is exchanging a snapshot.
         event = {'kind': kind, 'key': item['item_key'], 'value': value, 'base_revision': base_revision}
         conn.execute('INSERT INTO events VALUES (?, ?)', (str(uuid.uuid4()), json.dumps(event)))
+        # A local edit may lose a conflict even when the server snapshot is
+        # unchanged. Reapply that key once the authoritative result arrives.
+        state.get('applied_items', {}).pop(item['item_key'], None)
     return True
 
 
@@ -198,13 +215,17 @@ def _apply(conn, state, apply_bookmarks):
             favorites.setdefault(op['key'], {'key': op['key']}).update(op['patch'])
     entries = favorites_sync._sort_delta_entries(favorites.values())
     raw = favorites_sync._build_xml(entries)
-    if favorites_sync.favorites_hash(raw) != favorites_sync.favorites_hash():
+    digest = favorites_sync.favorites_hash(raw)
+    favorites_changed = digest != favorites_sync.favorites_hash()
+    if favorites_changed:
         favorites_sync.write_favourites(raw, backup=True)
     # Kodi's XML stores list position, not the server's explicit order field.
     # Baseline the rendered list so ties from independent additions do not
     # become artificial "local edits" on the next poll.
     state['favorites'] = {e['key']: favorites_sync._delta_payload(e) for e in favorites_sync._delta_entries(raw)}
-    favorites_sync.mark_delta_synced(raw, state['revision'])
+    if favorites_changed or state.get('favorites_applied_hash') != digest:
+        favorites_sync.mark_delta_synced(raw, state['revision'])
+        state['favorites_applied_hash'] = digest
     # Never replace a bookmark or watched state while any video is playing.
     import xbmc
     if not apply_bookmarks or xbmc.Player().isPlayingVideo():
@@ -220,6 +241,7 @@ def _apply(conn, state, apply_bookmarks):
             items[op['key']] = value
         elif op['kind'] == 'watch' and value:
             watch_entities[op['key']] = {'key': op['key'], 'revision': state['revision'], 'data': {'value': value}}
+    clear_bookmarks = set()
     for entity in watch_entities.values():
         item = dict(items.get(entity['key'], {}))
         watch = entity['data']['value']
@@ -228,31 +250,37 @@ def _apply(conn, state, apply_bookmarks):
         item['completed'] = watch.get('completed', False)
         item['watch_state'] = 'watched' if item['completed'] else 'unwatched'
         if not item['completed'] and entity['key'] not in pending:
-            binge_sync.apply_to_unwatched(watch)
             progress = _entity(state, 'progress', entity['key'])
             if progress is None or entity['revision'] > progress['revision']:
-                from resources.lib import bookmarkDB
-                bookmarkDB.remove_query(binge_sync._bookmark_id(item.get('name') or item.get('title'), item.get('year') or '0'), 'bookmarks')
+                clear_bookmarks.add(entity['key'])
                 item['position_seconds'] = 0
         items[entity['key']] = item
-    storage.write_json(binge_sync.FILENAME, {'schema_version': 2, 'items': list(items.values())})
-    for key, item in items.items():
-        if item.get('completed') and key not in pending:
-            from resources.lib import bookmarkDB
-            bookmarkDB.remove_query(binge_sync._bookmark_id(item.get('name') or item.get('title'), item.get('year') or '0'), 'bookmarks')
-    binge_sync.apply_to_bookmarks([v for k, v in items.items() if k not in pending])
+    snapshot = {'schema_version': 2, 'items': list(items.values())}
+    if storage.read_json(binge_sync.FILENAME, {}) != snapshot:
+        storage.write_json(binge_sync.FILENAME, snapshot)
+    applied = state.setdefault('applied_items', {})
+    for key in pending:
+        applied.pop(key, None)
+    signatures = {key: hashlib.sha256(json.dumps(item, sort_keys=True).encode('utf-8')).hexdigest()
+                  for key, item in items.items() if key not in pending}
+    changed = {key: items[key] for key, signature in signatures.items() if applied.get(key) != signature}
+    if changed:
+        binge_sync.apply_local_states(changed, clear_bookmarks)
+        applied.update({key: signatures[key] for key in changed})
+    for key in set(applied) - set(items):
+        applied.pop(key, None)
 
 
 def playback_base(key, kind='progress'):
-    with database() as (_, state):
+    with database(readonly=True) as (_, state):
         entity = _entity(state, kind, key)
         return entity['revision'] if entity else -1
 
 
 def inspect():
-    with database() as (conn, state):
+    with database(readonly=True) as (conn, state):
         result = dict(state)
-        result['pending'] = conn.execute('SELECT COUNT(*) FROM outbox').fetchone()[0] + conn.execute('SELECT COUNT(*) FROM events').fetchone()[0]
+        result['pending'] = (conn.execute('SELECT COUNT(*) FROM outbox').fetchone()[0] + conn.execute('SELECT COUNT(*) FROM events').fetchone()[0]) if conn else 0
         return result
 
 
@@ -265,8 +293,34 @@ def resolve(conflict, use_local):
         enqueue(conn, state, op['kind'], op['key'], patch, deleted, conflict['operation_id'])
 
 
+def _request_property():
+    from resources.lib import control
+    return '%s.sync.request' % control.addonId
+
+
+def request_background(active=False):
+    """Signal the service without HTTP, SQLite writes or a menu-owned thread."""
+    if not storage.is_enabled() or not storage.is_logged_in():
+        return False
+    import xbmcgui
+    xbmcgui.Window(10000).setProperty(_request_property(), json.dumps({
+        'id': str(uuid.uuid4()), 'account': storage.email(), 'active': bool(active)}))
+    return True
+
+
+def background_request():
+    import xbmcgui
+    try:
+        value = json.loads(xbmcgui.Window(10000).getProperty(_request_property()) or '{}')
+        if value.get('account') == storage.email():
+            return value
+    except (ValueError, TypeError):
+        pass
+    return {}
+
+
 def on_wake():
     try:
-        synchronize(active=True)
+        request_background(active=True)
     except Exception:
         pass  # A failed network request remains in the durable outbox.

@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import sqlite3
 import sys
+import time
 import traceback
 from urllib.parse import urlparse
 
@@ -32,6 +33,7 @@ control.setSetting = lambda key, value: settings.setdefault(active, {}).__setite
 from resources.lib.sync import engine, storage, device, api_client, favorites_sync, binge_sync, account
 from resources.lib import playcountDB, bookmarkDB
 api_client.API_BASES = (config['base'],)
+engine._request_property = lambda: 'xvault.sync.smoke.request'
 
 
 def activate(name):
@@ -68,6 +70,35 @@ def add_favorite(label):
 
 
 def main():
+    if phase == 'large-snapshot':
+        activate('H')
+        data = api_client.Client().login(config['email'], config['password'])
+        storage.save_login(config['email'], data['api_key'])
+        entities = [dict(kind='progress', key='%064x' % index, revision=index + 1, deleted=False,
+                         data={'value': dict(item_key='%064x' % index, title='Volume %s' % index,
+                                             name='Volume %s (2026)' % index, year='2026', completed=True,
+                                             position_seconds=7200, extra={'mediatype': 'movie', 'imdb_id': 'tt9%06d' % index})})
+                    for index in range(1000)]
+        class Snapshot:
+            def exchange(self, payload):
+                return dict(protocol=2, revision=1000, entities=entities, devices=[], activity=[], conflicts=[], results=[])
+        original = binge_sync.apply_local_states
+        batches = []
+        def counted(items, cleared):
+            batches.append(len(items))
+            return original(items, cleared)
+        binge_sync.apply_local_states = counted
+        started = time.monotonic()
+        engine.synchronize(client=Snapshot())
+        initial = time.monotonic() - started
+        started = time.monotonic()
+        engine.synchronize(client=Snapshot())
+        repeated = time.monotonic() - started
+        expect(batches == [1000], 'Unchanged history was applied again')
+        expect(len(playcountDB.getWatchedItems()['movies']) == 1000, 'Large history lost entries')
+        results.append({'name': 'thousand-items-and-unchanged-poll', 'status': 'PASS',
+                        'initial_seconds': round(initial, 3), 'unchanged_seconds': round(repeated, 3), 'batches': batches})
+        return
     if phase == 'no-echo':
         activate('C')
         add_favorite('Kodi-independent-C')
@@ -160,6 +191,9 @@ def main():
         engine.synchronize()
         activate('B')
         engine.on_wake()
+        request = engine.background_request()
+        expect(request.get('active') and request.get('account') == config['email'], 'Wake did not queue background sync')
+        engine.synchronize(active=request['active'])  # Isolated service consumer.
         expect('Kodi-A' in favorites_sync.read_favourites(), 'A -> B missing')
         add_favorite('Kodi-B')
         engine.synchronize()
@@ -227,4 +261,6 @@ try:
 except Exception:
     results.append({'name': 'exception', 'status': 'FAIL', 'traceback': traceback.format_exc()})
 finally:
+    import xbmcgui
+    xbmcgui.Window(10000).clearProperty(engine._request_property())
     (sandbox / ('results-%s.json' % phase)).write_text(json.dumps(results, indent=2), encoding='utf-8')

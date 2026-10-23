@@ -1,3 +1,14 @@
+xVAULT 2026.10.23.1
+Entwickler: mojomedia1812
+
+- Einschalten/vide0.net: Bereits aufgeloeste Direktstreams ohne Dateiendung werden nicht erneut als Hoster-Link aufgeloest und verworfen.
+- Stream-Pruefung per kleinem GET mit Inhaltspruefung: gueltige Streams brauchen keine HEAD-Unterstuetzung; HTML-/Werbeweiterleitungen hinter Video-Adressen werden verworfen, Ersatzquellen bleiben verfuegbar.
+
+- Hauptmenue und Zurueck-Navigation warten nicht mehr auf den Geraete-Sync. Der Hintergrunddienst uebernimmt den kontogebundenen Auftrag.
+- Unveraenderte Wiedergabe- und Gesehen-Staende werden uebersprungen; Aenderungen werden in gemeinsamen Schreibvorgaengen uebernommen.
+- Sync-Status und Fortsetzen lesen ohne Schreibsperre. Auf dem echten Fire-TV-Stick sinkt die Zurueck-Zeit auf rund 2,2 Sekunden.
+- Repository-Page, Handbuch, Kodi-Index und Download-Pakete aktualisiert.
+
 xVAULT 2026.10.22.1
 Entwickler: mojomedia1812
 

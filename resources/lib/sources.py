@@ -1771,6 +1771,7 @@ class sources:
             url = raw_url
             direct = item['direct']
             local = item.get('local', False)
+            provider_media = False
             provider = item['provider']
             try:
                 call = [i[1] for i in self.sourceDict if i[0] == provider][0]
@@ -1793,11 +1794,18 @@ class sources:
 
             if not direct == True:
                 resolved = False
-                voe_url = self._resolveVoeDirect(url, item)
+                # Some providers already call ResolveURL and return an opaque
+                # CDN URL. Do not resolve that media URL a second time. Verify
+                # its contents instead of relying on a .mp4/.m3u8 suffix.
+                provider_media = (url != raw_url and not self._isKnownHosterUrl(url)
+                                  and utils.test_stream(url))
+                voe_url = None if provider_media else self._resolveVoeDirect(url, item)
+                if provider_media:
+                    resolved = True
                 if voe_url:
                     url = voe_url
                     resolved = True
-                else:
+                elif not provider_media:
                     try:
                         include_popups = item.get('prioHoster', 0) >= 999
                         resolved_url = self._resolveWithResolveUrl(url, include_popups=include_popups)
@@ -1838,7 +1846,7 @@ class sources:
                 log_utils.log('Kein Video Link gefunden: Provider %s / %s / %s ' % (item['provider'], item['source'] , str(item['source'])), log_utils.LOGERROR)
                 raise Exception()
 
-            if check_stream and not local and not utils.test_stream(url):
+            if check_stream and not local and not (not direct and provider_media) and not utils.test_stream(url):
                 log_utils.log('URL Test Error: Provider %s / %s / %s' % (item['provider'], item['source'], url), log_utils.LOGERROR)
                 raise Exception()
 
@@ -1874,6 +1882,16 @@ class sources:
         except:
             pass
         return url
+
+    def _isKnownHosterUrl(self, url):
+        host = (urlparse(str(url or '').split('|', 1)[0]).hostname or '').lower()
+        if hoster_compat.is_supported_host(host):
+            return True
+        try:
+            return bool(_resolveurl().HostedMediaFile(url=url, include_disabled=True,
+                                                     include_universal=False, include_popups=True).valid_url())
+        except Exception:
+            return False
 
     def _resolveWithResolveUrl(self, url, include_popups=False):
         try:

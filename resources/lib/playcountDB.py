@@ -3,6 +3,8 @@
 #2021-07-05
 
 import sys, ast
+import threading
+from contextlib import contextmanager
 from os import path, stat
 from sqlite3 import dbapi2 as db
 from sqlite3 import Error as sqlError
@@ -13,6 +15,56 @@ if not exists(dataPath): mkdir(dataPath)
 
 # DB fÃ¼r Playcount
 playcountDB = path.join(dataPath, 'playcount.db')
+
+_sync_batch = threading.local()
+
+
+class _BatchConnection:
+    # Every caller gets its own cursor/row factory. Existing helpers may close
+    # or commit this handle without ending the enclosing sync transaction.
+    row_factory = None
+
+    def __init__(self, connection):
+        self.connection = connection
+
+    def cursor(self):
+        cursor = self.connection.cursor()
+        cursor.row_factory = self.row_factory
+        return cursor
+
+    def commit(self):
+        pass
+
+    def close(self):
+        pass
+
+
+def _connect(filename):
+    connection = getattr(_sync_batch, 'connection', None)
+    if connection is not None and getattr(_sync_batch, 'filename', None) == filename:
+        return _BatchConnection(connection)
+    return db.connect(filename)
+
+
+@contextmanager
+def batch_updates():
+    """Keep a sync batch on one thread-local connection and commit it once."""
+    if getattr(_sync_batch, 'connection', None) is not None:
+        yield
+        return
+    connection = db.connect(playcountDB)
+    _sync_batch.connection, _sync_batch.filename = connection, playcountDB
+    try:
+        connection.execute('BEGIN IMMEDIATE')
+        yield
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        _sync_batch.connection = None
+        _sync_batch.filename = None
+        connection.close()
 
 def _getParams(_params):
     for key, value in _params.items():
@@ -141,7 +193,7 @@ def setSeasonStatus(title, name, season, number_of_episodes, playcount):
     if not title or season is None:
         return
     name = name or '%s S%02d' % (title, season)
-    conn = db.connect(playcountDB)
+    conn = _connect(playcountDB)
     cursor = conn.cursor()
     try:
         cursor.execute('SELECT rowid, playcount, number_of_episodes FROM season WHERE title = ? AND season = ? LIMIT 1', (title, season))
@@ -192,7 +244,7 @@ def setTvshowStatus(title, name, imdb, number_of_seasons, playcount):
         return
     name = name or title
     imdb = imdb or ''
-    conn = db.connect(playcountDB)
+    conn = _connect(playcountDB)
     cursor = conn.cursor()
     try:
         cursor.execute('SELECT rowid FROM tvshow WHERE title = ? LIMIT 1', (title,))
@@ -236,7 +288,7 @@ def _has_value(value):
 
 
 def _get_connection(filename):
-    conn = db.connect(filename)
+    conn = _connect(filename)
     conn.row_factory = _dict_factory
     return conn
 
@@ -342,7 +394,7 @@ def updatePlaycount(mediatype, title='', name='', id='', number_of_seasons=None,
 
 
 def _updatePlaycount(mediatype, title, name, id, number_of_seasons, season, number_of_episodes, episode, playcount):
-    conn = db.connect(playcountDB)
+    conn = _connect(playcountDB)
     cursor = conn.cursor()
     try:
         sql  = _sql_update(mediatype, title, name, id, season, episode, playcount)

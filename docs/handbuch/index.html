@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.10.22.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.10.23.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.10.22.1.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.10.23.1.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -580,6 +580,7 @@
       <p>VIXSTREAM-Quellen können HLS-Playlistadressen verwenden, die nicht wie klassische <strong>.m3u8</strong>-Dateien aussehen. xVAULT erkennt diese Playlistwege trotzdem als HLS und übergibt die nötigen Header gemeinsam an InputStream Adaptive, damit Manifest, Segmente und Schlüssel erreichbar bleiben.</p>
       <p>Zusätzlich prüft xVAULT bei VIXSTREAM die in der HLS-Playlist ausgewiesenen Audiospuren. Eine Quelle wird nur dann als Deutsch oder Englisch angezeigt, wenn diese Sprache als echte Tonspur vorhanden ist. Untertitel werden dabei nicht als Streamsprache gewertet.</p>
       <p>Wenn ein Hoster nur eine Webseite, aber keinen echten Direktstream liefert, wird diese Quelle übersprungen. So bekommt Kodi keine HTML-Seite als Video und kann mit weiteren Quellen fortfahren.</p>
+      <p>Bereits vom Anbieter aufgelöste Direktstreams funktionieren auch ohne klassische Video-Dateiendung. xVAULT prüft ihre Mediendaten und löst sie nicht nochmals als Hoster-Seite auf. Ein kleiner GET-Abruf ersetzt die bisherige HEAD-Voraussetzung und erkennt auch HTML-/Werbeweiterleitungen hinter vermeintlichen HLS-Adressen. Eine gelöschte Datei oder ein nicht erreichbarer externer Video-Server bleibt unbrauchbar; soweit weitere Einträge verfügbar sind, versucht xVAULT eine Ersatzquelle.</p>
       <p>Hängende Resolver- oder Player-Starts werden zeitlich begrenzt. Wenn Autoplay aktiv ist und eine gefundene Quelle nicht wirklich startet, versucht xVAULT danach weitere verfügbare Quellen statt dauerhaft im Ladezustand zu bleiben. Beendet Kodi eine Wiedergabe ohne Stop-Callback an das Add-on, erkennt xVAULT den fehlenden aktiven Videoplayer selbst und schließt die Wiedergabeüberwachung.</p>
       <h3>Wiedergabe ab hier</h3>
       <p>Bei Episodenlisten kann xVAULT aufeinanderfolgende Episoden ab einer gewählten Stelle starten. Das ist besonders praktisch für Serienabende und Staffel-Fortsetzungen.</p>
@@ -597,6 +598,7 @@
       <h3>Synchronisation anmelden</h3>
       <p>Im Bereich Konten kann ein xVAULT-Konto registriert, angemeldet, abgemeldet oder das Passwort zurückgesetzt werden. Nach erfolgreicher Anmeldung ist die erste Synchronisierung sofort verfügbar, ohne die Einstellungen verlassen und erneut öffnen zu müssen.</p>
       <h3>Mehrere Geräte verwenden</h3>
+      <p>Ab Version 2026.10.23.1 warten Hauptmenü und Zurück-Navigation nicht mehr auf den Geräteabgleich. Der Hintergrunddienst übernimmt den Auftrag; unveränderte Wiedergabe-/Gesehen-Stände werden nicht erneut lokal geschrieben. Vor einer Wiedergabe bleibt der Abgleich erhalten.</p>
       <p>Ein Konto kann auf mindestens fünf Geräten gleichzeitig angemeldet bleiben. Jede Installation erhält einen eigenen Zugangsschlüssel. Das Kennwort muss nach einer erfolgreichen Anmeldung nicht bei jedem Gerätewechsel neu eingegeben werden. Alle beteiligten Geräte benötigen Version 2026.10.22.1 oder neuer; eine bereits ungültige alte Anmeldung muss einmalig erneuert werden.</p>
       <p>Unter <strong>Konten &amp; Sync &gt; Geräte &amp; Sync-Verlauf</strong> sind Gerätenamen, letzte Nutzung, Änderungen und ihr Ursprungsgerät sichtbar. Ein einzelnes Gerät kann abgemeldet werden, ohne die anderen Geräte abzumelden. Ein Kennwort-Reset widerruft sämtliche Anmeldungen.</p>
       <p>xVAULT gleicht beim Start, nach dem Aufwachen, vor einer Wiedergabe und etwa alle 30 Sekunden im Hintergrund ab. Offline-Änderungen bleiben in einer dauerhaften Warteschlange. Unabhängige Änderungen werden zusammengeführt; widersprüchliche Änderungen bleiben zur Auswahl erhalten. Bei parallelen Wiedergaben kann vor dem Fortsetzen zwischen den gespeicherten Positionen gewählt werden. Während einer laufenden Wiedergabe ersetzt ein anderer Gerätestand keine lokalen Sprungmarken.</p>
@@ -933,7 +935,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.10.22.1</span>
+      <span>Handbuch zu xVAULT 2026.10.23.1</span>
     </footer>
   </main>
 </body>
