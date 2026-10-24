@@ -1,0 +1,20 @@
+{
+  "algorithm": "RSA-PKCS1-SHA256",
+  "payload": {
+    "channel": "release",
+    "release": {
+      "addon_id": "plugin.video.xvault",
+      "build_id": "2026.10.24.1-8ef35bc80f9d9888",
+      "channel": "release",
+      "download_url": "https://xvault.repowork.de/downloads/plugin.video.xvault-2026.10.24.1.zip",
+      "integrity_url": "https://xvault.repowork.de/updates/versions/2026.10.24.1.json",
+      "sha256": "ef92b94858b2b3426e81dfe978b95a83539ae7c45b6e6cc2c6db532b2918ee1f",
+      "size": 13400189,
+      "tree_sha256": "8ef35bc80f9d9888407237c8936f3aee2264adf1fdb6c3c77644fd1c14f866a3",
+      "version": "2026.10.24.1"
+    },
+    "schema": 1,
+    "sequence": 1792863058295197800
+  },
+  "signature": "ftw5sL9jdvCHTKNGRDZIumN4hh4iKTCDy0/91DWOVZEt7FBisVqqer5npOqHL/fb46u2nWKAiv5Yg2jloZ8C9bl8FqjADyRnNC96SFYj+x+oUTU3hricTjiVdf1yiUcP7rov8YDjkNmiCDzotPdcnJQjv2xMlRwmOYDcVMGWjPf4dYGVGxJvqMgLZicn8c7l9e+hBrTCaM/fSmAr/cZWMKhhqveagWSN+c/G19GSeFSr4jJZ+afC8zPLVTN0/uDd+0vLnN9eRgxMASEWnlxnsSOD2TH/y0sazY8ts4SNV/MFLTgCcQ0B+LXLBo+8aDmOvoKh9LYPf421Wl7KlQYoBCRryy4h705GroDnHCNgsSamaipue9ta3DuuZRe907jb92BLAxrmehZpJ+6CDL3G57WTXiaHKwo3ArbJSxLp/O0fRtZ5sNQ1vPw5YYZRBzqYQVyFAIYDh5q3aW2RplGG33uhlIYN2k53d8FLkn6tOU12ukktdRD526ysstbv7V1A"
+}

@@ -1,0 +1,10 @@
+{
+  "algorithm": "RSA-PKCS1-SHA256",
+  "payload": {
+    "channel": "nightly",
+    "release": null,
+    "schema": 1,
+    "sequence": 1792857497119457600
+  },
+  "signature": "QC0DsyYWcU86Mvi2qbQbMdnWMylsjMWJ9qqHkSsQTLDwQ3zmnQJKOBq76UxjlRXIIfL6Y0WecHVXRW/aWOvtX7kWx/ang0GhQs4J911gZeY00nrnAl+ASXJv3eARlvOIBr/IBlyX2VUTj2mQU0LYURXN1d/uRVHJiT/SH69ksyFYU9iGXVdV9yqFDC6r56QeBkaxW8pUsqaiYCit/fN0fhQUfAiNVAeHAS9F6QW6Wn7bYAJHG1/+c3eD5aGrPDWxx2TE/R4PuPllV94dLr3bGC8G+vAmI3mLlvVREKeGzZ9E8wvA8DEgzZRNVZBiTukg1vpG2kZWoujENh+3VI0hwyIbWwuaG2sB/7tEjighEcucDJZLrQ0tpg5I5m4KyVCnWsqGjDorDKVn+P0ZF+ms1xibDRePWw8qZZYKWLUwu8mp29iJuC8g7X9Sg1hGQq12rrbY201rae4PWrnzySGDu1aPmKB/wt9bkDG9+tyGR3XfCE88o/sYlQ67INDr/L42"
+}

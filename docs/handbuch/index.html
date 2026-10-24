@@ -268,7 +268,7 @@
     defer
     src="https://cloud.umami.is/script.js"
     data-website-id="9a7c0b38-aea1-468a-bccc-e258aeeb365d"
-    data-domains="xvault.ddnss.de"
+    data-domains="xvault.repowork.de"
     data-do-not-track="true"
     data-exclude-search="true">
   </script>
@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.10.23.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.10.24.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -349,7 +349,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.10.23.1.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.10.24.1.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -597,6 +597,9 @@
       <p>Film- und Serienfavoriten stammen aus Kodis Favoriten- beziehungsweise xVAULT-Listenlogik. LiveTV und LiveTV lite speichern TV-Favoriten im jeweiligen xVAULT-Profilbereich. Der Kontextmenüpunkt <strong>Zu TV Favoriten hinzufügen</strong> legt Sender deshalb in den Favoritenordnern der LiveTV-Bereiche ab und nicht in Kodis allgemeinen Favoriten.</p>
       <h3>Synchronisation anmelden</h3>
       <p>Im Bereich Konten kann ein xVAULT-Konto registriert, angemeldet, abgemeldet oder das Passwort zurückgesetzt werden. Nach erfolgreicher Anmeldung ist die erste Synchronisierung sofort verfügbar, ohne die Einstellungen verlassen und erneut öffnen zu müssen.</p>
+      <h3>Originalstatus und Updatekanaele</h3>
+      <p>Unter Werkzeuge zeigt Originalstatus &amp; Updates den SHA-256-Dateiabgleich, die signierte Release-Referenz, erkannte KodiBox-Merkmale und unplausible Versionsnummern. Ein fehlender Serverkontakt ist kein Faelschungsnachweis. Die lokale Pruefung ersetzt keine Attestierung des Kodi-Hosts.</p>
+      <p>Release-Versionen enden auf .1, Nightlys auf Tagesrevisionen ab .2. Der Kanal wird pro Geraet gewaehlt. Die Hintergrundpruefung erfolgt bei Release alle sechs Stunden und bei Nightly stuendlich. Benachrichtigung ist Standard; automatische Vorwaertsupdates im Leerlauf sind optional. Rueckwechsel und Reparaturen werden ausdruecklich bestaetigt. Persoenliche Profile bleiben beim gesicherten Pakettausch erhalten.</p>
       <h3>Mehrere Geräte verwenden</h3>
       <p>Ab Version 2026.10.23.1 warten Hauptmenü und Zurück-Navigation nicht mehr auf den Geräteabgleich. Der Hintergrunddienst übernimmt den Auftrag; unveränderte Wiedergabe-/Gesehen-Stände werden nicht erneut lokal geschrieben. Vor einer Wiedergabe bleibt der Abgleich erhalten.</p>
       <p>Ein Konto kann auf mindestens fünf Geräten gleichzeitig angemeldet bleiben. Jede Installation erhält einen eigenen Zugangsschlüssel. Das Kennwort muss nach einer erfolgreichen Anmeldung nicht bei jedem Gerätewechsel neu eingegeben werden. Alle beteiligten Geräte benötigen Version 2026.10.22.1 oder neuer; eine bereits ungültige alte Anmeldung muss einmalig erneuert werden.</p>
@@ -883,7 +886,7 @@
           <tr><th>Problem</th><th>Prüfen</th></tr>
         </thead>
         <tbody>
-          <tr><td>Kodi zeigt keine Dateien im Repository</td><td>Repository-ZIP direkt installieren, URL <strong>http://xvault.ddnss.de/repository.xvault.zip</strong> prüfen und sicherstellen, dass Kodi die Seite als Dateilisting erkennt.</td></tr>
+          <tr><td>Kodi zeigt keine Dateien im Repository</td><td>Repository-ZIP direkt installieren, URL <strong>https://xvault.repowork.de/repository.xvault.zip</strong> prüfen und sicherstellen, dass Kodi die Seite als Dateilisting erkennt.</td></tr>
           <tr><td>Keine Film- oder Serienquellen</td><td>Indexseiten aktivieren, Scraper-Timeout erhöhen, alternative Schreibweise suchen und die bevorzugte Streamsprache auf Alle stellen.</td></tr>
           <tr><td>Allgemeiner Fehler bei Serienwiedergabe</td><td>Aktuelle xVAULT-Version installieren und das Kodi-Log prüfen. Player-Startfehler werden als Playback-Startfehler protokolliert, wenn Metadaten oder Resolverdaten unvollständig sind.</td></tr>
           <tr><td>Kodi beendet sich beim Öffnen von Serien, Staffeln oder nach einer Wiedergabe</td><td>Aktuelle xVAULT-Version installieren. xVAULT vermeidet direkte Kodi-Listenmanipulationen und stellt Positionen nur noch über abgesicherte Kodi-Fokusbefehle wieder her.</td></tr>
@@ -935,7 +938,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.10.23.1</span>
+      <span>Handbuch zu xVAULT 2026.10.24.1</span>
     </footer>
   </main>
 </body>

@@ -1,5 +1,11 @@
 # Lokale Diagnosen
 
+Der lokale Stand zu signierten Paketen, Originalstatus, KodiBox-Erkennung und Release-/Nightly-Kanaelen steht in [UPDATE_CHANNELS_2026-10-24.md](UPDATE_CHANNELS_2026-10-24.md).
+
+Die Prüfung des Diagnosepakets zu „Colony (2026)“ und die allgemeine MoFlix-Korrektur gegen falsche gleichnamige Filme stehen in [COLONY_2026-10-24.md](COLONY_2026-10-24.md).
+
+Die lokale Wiedergabeprüfung von VIXSTREAM mit „Die Monkees“, die Korrektur falscher Sprach-/Qualitätsangaben und der Manifest-Header stehen in [VIXSTREAM_MONKEES_2026-10-24.md](VIXSTREAM_MONKEES_2026-10-24.md).
+
 `private/` ist fuer Rohlogs, Profileinstellungen, Sync-Zustaende und lokale Sicherungen reserviert. Der Ordner ist in Git ignoriert; `tools/` wird vom Add-on-Build ausgeschlossen. Inhalte hier koennen Zugangsdaten und persoenliche Wiedergabedaten enthalten und werden nicht veroeffentlicht.
 
 Bestehende Diagnosen bleiben unveraendert erhalten. Verschiebungen werden mit Dateigroesse und SHA256 in `private/archive-manifest-2026-10-19.json` dokumentiert. Der Abgleich der alten Arbeitskopien liegt unter `private/2026-10-19/reconciliation/`.

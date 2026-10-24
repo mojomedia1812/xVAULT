@@ -4,26 +4,38 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Stand: `2026.10.23.1`
+Aktueller Stand: `2026.10.24.1`
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
 ## Installation
 
-1. Die aktuelle Add-on-ZIP von [xvault.ddnss.de](http://xvault.ddnss.de/) herunterladen.
+1. Die aktuelle Add-on-ZIP von [xvault.repowork.de](https://xvault.repowork.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.10.23.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.10.24.1.zip` auswählen.
 4. xVAULT starten.
 
-Alternativ kann das Repository-ZIP von [http://xvault.ddnss.de/repository.xvault.zip](http://xvault.ddnss.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
+Alternativ kann das Repository-ZIP von [https://xvault.repowork.de/repository.xvault.zip](https://xvault.repowork.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
 
 Kodi installiert die offiziellen Abhängigkeiten aus den konfigurierten Repositorys. Damit eine direkte ZIP-Installation nicht an noch fehlenden Modulen scheitert, installiert und aktiviert xVAULT seine benötigten Laufzeitmodule beim ersten Start zusätzlich selbst. Nicht im offiziellen Kodi-Repo verfügbare Module wie ResolveURL werden dabei aus ihren offiziellen Quellen nachinstalliert. Optionale binäre InputStream-Komponenten werden nicht beim Pluginstart erzwungen, weil sie je nach Kodi-Plattform nicht immer verfügbar sind.
 
 Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.md).
 
+## Originalstatus und Updatekanaele
+
+Die offizielle Repository- und Updateadresse ist `https://xvault.repowork.de/`. Ein Netzfehler gilt nicht als Nachweis einer veraenderten Installation.
+
+Unter **Werkzeuge > Originalstatus & Updates** zeigt xVAULT die neu berechneten SHA-256-Dateihashes, den signierten Referenzstand, KodiBox-Merkmale, die Versionsplausibilitaet und den letzten Updatecheck. Die Pruefung laeuft beim Hauptstart und Service-Start sowie an Wiedergabe-, Update- und Support-Einstiegspunkten. Bekannte KodiBox-Kopien werden von einem unveraenderten Originalpaket innerhalb einer KodiBox-Umgebung unterschieden. Das Diagnosepaket enthaelt den Herkunftsstatus direkt in `environment.json`.
+
+**Release** verwendet `YYYY.MM.DD.1`, **Nightly** Revisionen ab `YYYY.MM.DD.2`. Die Auswahl gilt pro Geraet und wird nicht mit dem Konto synchronisiert. Releases werden alle sechs Stunden, Nightlys stuendlich im Hintergrund geprueft; die manuelle Pruefung ist jederzeit verfuegbar. Standard ist Benachrichtigung. Optional werden echte Vorwaertsupdates im Leerlauf installiert. Reparaturen und Rueckwechsel auf eine niedrigere Version verlangen eine ausdrueckliche Bestaetigung. Die eigenen Pruefungen verwenden nicht Kodis globale Update-Einstellung; Kodis xVAULT-Repository wird auf den gewaehlten Kanal ausgerichtet.
+
+ZIP-SHA-256, signiertes Dateimanifest und tatsaechlich installierte Dateien werden getrennt geprueft. Die Installation wird vorbereitet, erneut validiert und durch einen separaten Helfer mit Sicherung und Ruecksetzung ausgefuehrt. Persoenliche Daten unter `addon_data` bleiben ausserhalb des Pakettauschs. Eine lokale Selbstpruefung ist trotz Signaturen keine nicht umgehbare Attestierung eines manipulierten Kodi-Hosts.
+
+Zum Bauen wird Python mit `cryptography` sowie der private Release-Schluessel aus `XVAULT_SIGNING_KEY` benoetigt. Lokal wird ersatzweise die ignorierte Datei `tools/diagnostics/private/release-signing-key.pem` verwendet. Dieser Schluessel darf niemals ins Repository oder Add-on gelangen und muss separat gesichert werden. Der oeffentliche Pruefschluessel ist in `resources/lib/release_security.py` hinterlegt. `python -B tools/build_kodi_zip.py` erzeugt reproduzierbare ZIPs, signierte Kanaldateien, versionsbezogene Dateimanifeste und getrennte Kodi-Kanalindizes. Fuer eine Nightly wird die Quellversion vor dem Build auf eine Tagesrevision ab 2 gesetzt; Nightlys ersetzen weder den Release-Kanal noch dessen Downloadseite. Bereits gebaute Versionen werden nicht mit anderen Bytes wiederveroeffentlicht. Nur fuer noch unveroeffentlichte lokale Entwuerfe erlaubt `XVAULT_ALLOW_DRAFT_REBUILD=1` einen erneuten Build derselben Versionsnummer.
+
 ## Nutzung
 
-- Das ausführliche Handbuch steht als GitHub-Pages-Unterseite unter [xvault.ddnss.de/handbuch/](http://xvault.ddnss.de/handbuch/) bereit.
+- Das ausführliche Handbuch steht als GitHub-Pages-Unterseite unter [xvault.repowork.de/handbuch/](https://xvault.repowork.de/handbuch/) bereit.
 - Filme und Serien über die xVAULT-Menüs suchen.
 - LiveTV und LiveTV lite über Senderkategorien oder eigene TV-Favoriten starten.
 - Eine Quelle auswählen oder Autoplay verwenden.
@@ -64,6 +76,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Filmpalast liest die aktuelle Such- und Quellenstruktur, schützt bereits korrekt kodierte Suchpfade vor Doppel-Kodierung, durchsucht mehrere Trefferseiten und übernimmt erkannte Hoster erst ohne vorzeitige ResolveURL-Filterung in die Quellenliste.
 - Filmo ist als aktivierbare Filmquelle in die normale Quellensuche eingebunden; xVAULT liest Filmo-Suche und Filmseiten, löst Providerchips mit CSRF-Token, Session-Cookies und Redirect-Auswertung über den Filmo-Mint-Endpunkt auf und übernimmt Deutsch-/Englisch-Hoster in die Quellenliste.
 - MoFlix ist als optionale Film- und Serienquelle eingebunden; xVAULT prueft Treffer ueber Titel, Jahr und IMDb-ID, faellt bei blockierter JSON-API auf Browser-HTML-Daten zurueck und repariert veraltete Healthcheck-Sperren automatisch.
+- Bei MoFlix werden Treffer mit einer widersprüchlichen IMDb-ID verworfen. Ohne passende IMDb-ID darf auch ein deutlich anderes Erscheinungsjahr keinen gleichnamigen Film ersetzen; veraltete Quellenlisten werden nach einer Anbieterrevision neu ermittelt.
 - AnimeToast ist als eigener Serien-Scraper eingebunden. xVAULT nutzt dort nur konkrete Episoden aus der Ajax-Playerlogik oder eindeutige Einzel-Episodenlinks; reine Staffelbereichs-Container werden nicht als einzelne Folge übernommen.
 - Internet Archive ist als optionale Filmquelle vorhanden. Die Suche ist bewusst streng auf passende Titel-/Jahr-Treffer und echte Videodateien begrenzt, damit Archiv-, Bonus- oder Trailer-Treffer die normale Quellenliste nicht verfälschen.
 - Quellenlisten behalten die vom Scraper gelieferte Reihenfolge, werden nach Qualitäts-/Sprachlogik stabil dedupliziert und berücksichtigen manuelle Hoster-Ausschlüsse erst danach.
@@ -72,7 +85,7 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 - Settings-Lesezugriffe nutzen Profil- und Default-XML mit Cache, damit aktuelle Kodi-Einstellungen sofort greifen und keine unnötigen Add-on-Wrapper entstehen.
 - Die Standard-Aktion `Verzeichnis` liefert Quellenlisten auch aus Favoriten, RPC- und externen Aufrufen wieder als Kodi-Verzeichnis, statt ungewollt in den Dialog zurückzufallen.
 - VIXSTREAM-Playlist-Streams ohne `.m3u8`-Endung werden als HLS erkannt und behalten die benötigten Vixcloud-Header beim Kodi-Start im Abspielpfad, damit Manifest, Segmente und AES-Schlüssel erreichbar bleiben.
-- VIXSTREAM prüft die tatsächlichen HLS-Audiospuren und zeigt eine Quelle nur als Deutsch oder Englisch an, wenn die angeforderte Sprache als Tonspur vorhanden ist; Untertitel zählen nicht als Streamsprache.
+- VIXSTREAM prüft auch nachgelagerte HLS-Listen und zeigt eine Quelle nur bei einem Sprachnachweis als Deutsch oder Englisch an. Fehlende Sprachkennungen bleiben „Sprache unbekannt“; der angeforderte `lang`-Parameter und Untertitel zählen nicht als Nachweis. Der Sprachfilter entscheidet wie bei anderen Anbietern über unbekannte Quellen. Die Qualitätsangabe stammt aus dem Manifest statt aus einer pauschalen 1080p-Vorgabe.
 - Optionale InputStream-Komponenten werden beim Pluginstart, bei Film-/Serien-HLS und bei der Kodi-TV-/IPTV-Simple-Integration nicht mehr erzwungen; xVAULT nutzt vorhandene Engines oder fällt auf Kodis interne Wiedergabe zurück.
 - Movie4k nutzt die aktuelle API-Struktur über `movie4k.sx`; alte Movie4k-Domainwerte werden beim Providercheck automatisch auf die funktionierende Domain migriert.
 - Neuer Einstellungsbereich `Indexseiten 3 (DE)` für CINE.TO, FILMFANS, NOX, SERIENFANS und STREAMCLOUD.FORUM; der bisherige Bereich `Indexseiten (DE)` heißt jetzt `Indexseiten 1 (DE)`.

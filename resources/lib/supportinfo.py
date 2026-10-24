@@ -132,7 +132,9 @@ def getDNS(dns):
 
 
 def pluginInfo():
-    lines = [
+    from resources.lib import distribution
+    origin = distribution.checkpoint('support-info', rehash=True)
+    lines = [origin['summary'], origin.get('version_warning', ''), '',
         'Kodi Version:  %s (Code Version: %s)' % (
             xbmc.getInfoLabel('System.BuildVersion')[:4],
             xbmc.getInfoLabel('System.BuildVersionCode'),
@@ -267,6 +269,7 @@ def _build_support_workspace(workspace, support_uuid, zip_name, created_at):
     }
 
     _write_json(os.path.join(workspace, 'environment.json'), {
+        'distribution': __import__('resources.lib.distribution', fromlist=['inspect']).inspect(force=True),
         'addon': _addon_context(),
         'system': _system_context(),
         'dependencies': _dependency_context(),

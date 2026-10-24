@@ -13,6 +13,7 @@ except Exception:
     xbmcvfs = None
 
 from resources.lib import control
+from resources.lib.release_security import BASE_URL
 
 
 REPOSITORY_ID = 'repository.xvault'
@@ -30,7 +31,7 @@ def ensure_xvault_repository():
         changed = False
         _mkdir(repo_dir)
 
-        template = _read_text(TEMPLATE_FILE)
+        template = channel_template(_read_text(TEMPLATE_FILE), control.getSetting('updates.channel', 'release'))
         if _read_text(addon_xml) != template:
             _write_text(addon_xml, template)
             changed = True
@@ -46,6 +47,17 @@ def ensure_xvault_repository():
     except Exception as e:
         _log('Repository bootstrap failed: %s' % str(e), xbmc.LOGWARNING)
         return False
+
+
+def channel_template(template, channel):
+    """Keep Kodi's own repository selection aligned with the user's chosen channel."""
+    import xml.etree.ElementTree as ET
+    root = ET.fromstring(template)
+    prefix = 'updates/nightly/' if str(channel).lower() in ('nightly', '1') else ''
+    root.find('.//info').text = BASE_URL + prefix + 'addons.xml'
+    root.find('.//checksum').text = BASE_URL + prefix + 'addons.xml.md5'
+    root.find('.//datadir').text = BASE_URL
+    return ET.tostring(root, encoding='unicode') + '\n'
 
 
 def _has_repository():

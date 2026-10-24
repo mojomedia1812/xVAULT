@@ -1,3 +1,12 @@
+xVAULT 2026.10.24.1
+Entwickler: mojomedia1812
+
+- Neue Domain https://xvault.repowork.de/ und getrennte Release-/Nightly-Kanaele.
+- Signierte Dateireferenzen und SHA-256-Pruefung des installierten Pakets bei jedem Hauptstart. KodiBox-, Versions- und Supportstatus sichtbar.
+- Eigene Updatepruefung unabhaengig von Kodis globalen Einstellungen. Gesicherte Paketinstallation und bestaetigter Rueckwechsel von Nightly auf Release.
+- MoFlix: Colony (2026) wird nicht mehr durch The Colony (2013) ersetzt.
+- VIXSTREAM: keine erfundene deutsche Tonspur oder pauschale 1080p-Angabe; verschachtelte HLS-Listen und Header auf Ersatzdomains geprueft.
+
 xVAULT 2026.10.23.1
 Entwickler: mojomedia1812
 

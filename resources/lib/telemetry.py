@@ -124,7 +124,7 @@ def start_heartbeat_thread(interval=60):
         return
     _HEARTBEAT_THREAD_STARTED = True
     try:
-        worker = threading.Thread(target=_heartbeat_loop, args=(max(10, int(interval or 60)),))
+        worker = threading.Thread(target=_heartbeat_loop, args=(max(10, int(interval or 60)),), name='xvault-heartbeat')
         worker.daemon = True
         worker.start()
     except Exception as exc:
@@ -139,10 +139,14 @@ def _heartbeat_loop(interval):
     try:
         import xbmc
         monitor = xbmc.Monitor()
-        while not monitor.abortRequested():
-            if monitor.waitForAbort(interval):
+        from resources.lib import update_maintenance
+        next_heartbeat = time.monotonic() + interval
+        while not monitor.abortRequested() and not update_maintenance.requested():
+            if monitor.waitForAbort(1):
                 break
-            heartbeat()
+            if time.monotonic() >= next_heartbeat:
+                heartbeat()
+                next_heartbeat = time.monotonic() + interval
     except Exception as exc:
         try:
             log_utils.log('xVAULT telemetry: heartbeat loop stopped: %s' % str(exc), log_utils.LOGWARNING)

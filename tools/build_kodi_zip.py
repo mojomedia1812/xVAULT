@@ -10,7 +10,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 REPO_DIR = PROJECT_DIR.parent
-SITE_URL = "http://xvault.ddnss.de/"
+SITE_URL = "https://xvault.repowork.de/"
 LEGACY_SITE_URL = "https://mojomedia1812.github.io/xVAULT/"
 ADDON = ET.parse(PROJECT_DIR / "addon.xml").getroot()
 ADDON_ID = ADDON.attrib["id"]
@@ -38,7 +38,7 @@ UMAMI_TRACKING = """  <script
     defer
     src="https://cloud.umami.is/script.js"
     data-website-id="9a7c0b38-aea1-468a-bccc-e258aeeb365d"
-    data-domains="xvault.ddnss.de"
+    data-domains="xvault.repowork.de"
     data-do-not-track="true"
     data-exclude-search="true">
   </script>"""
@@ -109,13 +109,21 @@ def addon_files():
 
 
 def build(output):
+    from tools.release_packaging import make_integrity
+    from resources.lib.release_security import INTEGRITY_FILE, canonical
+    files = {relative.as_posix(): source.read_bytes() for source, relative in addon_files()
+             if relative.as_posix() != INTEGRITY_FILE}
+    envelope = make_integrity(files, VERSION)
     output.parent.mkdir(parents=True, exist_ok=True)
-    if output.exists():
-        output.unlink()
     with ZipFile(output, "w", ZIP_DEFLATED, compresslevel=9) as archive:
-        for source, relative in addon_files():
-            archive_name = (Path(ADDON_ID) / relative).as_posix()
-            archive.write(source, archive_name)
+        # Fixed timestamps make identical source releases byte-reproducible.
+        from zipfile import ZipInfo
+        for name, data in sorted(dict(files, **{INTEGRITY_FILE: canonical(envelope)}).items()):
+            info = ZipInfo(ADDON_ID + '/' + name, (2020, 1, 1, 0, 0, 0))
+            info.compress_type = ZIP_DEFLATED
+            info.external_attr = 0o100644 << 16
+            archive.writestr(info, data, compress_type=ZIP_DEFLATED, compresslevel=9)
+    return envelope
 
 
 def validate(output):
@@ -217,7 +225,8 @@ def sync_browsable_repository_layout():
         validate(addon_output)
         addon_index_entries.append(_entry(archive.name, addon_output))
 
-    copy2_retry(PROJECT_DIR / "addon.xml", ADDON_INDEX_DIR / "addon.xml")
+    if VERSION.endswith('.1') or not (ADDON_INDEX_DIR / 'addon.xml').exists():
+        copy2_retry(PROJECT_DIR / "addon.xml", ADDON_INDEX_DIR / "addon.xml")
     copy2_retry(PROJECT_DIR / "resources" / "icon.png", ADDON_INDEX_DIR / "icon.png")
     _sync_addon_assets()
 
@@ -294,6 +303,8 @@ def _sync_addon_assets():
 
 
 def update_kodi_repository_metadata():
+    if not VERSION.endswith('.1'):
+        return
     content = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
         '<addons>\n'
@@ -462,7 +473,7 @@ def _archive_downloads_html():
         if not match:
             continue
         version = match.group(1)
-        if version == VERSION:
+        if version == VERSION or not version.endswith('.1'):
             continue
         versions.append((version, path))
 
@@ -489,14 +500,24 @@ def prune_download_archives():
 
     versions.sort(key=lambda item: _version_key(item[0]), reverse=True)
     keep = set()
-    previous = 0
+    previous = {'release': 0, 'nightly': 0}
+    protected = {VERSION}
+    import json
+    from resources.lib.release_security import verify_envelope
+    for channel in previous:
+        feed = PROJECT_DIR / 'docs' / 'updates' / (channel + '.json')
+        if feed.exists():
+            release = verify_envelope(json.loads(feed.read_text(encoding='utf-8'))).get('release')
+            if release:
+                protected.add(release['version'])
     for version, path in versions:
-        if version == VERSION:
+        channel = 'release' if version.endswith('.1') else 'nightly'
+        if version in protected:
             keep.add(path)
             continue
-        if previous < DOWNLOAD_ARCHIVE_KEEP:
+        if previous[channel] < DOWNLOAD_ARCHIVE_KEEP:
             keep.add(path)
-            previous += 1
+            previous[channel] += 1
 
     for version, path in versions:
         if path not in keep:
@@ -662,13 +683,21 @@ def _xml_body(content):
 
 
 if __name__ == "__main__":
+    import sys
+    sys.path.insert(0, str(PROJECT_DIR))
     for destination in OUTPUTS:
-        build(destination)
+        integrity = build(destination)
         validate(destination)
         print(destination)
+    from tools.release_packaging import write_catalog
+    write_catalog(DOWNLOAD_OUTPUT, integrity, PROJECT_DIR / "docs")
     build_repository_zip(REPOSITORY_OUTPUT)
     validate_repository_zip(REPOSITORY_OUTPUT)
     print(REPOSITORY_OUTPUT)
     sync_repository_zip_aliases()
     update_kodi_repository_metadata()
-    update_download_page(DOWNLOAD_OUTPUT)
+    if VERSION.endswith('.1'):
+        update_download_page(DOWNLOAD_OUTPUT)
+    else:
+        prune_download_archives()
+        sync_browsable_repository_layout()

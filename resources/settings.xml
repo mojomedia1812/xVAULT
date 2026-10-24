@@ -7,6 +7,15 @@
         <setting id="updates.auto" type="bool" label="Automatische Updates aktivieren" default="true" />
     </category>
 
+    <category label="Originalstatus &amp; Updates">
+        <setting type="action" label="Originalstatus und Supportstatus anzeigen" action="RunPlugin(&quot;plugin://plugin.video.xvault/?action=distributionStatus&quot;)" />
+        <setting id="updates.channel" type="labelenum" label="Updatekanal (nur dieses Geraet)" values="release|nightly" default="release" />
+        <setting id="updates.mode" type="enum" label="Updateverhalten" values="Benachrichtigen|Automatisch im Leerlauf" default="0" />
+        <setting type="action" label="Jetzt nach Updates suchen" action="RunPlugin(&quot;plugin://plugin.video.xvault/?action=updateCheck&quot;)" />
+        <setting type="action" label="Originalpaket installieren oder reparieren" action="RunPlugin(&quot;plugin://plugin.video.xvault/?action=updateInstall&quot;)" />
+        <setting type="text" label="Release: alle 6 Stunden. Nightly: stuendlich. Wiedergaben werden nicht unterbrochen." />
+    </category>
+
     <category label="Wiedergabe">
         <setting type="lsep" label="Fortsetzen" />
         <setting id="bookmarks" type="bool" label="Wiedergabeposition speichern" default="true" />
@@ -325,7 +334,6 @@
         <setting id="first_install.telemetry_default.applied" type="bool" label="Erstinstallations-Statistikvorgabe gesetzt" default="false" visible="false" />
         <setting id="plus.enabled" type="bool" label="Plus aktiv" default="false" visible="false" />
         <setting id="plus.client_id" type="text" label="Plus Client" default="" visible="false" />
-        <setting id="updates.channel" type="text" label="Update-Kanal" default="stable" visible="false" />
         <setting id="updates.manifest_url" type="text" label="Update-Manifest" default="" visible="false" />
         <setting id="updates.download_url" type="text" label="Update-Download" default="" visible="false" />
     </category>

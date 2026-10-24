@@ -66,6 +66,8 @@ class player(xbmc.Player):
 
 
     def run(self, title, url, meta):
+        from resources.lib import distribution
+        distribution.checkpoint('player-start')
         import xbmc
         try:
             self.meta = control.sanitizeMetaArtwork(meta)
@@ -218,7 +220,10 @@ class player(xbmc.Player):
 
     def _needsManifestHeadersInPath(self, stream_url):
         try:
-            return re.search(r'^https?://(?:www\.)?vixcloud\.co/playlist/\d+(?:[/?#]|$)', str(stream_url).lower()) != None
+            # VIXSTREAM also serves manifests on vixsrc.to and configurable
+            # replacement domains. Kodi's initial URL access needs the same
+            # headers as InputStream Adaptive, regardless of that hostname.
+            return re.search(r'^https?://[^/]+/playlist/\d+(?:[/?#]|$)', str(stream_url).lower()) != None
         except:
             return False
 

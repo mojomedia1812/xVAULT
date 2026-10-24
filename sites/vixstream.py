@@ -22,6 +22,7 @@ KEY_URI_RE = re.compile(r'URI=(?:"([^"]+)"|([^,\s]+))', flags=re.I)
 class source:
     def __init__(self):
         self.priority = 1
+        self.cache_version = 1
         self.language = ['de', 'en']
         self.domain = getSetting('provider.' + SITE_IDENTIFIER + '.domain', SITE_DOMAIN)
         self.base_link = 'https://' + self.domain
@@ -210,25 +211,60 @@ class source:
     def _verified_stream_language(self, tmdb_id, season, episode, stream_language):
         embed_url, referer = self._fresh_embed_url(tmdb_id, season, episode, stream_language)
         if not embed_url:
-            return None, None, None
+            return None, None, None, 'SD'
 
         playlist_url, playlist_headers, playlist = self._playlist_from_embed(embed_url, referer, stream_language)
         if not playlist:
             logger.warning('[%s] Sprache nicht verifiziert: lang=%s tmdb=%s' % (SITE_NAME, stream_language, tmdb_id))
-            return None, None, None
+            return None, None, None, 'SD'
 
-        audio_languages = self._audio_languages_from_playlist(playlist)
-        if audio_languages and stream_language not in audio_languages:
+        valid, audio_languages, quality = self._inspect_playlist(playlist_url, playlist_headers, playlist)
+        if not valid:
+            return None, None, None, 'SD'
+        known_languages = audio_languages - {'unknown'}
+        if known_languages and stream_language not in known_languages:
             logger.info('[%s] Sprache verworfen: angefordert=%s, Audio=%s, tmdb=%s' % (
                 SITE_NAME, stream_language, ','.join(sorted(audio_languages)), tmdb_id
             ))
-            return None, None, None
+            return None, None, None, quality
 
-        if audio_languages:
+        if stream_language in known_languages:
             logger.info('[%s] Sprache verifiziert: lang=%s, Audio=%s, tmdb=%s' % (
                 SITE_NAME, stream_language, ','.join(sorted(audio_languages)), tmdb_id
             ))
-        return embed_url, playlist_url, audio_languages
+        return embed_url, playlist_url, audio_languages, quality
+
+    def _inspect_playlist(self, playlist_url, headers, playlist, depth=0, visited=None):
+        """Validate nested HLS manifests; a requested lang is not audio evidence."""
+        if isinstance(playlist, bytes):
+            playlist = playlist.decode('utf-8', 'replace')
+        playlist = (playlist or '').lstrip('\ufeff \r\n\t')
+        if not playlist.startswith('#EXTM3U'):
+            return False, set(), 'SD'
+        languages = self._audio_languages_from_playlist(playlist)
+        heights = [int(h) for h in re.findall(r'RESOLUTION\s*=\s*\d+x(\d+)', playlist, re.I)]
+        height = max(heights or [0])
+        quality = next((q for limit, q in [(2160, '4K'), (1080, '1080p'), (720, '720p')] if height >= limit), 'SD')
+        lines = [line.strip() for line in playlist.splitlines() if line.strip()]
+        media = [line for line in lines if not line.startswith('#')]
+        if not media:
+            return False, languages, quality
+        if any(line.startswith('#EXTINF:') for line in lines):
+            return True, languages, quality
+        if not any(line.startswith('#EXT-X-STREAM-INF:') for line in lines) or depth >= 2:
+            return False, languages, quality
+        child_url = urllib.parse.urljoin(playlist_url, media[0])
+        if urllib.parse.urlsplit(child_url).scheme not in ('http', 'https'):
+            return False, languages, quality
+        visited = set(visited or ()) | {playlist_url}
+        if child_url in visited:
+            return False, languages, quality
+        child, status, real_url = self._request(child_url, headers=headers, caching=False, preserve_newlines=True)
+        if status not in ('200', '301'):
+            return False, languages, quality
+        valid, child_languages, child_quality = self._inspect_playlist(
+            real_url or child_url, headers, child, depth + 1, visited)
+        return valid, languages or child_languages, quality if heights else child_quality
 
     def _audio_languages_from_playlist(self, playlist):
         languages = set()
@@ -282,22 +318,24 @@ class source:
 
             seen_urls = set()
             for language, language_label in self._stream_languages():
-                embed_url, playlist_url, audio_languages = self._verified_stream_language(tmdb_id, season, episode, language)
+                embed_url, playlist_url, audio_languages, quality = self._verified_stream_language(tmdb_id, season, episode, language)
                 if not embed_url:
                     continue
 
+                verified_language = language if language in audio_languages else 'unknown'
                 stable_url = self._stable_url(tmdb_id, season, episode, language)
-                if stable_url in seen_urls:
+                dedup_key = verified_language
+                if dedup_key in seen_urls:
                     continue
-                seen_urls.add(stable_url)
+                seen_urls.add(dedup_key)
 
                 self.sources.append({
                     'source': 'VixCloud',
-                    'quality': '1080p',
-                    'language': language,
+                    'quality': quality,
+                    'language': verified_language,
                     'url': stable_url,
                     'direct': False,
-                    'info': language_label
+                    'info': language_label if verified_language != 'unknown' else 'Sprache unbekannt'
                 })
                 logger.info('[%s] Quelle gefunden: tmdb=%s, lang=%s' % (SITE_NAME, tmdb_id, language))
 
@@ -346,8 +384,11 @@ class source:
             if not playlist_url or not headers_dict or not playlist:
                 return None
 
-            audio_languages = self._audio_languages_from_playlist(playlist)
-            if audio_languages and stream_language not in audio_languages:
+            valid, audio_languages, quality = self._inspect_playlist(playlist_url, headers_dict, playlist)
+            if not valid:
+                return None
+            known_languages = audio_languages - {'unknown'}
+            if known_languages and stream_language not in known_languages:
                 logger.error('[%s] Resolve abgebrochen: angefordert=%s, Audio=%s' % (
                     SITE_NAME, stream_language, ','.join(sorted(audio_languages))
                 ))

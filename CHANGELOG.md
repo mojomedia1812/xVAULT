@@ -1,5 +1,12 @@
 # Changelog
 
+## [2026.10.24.1] - 2026-10-24
+
+- Neue Domain `https://xvault.repowork.de/`, signierte Release-/Nightly-Kanaele, SHA-256-Originalpruefung und KodiBox-/Supportstatus. Updatechecks im Hintergrund, sichere Paketvorbereitung und gesicherte Kanal-Rueckwechsel.
+- MoFlix ersetzt fehlende Titel nicht mehr durch gleichnamige Filme mit abweichender IMDb-ID bzw. deutlich anderem Jahr. Das verhindert bei „Colony (2026)“ unter anderem Quellen zu „The Colony (2013)“. Die Anbieterrevision invalidiert alte Quellenlisten; acht neue Regressionstests sichern den Abgleich ab. Diagnose: `tools/diagnostics/COLONY_2026-10-24.md`.
+- VIXSTREAM kennzeichnet HLS ohne Sprachkennung nicht mehr fälschlich als Deutsch/Englisch. Auch untergeordnete Playlists werden geprüft; defekte Listen werden verworfen und die Qualität wird aus dem Manifest gelesen. Alte VIXSTREAM-Quellenlisten werden durch eine Anbieterrevision im Cache ungültig.
+- VIXSTREAM erhält die Wiedergabe-Header beim ersten Kodi-Zugriff auch auf `vixsrc.to` und Ersatzdomains. Diagnose und lokale Wiedergabeprüfung: `tools/diagnostics/VIXSTREAM_MONKEES_2026-10-24.md`.
+
 ## [2026.10.23.1] - 2026-10-23
 
 - Bereits vom Anbieter aufgelöste, endungslose Direktstreams werden nicht erneut als Hoster-Link aufgelöst und verworfen. Das repariert unter anderem Einschalten/vide0.net bei „The Adam Project“.

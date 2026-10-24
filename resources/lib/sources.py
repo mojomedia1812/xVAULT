@@ -511,6 +511,8 @@ class sources:
 
 
     def playItem(self, title, source, params=None):
+        from resources.lib import distribution
+        distribution.checkpoint('source-playback', notify=True)
         isDebug = False
         if isDebug: log_utils.log('start playItem', log_utils.LOGWARNING)
         try:
@@ -966,11 +968,14 @@ class sources:
     def _sourceCacheKey(self, title, year, imdb, season, episode, originaltitle, premiered, episode_title, episode_premiered, sourceDict):
         provider_state = []
         for name, call, priority in sorted(sourceDict, key=lambda item: item[0]):
-            provider_state.append({
+            state = {
                 'name': name,
                 'domain': getattr(call, 'domain', ''),
                 'priority': priority
-            })
+            }
+            if getattr(call, 'cache_version', None) is not None:
+                state['cache_version'] = call.cache_version
+            provider_state.append(state)
 
         settings = {}
         for setting in [

@@ -530,7 +530,8 @@ def monitor_changes(interval=5):
         next_local_check = 0
         next_attempt = 0
         handled_request = ''
-        while not monitor.abortRequested():
+        from resources.lib import update_maintenance
+        while not monitor.abortRequested() and not update_maintenance.requested():
             if monitor.waitForAbort(1):
                 break
             now = time.time()

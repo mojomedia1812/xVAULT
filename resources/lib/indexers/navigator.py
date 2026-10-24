@@ -13,6 +13,10 @@ addonFanart = control.addonFanart()
 
 class navigator:
 	def root(self):
+		from resources.lib import distribution
+		status = distribution.cached_status()
+		if status and (status.get('kodibox', {}).get('detected') or status.get('version_warning') or status.get('integrity', {}).get('state') in ('modified', 'invalid_reference')):
+			self.addDirectoryItem('[COLOR orange]' + status['summary'] + '[/COLOR]', 'distributionStatus', 'DefaultAddonProgram.png', 'DefaultAddonProgram.png', isFolder=False)
 		self.addDirectoryItem("Suche Filme", 'moviesSearch', '01_suche_filme.png', 'DefaultAddonsSearch.png')
 		self.addDirectoryItem("Suche TV-Serien", 'tvshowsSearch', '02_suche_tv_serien.png', 'DefaultAddonsSearch.png')
 		self.addDirectoryItem("Suche nach Person / Darsteller", 'personSearch', '03_darsteller_suche_nach_person.png', 'DefaultAddonsSearch.png')
@@ -55,6 +59,10 @@ class navigator:
 		self._endDirectory()
 
 	def tools(self):
+		self.addDirectoryItem("[B]Originalstatus & Updates[/B]", 'distributionStatus', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False)
+		self.addDirectoryItem("[B]Updates[/B]: Jetzt pruefen", 'updateCheck', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
+		self.addDirectoryItem("[B]Updates[/B]: Kanal Release / Nightly", 'updateChannel', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
+		self.addDirectoryItem("[B]Updates[/B]: Originalpaket installieren / reparieren", 'updateInstall', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
 		self.addDirectoryItem("[B]Support[/B]: Information anzeigen", 'pluginInfo', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False)
 		self.addDirectoryItem("[B]Support[/B]: Paket erstellen und hochladen", 'supportUpload', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False)
 		self.addDirectoryItem("[B]Reparatur[/B]: Einstellungen prüfen", 'repairSettings', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)

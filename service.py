@@ -195,7 +195,8 @@ def check_domains():
         for item in domains:
             _domain = item['domain']
             _provider = item['provider']
-            t = threading.Thread(target=_checkdomain, args=(_domain, _provider), daemon=True)
+            t = threading.Thread(target=_checkdomain, args=(_domain, _provider),
+                                 name='xvault-domain-' + _provider, daemon=True)
             threads += [t]
             t.start()
     except:
@@ -358,7 +359,7 @@ def ensure_youtube_api_keys():
             logger.warning('[service]: Failed to write YouTube api_keys.json: %s' % str(e))
 
 
-if __name__ == "__main__":
+def run_service():
 	try:
 		from resources.lib import settings_repair
 		settings_repair.check_and_offer_repair(interactive=False, source='service-start')
@@ -388,6 +389,12 @@ if __name__ == "__main__":
 	except Exception:
 		pass
 	from resources.lib import updater
+	try:
+		from resources.lib import distribution
+		distribution.checkpoint('service-start', rehash=True)
+		updater.start_background()
+	except Exception as exc:
+		if isLogger: logger.warning('[service]: Update-/Herkunftspruefung: %s' % type(exc).__name__)
 	if updater.automatic_updates_enabled():
 		from resources.lib import repository
 		repository.ensure_xvault_repository()
@@ -414,6 +421,17 @@ if __name__ == "__main__":
 	finally:
 		try:
 			from resources.lib import telemetry
-			telemetry.app_stop()
+			from resources.lib import update_maintenance
+			if not update_maintenance.requested():
+				telemetry.app_stop()
 		except Exception:
 			pass
+
+
+if __name__ == "__main__":
+    from resources.lib import update_maintenance
+    update_maintenance.started()
+    try:
+        run_service()
+    finally:
+        update_maintenance.finished()

@@ -28,6 +28,7 @@ class MoflixTemporarilyUnavailable(Exception):
 class source:
     def __init__(self):
         self.priority = 4
+        self.cache_version = 1
         self.language = ['de', 'en']
         self.domain = getSetting('provider.' + SITE_IDENTIFIER + '.domain', SITE_DOMAIN)
         self.base_link = 'https://' + self.domain.strip('/')
@@ -113,8 +114,15 @@ class source:
         if want_series != is_series:
             return 0
 
+        wanted_imdb = str(imdb or '').strip().lower()
+        found_imdb = str(item.get('imdb_id') or '').strip().lower()
+        imdb_match = bool(wanted_imdb and found_imdb == wanted_imdb)
+        if (re.fullmatch(r'tt\d+', wanted_imdb) and re.fullmatch(r'tt\d+', found_imdb)
+                and not imdb_match):
+            return 0
+
         score = 0
-        if imdb and str(item.get('imdb_id') or '').strip().lower() == str(imdb).strip().lower():
+        if imdb_match:
             score += 100
 
         clean_titles = set([cleantitle.get(title) for title in titles if title])
@@ -144,6 +152,8 @@ class source:
                 elif delta == 1:
                     score += 8
                 else:
+                    if not imdb_match:
+                        return 0
                     score -= 35
         except Exception:
             pass

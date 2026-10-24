@@ -27,6 +27,14 @@ title = params.get('title')
 source = params.get('source')
 
 try:
+    from resources.lib import distribution, updater
+    distribution.checkpoint('plugin-start', rehash=action in (None, 'root'), notify=action in (None, 'root'))
+    updater.request_check()
+except Exception as exc:
+    from resources.lib import log_utils
+    log_utils.log('xVAULT Herkunftspruefung nicht verfuegbar: %s' % type(exc).__name__, log_utils.LOGWARNING)
+
+try:
     from resources.lib import playback_settings
     playback_settings.migrate_mode_setting()
 except Exception:
@@ -135,6 +143,22 @@ elif action == 'pluginInfo':
 elif action == 'supportUpload':
     from resources.lib import supportinfo
     supportinfo.createSupportPackageAndUpload()
+
+elif action == 'distributionStatus':
+    from resources.lib import distribution
+    distribution.show_status()
+
+elif action == 'updateCheck':
+    from resources.lib import updater
+    updater.manual_check()
+
+elif action == 'updateChannel':
+    from resources.lib import updater
+    updater.choose_channel()
+
+elif action == 'updateInstall':
+    from resources.lib import updater
+    updater.install_offer()
     _finish_action()
 
 elif action == 'repairSettings':
