@@ -422,7 +422,9 @@ def _release_notes_html():
     blocks = []
     for index, (version, bullets) in enumerate(releases):
         visible_bullets = bullets if index == 0 else bullets[:4]
-        items = "\n".join("        <li>%s</li>" % html.escape(bullet) for bullet in visible_bullets)
+        items = "\n".join("        <li>%s</li>" % html.escape(bullet.replace(
+            'KodiBox-, Versions- und Supportstatus sichtbar.',
+            'Versions- und Supportstatus sichtbar.')) for bullet in visible_bullets)
         blocks.append(
             '    <section class="panel update-panel">\n'
             '      <p class="section-kicker">Neu in %s</p>\n'
