@@ -40,12 +40,12 @@
         <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
         <tr><th colspan="4"><hr></th></tr>
         <tr><td>[PARENTDIR]</td><td><a href="../" data-umami-event="Verzeichnisnavigation geöffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">24.Oct.2026 17:58:17</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geöffnet">repository.xvault/</a></td><td align="right">24.Oct.2026 17:58:17</td><td align="right">-</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">24.Oct.2026 19:30:58</td><td align="right">3.59 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">24.Oct.2026 19:30:58</td><td align="right">32.00 B</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">24.Oct.2026 19:30:58</td><td align="right">330.06 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.3.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.3.zip</a></td><td align="right">24.Oct.2026 19:30:58</td><td align="right">330.06 KB</td></tr>
+        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">26.Oct.2026 17:47:55</td><td align="right">-</td></tr>
+        <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geöffnet">repository.xvault/</a></td><td align="right">26.Oct.2026 16:49:34</td><td align="right">-</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">26.Oct.2026 17:47:55</td><td align="right">3.59 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">26.Oct.2026 17:47:55</td><td align="right">32.00 B</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">26.Oct.2026 17:47:55</td><td align="right">330.06 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.3.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.3.zip</a></td><td align="right">26.Oct.2026 17:47:55</td><td align="right">330.06 KB</td></tr>
         <tr><th colspan="4"><hr></th></tr>
       </tbody>
     </table>
@@ -61,10 +61,10 @@
 
         <div class="release">
           <span>Aktuelle Version</span>
-          <strong>2026.10.24.1</strong>
+          <strong>2026.10.26.1</strong>
         </div>
 
-        <a class="download" href="downloads/plugin.video.xvault-2026.10.24.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
+        <a class="download" href="downloads/plugin.video.xvault-2026.10.26.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
           Installations-ZIP herunterladen
         </a>
 
@@ -123,12 +123,23 @@
 
     <section class="panel update-panel">
       <p class="section-kicker">Nightly 2026.10.26.3</p>
-      <h2>VIXSTREAM-Schlüsselabruf korrigiert</h2>
-      <p>Nur im Nightly-Kanal: Automatische Vorwärtsupdates funktionieren auch beim Wechsel zwischen Release und Nightly. Nach der Installation wird der Updatezustand neu geprüft. Der VIXSTREAM-Fix für den HLS-Schlüsselabruf ist weiterhin enthalten. Der reguläre Release-Kanal bleibt bei 2026.10.24.1.</p>
-      <a class="plain-link" href="downloads/plugin.video.xvault-2026.10.26.3.zip" download data-umami-event="Nightly ZIP heruntergeladen">Nightly 2026.10.26.3 herunterladen</a>
+      <h2>Aktueller Nightly-Kanal</h2>
+      <p>Die Korrekturen aus Nightly 2026.10.26.3 sind jetzt auch im Release 2026.10.26.1 enthalten. Der Nightly-Kanal bleibt weiterhin separat auswählbar.</p>
+      <a class="plain-link" href="downloads/plugin.video.xvault-2026.10.26.1.zip" download data-umami-event="Nightly ZIP heruntergeladen">Nightly 2026.10.26.3 herunterladen</a>
     </section>
 
     <!-- release-notes:start -->
+    <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.10.26.1</p>
+      <h2>Änderungen im Überblick</h2>
+      <ul class="update-list">
+        <li>VIXSTREAM: Wiedergabe-Header auch beim separaten HLS-Schluesselabruf passend zur Kodi-Version uebergeben. Das behebt den reproduzierten HTTP-403-Abbruch bei Die Monkees unter Kodi 21.3 / InputStream Adaptive 21.5.25.</li>
+        <li>Automatische Updates behandeln hoehere Versionen im ausgewaehlten Kanal auch nach einem Kanalwechsel als Vorwaertsupdate. Echte Rueckwechsel und Reparaturen bleiben bestaetigungspflichtig.</li>
+        <li>Nach einer Installation wird der gespeicherte Updatezustand fuer die neue Version erneut geprueft.</li>
+        <li>Zusaetzlichen Attestierungshinweis aus dem Original-/Supportstatus entfernt.</li>
+      </ul>
+    </section>
+
     <section class="panel update-panel">
       <p class="section-kicker">Neu in 2026.10.24.1</p>
       <h2>Änderungen im Überblick</h2>
@@ -137,7 +148,6 @@
         <li>Signierte Dateireferenzen und SHA-256-Pruefung des installierten Pakets bei jedem Hauptstart. Versions- und Supportstatus sichtbar.</li>
         <li>Eigene Updatepruefung unabhaengig von Kodis globalen Einstellungen. Gesicherte Paketinstallation und bestaetigter Rueckwechsel von Nightly auf Release.</li>
         <li>MoFlix: Colony (2026) wird nicht mehr durch The Colony (2013) ersetzt.</li>
-        <li>VIXSTREAM: keine erfundene deutsche Tonspur oder pauschale 1080p-Angabe; verschachtelte HLS-Listen und Header auf Ersatzdomains geprueft.</li>
       </ul>
     </section>
 
@@ -171,17 +181,6 @@
         <li>Der Providercheck beachtet dieselbe DNS-over-HTTPS-Einstellung wie die Quellensuche. Voruebergehende Netzwerkfehler sperren Anbieter nicht mehr dauerhaft.</li>
         <li>Live im lokalen Kodi 22 RC1 geprueft: Slow Horses S5E1-6 und FBI S8E18-22 liefern die richtigen Quellen; Slow Horses S5E1 und FBI S8E18 starten ueber VOE.</li>
         <li>Repository-Seite, Kodi-Index, Add-on-ZIP und Download-Archiv auf 2026.10.20.1 aktualisiert.</li>
-      </ul>
-    </section>
-
-    <section class="panel update-panel">
-      <p class="section-kicker">Neu in 2026.10.11.1</p>
-      <h2>Änderungen im Überblick</h2>
-      <ul class="update-list">
-        <li>Favoriten-Sync repariert die sichtbare &quot;Letzte Synchronisation&quot;-Anzeige aus dem echten lokalen Sync-Status, wenn der eigentliche Favoritenabgleich bereits erfolgreich war.</li>
-        <li>Manuelle Favoriten-Synchronisation meldet API-Anmeldefehler nicht mehr als Erfolg und entfernt abgelehnte Zugangsdaten sauber.</li>
-        <li>LiveTV/LiveTV lite erzwingen bei FFmpeg Direct keinen Timeshift-Modus mehr, damit Fire-TV-Installationen nicht an einem nicht beschreibbaren Timeshift-Pufferpfad abbrechen.</li>
-        <li>Live am installierten Fire-TV-Kodi geprueft: LiveTV lite &gt; Deutsche TV &gt; Pro7 startet und bleibt aktiv, statt nach dem Laden abzubrechen.</li>
       </ul>
     </section>
     <!-- release-notes:end -->
@@ -248,15 +247,15 @@
     <section class="panel checksum">
       <h2>Dateiprüfung</h2>
       <p>SHA-256</p>
-      <code>EF92B94858B2B3426E81DFE978B95A83539AE7C45B6E6CC2C6DB532B2918EE1F</code>
+      <code>7649F46501DA8CF6F9A368A3E70EDEE081186494A8DF3446CDC389E736D2D849</code>
     </section>
 
     <section class="panel archive">
       <h2>Vorherige Versionen</h2>
       <ul class="archive-list">
         <!-- previous-downloads:start -->
+        <li><a href="downloads/plugin.video.xvault-2026.10.24.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.10.24.1 herunterladen</a><span>12,8 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.10.23.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.10.23.1 herunterladen</a><span>12,8 MB</span></li>
-        <li><a href="downloads/plugin.video.xvault-2026.10.22.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.10.22.1 herunterladen</a><span>12,8 MB</span></li>
         <!-- previous-downloads:end -->
       </ul>
     </section>
@@ -264,7 +263,7 @@
     <footer>
       <a href="handbuch/" data-umami-event="Handbuch geöffnet">Handbuch</a>
       <a href="https://github.com/mojomedia1812/xVAULT" data-umami-event="GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Version 2026.10.24.1</span>
+      <span>Version 2026.10.26.1</span>
     </footer>
   </main>
 </body>

@@ -410,7 +410,8 @@ def _update_release_notes(html_content):
 
 
 def _release_notes_html():
-    releases = _read_changelog_releases()[:RELEASE_NOTES_LIMIT]
+    releases = [release for release in _read_changelog_releases()
+                if release[0].endswith('.1')][:RELEASE_NOTES_LIMIT]
     if not releases:
         return (
             '    <section class="panel update-panel">\n'

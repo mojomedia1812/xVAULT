@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026.10.26.1] - 2026-10-26 (Release)
+
+- Die Korrekturen aus Nightly 2026.10.26.3 sind jetzt im Release enthalten: VIXSTREAM-HLS-Schluesselheader, automatische Vorwaertsupdates bei Kanalwechseln und erneuter Cacheabgleich nach einer Installation.
+- Der zusaetzliche Attestierungshinweis im Statusdialog wurde entfernt.
+- Die bereits kurzzeitig verwendete Versionsnummer 2026.10.26.1 wird auf ausdruecklichen Wunsch erneut verwendet. Fruehere Installationen derselben Nummer benoetigen bei abweichendem Paketstand eine bestaetigte Reparatur.
+
 ## [2026.10.26.3] - 2026-10-26 (Nightly)
 
 - Automatische Updates behandeln eine hoehere Version im ausgewaehlten Kanal als Vorwaertsupdate, auch beim Wechsel zwischen Release und Nightly. Echte Rueckwechsel und Reparaturen bleiben bestaetigungspflichtig. Nach einer Installation wird eine fuer die vorherige Version gespeicherte Updateentscheidung neu geprueft. Lokale Kodi-Pruefung: `tools/diagnostics/AUTO_UPDATE_CHANNEL_2026-10-26.md`.

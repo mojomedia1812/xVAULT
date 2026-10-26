@@ -1,3 +1,11 @@
+xVAULT 2026.10.26.1
+Entwickler: mojomedia1812
+
+- VIXSTREAM: Wiedergabe-Header auch beim separaten HLS-Schluesselabruf passend zur Kodi-Version uebergeben. Das behebt den reproduzierten HTTP-403-Abbruch bei Die Monkees unter Kodi 21.3 / InputStream Adaptive 21.5.25.
+- Automatische Updates behandeln hoehere Versionen im ausgewaehlten Kanal auch nach einem Kanalwechsel als Vorwaertsupdate. Echte Rueckwechsel und Reparaturen bleiben bestaetigungspflichtig.
+- Nach einer Installation wird der gespeicherte Updatezustand fuer die neue Version erneut geprueft.
+- Zusaetzlichen Attestierungshinweis aus dem Original-/Supportstatus entfernt.
+
 xVAULT 2026.10.26.3
 Entwickler: mojomedia1812
 

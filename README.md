@@ -4,9 +4,9 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Release-Stand: `2026.10.24.1`
+Aktueller Release-Stand: `2026.10.26.1`
 
-Aktueller Nightly-Stand: `2026.10.26.3` (`plugin.video.xvault-2026.10.26.3.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind vorerst nur im Nightly-Kanal verfügbar.
+Aktueller Nightly-Stand: `2026.10.26.3` (`plugin.video.xvault-2026.10.26.3.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.26.1 enthalten.
 
 VIXSTREAM übergibt die Wiedergabe-Header auch an den separaten HLS-Schlüsselabruf. Kodi bis Version 21 nutzt dafür `inputstream.adaptive.license_key`, Kodi ab Version 22 die AES-Konfiguration über `inputstream.adaptive.drm`. Details zur Vorher-/Nachher-Prüfung stehen in [`tools/diagnostics/VIXSTREAM_KEY_HEADERS_2026-10-26.md`](tools/diagnostics/VIXSTREAM_KEY_HEADERS_2026-10-26.md).
 
@@ -16,7 +16,7 @@ Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `
 
 1. Die aktuelle Add-on-ZIP von [xvault.repowork.de](https://xvault.repowork.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.10.24.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.10.26.1.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [https://xvault.repowork.de/repository.xvault.zip](https://xvault.repowork.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
