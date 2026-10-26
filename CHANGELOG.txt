@@ -1,3 +1,8 @@
+xVAULT 2026.10.26.1
+Entwickler: mojomedia1812
+
+- VIXSTREAM: HTTP-Header auch beim HLS-Schlüsselabruf versionsgerecht an InputStream Adaptive übergeben. HTTP-403-Abbruch unter Kodi 21.3 mit Die Monkees reproduziert und behoben.
+
 xVAULT 2026.10.24.1
 Entwickler: mojomedia1812
 

@@ -112,6 +112,26 @@ class VixstreamTests(unittest.TestCase):
         del provider.cache_version
         self.assertNotEqual(current, key())
 
+    def test_aes_key_headers_use_the_supported_channel_for_each_kodi_version(self):
+        tree = ast.parse((ROOT / 'resources/lib/player.py').read_text(encoding='utf-8'))
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'player')
+        method = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == '_setHlsKeyHeaders')
+        method.decorator_list = []
+        scope = {'json': json}
+        exec(compile(ast.Module(body=[method], type_ignores=[]), 'player.py', 'exec'), scope)
+        headers = 'User-Agent=Fixture&Referer=https%3A%2F%2Ffixture.invalid%2Fembed%3Ftoken%3Dx&Origin=https%3A%2F%2Ffixture.invalid&Cookie=session%3Dfixture'
+        for version in (19, 20, 21, 22, 23):
+            with self.subTest(version=version):
+                properties = {}
+                item = types.SimpleNamespace(setProperty=lambda key, value: properties.update({key: value}))
+                scope['_setHlsKeyHeaders'](item, headers, version)
+                if version <= 21:
+                    self.assertEqual(properties, {'inputstream.adaptive.license_key': '|' + headers})
+                else:
+                    self.assertEqual(json.loads(properties['inputstream.adaptive.drm']),
+                                     {'none': {'license': {'req_headers': headers}}})
+                    self.assertNotIn('inputstream.adaptive.license_key', properties)
+
 
 if __name__ == '__main__':
     unittest.main()

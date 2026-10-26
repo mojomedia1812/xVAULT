@@ -1,5 +1,9 @@
 # Changelog
 
+## [2026.10.26.1] - 2026-10-26
+
+- VIXSTREAM: Wiedergabe-Header werden versionsgerecht auch beim separaten HLS-Schlüsselabruf übergeben. Das behebt den mit Kodi 21.3 / InputStream Adaptive 21.5.25 reproduzierten HTTP-403-Abbruch bei „Die Monkees“.
+
 ## [2026.10.24.1] - 2026-10-24
 
 - Neue Domain `https://xvault.repowork.de/`, signierte Release-/Nightly-Kanaele, SHA-256-Originalpruefung und KodiBox-/Supportstatus. Updatechecks im Hintergrund, sichere Paketvorbereitung und gesicherte Kanal-Rueckwechsel.

@@ -177,6 +177,8 @@ class player(xbmc.Player):
                     item.setProperty('inputstream.adaptive.common_headers', strhdr)
                     item.setProperty('inputstream.adaptive.stream_headers', strhdr)
                     if kodiver > 19: item.setProperty('inputstream.adaptive.manifest_headers', strhdr)
+                    if is_hls_manifest and self._needsManifestHeadersInPath(stream_url):
+                        self._setHlsKeyHeaders(item, strhdr, kodiver)
                     # Vixcloud lehnt Kodis ersten Manifest-Zugriff ohne die Pipe-Header ab.
                     url = original_url if self._needsManifestHeadersInPath(stream_url) else stream_url
 
@@ -217,6 +219,17 @@ class player(xbmc.Player):
         value = re.sub(r'\[[^\]]+\]', '', str(value))
         return re.sub(r'\s+', ' ', value).strip()
 
+
+    @staticmethod
+    def _setHlsKeyHeaders(item, headers, kodi_version):
+        # AES key requests use a separate header channel on ISA <= 21.
+        # Keep the key URI from EXT-X-KEY; never replace it with the manifest URL.
+        if kodi_version >= 22:
+            item.setProperty('inputstream.adaptive.drm', json.dumps({
+                'none': {'license': {'req_headers': headers}},
+            }))
+        else:
+            item.setProperty('inputstream.adaptive.license_key', '|' + headers)
 
     def _needsManifestHeadersInPath(self, stream_url):
         try:
