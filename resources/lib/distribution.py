@@ -141,8 +141,7 @@ def show_status():
              'Referenz-SHA-256: ' + result['integrity'].get('expected_sha256', 'nicht verfuegbar'),
              'Updatepruefung: ' + state.get('message', 'Noch nicht ausgefuehrt'),
              'Repository-Referenz abgeglichen: ' + str(state.get('repository_match', 'noch nicht erreichbar')),
-             '', 'Die lokale Pruefung erkennt Veraenderungen gegen eine signierte Referenz.',
-             'Sie ist keine nicht umgehbare Attestierung des Kodi-Hosts.']
+             '', 'Die lokale Pruefung erkennt Veraenderungen gegen eine signierte Referenz.']
     if state.get('release'):
         lines.append('Zielversion: ' + state['release']['version'])
     for kind in ('changed', 'missing', 'extra'):
