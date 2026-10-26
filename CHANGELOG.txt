@@ -1,3 +1,10 @@
+xVAULT 2026.10.26.3
+Entwickler: mojomedia1812
+
+- Automatische Updates: Eine hoehere Version im gewaehlten Kanal wird auch nach einem Kanalwechsel automatisch installiert. Niedrigere Versionen und Reparaturen bleiben bestaetigungspflichtig.
+- Nach einer Installation werden Updateentscheidungen fuer die vorherige Version neu geprueft.
+- Zusaetzlichen Attestierungshinweis aus dem Original-/Supportstatus entfernt.
+
 xVAULT 2026.10.26.2
 Entwickler: mojomedia1812
 

@@ -110,13 +110,11 @@ def update_plan(installed_version, release, installed_integrity=None, channel=No
     integrity = installed_integrity or {}
     warning = security.version_warning(installed_version, release['version'])
     same = installed_version == release['version']
-    info = security.version_info(installed_version)
-    switch = info and info['channel'] != (channel or release['channel'])
     if same and integrity.get('state') == 'original' and integrity.get('build_id') == release['build_id']:
         return {'action': 'none', 'message': 'Installierter Stand ist aktuell und unveraendert.', 'warning': warning}
     if warning or same:
         return {'action': 'repair', 'message': warning or 'Abweichender Dateistand; explizite Reparatur erforderlich.', 'warning': warning}
-    if switch or compare_versions(release['version'], installed_version) < 0:
+    if compare_versions(release['version'], installed_version) < 0:
         return {'action': 'switch', 'message': 'Kanal-Rueckwechsel auf %s' % release['version'], 'warning': warning}
     return {'action': 'update', 'message': 'Version %s ist verfuegbar.' % release['version'], 'warning': warning}
 
@@ -125,7 +123,9 @@ def poll(force=False, base_url=None, allow_loopback=False):
     from resources.lib import distribution
     channel, state, now = selected_channel(), read_state(), time.time()
     retry = 300 if state.get('network_error') else INTERVALS[channel]
-    if not force and state.get('channel') == channel and now - state.get('last_attempt', 0) < retry:
+    if (not force and state.get('channel') == channel
+            and state.get('installed_version') == control.addonVersion
+            and now - state.get('last_attempt', 0) < retry):
         return state
     sequences = dict(state.get('sequences') or {})
     try:
@@ -142,7 +142,8 @@ def poll(force=False, base_url=None, allow_loopback=False):
         result = distribution.checkpoint('update-check', rehash=True)
         plan = update_plan(control.addonVersion, release, result['integrity'], channel)
         sequences[channel] = payload['sequence']
-        state = dict(channel=channel, last_attempt=now, last_success=now, sequences=sequences,
+        state = dict(channel=channel, installed_version=control.addonVersion,
+                     last_attempt=now, last_success=now, sequences=sequences,
                      release=release, plan=plan, message=plan['message'], network_error=False)
         if release and control.addonVersion == release['version']:
             state['repository_reference_sha256'] = release['tree_sha256']

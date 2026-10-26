@@ -156,6 +156,35 @@ class ReleaseUpdateTests(unittest.TestCase):
         self.assertEqual(self.updater.update_plan('2026.10.24.9', self.release)['action'], 'switch')
         self.assertEqual(self.updater.update_plan('2028.10.11.1', self.release)['action'], 'repair')
 
+    def test_higher_version_in_selected_channel_is_forward_update(self):
+        nightly = dict(self.release, version='2026.10.26.2', channel='nightly')
+        self.assertEqual(self.updater.update_plan('2026.10.24.1', nightly, channel='nightly')['action'], 'update')
+        release = dict(self.release, version='2026.10.26.1')
+        self.assertEqual(self.updater.update_plan('2026.10.24.9', release, channel='release')['action'], 'update')
+
+    def test_lower_version_still_requires_confirmation_in_same_channel(self):
+        nightly = dict(self.release, version='2026.10.24.2', channel='nightly')
+        self.assertEqual(self.updater.update_plan('2026.10.26.2', nightly, channel='nightly')['action'], 'switch')
+
+    def test_auto_monitor_installs_forward_channel_update_without_explicit_override(self):
+        import sys
+        from resources.lib import update_maintenance
+        self.settings.update({'updates.channel': 'nightly', 'updates.mode': '1', 'updates.auto': 'true'})
+        self.control.window.getProperty = lambda key: ''
+        nightly = dict(self.release, version='2026.10.26.2', channel='nightly')
+        state = dict(release=nightly, plan=self.updater.update_plan('2026.10.24.1', nightly, channel='nightly'))
+        monitor = types.SimpleNamespace(waitForAbort=lambda timeout: False)
+        installs = []
+        namespace = self.updater.start_background.__globals__
+        with patch.dict(sys.modules, {'xbmc': types.SimpleNamespace(Monitor=lambda: monitor)}), \
+                patch.object(update_maintenance, 'requested', return_value=False), \
+                patch.dict(namespace, {'poll': lambda **kw: state, 'idle_for_install': lambda: True,
+                                      'install_release': lambda release, **kw: installs.append((release, kw))}):
+            self.updater.start_background()
+            namespace['_thread'].join(2)
+            self.assertFalse(namespace['_thread'].is_alive())
+        self.assertEqual(installs, [(nightly, {'explicit': False})])
+
     def test_channel_mismatch_and_replayed_feed_are_rejected(self):
         feed = packaging.sign(dict(schema=1, channel='release', sequence=5, release=self.release))
         with self.assertRaises(Exception):self.updater.validate_catalog(feed, 'nightly')
@@ -223,6 +252,15 @@ class ReleaseUpdateTests(unittest.TestCase):
             calls = Handler.calls
             self.updater.poll(base_url=base, allow_loopback=True)
             self.assertEqual(Handler.calls, calls)
+            self.control.addonVersion = '2026.10.23.1'
+            state = self.updater.poll(force=True, base_url=base, allow_loopback=True)
+            self.assertEqual(state['plan']['action'], 'update')
+            calls = Handler.calls
+            self.control.addonVersion = '2026.10.24.1'
+            state = self.updater.poll(base_url=base, allow_loopback=True)
+            self.assertGreater(Handler.calls, calls)
+            self.assertEqual(state['plan']['action'], 'none')
+            self.assertTrue(state['repository_match'])
             with patch.dict(self.updater.poll.__globals__, {'fetch_json': lambda *a: (_ for _ in ()).throw(OSError('offline'))}):
                 state = self.updater.poll(force=True, base_url=base, allow_loopback=True)
             self.assertTrue(state['network_error']);self.assertEqual(state['release']['version'], '2026.10.24.1')

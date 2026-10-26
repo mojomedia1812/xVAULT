@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026.10.26.3] - 2026-10-26 (Nightly)
+
+- Automatische Updates behandeln eine hoehere Version im ausgewaehlten Kanal als Vorwaertsupdate, auch beim Wechsel zwischen Release und Nightly. Echte Rueckwechsel und Reparaturen bleiben bestaetigungspflichtig. Nach einer Installation wird eine fuer die vorherige Version gespeicherte Updateentscheidung neu geprueft. Lokale Kodi-Pruefung: `tools/diagnostics/AUTO_UPDATE_CHANNEL_2026-10-26.md`.
+
+- Der zusaetzliche Attestierungshinweis wurde aus dem Original-/Supportstatus entfernt.
+
 ## [2026.10.26.2] - 2026-10-26 (Nightly)
 
 - VIXSTREAM: Wiedergabe-Header werden versionsgerecht auch beim separaten HLS-Schlüsselabruf übergeben. Das behebt den mit Kodi 21.3 / InputStream Adaptive 21.5.25 reproduzierten HTTP-403-Abbruch bei „Die Monkees“.
