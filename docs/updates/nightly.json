@@ -2,9 +2,19 @@
   "algorithm": "RSA-PKCS1-SHA256",
   "payload": {
     "channel": "nightly",
-    "release": null,
+    "release": {
+      "addon_id": "plugin.video.xvault",
+      "build_id": "2026.10.26.2-e49f697c863aff0b",
+      "channel": "nightly",
+      "download_url": "https://xvault.repowork.de/downloads/plugin.video.xvault-2026.10.26.2.zip",
+      "integrity_url": "https://xvault.repowork.de/updates/versions/2026.10.26.2.json",
+      "sha256": "e8fcc5beecddf650e87802a02ef79482c123a45faba494ca148ee8aa297d1ef3",
+      "size": 13400591,
+      "tree_sha256": "e49f697c863aff0b27b00a10b205473ac604657f6090c093fe0a9c1bca50e457",
+      "version": "2026.10.26.2"
+    },
     "schema": 1,
-    "sequence": 1792857497119457600
+    "sequence": 1793015061953667500
   },
-  "signature": "QC0DsyYWcU86Mvi2qbQbMdnWMylsjMWJ9qqHkSsQTLDwQ3zmnQJKOBq76UxjlRXIIfL6Y0WecHVXRW/aWOvtX7kWx/ang0GhQs4J911gZeY00nrnAl+ASXJv3eARlvOIBr/IBlyX2VUTj2mQU0LYURXN1d/uRVHJiT/SH69ksyFYU9iGXVdV9yqFDC6r56QeBkaxW8pUsqaiYCit/fN0fhQUfAiNVAeHAS9F6QW6Wn7bYAJHG1/+c3eD5aGrPDWxx2TE/R4PuPllV94dLr3bGC8G+vAmI3mLlvVREKeGzZ9E8wvA8DEgzZRNVZBiTukg1vpG2kZWoujENh+3VI0hwyIbWwuaG2sB/7tEjighEcucDJZLrQ0tpg5I5m4KyVCnWsqGjDorDKVn+P0ZF+ms1xibDRePWw8qZZYKWLUwu8mp29iJuC8g7X9Sg1hGQq12rrbY201rae4PWrnzySGDu1aPmKB/wt9bkDG9+tyGR3XfCE88o/sYlQ67INDr/L42"
+  "signature": "kOsoLrFpiJpM6amBK6xWA59PgPS89rqFrO+K4j8IwotrUdvKRK08V2CZ0IZvLiICcu0aIHHiJi05AE4M+b+6M0D88ErcyWCRwkyh/5CIKaHDrllGYZs5xpXiBCEvib0ttORAntaPkjSmUnaYpIeLhCV0YM4UQ0SLCntvASjJDuqzRKEReOsNlUxr82/9AsGq/FWLOmrItvjZfbQq7drm9bRTjHlVh8d9SDDTlJFPTgT2nEJCl/SgsxpfCRTHyN6opec0Psiz9aDMbOkIrY4F1065os7hky0I/hoBvnZqELJkPN9IkVD4+heoNBFlaijR3CfPN+cgw4M3HhhJFGNAlry9p6WSyMFyUv7ioNB11JKEiPraibsB4Tj8+5g58b8HLZkwKG1h3LVvppGO9qU9tLR2Du2v6Oio6WLecyB8Apst6dyMg9GwToRDr/AInM2UeTD+2XoE8sBCq6JdyiZ3YEKXgTk/Y7Dx8XbYztYtHTko3oIh3/dVHTs/3jIZxoAg"
 }

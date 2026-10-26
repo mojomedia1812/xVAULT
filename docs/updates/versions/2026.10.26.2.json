@@ -2,22 +2,22 @@
   "algorithm": "RSA-PKCS1-SHA256",
   "payload": {
     "addon_id": "plugin.video.xvault",
-    "build_id": "2026.10.26.1-8ac1bf8f7936bfe1",
-    "channel": "release",
+    "build_id": "2026.10.26.2-e49f697c863aff0b",
+    "channel": "nightly",
     "files": {
       ".github/ISSUE_TEMPLATE/bug_report.yml": "b90208943ee44ba1a3f67556f933781a7e7e081c748ce2eee07fa6551144346a",
       ".github/ISSUE_TEMPLATE/config.yml": "f6e1c03a7dd6218e1b7a12984de24d2f2a30c291f41da481051bf07d2f778121",
       ".github/ISSUE_TEMPLATE/feature_request.yml": "56005999be2ef8c97499144319b94a7183c480936dee182a1d89eb72d34c5677",
       ".github/pull_request_template.md": "09c6653f6c7540a48c265f27ad8fcace79a1fa0d341edf6621635398b9781861",
       ".iptv_merge": "5cc99bdb7fc77aa924e6875afc1dfeb21f7f6d496f9f5603cb766a2b8bbb05f3",
-      "CHANGELOG.md": "5209ba107154f3036ce73097b0cea825d2c2707b254d261b40bc62e0b2c5f259",
-      "CHANGELOG.txt": "a587a26aa4949f62efe8a7397263f35a986ae6398b638365a582cdab5f48eff2",
+      "CHANGELOG.md": "a246c5748f62d432a691f99d4782d6a432f9cf2900601c5f0ea976d18e404a07",
+      "CHANGELOG.txt": "c1a50048009e5231b5bb53f7376b1d2fdb01d42893d3edb1714ee4aaf80dbe63",
       "CODE_OF_CONDUCT.md": "1fc4133599c3749c81885993c720c3a0b965acad9af4291fb826f9f829da801d",
       "CONTRIBUTING.md": "8c74207a8295b00b158261a037e0b1cd5a762be0a3471f0daeb2f904f1c8690f",
       "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
       "SECURITY.md": "50d638f6e4dbee2a47a4af835f6fa0f28f64d95ef0a620eb7a7976ce38b57ebb",
       "THIRD_PARTY_NOTICES.md": "fffbc5841233c603a8b21b229985f3198d618d5c60abfa72f83daaaf0f63431b",
-      "addon.xml": "5828b2e62c8ccc611555d17561058d38023316aa83c31414b23e833bffced205",
+      "addon.xml": "091d403d821f921d1758aacb4d4e8e94d3fbb017458866d61c338a8588431650",
       "default.py": "64bebbd44842b7b87ab9b8194ecef58a5676fda8ee6d47d6953252fb8927366e",
       "resources/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "resources/downloadinfo.txt": "618125148bab643707e8adbb935dca15513e2b9798f6973768c258509e6088c1",
@@ -175,8 +175,8 @@
       "sites/vixstream.py": "bba36b08a959e9f6c70d7e6f8b3cba4fdf74a037dcd8efd6dabad50eac74b3ad"
     },
     "schema": 1,
-    "tree_sha256": "8ac1bf8f7936bfe1872e2ad93730d60541a43581677094da156bc67ad181a15d",
-    "version": "2026.10.26.1"
+    "tree_sha256": "e49f697c863aff0b27b00a10b205473ac604657f6090c093fe0a9c1bca50e457",
+    "version": "2026.10.26.2"
   },
-  "signature": "FFrZ+TENZYOga308cOU8jBMeIbsulQh7U17lzBSZd/EIkoX6tV6R47KLvJVPayEP+19v1xaGS659y990LesGh1e852HUJubsaDW6cqw5bzdV8rl+q6a9nDwTaeYaKYLvJNbxDuzofS5rs3MonDnCg0FlUczat4KiyjUNj93UXr9CuY9GFz2kmqrPhXpZm/invOyAA323J7tjfGLl9P3YDHy5D1WfARBsFRbV5vkHSLGaw11tNm7oVI367dnUkaCUVelXfrVVF5neQw76RGXxIJabhAZqhdtRB3PLydHnnFGRMmgEiZFkDW7UdHn1g7OlerOHf7PqkljRhGf0ZCDH0iho74q+8xAJG57Ko/03iZB9wqdgLFqT5Akv3RFY9VpvSQFBcTX12/95Gd65JicT88xGOicqsiCylSsYgcdd7fn2VdJEkm75+FI7QsRryHpnGNPF88S5/zqJL7GA5oL3ZFw6gVCm9xDPi3nkVz2TOzpSdy2ovDzYdG3EJabR/20f"
+  "signature": "ScKiYR2Li0UxYcwHtgxvf1AvhXyNsk5cklUSJPXRlON3MiMYRmJXe6zkXB4EezHhMBbKBSKLVK813/Ue0Ql2p/Am9DYdVWMkKuaqTVcKVDFjb77tP0xKxKKJn5PqMO9palrZI321j4kII4uulyQSwGC1sAc1QFh1jHDCN/Jk0FUCLqQK6n7URpNV+nJcBettN36gHvANrLgX8GoaBGQPAFAADI1w+J8cVFu1cv/S3OFlv3CNOaLT47mPQmxvOdvuCte1S191u287v6GZRVBs42m2HJRblUp6ut3Cqo+dyE8y241mVSJbJrZYMFKp7AT2Pq03TkthYu4XzzWcpt+aZLpTQ/xKjcV/d2o81qG15/2i3u/qZukbA9QD0eVy6wI5pW1W4YQo1yrIVGrp43c4WbFDBx3FRH1GQuT35lsXzvbCI1pdTyD5+Ogu1R2nwcisWYi7oOTKKs4W35rKVTJs0ovqUgUhhGhQTsBiYyiq6mY9QoguBhRGCV0UZ0hC2Sxe"
 }

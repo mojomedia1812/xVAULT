@@ -4,17 +4,17 @@
     "channel": "release",
     "release": {
       "addon_id": "plugin.video.xvault",
-      "build_id": "2026.10.26.1-8ac1bf8f7936bfe1",
+      "build_id": "2026.10.24.1-8ef35bc80f9d9888",
       "channel": "release",
-      "download_url": "https://xvault.repowork.de/downloads/plugin.video.xvault-2026.10.26.1.zip",
-      "integrity_url": "https://xvault.repowork.de/updates/versions/2026.10.26.1.json",
-      "sha256": "3f1552848f68d07107daa0420a67435fdfab4124d37f5dad8c4b363db8f547fc",
-      "size": 13400562,
-      "tree_sha256": "8ac1bf8f7936bfe1872e2ad93730d60541a43581677094da156bc67ad181a15d",
-      "version": "2026.10.26.1"
+      "download_url": "https://xvault.repowork.de/downloads/plugin.video.xvault-2026.10.24.1.zip",
+      "integrity_url": "https://xvault.repowork.de/updates/versions/2026.10.24.1.json",
+      "sha256": "ef92b94858b2b3426e81dfe978b95a83539ae7c45b6e6cc2c6db532b2918ee1f",
+      "size": 13400189,
+      "tree_sha256": "8ef35bc80f9d9888407237c8936f3aee2264adf1fdb6c3c77644fd1c14f866a3",
+      "version": "2026.10.24.1"
     },
     "schema": 1,
-    "sequence": 1793014804436303200
+    "sequence": 1793015035619747400
   },
-  "signature": "cNJj2mSHuaWzFkW/Iy7e6ZPDf8vZjXcAO3L+DQez4ejj/OkOQ6z40pFFtFLGFtQGI4YkW9tuD0A/bCfCfEJiDuUNSulnoqRXtAgf/MNr2pLDB5FNV3guNO5Oq7oxvJCUNqML8YO+I3PTJbBdzRDj4k2x3WtTytk1jdbb05ga0BBOagzgof29k/3guZK2oZu1LzwPGlScO8Lq4LM4c5gPkZoyCYrcICeU37diPYxhbfGGEAHWfvaeX2l1IFC5GjzXcH9AVOYFovn4kTMp1f7PUcqBrPQ+6rMsedJVtFcpvxbi/AjGxYjVwEJ0bEhFJ/w163VXbrdDHntLDKkjkb59SA0G1fGV2muXh7QybXSgynXEODqF26XU2e/MV/BrUbOK9/bMZ5n+e4y0ounJvAYi+vOTL7IEfSp8PrH5VIc9JmExM5MJitUcHt8IJfanTFNtbp0vIzVDzutSFTktiqF/fxq1WbUancHvRuJxMXy8D9KLWHXzPwVT/Rb1aPSSg+pm"
+  "signature": "kGz5Yjeim3g8VZDfWNyFpUAtgqKBTxFPViSPChfjEtwq5CjH0CONuZc2mSME1dfYMyWKrj+6TTpUAym5TrBIkbbxcSGtVz8TvULDu9wK4Aq4M3IoF6FeoDg7CXM5gCAOn5S4EiHvZD8XheeAZ+NixrHMbNLtAllZZdXkLSnEX/0JmurKBe40eyWioFcveuVwttyF+wfLj3MzePmnX0+TerVaRLh89h9RH/3wotjGf7LEfhPnpHZDgHd7PCS5fj+6EQfVdouhuJWXQEC7mRBW6EC692tvMnWxoIzuuJFFvMwB7L4rhXZfi0S58N/jFB7rBybOgsF+Yq13pdn0YtzrgWDjrxBXFP6e2ZNyOiPiSplO3SgoVt8FylukQweJ60TcfcapS+o2QmG8GYMZILWZhBhRAXQAyIhAd/61KwKV2S6lVH5YVkU6IRySjrnxqpXr/0UuLONeEdvStu+FF/SXzkgnY2Rb5rVLLxZvM75Up7BGyiO0n6enXo1x2sPRXdzh"
 }

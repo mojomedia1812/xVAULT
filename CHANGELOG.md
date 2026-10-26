@@ -1,6 +1,6 @@
 # Changelog
 
-## [2026.10.26.1] - 2026-10-26
+## [2026.10.26.2] - 2026-10-26 (Nightly)
 
 - VIXSTREAM: Wiedergabe-Header werden versionsgerecht auch beim separaten HLS-Schlüsselabruf übergeben. Das behebt den mit Kodi 21.3 / InputStream Adaptive 21.5.25 reproduzierten HTTP-403-Abbruch bei „Die Monkees“.
 
