@@ -7,8 +7,6 @@ import unicodedata
 import uuid
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-import requests
-
 SERVERS = ('de1.api.radio-browser.info', 'nl1.api.radio-browser.info', 'fi1.api.radio-browser.info')
 PAGE_SIZE = 500
 MAX_PAGES = 32
@@ -339,6 +337,7 @@ def identity_candidates(rows, identities=None, now=None):
 
 def probe_stream_url(source):
     """Bounded GET; Kodi still performs the actual audio decoding and playback."""
+    import requests
     if not web_url(source):
         raise RadioError('Ungültige Streamadresse')
     with requests.Session() as session:
@@ -363,6 +362,7 @@ def _probe_response(session, source):
 
 
 def refresh_identities(rows, identities, resolve=probe_stream_url, stopped=lambda: False, limit=6):
+    import requests
     updated = dict(identities)
     changed = False
     for source in identity_candidates(rows, updated)[:limit]:
@@ -383,7 +383,9 @@ def refresh_identities(rows, identities, resolve=probe_stream_url, stopped=lambd
 
 class Client:
     def __init__(self, version='local', transport=None):
-        self.session = transport or requests.Session()
+        from requests import RequestException, Session
+        self.http_error = RequestException
+        self.session = transport or Session()
         self.headers = {'User-Agent': 'xVAULT/%s RadioBrowser' % version, 'Accept': 'application/json'}
         self.servers = list(SERVERS)
         random.shuffle(self.servers)
@@ -415,7 +417,7 @@ class Client:
                                       and re.fullmatch(r'[a-z0-9-]+\.api\.radio-browser\.info', str(s.get('name', '')))))
             random.shuffle(names)
             self.servers = names + [s for s in self.servers if s not in names]
-        except (requests.RequestException, ValueError, TypeError, RadioError):
+        except (self.http_error, ValueError, TypeError, RadioError):
             pass
 
     def get(self, path, params=None):
@@ -423,7 +425,7 @@ class Client:
         for host in self.servers[:3]:
             try:
                 return self._json(host, path, params)
-            except (requests.RequestException, ValueError, TypeError, RadioError):
+            except (self.http_error, ValueError, TypeError, RadioError):
                 continue
         raise RadioError('Radio Browser ist derzeit nicht erreichbar. Bitte spaeter erneut versuchen.')
 
@@ -462,7 +464,7 @@ class Client:
         # A write is sent once only: a lost reply must not cause duplicate votes.
         try:
             result = self._json(self.servers[0], '/json/vote/' + identifier, method='POST')
-        except (requests.RequestException, ValueError, TypeError, RadioError):
+        except (self.http_error, ValueError, TypeError, RadioError):
             raise RadioError('Abstimmung nicht bestaetigt. Es wurde nicht automatisch erneut abgestimmt.')
         if not isinstance(result, dict) or not isinstance(result.get('ok'), bool):
             raise RadioError('Ungueltige Antwort auf die Abstimmung')
@@ -473,5 +475,5 @@ class Client:
         # Click counting is separate from voting, and never controls playback.
         try:
             self._json(self.servers[0], '/json/url/' + identifier)
-        except (requests.RequestException, ValueError, TypeError, RadioError):
+        except (self.http_error, ValueError, TypeError, RadioError):
             pass

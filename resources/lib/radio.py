@@ -1,12 +1,12 @@
 """Native Kodi radio directories, music playback and Kodi favourites."""
 import json
+import hashlib
 import os
 import sys
 import threading
 import time
 from urllib.parse import parse_qs, urlencode, urlsplit
 
-import requests
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -19,6 +19,11 @@ BASE = 'plugin://plugin.video.xvault/'
 CACHE_PROPERTY = 'xvault.radio.catalog.v2'
 IDENTITY_REQUEST = 'xvault.radio.identities.requested'
 _identity_thread = None
+INDEX_PROPERTY = 'xvault.radio.index.v1'
+RAW_STAMP_PROPERTY = 'xvault.radio.raw.stamp'
+INDEX_SCHEMA = 1
+RETRY_INTERVAL = 300
+LIST_PAGE_SIZE = 250
 SORTS = ('votes', 'name', 'bitrate')
 SORT_LABELS = ('Meiste Votes', 'Name A–Z', 'Höchste Bitrate')
 
@@ -56,9 +61,123 @@ def cache_path():
     return folder + '/radio-catalog.json'
 
 
+def file_stamp(path):
+    try:
+        stat = os.stat(path)
+        return [stat.st_mtime_ns, stat.st_size]
+    except OSError:
+        return None
+
+
+def atomic_json(path, text):
+    temporary = path + '.%s.%s.tmp' % (os.getpid(), time.time_ns())
+    try:
+        with xbmcvfs.File(temporary, 'w') as stream:
+            stream.write(text)
+        os.replace(temporary, path)
+    finally:
+        if os.path.isfile(temporary):
+            os.remove(temporary)
+
+
+def index_path(meta=False):
+    return os.path.join(os.path.dirname(cache_path()), 'radio-index-meta.json' if meta else 'radio-index-programs.json')
+
+
+def source_token():
+    return [INDEX_SCHEMA, addon().getAddonInfo('version'), file_stamp(cache_path()), file_stamp(identity_path())]
+
+
+def summaries(programs):
+    families, genres, family_genres, genre_families, singles_by_genre = {}, {}, {}, {}, {}
+    singles = 0
+    for station in programs:
+        family = station['family']
+        if family:
+            families[family] = families.get(family, 0) + 1
+        else:
+            singles += 1
+        for genre in station['genres']:
+            genres[genre] = genres.get(genre, 0) + 1
+            if family:
+                fg = family_genres.setdefault(family, {})
+                fg[genre] = fg.get(genre, 0) + 1
+                gf = genre_families.setdefault(genre, {})
+                gf[family] = gf.get(family, 0) + 1
+            else:
+                singles_by_genre[genre] = singles_by_genre.get(genre, 0) + 1
+    return dict(families=families, genres=genres, family_genres=family_genres,
+                genre_families=genre_families, singles=singles, singles_by_genre=singles_by_genre)
+
+
+def read_index(summary_only=False):
+    try:
+        text = xbmcgui.Window(10011).getProperty(INDEX_PROPERTY)
+        if not text:
+            with xbmcvfs.File(index_path(meta=True)) as stream:
+                text = stream.read()
+        meta = json.loads(text)
+        now = time.time()
+        if (meta['token'] != source_token() or not 0 <= now - meta['timestamp'] < rb.STALE_TTL
+                or not meta['created'] <= now < meta['valid_until']
+                or meta['program_stamp'] != file_stamp(index_path())):
+            return None
+        if not isinstance(meta['summary'], dict) or not all(isinstance(meta['summary'][key], dict)
+                for key in ('families', 'genres', 'family_genres', 'genre_families', 'singles_by_genre')):
+            return None
+        if summary_only:
+            return meta
+        with xbmcvfs.File(index_path()) as stream:
+            data = stream.read()
+        if hashlib.sha256(data.encode('utf-8')).hexdigest() != meta['digest']:
+            return None
+        programs = json.loads(data)
+        return programs if isinstance(programs, list) else None
+    except (OSError, ValueError, TypeError, KeyError, RuntimeError):
+        return None
+
+
+def prepare_index(cached, offline=False, records=None):
+    token = source_token()
+    records = read_identities() if records is None else records
+    programs = rb.group_stations(cached['rows'], records)
+    now = time.time()
+    valid_until = min(cached['timestamp'] + rb.STALE_TTL,
+                      now + RETRY_INTERVAL if offline else cached['timestamp'] + rb.CATALOG_TTL)
+    for record in records.values():
+        if record.get('ok') is True:
+            valid_until = min(valid_until, float(record['checked']) + rb.IDENTITY_TTL)
+    if token == source_token() and valid_until > now:
+        data = json.dumps(programs, ensure_ascii=False, separators=(',', ':'))
+        try:
+            atomic_json(index_path(), data)
+            meta = dict(token=token, timestamp=cached['timestamp'], created=now, valid_until=valid_until,
+                        digest=hashlib.sha256(data.encode('utf-8')).hexdigest(),
+                        program_stamp=file_stamp(index_path()), summary=summaries(programs))
+            text = json.dumps(meta, ensure_ascii=False, separators=(',', ':'))
+            atomic_json(index_path(meta=True), text)
+            xbmcgui.Window(10011).setProperty(INDEX_PROPERTY, text)
+        except OSError:
+            xbmc.log('xVAULT Radio: prepared index could not be stored', xbmc.LOGWARNING)
+    return programs
+
+
+def menu_summary():
+    meta = read_index(summary_only=True)
+    if meta:
+        return meta['summary']
+    programs = catalog()
+    meta = read_index(summary_only=True)
+    return meta['summary'] if meta else summaries(programs)
+
+
 def read_cache():
     try:
-        text = xbmcgui.Window(10011).getProperty(CACHE_PROPERTY)
+        win = xbmcgui.Window(10011)
+        text = win.getProperty(CACHE_PROPERTY)
+        stamp = json.dumps(file_stamp(cache_path()))
+        if win.getProperty(RAW_STAMP_PROPERTY) != stamp:
+            text = ''
         if not text:
             with xbmcvfs.File(cache_path()) as stream:
                 text = stream.read()
@@ -67,7 +186,7 @@ def read_cache():
         if data.get('schema') != 2 or not 0 <= age <= rb.STALE_TTL or not isinstance(data['rows'], list):
             return None
         # Re-apply the strict filter to every cached entry as well.
-        data['rows'] = [r for r in data['rows'] if rb.clean_station(r)]
+        data['rows'] = [r for r in data['rows'] if rb.eligible(r)]
         return data
     except (OSError, ValueError, TypeError, KeyError, RuntimeError):
         return None
@@ -76,9 +195,11 @@ def read_cache():
 def write_cache(rows):
     data = dict(schema=2, timestamp=time.time(), rows=rows)
     text = json.dumps(data, ensure_ascii=False, separators=(',', ':'))
-    xbmcgui.Window(10011).setProperty(CACHE_PROPERTY, text)
-    with xbmcvfs.File(cache_path(), 'w') as stream:
-        stream.write(text)
+    atomic_json(cache_path(), text)
+    win = xbmcgui.Window(10011)
+    win.setProperty(CACHE_PROPERTY, text)
+    win.setProperty(RAW_STAMP_PROPERTY, json.dumps(file_stamp(cache_path())))
+    win.setProperty(INDEX_PROPERTY, '')
     return data
 
 
@@ -112,11 +233,6 @@ def write_identities(records):
     os.replace(target + '.tmp', target)
 
 
-def group_catalog(rows):
-    xbmcgui.Window(10000).setProperty(IDENTITY_REQUEST, '1')
-    return rb.group_stations(rows, read_identities())
-
-
 def identity_worker():
     from resources.lib import update_maintenance
     monitor, win = xbmc.Monitor(), xbmcgui.Window(10000)
@@ -136,13 +252,16 @@ def identity_worker():
             updated, changed = rb.refresh_identities(cached['rows'], records, stopped=stopped, limit=6)
             if changed:
                 write_identities(updated)
-            if not rb.identity_candidates(cached['rows'], updated):
+                if time.time() - cached['timestamp'] < rb.CATALOG_TTL and not stopped():
+                    prepare_index(cached, records=updated)
+            else:
                 win.clearProperty(IDENTITY_REQUEST)
         except Exception as exc:
             xbmc.log('xVAULT Radio identity scan: %s' % type(exc).__name__, xbmc.LOGWARNING)
         # Network probes stay outside directory construction, with idle time per batch.
-        if monitor.waitForAbort(15):
-            break
+        for _ in range(15):
+            if stopped() or monitor.waitForAbort(1):
+                return
 
 
 def start_background():
@@ -154,24 +273,30 @@ def start_background():
 
 
 def catalog(force=False):
+    if not force:
+        prepared = read_index()
+        if prepared is not None:
+            return prepared
     cached = read_cache()
     if cached and not force and time.time() - cached['timestamp'] < rb.CATALOG_TTL:
-        return group_catalog(cached['rows'])
+        xbmcgui.Window(10000).setProperty(IDENTITY_REQUEST, '1')
+        return prepare_index(cached)
     progress = xbmcgui.DialogProgress()
     progress.create('xVAULT Radio', 'Deutsche Radiosender werden geladen …')
     monitor = xbmc.Monitor()
     try:
         rows = client().catalog(cancelled=lambda: progress.iscanceled() or monitor.abortRequested(),
                                 progress=lambda n: progress.update(50, '%d Sendervarianten geladen' % n))
-        write_cache(rows)
-        return group_catalog(rows)
+        cached = write_cache(rows)
+        xbmcgui.Window(10000).setProperty(IDENTITY_REQUEST, '1')
+        return prepare_index(cached)
     except rb.Cancelled:
         raise
     except rb.RadioError:
         if cached:
             notify('Radio Browser nicht erreichbar. Senderliste vom %s.' %
                    time.strftime('%d.%m. %H:%M', time.localtime(cached['timestamp'])))
-            return group_catalog(cached['rows'])
+            return prepare_index(cached, offline=True)
         raise
     finally:
         progress.close()
@@ -235,7 +360,7 @@ def detail(station):
 
 
 def music_item(station, label=None, path=None):
-    item = xbmcgui.ListItem(label=label or station['name'], path=path or '')
+    item = xbmcgui.ListItem(label=label or station['name'], path=path or '', offscreen=True)
     info = item.getMusicInfoTag()
     # Kodi's song label mask can use the music title instead of ListItem.label.
     # Keep list votes/favourite markers visible; playback passes no decorated label.
@@ -251,23 +376,26 @@ def music_item(station, label=None, path=None):
 
 
 def folder(label, action, **params):
-    item = xbmcgui.ListItem(label=label)
+    meta = read_index(summary_only=True)
+    revision = [source_token(), meta['created'] if meta else int(time.time() // RETRY_INTERVAL)]
+    params['rev'] = hashlib.sha256(json.dumps(revision).encode()).hexdigest()[:16]
+    item = xbmcgui.ListItem(label=label, offscreen=True)
     item.setArt({'icon': 'DefaultMusicSources.png', 'thumb': 'DefaultMusicSources.png'})
     xbmcplugin.addDirectoryItem(handle(), url(action, **params), item, True)
 
 
 def command(label, action, **params):
-    item = xbmcgui.ListItem(label=label)
+    item = xbmcgui.ListItem(label=label, offscreen=True)
     item.setProperty('IsPlayable', 'false')
     xbmcplugin.addDirectoryItem(handle(), url(action, **params), item, False)
 
 
-def finish(title):
+def finish(title, cache=True):
     xbmcplugin.setPluginCategory(handle(), 'Radio · ' + title)
     xbmcplugin.setContent(handle(), 'songs')
     # Preserve the chosen radio order instead of inheriting a video sort method.
     xbmcplugin.addSortMethod(handle(), xbmcplugin.SORT_METHOD_UNSORTED)
-    xbmcplugin.endOfDirectory(handle(), cacheToDisc=False)
+    xbmcplugin.endOfDirectory(handle(), cacheToDisc=cache)
 
 
 def home():
@@ -285,20 +413,22 @@ def home():
 
 
 def show_genres(params):
-    stations = rb.filter_stations(catalog(), sender_family=params.get('family', ''))
-    names = sorted({g for s in stations for g in s['genres']}, key=rb.normalized)
-    for genre in names:
-        count = sum(genre in s['genres'] for s in stations)
+    summary = menu_summary()
+    counts = summary['family_genres'].get(params['family'], {}) if params.get('family') else summary['genres']
+    for genre in sorted(counts, key=rb.normalized):
+        count = counts[genre]
         folder('%s (%d)' % (genre, count), 'radioList', genre=genre, family=params.get('family', ''))
     finish('Genres')
 
 
 def show_families(params):
-    stations = rb.filter_stations(catalog(), genre=params.get('genre', ''))
-    for name in sorted({s['family'] for s in stations if s['family']}, key=rb.normalized):
-        count = sum(s['family'] == name for s in stations)
+    summary = menu_summary()
+    counts = summary['genre_families'].get(params['genre'], {}) if params.get('genre') else summary['families']
+    for name in sorted(counts, key=rb.normalized):
+        count = counts[name]
         folder('%s (%d)' % (name, count), 'radioList', family=name, genre=params.get('genre', ''))
-    if any(not s['family'] for s in stations):
+    singles = summary['singles_by_genre'].get(params['genre'], 0) if params.get('genre') else summary['singles']
+    if singles:
         folder('Einzelsender / weitere Sender', 'radioList', single='true', genre=params.get('genre', ''))
     finish('Senderfamilien')
 
@@ -315,12 +445,16 @@ def show_list(params, mode='all'):
         stations = [s for s in stations if any(v['id'] in ids for v in s['variants'])]
         if mode == 'recent':
             stations.sort(key=lambda s: max(rb.number(ids.get(v['id'])) for v in s['variants']), reverse=True)
+    total = len(stations)
+    page = min(rb.number(params.get('page')), max(0, (total - 1) // LIST_PAGE_SIZE))
+    start = page * LIST_PAGE_SIZE
+    visible = stations[start:start + LIST_PAGE_SIZE]
     if params.get('genre') and not params.get('family') and mode == 'all':
         folder('Dieses Genre nach Senderfamilie', 'radioFamilies', genre=params['genre'])
     if params.get('family') and not params.get('genre') and mode == 'all':
         folder('Diese Senderfamilie nach Genre', 'radioGenres', family=params['family'])
     items = []
-    for station in stations:
+    for station in visible:
         marked = any(v['id'] in favs for v in station['variants'])
         label = '%s%s · %d Votes' % ('★ ' if marked else '', station['name'], station['votes'])
         item = music_item(station, label)
@@ -333,9 +467,18 @@ def show_list(params, mode='all'):
         items.append((url('radioPlay', id=identifier), item, False))
     if items:
         xbmcplugin.addDirectoryItems(handle(), items, totalItems=len(items))
+    if start + LIST_PAGE_SIZE < total:
+        next_params = {key: params[key] for key in ('genre', 'family', 'q', 'single', 'sort') if params.get(key)}
+        next_params['page'] = page + 1
+        next_action = {'favorites': 'radioFavorites', 'recent': 'radioRecent'}.get(mode, 'radioList')
+        folder('Weitere Sender (%d–%d von %d)' % (start + LIST_PAGE_SIZE + 1,
+               min(start + 2 * LIST_PAGE_SIZE, total), total), next_action, **next_params)
     if not stations:
         notify('Keine passenden deutschen Radiosender vorhanden.')
-    finish('%s%s · %d Sender' % (params.get('family', ''), params.get('genre', ''), len(stations)))
+    title = '%s%s · %d Sender' % (params.get('family', ''), params.get('genre', ''), total)
+    if total > LIST_PAGE_SIZE:
+        title += ' · Seite %d' % (page + 1)
+    finish(title, cache=False)
 
 
 def toggle_favorite(identifier):
@@ -388,7 +531,11 @@ def vote(identifier):
 
 
 def probe_stream(station):
-    return rb.probe_stream_url(station['url'])
+    import requests
+    try:
+        return rb.probe_stream_url(station['url'])
+    except requests.RequestException as exc:
+        raise rb.RadioError('Stream derzeit nicht erreichbar: ' + type(exc).__name__)
 
 
 def play(identifier):
@@ -418,7 +565,7 @@ def play(identifier):
                     continue
                 try:
                     target = probe_stream(fresh)
-                except (rb.RadioError, requests.RequestException):
+                except rb.RadioError:
                     continue
                 item = music_item(fresh, path=target)
                 item.setContentLookup(False)

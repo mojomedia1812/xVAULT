@@ -46,3 +46,30 @@ Im installierten lokalen Kodi geprüft:
 - Signierter installierter Entwurf: `original`, keine fehlenden, veränderten oder zusätzlichen Paketdateien.
 
 Private Rohdaten, Proben und signierte Test-ZIP liegen ausschließlich im ignorierten Verzeichnis `tools/diagnostics/private/2026-10-26/radio-browser/`. Der Entwurf ist keine öffentliche Nightly-Freigabe. Verfügbarkeit einzelner Sender und tatsächliche Radio-Browser-Stimmenannahme hängen weiterhin vom jeweiligen Dienst ab; für die Abstimmung wurden absichtlich keine öffentlichen Teststimmen erzeugt.
+
+## Lokale Prüfung der Menüoptimierung 2026.10.27.3 (27.10.2026)
+
+Ursache in Nightly 2026.10.27.2: Jeder Familienaufruf liest alle Rohdaten, normalisiert 6.318 Einträge mehrfach, gruppiert sie erneut und berechnet sämtliche Ordnerzahlen. Hinzu kommen wiederholte Modulimporte, GUI-Locks bei ListItems ohne Offscreen-Modus und große, ungeteilte Senderlisten.
+
+Änderungen im lokalen Teststand:
+
+- Fertiger Programmkatalog sowie kleine Familien-/Genreübersichten einschließlich kombinierter Filterzahlen werden wiederverwendet. Die Familienansicht lädt keine vollständige Senderliste.
+- Quelldatei-Stempel, Add-on-Version, Datenalter und bestätigte Streamziel-Laufzeiten invalidieren den Index. Programmdaten und Metadaten werden atomar geschrieben; der Datenhash wird beim Laden des vollständigen Index geprüft. Externe Änderungen der Rohdatei verwerfen auch alte Window-Daten.
+- Kodis Verzeichnis-Cache für Übersichten und revisionsgebundene Ordner-URLs; dynamische Sender-/Favoriten-/Verlaufslisten bleiben ohne Verzeichnis-Cache. Alle neuen ListItems werden offscreen vorbereitet.
+- Netzwerkbibliothek erst bei tatsächlichen HTTP-Abrufen importieren. Ein API-Ausfall löst bei vorhandener alter Liste nicht bei jedem Menüwechsel neue Versuche aus: fünf Minuten Wartezeit, weiterhin maximal 48 Stunden alte Daten und aktuelle Sender-/Streamprüfung vor Wiedergabe.
+- Große Listen zeigen 250 Sender je Seite. Sortierung, Suche, Genre-/Familienfilter und Favoritenmodus bleiben beim Seitenwechsel erhalten. Unterschiedliche Seiten wurden live auf Überschneidungen geprüft.
+- Der Dubletten-Hintergrunddienst baut nach Änderungen den Index im Leerlauf vor und reagiert während der Wartephase zeitnah auf Wartung/Beenden.
+
+Messungen über dieselbe lokale Kodi-JSON-RPC-Schnittstelle, einschließlich Add-on-Start:
+
+| Vorgang | Nightly 2026.10.27.2 | Lokaler Stand 2026.10.27.3 |
+| --- | --- | --- |
+| Senderfamilien mit vorhandenem Cache | 5,94 s | 1,63 s |
+| Senderfamilien innerhalb Dance & EDM | nicht separat gemessen | 1,67 s |
+| 80s80s-Senderliste | rund 5–6 s bei vorherigen Familienansichten | 2,01 s |
+| Gesamtliste nach Votes | 33,06 s für 4.887 Einträge | 3,15 s für Seite 1 mit 250 Einträgen |
+| Zweite Seite | nicht vorhanden | 3,19 s für 250 weitere Einträge |
+
+Einmaliger Aufbau des vorbereiteten Index bleibt nötig, wenn Daten fehlen, ablaufen oder sich ändern. Der erste Aufruf des Vorentwurfs einschließlich Indexaufbau benötigte 6,29 Sekunden; die obigen Endmessungen verwenden den vorhandenen Index. Der direkte GUI-Rücksprung von 80s80s zur Familienübersicht wurde zusätzlich im Kodi-Fenster geprüft und behält die Auswahl bei.
+
+`python -m unittest tools.tests.test_radio tools.tests.test_release_updates tools.tests.test_vixstream tools.tests.test_service_provider_checks -q`: **98 Tests erfolgreich**. Live-Wiedergabe über die alte 80s80s-Radio-ID nach der Umstellung erfolgreich: Kodi-Audioplayer, MP3 192 kbit/s, Stereo 44,1 kHz. Keine öffentlichen Stimmen und keine Favoritenänderungen für diese Optimierung. Während dieser lokalen Tests blieben öffentliche Page und Updatekanäle unverändert. Der identische Python-Laufzeitcode wird anschließend als Nightly 2026.10.27.3 freigegeben.

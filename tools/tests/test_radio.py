@@ -384,8 +384,9 @@ class KodiTests(unittest.TestCase):
             self.assertEqual(len(self.plugin.addDirectoryItems.call_args.args[1]), 1)
 
     def test_foreground_grouping_does_not_probe_any_stream(self):
+        self.radio.write_cache([row()])
         with patch.object(rb, 'probe_stream_url', side_effect=AssertionError('foreground HTTP')):
-            programs = self.radio.group_catalog([row()])
+            programs = self.radio.catalog()
         self.assertEqual(len(programs), 1)
         self.assertEqual(self.props[self.radio.IDENTITY_REQUEST], '1')
 
@@ -440,6 +441,119 @@ class KodiTests(unittest.TestCase):
         self.radio.write_cache([row()])
         with patch.object(self.radio, 'client', side_effect=AssertionError('network')):
             self.assertEqual(len(self.radio.catalog()), 1)
+
+    def test_family_and_genre_menus_reuse_summary_without_loading_or_regrouping_all_stations(self):
+        self.radio.write_cache([row(name='80s80s Rock', homepage='https://80s80s.de')])
+        self.radio.catalog()
+        with patch.object(self.radio, 'catalog', side_effect=AssertionError('full catalog load')), \
+                patch.object(rb, 'group_stations', side_effect=AssertionError('regroup')), \
+                patch.object(self.radio, 'read_cache', side_effect=AssertionError('raw rows load')):
+            self.radio.show_families({})
+            self.radio.show_families({'genre': 'House'})
+            self.radio.show_genres({'family': '80s80s'})
+        self.assertTrue(self.plugin.endOfDirectory.call_args.kwargs['cacheToDisc'])
+
+    def test_prepared_programs_reuse_index_and_identity_change_invalidates_it(self):
+        self.radio.write_cache([row(), row(stationuuid=OTHER, name='Other', url_resolved='https://radio.example/other')])
+        self.assertEqual(len(self.radio.catalog()), 2)
+        with patch.object(rb, 'group_stations', side_effect=AssertionError('unexpected regroup')):
+            self.assertEqual(len(self.radio.catalog()), 2)
+        self.radio.write_identities({'https://radio.example/live.mp3': dict(target='https://cdn.example/live',checked=time.time(),ok=True)})
+        self.assertIsNone(self.radio.read_index())
+        with patch.object(rb, 'group_stations', wraps=rb.group_stations) as group:
+            self.radio.catalog()
+        group.assert_called_once()
+
+    def test_summary_contains_combined_genre_family_and_unknown_family_counts(self):
+        programs = rb.group_stations([row(name='80s80s Rock', homepage='https://80s80s.de'),
+                row(stationuuid=OTHER,name='Unknown',homepage='',tags='classical',url_resolved='https://unknown.example/live')])
+        summary = self.radio.summaries(programs)
+        self.assertEqual(summary['families']['80s80s'], 1)
+        self.assertEqual(summary['family_genres']['80s80s']['House'], 1)
+        self.assertEqual(summary['genre_families']['House']['80s80s'], 1)
+        self.assertEqual(summary['singles_by_genre']['Klassik'], 1)
+        self.assertEqual(summary['singles'], 1)
+
+    def test_source_refresh_and_expired_identity_invalidate_prepared_index(self):
+        self.radio.write_cache([row()])
+        self.radio.write_identities({row()['url_resolved']:dict(target='https://cdn.example/live',
+                checked=time.time()-rb.IDENTITY_TTL+30,ok=True)})
+        self.radio.catalog()
+        meta = json.loads(self.props[self.radio.INDEX_PROPERTY])
+        self.assertIsNotNone(self.radio.read_index(summary_only=True))
+        with patch.object(self.radio.time,'time',return_value=meta['valid_until']+1):
+            self.assertIsNone(self.radio.read_index())
+        self.radio.write_cache([row(stationuuid=OTHER)])
+        self.assertIsNone(self.radio.read_index())
+        self.assertEqual(self.radio.catalog()[0]['id'],OTHER)
+
+    def test_external_raw_file_change_does_not_reuse_old_window_data_or_index(self):
+        self.radio.write_cache([row()]);self.radio.catalog()
+        external=dict(schema=2,timestamp=time.time(),rows=[row(stationuuid=OTHER,name='Changed externally')])
+        Path(self.radio.cache_path()).write_text(json.dumps(external),encoding='utf8')
+        self.assertIsNone(self.radio.read_index())
+        self.assertEqual(self.radio.catalog()[0]['id'],OTHER)
+
+    def test_corrupt_prepared_program_file_is_rebuilt(self):
+        self.radio.write_cache([row()])
+        self.radio.catalog()
+        Path(self.radio.index_path()).write_text('[]',encoding='utf8')
+        self.assertIsNone(self.radio.read_index())
+        self.assertEqual(len(self.radio.catalog()),1)
+
+    def test_stale_fallback_does_not_retry_api_on_each_menu_and_never_extends_48_hours(self):
+        self.radio.write_cache([row()])
+        raw=json.loads(self.props[self.radio.CACHE_PROPERTY]);raw['timestamp']-=rb.CATALOG_TTL+60
+        self.props[self.radio.CACHE_PROPERTY]=json.dumps(raw)
+        api=Mock();api.catalog.side_effect=rb.RadioError('offline')
+        with patch.object(self.radio,'client',return_value=api):
+            self.radio.catalog()
+            self.radio.show_families({})
+            self.radio.catalog()
+            self.assertEqual(api.catalog.call_count,1)
+            with patch.object(self.radio.time,'time',return_value=time.time()+self.radio.RETRY_INTERVAL+1):
+                self.radio.catalog()
+            self.assertEqual(api.catalog.call_count,2)
+        meta=json.loads(self.props[self.radio.INDEX_PROPERTY])
+        self.assertLessEqual(meta['valid_until'],meta['timestamp']+rb.STALE_TTL)
+
+    def test_offscreen_items_and_dynamic_views_do_not_keep_stale_favourites(self):
+        self.radio.music_item(rb.clean_station(row()))
+        self.assertTrue(self.gui.ListItem.call_args.kwargs['offscreen'])
+        with patch.object(self.radio,'catalog',return_value=rb.group_stations([row()])), \
+                patch.object(self.radio,'favorites',return_value={}):
+            self.radio.show_list({},mode='favorites')
+        self.assertFalse(self.plugin.endOfDirectory.call_args.kwargs['cacheToDisc'])
+
+    def test_directory_revision_changes_when_radio_data_changes(self):
+        self.radio.write_cache([row()]);self.radio.catalog()
+        self.radio.folder('Families','radioFamilies')
+        before=self.plugin.addDirectoryItem.call_args.args[1]
+        self.radio.write_cache([row(stationuuid=OTHER)]);self.radio.catalog()
+        self.radio.folder('Families','radioFamilies')
+        after=self.plugin.addDirectoryItem.call_args.args[1]
+        self.assertNotEqual(before,after)
+
+    def test_large_lists_page_without_losing_sort_filters_or_favorite_mode(self):
+        programs = rb.group_stations([row(name='80s80s Rock',homepage='https://80s80s.de',votes=50),
+                row(stationuuid=OTHER,name='80s80s Dance',homepage='https://80s80s.de',votes=100,
+                    url_resolved='https://radio.example/dance')])
+        with patch.object(self.radio,'LIST_PAGE_SIZE',1), patch.object(self.radio,'catalog',return_value=programs), \
+                patch.object(self.radio,'favorites',return_value={ID:{},OTHER:{}}):
+            params=dict(action='radioFavorites',family='80s80s',sort='votes')
+            self.radio.show_list(params,mode='favorites')
+            self.assertEqual(len(self.plugin.addDirectoryItems.call_args.args[1]),1)
+            first=self.plugin.addDirectoryItems.call_args.args[1][0][0]
+            self.assertIn(OTHER,first)
+            next_url=self.plugin.addDirectoryItem.call_args.args[1]
+            query=dict(self.radio.parse_qs(self.radio.urlsplit(next_url).query))
+            self.assertEqual(query['action'],['radioFavorites'])
+            self.assertEqual(query['family'],['80s80s'])
+            self.assertEqual(query['sort'],['votes'])
+            self.assertEqual(query['page'],['1'])
+            self.radio.show_list(dict(params,page='999999999'),mode='favorites')
+            last=self.plugin.addDirectoryItems.call_args.args[1][0][0]
+            self.assertIn(ID,last)
 
     def test_stale_cache_fallback_is_not_silent(self):
         self.radio.write_cache([row()])

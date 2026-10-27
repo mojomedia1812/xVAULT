@@ -6,13 +6,15 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 Aktueller Release-Stand: `2026.10.26.1`
 
-Aktueller Nightly-Stand: `2026.10.27.2` (`plugin.video.xvault-2026.10.27.2.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.26.1 enthalten.
+Aktueller Nightly-Stand: `2026.10.27.3` (`plugin.video.xvault-2026.10.27.3.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.26.1 enthalten.
 
 VIXSTREAM übergibt die Wiedergabe-Header auch an den separaten HLS-Schlüsselabruf. Kodi bis Version 21 nutzt dafür `inputstream.adaptive.license_key`, Kodi ab Version 22 die AES-Konfiguration über `inputstream.adaptive.drm`. Details zur Vorher-/Nachher-Prüfung stehen in [`tools/diagnostics/VIXSTREAM_KEY_HEADERS_2026-10-26.md`](tools/diagnostics/VIXSTREAM_KEY_HEADERS_2026-10-26.md).
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
 Nightly `2026.10.27.2` ergänzt den lokal geprüften Radio-Bereich mit Radio Browser. Der stabile Release-Kanal bleibt auf `2026.10.26.1`.
+
+Nightly `2026.10.27.3` beschleunigt den Radio-Bereich mit vorbereitetem Senderindex und schnellen Senderfamilien-Menüs. Familien/Genres verwenden fertige Zähler, Übersichten Kodis Verzeichnis-Cache und ListItems den Offscreen-Modus. Große Senderlisten zeigen 250 Einträge pro Seite; bei API-Ausfällen wird höchstens alle fünf Minuten erneut versucht. Der stabile Release bleibt auf `2026.10.26.1`.
 
 ## Radio (ab Nightly 2026.10.27.2)
 

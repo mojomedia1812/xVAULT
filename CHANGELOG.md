@@ -1,5 +1,12 @@
 # Changelog
 
+## [2026.10.27.3] - 2026-10-27 (Nightly)
+
+- Radio-Menüs beschleunigt: vorbereiteten Sender-, Familien- und Genreindex wiederverwenden und gezielt bei geänderten oder abgelaufenen Daten erneuern. Netzwerkbibliothek erst bei tatsächlichen Abrufen laden.
+- Kodis Offscreen-ListItems und Verzeichnis-Cache für Übersichten nutzen. Große Senderlisten zeigen 250 Sender pro Seite; Sortierung und Filter bleiben beim Blättern erhalten. Favoriten und Verlauf bleiben dynamisch.
+- Bei API-Ausfällen kurze Wartezeit vor dem nächsten Versuch statt neuer Netzabfragen bei jedem Menüwechsel. Erreichbarkeitsprüfung vor Wiedergabe und maximale Offline-Datenlaufzeit bleiben erhalten.
+- Lokal gemessen: Senderfamilien etwa 1,6 statt 5,9 Sekunden; Gesamtliste etwa 3,1 Sekunden je Seite statt 33 Sekunden für alle Einträge. Rücksprung und Audiowiedergabe live geprüft; 98 Tests erfolgreich.
+
 ## [2026.10.27.2] - 2026-10-27 (Nightly)
 
 - Neuer Radio-Bereich mit Radio Browser: deutsche Sender nach Genre und Senderfamilie, kombinierbare Suche sowie Sortierung nach Votes, Name oder Bitrate. Kein Verified-Filter; letzter Streamcheck muss positiv sein.

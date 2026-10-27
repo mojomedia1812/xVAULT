@@ -1,3 +1,11 @@
+xVAULT 2026.10.27.3 (Nightly)
+Entwickler: mojomedia1812
+
+- Radio: aufbereitete Sender-, Familien- und Genreindizes wiederverwenden, statt bei jedem Menüwechsel alle Rohdaten erneut zu normalisieren.
+- Indizes bei Sender-/Dublettenänderungen oder Ablauf erneuern; API-Ausfälle erhalten eine kurze Wartezeit statt wiederholter Netzabfragen bei jedem Klick.
+- Kodis Offscreen-ListItems und Verzeichnis-Cache für Übersichten nutzen; Favoriten, Verlauf und Senderlisten bleiben aktuell.
+- Große Senderlisten auf 250 Einträge pro Seite begrenzen; Netzwerkbibliothek erst bei tatsächlichen Abrufen laden.
+
 xVAULT 2026.10.27.2 (Nightly)
 Entwickler: mojomedia1812
 
