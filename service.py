@@ -439,4 +439,9 @@ if __name__ == "__main__":
     try:
         run_service()
     finally:
+        try:
+            from resources.lib import radio_visualisation
+            radio_visualisation.stop_monitor()
+        except Exception:
+            pass
         update_maintenance.finished()

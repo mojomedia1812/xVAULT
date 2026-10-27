@@ -1,0 +1,40 @@
+msgid ""
+msgstr ""
+"Language: en_GB\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgctxt "#30000"
+msgid "xVAULT-Visuals"
+msgstr ""
+
+msgctxt "#30001"
+msgid "Visualisation"
+msgstr ""
+
+msgctxt "#30010"
+msgid "Pastelllinien"
+msgstr "Pastel currents"
+
+msgctxt "#30011"
+msgid "Resonance"
+msgstr ""
+
+msgctxt "#30012"
+msgid "Liquid Emblem"
+msgstr ""
+
+msgctxt "#30013"
+msgid "Klangarchiv"
+msgstr "Sound archive"
+
+msgctxt "#30014"
+msgid "Lichtgewebe"
+msgstr "Light weave"
+
+msgctxt "#30015"
+msgid "Eclipse"
+msgstr ""
+
+msgctxt "#30016"
+msgid "Gravity"
+msgstr ""

@@ -266,6 +266,8 @@ def identity_worker():
 
 def start_background():
     global _identity_thread
+    from resources.lib import radio_visualisation
+    radio_visualisation.start_monitor()
     if _identity_thread and _identity_thread.is_alive():
         return
     _identity_thread = threading.Thread(target=identity_worker, name='xvault-radio-identities', daemon=True)
@@ -576,6 +578,11 @@ def play(identifier):
                 if mime:
                     item.setMimeType(mime)
                 progress.close()
+                try:
+                    from resources.lib import radio_visualisation
+                    radio_visualisation.arm(target)
+                except Exception as exc:
+                    xbmc.log('xVAULT Radio visualisation unavailable: ' + type(exc).__name__, xbmc.LOGWARNING)
                 xbmcplugin.setResolvedUrl(handle(), True, item)
                 resolved = True
                 remember('radio.history', station['id'])

@@ -4,6 +4,7 @@ import json
 import os
 import re
 import sys
+import struct
 import time
 import zipfile
 import xml.etree.ElementTree as ET
@@ -69,6 +70,11 @@ REQUIRED_EXTERNAL_ADDONS = set([
 ])
 AUTO_INSTALL_OPTIONAL_EXTERNALS = set([
     'script.module.download-m3u8',
+])
+# Native xVAULT renderer. Kodi chooses its platform/ABI package;
+# unlike Python dependencies, it must never use an external ZIP fallback.
+AUTO_INSTALL_VISUALIZATIONS = set([
+    'visualization.xvault',
 ])
 # Binary inputstream add-ons are platform packages. Some Kodi builds, for
 # example webOS ports, cannot provide every package. They remain optional and
@@ -217,15 +223,27 @@ def _is_required(addon_id, optional):
 
 
 def _should_install(addon_id, optional):
+    if addon_id in AUTO_INSTALL_VISUALIZATIONS and not native_visuals_supported():
+        return False
     if optional and addon_id in SKIP_OPTIONAL_INSTALL:
         return False
     if optional and addon_id in OPTIONAL_BINARY_ADDONS:
         return False
-    if addon_id in REQUIRED_EXTERNAL_ADDONS or addon_id in AUTO_INSTALL_OPTIONAL_EXTERNALS:
+    if addon_id in REQUIRED_EXTERNAL_ADDONS or addon_id in AUTO_INSTALL_OPTIONAL_EXTERNALS or addon_id in AUTO_INSTALL_VISUALIZATIONS:
         return True
     if optional and not INSTALL_OPTIONAL:
         return False
     return True
+
+
+def native_visuals_supported():
+    """The published native build is for Kodi 22 / Windows x86_64 only."""
+    if sys.platform != 'win32' or struct.calcsize('P') != 8:
+        return False
+    try:
+        return int(re.match(r'^(\d+)', str(xbmc.getInfoLabel('System.BuildVersion'))).group(1)) == 22
+    except (ValueError, AttributeError):
+        return False
 
 
 def _addon_version(addon_id):
@@ -264,6 +282,9 @@ def _install_addon(addon_id, min_version=None):
     if _has_addon(addon_id, min_version):
         return True
 
+    if addon_id in AUTO_INSTALL_VISUALIZATIONS:
+        _refresh_addons()  # Pick up the companion package before its first installation.
+
     if addon_id in EXTERNAL_ADDON_SOURCES:
         if _install_external_addon(addon_id, min_version):
             return True
@@ -274,10 +295,9 @@ def _install_addon(addon_id, min_version=None):
 
 def _install_addon_from_kodi(addon_id, min_version=None, timeout=INSTALL_TIMEOUT):
     _log('Installing dependency: %s' % addon_id, xbmc.LOGINFO)
-    try:
-        xbmc.executebuiltin('InstallAddon(%s)' % addon_id, True)
-    except TypeError:
-        xbmc.executebuiltin('InstallAddon(%s)' % addon_id)
+    # InstallAddon may open a modal confirmation. Waiting for the builtin here
+    # blocks its calling script before that confirmation can be handled.
+    xbmc.executebuiltin('InstallAddon(%s)' % addon_id)
 
     _accept_install_dialog()
     if _wait_for_addon(addon_id, min_version, timeout):

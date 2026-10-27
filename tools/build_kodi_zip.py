@@ -60,6 +60,7 @@ EXCLUDED_PARTS = {
     "stream-link-auditor",
     "supabase",
     "tools",
+    "native",
     ".pytest_cache",
     ".venv",
     ".tmp-kodi-profile",
@@ -212,6 +213,13 @@ def sync_repository_zip_aliases():
 def sync_browsable_repository_layout():
     ADDON_INDEX_DIR.mkdir(parents=True, exist_ok=True)
     REPOSITORY_INDEX_DIR.mkdir(parents=True, exist_ok=True)
+    from tools.release_packaging import companion_addons
+    for native in companion_addons(PROJECT_DIR / 'docs'):
+        folder = PROJECT_DIR / 'docs' / native.get('id')
+        _write_index(folder, '/' + native.get('id') + '/', [
+            _entry(path.name + ('/' if path.is_dir() else ''), path)
+            for path in sorted(folder.iterdir()) if path.name != 'index.html'
+        ])
     _prune_browsable_archives()
 
     addon_index_entries = [
@@ -304,6 +312,16 @@ def _sync_addon_assets():
 
 def update_kodi_repository_metadata():
     if not VERSION.endswith('.1'):
+        # Keep the stable video version while making companion dependencies
+        # discoverable even before a first switch to the nightly repository.
+        from tools.release_packaging import append_companions, companion_addons
+        if ADDONS_XML.exists() and companion_addons(PROJECT_DIR / 'docs'):
+            root = ET.parse(ADDONS_XML).getroot()
+            append_companions(root, PROJECT_DIR / 'docs')
+            raw = b'<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(root, encoding='utf-8') + b'\n'
+            raw = b'\n'.join(line.rstrip() for line in raw.splitlines()) + b'\n'
+            ADDONS_XML.write_bytes(raw)
+            ADDONS_XML.with_suffix('.xml.md5').write_text(hashlib.md5(raw).hexdigest(), encoding='ascii')
         return
     content = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
@@ -312,6 +330,11 @@ def update_kodi_repository_metadata():
         f'{_xml_body(_repository_addon_xml())}\n'
         '</addons>\n'
     )
+    from tools.release_packaging import append_companions
+    root = ET.fromstring(content)
+    append_companions(root, PROJECT_DIR / 'docs')
+    content = '<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(root, encoding='unicode') + '\n'
+    content = '\n'.join(line.rstrip() for line in content.splitlines()) + '\n'
     ADDONS_XML.write_text(content, encoding="utf-8", newline="\n")
     (ADDONS_XML.with_suffix(ADDONS_XML.suffix + ".md5")).write_text(
         hashlib.md5(content.encode("utf-8")).hexdigest(),

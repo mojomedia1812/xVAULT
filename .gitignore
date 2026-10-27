@@ -6,6 +6,7 @@ __pycache__/
 !docs/downloads/*.zip
 !docs/plugin.video.xvault/*.zip
 !docs/repository.xvault/*.zip
+!docs/visualization.xvault/*.zip
 !docs/zips/*/*.zip
 .DS_Store
 Thumbs.db

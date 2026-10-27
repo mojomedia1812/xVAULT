@@ -30,7 +30,7 @@ bereitsteht.
 
 ## Optionale Funktionen
 
-Optionale binäre Kodi-Komponenten werden nicht beim allgemeinen xVAULT-Start
+Optionale InputStream-Komponenten werden nicht beim allgemeinen xVAULT-Start
 automatisch nachinstalliert. Sie sind plattformabhängig und können zum Beispiel
 auf einzelnen webOS-/Embedded-Kodi-Builds fehlen. xVAULT nutzt sie nur, wenn sie
 auf dem jeweiligen System installiert und aktiviert sind, und fällt für LiveTV
@@ -78,3 +78,13 @@ mitinstalliert.
 1. `script.module.pydevd` entfernen, wenn keine Remote-Debug-Builds verteilt
    werden sollen.
 
+
+## xVAULT-Visuals (Nightly 2026.10.27.4)
+
+`visualization.xvault` ist eine optionale native Abhängigkeit. Die Radio-Anbindung öffnet nach dem tatsächlichen Audiostart Kodis Visualisierungsfenster und stellt die vorherige globale Auswahl nach dem Stoppen wieder her. Einstellungen > Radio bietet xVAULT-Visuals und Aus. Fehlt das native Paket auf einer Plattform, bleibt Radio nutzbar.
+
+Shadertoy, Spectrum und Waveform werden weder benötigt noch automatisch installiert. Bereits vorhandene Add-ons werden nicht deinstalliert oder verändert. Es gibt keinen fremden Shader-Renderer, keine Audioaufnahme und kein Python-Audiopolling.
+
+Eigenes C++-Add-on und Build-Anleitung: `native/visualization.xvault/README.md`. Drei Biquad-Filterpaare trennen Bass (40–250 Hz), Mitten (250–4000 Hz) und Höhen (4000–16000 Hz) aus Kodis PCM-Daten. RMS-Pegel mit Attack/Release und weiterer zeitlicher Glättung steuern drei einzelne pastellfarbene Hauptlinien mit sanftem Glow. Eine feste himmelblaue Nulllinie markiert die Bildmitte. Der Windows-Renderer zeichnet direkt in Bildschirmauflösung über Kodis Direct3D-11-Kontext; Kantenglättung über Pixelableitungen, keine herunterskalierte Zwischenfläche.
+
+Der erste lokale Build ist ausschließlich für Kodi 22 / Visualisierungs-API 5.0 unter Windows x86_64. Android/Fire TV und ältere Kodi-Versionen benötigen getrennte kompatible Pakete. Native Quellen, Compiler und DLLs werden nicht in das Video-Add-on-ZIP aufgenommen. Das passende Windows-Paket 22.0.1 liegt separat im Repository unter visualization.xvault/; andere Plattformen überspringen die automatische Binärinstallation.

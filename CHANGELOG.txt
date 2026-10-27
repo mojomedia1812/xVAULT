@@ -1,3 +1,12 @@
+xVAULT 2026.10.27.4 (Nightly)
+Entwickler: mojomedia1812
+
+- Eigenständiges natives Add-on xVAULT-Visuals: Bass in Rosé, Mitten in Mint und Höhen in Lavendel als drei einzelne ruhige Wellenlinien mit sanftem Glow auf dunklem Grund. Feste himmelblaue Nulllinie.
+- Nativer Build 22.0.1 mit sieben Modi: Pastelllinien, Resonance, Liquid Emblem, Klangarchiv, Lichtgewebe, Eclipse und Gravity. Kodis native Presetliste, Vor/Zurück/Zufall, gespeicherte Auswahl und weiche Übergänge zwischen den neuen Szenen; echter Audioverlauf für das Klangarchiv.
+- Eigenes Audiobandfilter und Direktzeichnung in voller Kodi-Bildschirmauflösung mit Kantenglättung. Keine Abhängigkeit und keine automatische Installation von Shadertoy, Spectrum oder Waveform.
+- Nach tatsächlichem Start eines Radiosenders automatisch die native Visualisierung öffnen; in den Radio-Einstellungen abschaltbar. Kodi verarbeitet Maus und Fernbedienung wie gewohnt. Nach Radioende die vorherige Kodi-Visualisierung wiederherstellen, sofern sie nicht manuell geändert wurde.
+- Separates Visuals-Paket für Kodi 22 unter Windows x86_64 im Repository. Andere Plattformen überspringen die automatische Binärinstallation; fehlende Visualisierung blockiert die Radiowiedergabe nicht.
+
 xVAULT 2026.10.27.3 (Nightly)
 Entwickler: mojomedia1812
 

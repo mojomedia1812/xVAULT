@@ -1,21 +1,21 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <addons>
 <addon id="plugin.video.xvault" version="2026.10.26.1" name="[B]xVAULT[/B]" provider-name="xVAULT">
     <requires>
-        <import addon="xbmc.python" version="3.0.0"/>
-        <import addon="script.module.requests" optional="true"/>
-        <import addon="script.module.download-m3u8" optional="true"/>
-        <import addon="script.module.six" optional="true"/>
-        <import addon="script.module.pyaes" optional="true"/>
-        <import addon="script.module.pyqrcode" optional="true"/>
-        <import addon="script.module.infotagger" optional="true"/>
-        <import addon="script.module.resolveurl" version="5.1.100" optional="true"/>
-        <import addon="inputstream.adaptive" optional="true"/>
-        <import addon="inputstream.ffmpegdirect" optional="true"/>
-        <import addon="inputstream.rtmp" optional="true"/>
-        <import addon="plugin.video.youtube" optional="true"/>
-        <!-- for remote debug -->
-        <import addon="script.module.pydevd" optional="true"/>
+        <import addon="xbmc.python" version="3.0.0" />
+        <import addon="script.module.requests" optional="true" />
+        <import addon="script.module.download-m3u8" optional="true" />
+        <import addon="script.module.six" optional="true" />
+        <import addon="script.module.pyaes" optional="true" />
+        <import addon="script.module.pyqrcode" optional="true" />
+        <import addon="script.module.infotagger" optional="true" />
+        <import addon="script.module.resolveurl" version="5.1.100" optional="true" />
+        <import addon="inputstream.adaptive" optional="true" />
+        <import addon="inputstream.ffmpegdirect" optional="true" />
+        <import addon="inputstream.rtmp" optional="true" />
+        <import addon="plugin.video.youtube" optional="true" />
+
+        <import addon="script.module.pydevd" optional="true" />
     </requires>
     <extension point="xbmc.python.pluginsource" library="default.py">
         <provides>video</provides>
@@ -55,4 +55,18 @@
         </assets>
     </extension>
 </addon>
-</addons>
+<addon id="visualization.xvault" version="22.0.1" name="xVAULT-Visuals" provider-name="xVAULT">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.3" />
+    <import addon="kodi.binary.instance.visualization" minversion="5.0.0" version="5.0.0" />
+  </requires>
+  <extension point="xbmc.player.musicviz" library_windows="visualization.xvault.dll" />
+  <extension point="xbmc.addon.metadata">
+    <summary lang="de_DE">Sieben Musikwelten mit nativer Preset-Auswahl</summary>
+    <summary lang="en_GB">Pastel audio currents with a sky-blue zero line</summary>
+    <description lang="de_DE">Eigenständige native Musikvisualisierung: Bass in Rosé, Mitten in Mint, Höhen in Lavendel. Bildschirmauflösung und geglättete Linien, ohne Shadertoy.</description>
+    <platform>windows-x86_64</platform>
+    <license>GPL-2.0-or-later</license>
+    <assets><icon>resources/icon.png</icon></assets>
+  </extension>
+</addon></addons>

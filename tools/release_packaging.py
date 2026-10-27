@@ -52,6 +52,31 @@ def write_json(path, value):
     path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + '\n', encoding='utf-8', newline='\n')
 
 
+def companion_addons(docs):
+    """Only advertise native packages actually staged for repository delivery."""
+    import xml.etree.ElementTree as ET
+    result = []
+    for manifest in sorted(Path(docs).glob('visualization.*/addon.xml')):
+        node = ET.parse(manifest).getroot()
+        addon_id, version = node.get('id'), node.get('version')
+        if addon_id != manifest.parent.name or not version:
+            raise ValueError('Invalid companion metadata')
+        package = manifest.parent / ('%s-%s.zip' % (addon_id, version))
+        checksum = package.with_suffix('.zip.sha256')
+        if not package.is_file() or not checksum.is_file() or checksum.read_text().strip() != security.sha256_file(package):
+            raise ValueError('Missing or invalid companion package: ' + addon_id)
+        result.append(node)
+    return result
+
+
+def append_companions(root, docs):
+    for node in companion_addons(docs):
+        for previous in list(root):
+            if previous.get('id') == node.get('id'):
+                root.remove(previous)
+        root.append(node)
+
+
 def write_catalog(zip_path, envelope, docs):
     payload = security.verify_envelope(envelope)
     version, channel = payload['version'], payload['channel']
@@ -87,12 +112,17 @@ def write_catalog(zip_path, envelope, docs):
     for selected in ('release', 'nightly'):
         xml_path = doc / 'updates' / selected / 'addons.xml'
         if selected != channel and xml_path.exists():
-            continue
-        root = ET.Element('addons')
-        if selected == channel:
-            root.append(addon)
-        root.append(repository)
+            if not companion_addons(doc):
+                continue
+            root = ET.parse(xml_path).getroot()
+        else:
+            root = ET.Element('addons')
+            if selected == channel:
+                root.append(addon)
+            root.append(repository)
+        append_companions(root, doc)
         raw = b'<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(root, encoding='utf-8') + b'\n'
+        raw = b'\n'.join(line.rstrip() for line in raw.splitlines()) + b'\n'
         xml_path.parent.mkdir(parents=True, exist_ok=True)
         xml_path.write_bytes(raw)
         xml_path.with_suffix('.xml.md5').write_text(hashlib.md5(raw).hexdigest(), encoding='ascii')
