@@ -1,3 +1,13 @@
+xVAULT 2026.10.27.2 (Nightly)
+Entwickler: mojomedia1812
+
+- Radio Browser: ausschließlich deutsche Radiosender mit positivem letztem Streamcheck; erneute Prüfung vor Wiedergabe.
+- Native Kodi-Audiowiedergabe, Musik-Metadaten, Kodi-Favoriten, gerätelokaler Hörverlauf und Audioformatwahl.
+- Navigation nach Genre und bekannten Senderfamilien, kombinierbare Filter, Suche und Sortierung nach Votes, Name oder Bitrate.
+- Qualitätsvarianten zusammengefasst; manuelle Abstimmung mit Bestätigung, ohne automatische Wiederholung verlorener Antworten.
+- Radio-Dubletten: identische URLs und im Hintergrund bestätigte Streamziele zusammenfassen; bekannte Spartensender schützen, alte Favoriten-IDs behalten, Votes nicht addieren.
+- Sendercache mit begrenzter Offline-Liste; Wiedergabe weiterhin nur nach aktueller Sender- und Streamprüfung.
+
 xVAULT 2026.10.26.1
 Entwickler: mojomedia1812
 

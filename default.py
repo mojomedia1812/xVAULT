@@ -193,6 +193,15 @@ elif action == 'tvNavigator':
     from resources.lib.indexers import navigator
     navigator.navigator().tvshows()
 
+elif action in ('radioNavigator', 'radioGenres', 'radioFamilies', 'radioList', 'radioSearch',
+                'radioFavorites', 'radioRecent', 'radioPlay', 'radioFavoriteToggle',
+                'radioVote', 'radioInfo', 'radioSort', 'radioRefresh', 'radioAbout'):
+    from resources.lib import radio
+    radio.dispatch(action, params)
+    if action not in ('radioNavigator', 'radioGenres', 'radioFamilies', 'radioList',
+                      'radioSearch', 'radioFavorites', 'radioRecent', 'radioPlay'):
+        _finish_action()
+
 elif action == 'liveTVNavigator':
     _track_menu('livetv')
     from resources.lib import linear_tv

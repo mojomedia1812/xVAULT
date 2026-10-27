@@ -1,5 +1,12 @@
 # Changelog
 
+## [2026.10.27.2] - 2026-10-27 (Nightly)
+
+- Neuer Radio-Bereich mit Radio Browser: deutsche Sender nach Genre und Senderfamilie, kombinierbare Suche sowie Sortierung nach Votes, Name oder Bitrate. Kein Verified-Filter; letzter Streamcheck muss positiv sein.
+- Kodis Audioplayer, Musik-Metadaten, Bildcache, Dialoge, Einstellungen und zentrale Favoriten; gerätelokaler Hörverlauf und MP3-/AAC-Vorgabe. Öffentliche Votes nur nach Bestätigung, ohne automatischen Wiederholungsversuch.
+- Mehrstufige Dublettenerkennung für identische URLs, bestätigte Weiterleitungsziele und Qualitätsvarianten. Bekannte Spartensender bleiben getrennt; alte Favoriten-IDs bleiben nutzbar und Votes werden nicht addiert.
+- Begrenzte Hintergrundprüfung mit Zielcache; Senderlisten warten nicht auf Streamprüfungen. Lokaler Kodi-Livetest einschließlich „80s80s“ / „80s80s Radio“, Favoriten und Wiedergabe erfolgreich. 88 Regressionstests bestanden.
+
 ## [2026.10.26.1] - 2026-10-26 (Release)
 
 - Die Korrekturen aus Nightly 2026.10.26.3 sind jetzt im Release enthalten: VIXSTREAM-HLS-Schluesselheader, automatische Vorwaertsupdates bei Kanalwechseln und erneuter Cacheabgleich nach einer Installation.

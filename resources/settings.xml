@@ -257,6 +257,17 @@
         <setting label="Hilfe zum Ordnerpfad anzeigen" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=settings&amp;subaction=downloadInfo)" option="" />
     </category>
 
+    <category label="Radio">
+        <setting type="lsep" label="Radio Browser · Deutschland" />
+        <setting type="text" label="Nur deutsche Sender mit positivem letztem Streamcheck." />
+        <setting id="radio.sort" type="enum" label="Sender sortieren" values="Meiste Votes|Name A–Z|Höchste Bitrate" default="0" />
+        <setting id="radio.codec" type="enum" label="Bevorzugtes Audioformat" values="Automatisch (MP3 bevorzugt)|MP3|AAC" default="0" />
+        <setting label="Senderliste aktualisieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=radioRefresh)" />
+        <setting label="Über Radio" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=radioAbout)" />
+        <setting id="radio.history" type="text" label="Zuletzt gehörte Sender" default="" visible="false" />
+        <setting id="radio.votes" type="text" label="Bestätigte Radio-Stimmen" default="" visible="false" />
+    </category>
+
     <category label="Untertitel">
         <setting id="subtitles" type="bool" label="Untertitel aktivieren" default="false" />
         <setting id="subtitles.lang.1" type="select" label="Hauptsprache" values="Afrikaans|Albanian|Arabic|Armenian|Basque|Bengali|Bosnian|Breton|Bulgarian|Burmese|Catalan|Chinese|Croatian|Czech|Danish|Dutch|English|Esperanto|Estonian|Finnish|French|Galician|Georgian|German|Greek|Hebrew|Hindi|Hungarian|Icelandic|Indonesian|Italian|Japanese|Kazakh|Khmer|Korean|Latvian|Lithuanian|Luxembourgish|Macedonian|Malay|Malayalam|Manipuri|Mongolian|Montenegrin|Norwegian|Occitan|Persian|Polish|Portuguese|Portuguese(Brazil)|Romanian|Russian|Serbian|Sinhalese|Slovak|Slovenian|Spanish|Swahili|Swedish|Syriac|Tagalog|Tamil|Telugu|Thai|Turkish|Ukrainian|Urdu" enable="!eq(-1,false)" default="German" />

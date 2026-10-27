@@ -398,6 +398,11 @@ def run_service():
 	if updater.automatic_updates_enabled():
 		from resources.lib import repository
 		repository.ensure_xvault_repository()
+	try:
+		from resources.lib import radio
+		radio.start_background()
+	except Exception as exc:
+		if isLogger: logger.warning('[service]: Radio-Dublettenerkennung: %s' % type(exc).__name__)
 	check_domains()
 	delHtmlCache()
 	ensure_youtube_api_keys()

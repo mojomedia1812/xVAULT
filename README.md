@@ -6,11 +6,29 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 Aktueller Release-Stand: `2026.10.26.1`
 
-Aktueller Nightly-Stand: `2026.10.26.3` (`plugin.video.xvault-2026.10.26.3.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.26.1 enthalten.
+Aktueller Nightly-Stand: `2026.10.27.2` (`plugin.video.xvault-2026.10.27.2.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.26.1 enthalten.
 
 VIXSTREAM übergibt die Wiedergabe-Header auch an den separaten HLS-Schlüsselabruf. Kodi bis Version 21 nutzt dafür `inputstream.adaptive.license_key`, Kodi ab Version 22 die AES-Konfiguration über `inputstream.adaptive.drm`. Details zur Vorher-/Nachher-Prüfung stehen in [`tools/diagnostics/VIXSTREAM_KEY_HEADERS_2026-10-26.md`](tools/diagnostics/VIXSTREAM_KEY_HEADERS_2026-10-26.md).
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
+
+Nightly `2026.10.27.2` ergänzt den lokal geprüften Radio-Bereich mit Radio Browser. Der stabile Release-Kanal bleibt auf `2026.10.26.1`.
+
+## Radio (ab Nightly 2026.10.27.2)
+
+**Radio** verwendet Kodis Audioplayer, MusicInfoTag, Bildcache, Dialoge, Einstellungen und zentrale Favoriten. Es wird kein zusätzlicher Player und keine eigene Favoritendatenbank verwendet. Der vorhandene xVAULT-Favoritenabgleich kann diese Kodi-Favoriten mit übernehmen. „Zuletzt gehört“ und die Audioformat-Vorgabe bleiben gerätelokal.
+
+Die Senderquelle ist [Radio Browser](https://api.radio-browser.info/). Zugelassen sind ausschließlich `countrycode=DE` und `lastcheckok=1`. Dies ist keine Garantie für die aktuelle Erreichbarkeit; vor Wiedergabe werden API-Status und Stream erneut geprüft. Auch Suche und Favoriten umgehen diesen Filter nicht.
+
+Genres werden aus API-Tags abgeleitet; bekannte Senderfamilien aus Namen und Homepage-Domains. Genre und Familie sind kombinierbar. Qualitätsvarianten desselben Programms werden zusammengefasst. Votes gehören zum führenden API-Eintrag und werden nicht über Varianten addiert. Sortierung: Votes, Name oder höchste Bitrate. Eine bestätigte Abstimmung wird genau einmal gesendet; ein Verbindungsfehler führt zu keiner automatischen Wiederholung. Radio Browser begrenzt Stimmen pro Sender/IP auf zehn Minuten. Wiedergaben werden als Aufruf gemeldet. Radio Browser und Streamserver sehen dabei wie bei einem normalen Radioabruf die öffentliche IP-Adresse.
+
+Die Senderliste wird sechs Stunden zwischengespeichert. Bei API-Ausfall wird höchstens eine 48 Stunden alte Liste mit Hinweis verwendet. Die Wiedergabe verlangt weiterhin eine erfolgreiche aktuelle Senderprüfung. Eine Verified-Kennzeichnung oder zusätzliche Betreiber-Metadaten sind nicht erforderlich.
+
+Dublettenerkennung: Identische Streamadressen und frisch bestätigte Weiterleitungsziele werden zusammengefasst. Qualitätsvarianten benötigen passende Namen und dieselbe Betreiber-Domain. Bekannte Spartensender mit unterschiedlichen Programmkennungen bleiben getrennt, auch wenn fehlerhafte API-Einträge dieselbe URL angeben. Alle Sender-UUIDs und Suchnamen bleiben erhalten; Favoriten und Hörverlauf können weiterhin über alte IDs aufgelöst werden. Doppelte Zielstreams werden bei der Variantenwahl nur einmal versucht.
+
+Der Kodi-Hintergrunddienst prüft nach einem Radioaufruf nur plausible Namensvarianten, höchstens sechs URLs pro Durchlauf mit 15 Sekunden Pause zwischen Durchläufen. Bei Wiedergabe werden keine neuen Prüfungen gestartet. Die Liste selbst wartet nicht auf Streamprüfungen. Erfolgreiche Ziele gelten 24 Stunden, Fehler werden sechs Stunden zurückgestellt. Beim nächsten Öffnen einer Liste wird der aktuelle Abgleich berücksichtigt. Für eindeutig benannte Regiocast-Streamadressen werden ausschließlich bekannte Messparameter bei der Identitätsbildung ignoriert; die Wiedergabe-URL bleibt unverändert. Andere Query-, Programm- und Zugangswerte bleiben Bestandteil der Identität.
+
+Lokale Regressionstests: `python -m unittest tools.tests.test_radio`. Öffentliche Teststimmen werden nicht abgegeben.
 
 ## Installation
 

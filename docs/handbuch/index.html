@@ -300,6 +300,7 @@
         <li><a href="#favoriten-sync" data-umami-event="Handbuch Kapitel geöffnet">Favoriten & Sync</a></li>
         <li><a href="#trakt" data-umami-event="Handbuch Kapitel geöffnet">Trakt</a></li>
         <li><a href="#livetv" data-umami-event="Handbuch Kapitel geöffnet">LiveTV</a></li>
+        <li><a href="#radio" data-umami-event="Handbuch Kapitel geöffnet">Radio</a></li>
         <li><a href="#downloads" data-umami-event="Handbuch Kapitel geöffnet">Downloads</a></li>
         <li><a href="#werkzeuge" data-umami-event="Handbuch Kapitel geöffnet">Werkzeuge</a></li>
         <li><a href="#einstellungen" data-umami-event="Handbuch Kapitel geöffnet">Einstellungen</a></li>
@@ -386,6 +387,7 @@
           <tr><td>Filme</td><td>Öffnet Filmrubriken wie Neu, Jahr, Genres, Streaming-Anbieter, populär, bestbewertet, meistbewertet und bestes Einspielergebnis.</td></tr>
           <tr><td>TV-Serien</td><td>Öffnet Serienrubriken wie Genres, Streaming-Anbieter, populär, bestbewertet und meistbewertet.</td></tr>
           <tr><td>LiveTV</td><td>Öffnet den deutschen LiveTV-Bereich mit Kategorien, Logos, EPG-Vorschau, Favoriten und stabilisierter HLS-Wiedergabe.</td></tr>
+          <tr><td>Radio (Nightly)</td><td>Deutsche Radiosender nach Genre, Senderfamilie oder Votes, mit Kodi-Favoriten und Abstimmung.</td></tr>
           <tr><td>LiveTV lite</td><td>Öffnet eine schlanke Senderliste für Deutsche TV, Österreichische TV und Schweizer TV auf Basis der 2ix2-Quelle.</td></tr>
           <tr><td>Stream-URL abspielen</td><td>Spielt eine direkt eingegebene oder übergebene Stream-Adresse ab.</td></tr>
           <tr><td>Werkzeuge</td><td>Öffnet Support-Informationen, die Einstellungsreparatur, xVAULT-Einstellungen und Resolver-Einstellungen.</td></tr>
@@ -577,7 +579,7 @@
       <p>Nach dem Ende einer Wiedergabe aktualisiert xVAULT die aktuelle Liste nur einmal und lässt entweder die Serienlogik die erste ungesehene Folge auswählen oder stellt die vorherige Position wieder her. Dadurch springt die Auswahl nicht mehrfach zwischen alter und neuer Position.</p>
       <p>Beim Start einer Serienquelle verwendet xVAULT die vorhandene IMDb-Kennung unabhängig davon, ob sie als <strong>imdb_id</strong> oder <strong>imdbnumber</strong> aus einer Liste, einem Favoriten oder einem Kodi-Profil kommt. Fehlende optionale Metadaten verhindern dadurch nicht mehr, dass Kodi den Player-Eintrag erhält.</p>
       <p>VOE-Quellen können direkt in xVAULT aufgelöst werden, wenn die installierte ResolveURL-Version die aktuelle VOE-Ausweichdomain noch nicht kennt. Dadurch erhalten Windows, Linux und Android wieder einen echten MP4- oder HLS-Link statt nur die Hoster-Webseite.</p>
-      <p>VIXSTREAM-Quellen können HLS-Playlistadressen verwenden, die nicht wie klassische <strong>.m3u8</strong>-Dateien aussehen. xVAULT erkennt diese Playlistwege trotzdem als HLS und übergibt die nötigen Header an InputStream Adaptive. Ab Nightly <strong>2026.10.26.2</strong> erhält auch der separate Abruf des HLS-Entschlüsselungsschlüssels die Wiedergabe-Header passend zur Kodi-Version. Das behebt den unter Kodi 21 reproduzierten HTTP-403-Abbruch durch fehlende Schlüssel-Header. Der Release-Kanal bleibt bei <strong>2026.10.24.1</strong>; andere serverseitige Zugriffssperren können weiterhin eine Quelle unbrauchbar machen.</p>
+      <p>VIXSTREAM-Quellen können HLS-Playlistadressen verwenden, die nicht wie klassische <strong>.m3u8</strong>-Dateien aussehen. xVAULT erkennt diese Playlistwege trotzdem als HLS und übergibt die nötigen Header an InputStream Adaptive. Ab Nightly <strong>2026.10.26.2</strong> erhält auch der separate Abruf des HLS-Entschlüsselungsschlüssels die Wiedergabe-Header passend zur Kodi-Version. Das behebt den unter Kodi 21 reproduzierten HTTP-403-Abbruch durch fehlende Schlüssel-Header. Der Release-Kanal steht auf <strong>2026.10.26.1</strong>; andere serverseitige Zugriffssperren können weiterhin eine Quelle unbrauchbar machen.</p>
       <p>Zusätzlich prüft xVAULT bei VIXSTREAM die in der HLS-Playlist ausgewiesenen Audiospuren. Eine Quelle wird nur dann als Deutsch oder Englisch angezeigt, wenn diese Sprache als echte Tonspur vorhanden ist. Untertitel werden dabei nicht als Streamsprache gewertet.</p>
       <p>Wenn ein Hoster nur eine Webseite, aber keinen echten Direktstream liefert, wird diese Quelle übersprungen. So bekommt Kodi keine HTML-Seite als Video und kann mit weiteren Quellen fortfahren.</p>
       <p>Bereits vom Anbieter aufgelöste Direktstreams funktionieren auch ohne klassische Video-Dateiendung. xVAULT prüft ihre Mediendaten und löst sie nicht nochmals als Hoster-Seite auf. Ein kleiner GET-Abruf ersetzt die bisherige HEAD-Voraussetzung und erkennt auch HTML-/Werbeweiterleitungen hinter vermeintlichen HLS-Adressen. Eine gelöschte Datei oder ein nicht erreichbarer externer Video-Server bleibt unbrauchbar; soweit weitere Einträge verfügbar sind, versucht xVAULT eine Ersatzquelle.</p>
@@ -735,6 +737,20 @@
       </table>
       <h3>Wann welchen Bereich nutzen?</h3>
       <p>LiveTV ist die richtige Wahl, wenn Logos, EPG, Favoriten, Senderprüfung und Puffersteuerung wichtig sind. LiveTV lite ist die schlankere Ausweichmöglichkeit, wenn schnell ein einfacher HLS-Sender aus Deutschland, Österreich oder der Schweiz gestartet werden soll.</p>
+    </section>
+
+    <section id="radio" class="panel manual-section">
+      <p class="section-kicker">Ab Nightly 2026.10.27.2</p>
+      <h2>Radio mit Radio Browser</h2>
+      <p>Im xVAULT-Hauptmenü <strong>Radio</strong> öffnen. Die Sender kommen von Radio Browser und werden auf Deutschland sowie einen positiven letzten Streamcheck eingeschränkt. Eine Verified-Kennzeichnung ist nicht erforderlich. Vor dem Abspielen prüft xVAULT den aktuellen Eintrag und den Stream erneut; die Wiedergabe übernimmt Kodis Audioplayer.</p>
+      <p>Sender lassen sich nach <strong>Genre</strong> oder <strong>Senderfamilie</strong> auswählen. Beide Filter sind kombinierbar. Suche, Sortierung nach Votes, Name oder höchster Bitrate und eine Liste zuletzt gehörter Sender stehen ebenfalls bereit. Die vollständige Liste umfasst mehrere Tausend Einträge und kann merklich länger laden; Genres und Senderfamilien grenzen sie ein.</p>
+      <h3>Favoriten und Stimmen</h3>
+      <p>Das Kontextmenü eines Senders bietet <strong>Zu Radiofavoriten hinzufügen</strong>, <strong>Für diesen Sender abstimmen</strong> und Senderinformationen. Radiofavoriten liegen in Kodis zentraler Favoritenverwaltung und können vom vorhandenen xVAULT-Favoritenabgleich übernommen werden. Der Hörverlauf und die Audioformatwahl bleiben gerätelokal.</p>
+      <p>Eine öffentliche Stimme wird erst nach Bestätigung gesendet. Radio Browser begrenzt Stimmen je Sender und IP-Adresse auf zehn Minuten. Bei einer verlorenen Antwort erfolgt kein automatischer Wiederholungsversuch. Angezeigte Votes gehören zum führenden API-Eintrag und werden nicht über Dubletten addiert.</p>
+      <h3>Dubletten und Qualitätsvarianten</h3>
+      <p>Identische Streamadressen und im Hintergrund bestätigte Weiterleitungsziele werden zu einem Sender zusammengefasst. MP3-/AAC-Varianten bleiben als Alternativen erhalten. Bekannte Spartensender wie Rock, Dance oder regionale Programme bleiben getrennt. Vorhandene Favoriten funktionieren auch über ihre ursprünglichen Sender-IDs weiter.</p>
+      <p>Der Kodi-Dienst prüft ähnliche Einträge im Leerlauf in kleinen Gruppen. Diese Streamprüfungen blockieren nicht das Öffnen einer Liste. Ergebnisse gelten 24 Stunden und werden beim nächsten Öffnen berücksichtigt. Der Sendercache gilt sechs Stunden; bei einem API-Ausfall kann eine höchstens 48 Stunden alte Liste mit Hinweis verwendet werden. Die Wiedergabe verlangt weiterhin eine aktuelle Prüfung.</p>
+      <p>Unter <strong>Einstellungen &gt; Radio</strong> lassen sich Sortierung und bevorzugtes Audioformat festlegen sowie die Senderliste aktualisieren. Radio Browser und Streamserver erhalten bei Abrufen die öffentliche IP-Adresse; auch die begrenzten Hintergrundprüfungen kontaktieren Streamserver.</p>
     </section>
 
     <section id="downloads" class="panel manual-section">

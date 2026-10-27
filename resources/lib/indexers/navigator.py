@@ -25,6 +25,7 @@ class navigator:
 		self.addDirectoryItem("TV-Serien", 'tvNavigator', '05_tv_serien.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("LIVE-TV", 'liveTVNavigator', 'DefaultTVShows.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("LiveTV lite", 'liveTVLiteNavigator', 'DefaultTVShows.png', 'DefaultTVShows.png')
+		self.addDirectoryItem("Radio", 'radioNavigator', 'DefaultMusicSources.png', 'DefaultMusicSources.png')
 		self.addDirectoryItem("Stream-URL abspielen", 'playURL', '07_stream_url_abspielen.png', 'DefaultAddonWebSkin.png', isFolder=False)
 		self.addDirectoryItem("Werkzeuge", 'toolNavigator', '06_werkzeuge.png', 'DefaultAddonProgram.png')
 		self._endDirectory(content='', cache=False)
