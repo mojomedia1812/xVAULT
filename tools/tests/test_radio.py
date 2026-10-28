@@ -371,6 +371,37 @@ class KodiTests(unittest.TestCase):
         programs = rb.group_stations([row(), row(stationuuid=OTHER, votes=50)])
         self.assertEqual(self.radio.find(ID, programs)['id'], OTHER)
 
+    def test_empty_native_favourites_are_an_empty_collection(self):
+        for response in ({}, {'favourites': None}, {'favourites': []}):
+            with self.subTest(response=response), patch.object(self.radio, 'rpc', return_value=response):
+                self.assertEqual(self.radio.favorites(), {})
+
+    def test_native_favourites_keep_radio_entries_and_ignore_other_content(self):
+        radio = dict(type='media', path=self.radio.url('radioPlay', id=ID), title='Test Radio')
+        other = dict(type='media', path='plugin://other/?action=radioPlay&id=' + ID)
+        with patch.object(self.radio, 'rpc', return_value={'favourites': [radio, other]}):
+            self.assertEqual(self.radio.favorites(), {ID: radio})
+
+    def test_sender_list_with_json_null_favourites_does_not_fail(self):
+        programs = rb.group_stations([row(tags='80s')])
+        with patch.object(self.radio, 'catalog', return_value=programs), \
+                patch.object(self.radio, 'rpc', return_value={'favourites': None}), \
+                patch.object(self.radio, 'folder'):
+            self.radio.dispatch('radioList', {'genre': '80er'})
+        self.plugin.addDirectoryItems.assert_called_once()
+        self.assertEqual(len(self.plugin.addDirectoryItems.call_args.args[1]), 1)
+        self.plugin.endOfDirectory.assert_called_once()
+        self.assertNotIn('succeeded', self.plugin.endOfDirectory.call_args.kwargs)
+        self.xbmc.log.assert_not_called()
+
+    def test_unexpected_error_logs_call_sites_without_exception_values(self):
+        with patch.object(self.radio, 'show_list', side_effect=TypeError('private-token-value')):
+            self.radio.dispatch('radioList', {})
+        message = self.xbmc.log.call_args.args[0]
+        self.assertIn('TypeError', message)
+        self.assertIn('dispatch', message)
+        self.assertNotIn('private-token-value', message)
+
     def test_native_favorite_and_recent_ids_survive_alias_merge(self):
         programs = rb.group_stations([row(), row(stationuuid=OTHER, name='Test Radio Alias', votes=50)])
         self.assertEqual(self.radio.find(ID, programs)['id'], OTHER)

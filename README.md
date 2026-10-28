@@ -6,7 +6,9 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 Aktueller Release-Stand: `2026.10.28.1`
 
-Aktueller Nightly-Stand: `2026.10.27.4` (`plugin.video.xvault-2026.10.27.4.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
+Aktueller Nightly-Stand: `2026.10.28.2` (`plugin.video.xvault-2026.10.28.2.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
+
+Nightly `2026.10.28.2` behebt den Abbruch von Radio-Senderlisten bei leerer Kodi-Favoritenverwaltung. Kodi kann dafür JSON `null` zurückgeben; xVAULT behandelt dies als leere Liste. Unerwartete Radiofehler protokollieren zusätzlich die Aufrufstellen, ohne Fehlerwerte mit möglichen Stream-Tokens auszugeben. Der Release bleibt bei `2026.10.28.1`.
 
 VIXSTREAM übergibt die Wiedergabe-Header auch an den separaten HLS-Schlüsselabruf. Kodi bis Version 21 nutzt dafür `inputstream.adaptive.license_key`, Kodi ab Version 22 die AES-Konfiguration über `inputstream.adaptive.drm`. Details zur Vorher-/Nachher-Prüfung stehen in [`tools/diagnostics/VIXSTREAM_KEY_HEADERS_2026-10-26.md`](tools/diagnostics/VIXSTREAM_KEY_HEADERS_2026-10-26.md).
 

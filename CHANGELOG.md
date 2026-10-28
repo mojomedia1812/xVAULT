@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026.10.28.2] - 2026-10-28 (Nightly)
+
+- Radio-Senderlisten funktionieren auch bei leerer Kodi-Favoritenverwaltung. JSON `null` wird als leere Liste behandelt; vorhandene Radiofavoriten bleiben unverändert erhalten.
+- Unerwartete Radiofehler protokollieren die Aufrufstellen statt nur den Fehlertyp, ohne möglicherweise sensible Fehlerwerte auszugeben.
+- Nightly-Downloadlink auf der Repository-Seite auf das richtige Nightly-Paket korrigiert; Release-Kanal bleibt bei 2026.10.28.1.
+
 ## [2026.10.27.3] - 2026-10-27 (Nightly)
 
 - Radio-Menüs beschleunigt: vorbereiteten Sender-, Familien- und Genreindex wiederverwenden und gezielt bei geänderten oder abgelaufenen Daten erneuern. Netzwerkbibliothek erst bei tatsächlichen Abrufen laden.

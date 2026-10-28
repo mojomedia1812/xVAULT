@@ -1,3 +1,10 @@
+xVAULT 2026.10.28.2
+Entwickler: mojomedia1812
+
+- Radio: Senderlisten bei leerer Kodi-Favoritenverwaltung laden; JSON null als leere Liste behandeln und vorhandene Favoriten erhalten.
+- Radio: unerwartete Fehler mit Aufrufstellen protokollieren, ohne möglicherweise sensible Fehlerwerte auszugeben.
+- Nightly-Downloadlink korrigiert. Release-Kanal bleibt bei 2026.10.28.1.
+
 xVAULT 2026.10.28.1
 Entwickler: mojomedia1812
 

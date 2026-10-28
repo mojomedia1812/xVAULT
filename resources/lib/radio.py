@@ -5,6 +5,7 @@ import os
 import sys
 import threading
 import time
+import traceback
 from urllib.parse import parse_qs, urlencode, urlsplit
 
 import xbmc
@@ -343,8 +344,9 @@ def favorite_id(favorite):
 
 
 def favorites():
-    return {favorite_id(f): f for f in rpc('Favourites.GetFavourites',
-            {'properties': ['path', 'thumbnail']}).get('favourites', []) if favorite_id(f)}
+    # Kodi returns JSON null when its favourites collection is empty.
+    entries = rpc('Favourites.GetFavourites', {'properties': ['path', 'thumbnail']}).get('favourites') or []
+    return {favorite_id(f): f for f in entries if favorite_id(f)}
 
 
 def find(identifier, stations):
@@ -663,7 +665,9 @@ def dispatch(action, params):
         if action in folders:
             xbmcplugin.endOfDirectory(handle(), succeeded=False, cacheToDisc=False)
     except Exception as exc:
-        xbmc.log('xVAULT Radio: %s' % type(exc).__name__, xbmc.LOGERROR)
+        # Include call sites, but not exception values which may contain stream tokens.
+        xbmc.log('xVAULT Radio: %s\n%s' % (
+            type(exc).__name__, ''.join(traceback.format_tb(exc.__traceback__))), xbmc.LOGERROR)
         notify('Radio konnte nicht geladen werden. Details stehen im Kodi-Protokoll.')
         if action in folders:
             xbmcplugin.endOfDirectory(handle(), succeeded=False, cacheToDisc=False)
