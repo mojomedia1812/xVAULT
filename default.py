@@ -297,10 +297,13 @@ elif action == 'liveTVLitePlay':
     from resources.lib import linear_tv_lite
     linear_tv_lite.play(params.get('id'))
 
-elif action == 'toolNavigator':
+elif action in ('toolNavigator', 'toolSettingsNavigator', 'toolUpdatesNavigator', 'toolHelpNavigator'):
     _track_menu('tools')
     from resources.lib.indexers import navigator
-    navigator.navigator().tools()
+    menu = navigator.navigator()
+    menus = {'toolNavigator': menu.tools, 'toolSettingsNavigator': menu.tools_settings,
+             'toolUpdatesNavigator': menu.tools_updates, 'toolHelpNavigator': menu.tools_help}
+    menus[action]()
 
 elif action == 'downloadNavigator':
     _track_menu('downloads')

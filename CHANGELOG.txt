@@ -1,3 +1,15 @@
+xVAULT 2026.10.28.1
+Entwickler: mojomedia1812
+
+- Radio Browser: deutsche Sender, Genres und Senderfamilien, Suche, Votes mit bestätigter Abstimmung, Qualitätsvarianten und sichere Dublettenerkennung.
+- Schnellere Radio-Menüs durch vorbereitete Indizes, Kodi-Verzeichnis-Cache, Offscreen-ListItems und Seiten mit bis zu 250 Sendern.
+- xVAULT-Visuals mit sieben gespeicherten Modi: Pastelllinien, Resonance, Liquid Emblem, Klangarchiv, Lichtgewebe, Eclipse und Gravity. Native Musikreaktion und automatische Vollbildanzeige beim Radiostart.
+- Separates Visuals-Add-on 22.0.1 für Kodi 22 / Windows x86_64; andere Systeme können Radio ohne Visuals nutzen. Keine Abhängigkeit von Shadertoy, Spectrum oder Waveform.
+- Hauptmenü: sichtbaren Eintrag „Stream-URL abspielen“ entfernen.
+- Werkzeuge in Einstellungen, Updates und Version sowie Hilfe und Problembehebung gliedern; vorhandene Aktionen und Bestätigungen erhalten.
+- Einheitliche Bezeichnungen, hilfreiche Beschreibungen auch für Aktionen, erkennbare Menüpfade und aktuelle Anzeige des Update-Kanals und der Anbieter-Zugänge.
+- Dynamische Werkzeuge- und Anbieterlisten ohne Verzeichnis-Cache anzeigen, damit geänderte Einstellungen beim Zurückkehren sichtbar sind.
+
 xVAULT 2026.10.27.4 (Nightly)
 Entwickler: mojomedia1812
 

@@ -4,19 +4,21 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Release-Stand: `2026.10.26.1`
+Aktueller Release-Stand: `2026.10.28.1`
 
-Aktueller Nightly-Stand: `2026.10.27.4` (`plugin.video.xvault-2026.10.27.4.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.26.1 enthalten.
+Aktueller Nightly-Stand: `2026.10.27.4` (`plugin.video.xvault-2026.10.27.4.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
 
 VIXSTREAM übergibt die Wiedergabe-Header auch an den separaten HLS-Schlüsselabruf. Kodi bis Version 21 nutzt dafür `inputstream.adaptive.license_key`, Kodi ab Version 22 die AES-Konfiguration über `inputstream.adaptive.drm`. Details zur Vorher-/Nachher-Prüfung stehen in [`tools/diagnostics/VIXSTREAM_KEY_HEADERS_2026-10-26.md`](tools/diagnostics/VIXSTREAM_KEY_HEADERS_2026-10-26.md).
 
 Die führende Versionsquelle ist [`addon.xml`](addon.xml). Wenn die Version in `addon.xml` geändert wird, muss diese README geprüft und bei Bedarf aktualisiert werden.
 
-Nightly `2026.10.27.2` ergänzt den lokal geprüften Radio-Bereich mit Radio Browser. Der stabile Release-Kanal bleibt auf `2026.10.26.1`.
+Nightly `2026.10.27.2` ergänzt den lokal geprüften Radio-Bereich mit Radio Browser. Der stabile Release-Kanal bleibt auf `2026.10.28.1`.
 
-Nightly `2026.10.27.3` beschleunigt den Radio-Bereich mit vorbereitetem Senderindex und schnellen Senderfamilien-Menüs. Familien/Genres verwenden fertige Zähler, Übersichten Kodis Verzeichnis-Cache und ListItems den Offscreen-Modus. Große Senderlisten zeigen 250 Einträge pro Seite; bei API-Ausfällen wird höchstens alle fünf Minuten erneut versucht. Der stabile Release bleibt auf `2026.10.26.1`.
+Nightly `2026.10.27.3` beschleunigt den Radio-Bereich mit vorbereitetem Senderindex und schnellen Senderfamilien-Menüs. Familien/Genres verwenden fertige Zähler, Übersichten Kodis Verzeichnis-Cache und ListItems den Offscreen-Modus. Große Senderlisten zeigen 250 Einträge pro Seite; bei API-Ausfällen wird höchstens alle fünf Minuten erneut versucht. Der stabile Release bleibt auf `2026.10.28.1`.
 
-Nightly `2026.10.27.4` ergänzt das eigenständige xVAULT-Visuals. Der native Windows-Build `22.0.1` enthält sieben über Kodis Presetliste umschaltbare Modi; Details unter [`native/visualization.xvault/README.md`](native/visualization.xvault/README.md). Der stabile Release bleibt auf `2026.10.26.1`.
+Nightly `2026.10.27.4` ergänzt das eigenständige xVAULT-Visuals. Der native Windows-Build `22.0.1` enthält sieben über Kodis Presetliste umschaltbare Modi; Details unter [`native/visualization.xvault/README.md`](native/visualization.xvault/README.md). Der stabile Release bleibt auf `2026.10.28.1`.
+
+Release `2026.10.28.1` ordnet die Werkzeuge in **Einstellungen**, **Updates und Version** und **Hilfe und Problembehebung**. Der Hauptmenüeintrag „Stream-URL abspielen“ entfällt. Der Release enthält auch Radio, die beschleunigten Radio-Menüs und xVAULT-Visuals aus den Nightlys vom 27.10.2026.
 
 ## Radio (ab Nightly 2026.10.27.2)
 
@@ -38,7 +40,7 @@ Lokale Regressionstests: `python -m unittest tools.tests.test_radio`. Öffentlic
 
 1. Die aktuelle Add-on-ZIP von [xvault.repowork.de](https://xvault.repowork.de/) herunterladen.
 2. In Kodi **Add-ons > Aus ZIP-Datei installieren** öffnen.
-3. Die Datei `plugin.video.xvault-2026.10.26.1.zip` auswählen.
+3. Die Datei `plugin.video.xvault-2026.10.28.1.zip` auswählen.
 4. xVAULT starten.
 
 Alternativ kann das Repository-ZIP von [https://xvault.repowork.de/repository.xvault.zip](https://xvault.repowork.de/repository.xvault.zip) installiert werden. Danach findet Kodi neue xVAULT-Versionen über das Repository.
@@ -51,11 +53,11 @@ Weitere Hinweise zu Abhängigkeiten stehen in [`DEPENDENCIES.md`](DEPENDENCIES.m
 
 Die offizielle Repository- und Updateadresse ist `https://xvault.repowork.de/`. Ein Netzfehler gilt nicht als Nachweis einer veraenderten Installation.
 
-Unter **Werkzeuge > Originalstatus & Updates** zeigt xVAULT die neu berechneten SHA-256-Dateihashes, den signierten Referenzstand, KodiBox-Merkmale, die Versionsplausibilitaet und den letzten Updatecheck. Die Pruefung laeuft beim Hauptstart und Service-Start sowie an Wiedergabe-, Update- und Support-Einstiegspunkten. Bekannte KodiBox-Kopien werden von einem unveraenderten Originalpaket innerhalb einer KodiBox-Umgebung unterschieden. Das Diagnosepaket enthaelt den Herkunftsstatus direkt in `environment.json`.
+Unter **Werkzeuge > Updates und Version > Version und Originalstatus anzeigen** zeigt xVAULT die neu berechneten SHA-256-Dateihashes, den signierten Referenzstand, KodiBox-Merkmale, die Versionsplausibilitaet und den letzten Updatecheck. Die Pruefung laeuft beim Hauptstart und Service-Start sowie an Wiedergabe-, Update- und Support-Einstiegspunkten. Bekannte KodiBox-Kopien werden von einem unveraenderten Originalpaket innerhalb einer KodiBox-Umgebung unterschieden. Das Diagnosepaket enthaelt den Herkunftsstatus direkt in `environment.json`.
 
 **Release** verwendet `YYYY.MM.DD.1`, **Nightly** Revisionen ab `YYYY.MM.DD.2`. Die Auswahl gilt pro Geraet und wird nicht mit dem Konto synchronisiert. Releases werden alle sechs Stunden, Nightlys stuendlich im Hintergrund geprueft; die manuelle Pruefung ist jederzeit verfuegbar. Standard ist Benachrichtigung. Optional werden echte Vorwaertsupdates im Leerlauf installiert. Reparaturen und Rueckwechsel auf eine niedrigere Version verlangen eine ausdrueckliche Bestaetigung. Die eigenen Pruefungen verwenden nicht Kodis globale Update-Einstellung; Kodis xVAULT-Repository wird auf den gewaehlten Kanal ausgerichtet.
 
-ZIP-SHA-256, signiertes Dateimanifest und tatsaechlich installierte Dateien werden getrennt geprueft. Die Installation wird vorbereitet, erneut validiert und durch einen separaten Helfer mit Sicherung und Ruecksetzung ausgefuehrt. Persoenliche Daten unter `addon_data` bleiben ausserhalb des Pakettauschs. Eine lokale Selbstpruefung ist trotz Signaturen keine nicht umgehbare Attestierung eines manipulierten Kodi-Hosts.
+ZIP-SHA-256, signiertes Dateimanifest und tatsaechlich installierte Dateien werden getrennt geprueft. Die Installation wird vorbereitet, erneut validiert und durch einen separaten Helfer mit Sicherung und Ruecksetzung ausgefuehrt. Persoenliche Daten unter `addon_data` bleiben ausserhalb des Pakettauschs.
 
 Zum Bauen wird Python mit `cryptography` sowie der private Release-Schluessel aus `XVAULT_SIGNING_KEY` benoetigt. Lokal wird ersatzweise die ignorierte Datei `tools/diagnostics/private/release-signing-key.pem` verwendet. Dieser Schluessel darf niemals ins Repository oder Add-on gelangen und muss separat gesichert werden. Der oeffentliche Pruefschluessel ist in `resources/lib/release_security.py` hinterlegt. `python -B tools/build_kodi_zip.py` erzeugt reproduzierbare ZIPs, signierte Kanaldateien, versionsbezogene Dateimanifeste und getrennte Kodi-Kanalindizes. Fuer eine Nightly wird die Quellversion vor dem Build auf eine Tagesrevision ab 2 gesetzt; Nightlys ersetzen weder den Release-Kanal noch dessen Downloadseite. Bereits gebaute Versionen werden nicht mit anderen Bytes wiederveroeffentlicht. Nur fuer noch unveroeffentlichte lokale Entwuerfe erlaubt `XVAULT_ALLOW_DRAFT_REBUILD=1` einen erneuten Build derselben Versionsnummer.
 
@@ -136,8 +138,8 @@ Zum Bauen wird Python mit `cryptography` sowie der private Release-Schluessel au
 - Die Anmeldung bleibt über einen lokal gespeicherten Zugangsschlüssel erhalten. Das Kontopasswort wird dafür nicht lokal gespeichert. Ein Kennwort-Reset widerruft alle Geräteanmeldungen.
 - `Jetzt synchronisieren` bereinigt doppelte lokale Fortsetzen-Einträge und bricht dadurch nicht mehr mit einem PluginError ab, wenn alte Bookmark-Daten mehrfach vorhanden sind.
 - Sync-Zustandsdateien werden bei kurz gesperrten Profil-Dateien mit Retry und Fallback geschrieben, damit Wiedergabeende und Synchronisation keine unnötigen Datei-Zugriffsfehler erzeugen.
-- Über **Werkzeuge > Support** kann ein redigiertes Diagnosepaket erstellt, nach Bestätigung hochgeladen und über eine kurze Service-ID weitergegeben werden; lokale ZIP-Dateien werden nach dem Upload gelöscht.
-- Beschädigte gespeicherte xVAULT-Einstellungen werden beim Pluginstart erkannt; der Nutzer kann die defekte `settings.xml` sichern und zurücksetzen lassen. Dieselbe Prüfung ist unter **Werkzeuge > Reparatur** sowie in den Einstellungen unter **Wartung & Support** manuell erreichbar.
+- Über **Werkzeuge > Hilfe und Problembehebung > Diagnosepaket erstellen und hochladen** kann ein redigiertes Diagnosepaket erstellt, nach Bestätigung hochgeladen und über eine kurze Service-ID weitergegeben werden; lokale ZIP-Dateien werden nach dem Upload gelöscht.
+- Beschädigte gespeicherte xVAULT-Einstellungen werden beim Pluginstart erkannt; der Nutzer kann die defekte `settings.xml` sichern und zurücksetzen lassen. Dieselbe Prüfung ist unter **Werkzeuge > Hilfe und Problembehebung > Einstellungen auf Fehler prüfen** sowie in den Einstellungen unter **Wartung & Support** manuell erreichbar.
 - Automatische Updateprüfung kann in den allgemeinen Einstellungen aktiviert oder deaktiviert werden.
 - LiveTV-Senderliste mit lokalem Cache, Kategorien, Suche, eigenen TV-Favoriten, Senderlogos, einstellbarer Stream-Puffergröße, plattformneutraler HLS-Wiedergabe-Engine, wahlweiser reiner M3U/XMLTV-Erstellung, nutzergesteuerter Kodi-TV/IPTV-Simple-Integration, wiederholter HLS-Stabilitätsprüfung, passendem Ersatzstream-Fallback, EPG-Vorschau für aktuell laufende und folgende Sendungen sowie einer Senderlisten-Prüfung, die vor dem Start warnt, am Ende per Ergebnisdialog geprüfte, funktionierende und temporär gesperrte Sender zählt und nicht erreichbare Sender temporär bis zum nächsten xVAULT-Hauptstart ausblendet.
 - LiveTV lite liest Deutsche TV-, Österreichische TV- und Schweizer TV-Sender direkt aus der 2ix2-WordPress-API, besitzt einen eigenen TV-Favoritenordner und startet die dort hinterlegten HLS-Streams schlank ohne EPG-Schicht; wenn 2ix2 temporär nicht erreichbar ist, nutzt xVAULT Nydus als Ersatzquelle und löst dort echte HLS-Streams beim Start dynamisch auf.

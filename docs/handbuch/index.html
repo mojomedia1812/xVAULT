@@ -282,7 +282,7 @@
         <h1>xVAULT Handbuch</h1>
         <p class="lead">Das Handbuch beschreibt Installation, Menüs, Suche, Quellen, Wiedergabe, LiveTV, Synchronisation, Trakt, Downloads, Untertitel, Werkzeuge und die wichtigsten Einstellungen des Kodi-Add-ons.</p>
         <div class="manual-actions">
-          <a class="download" href="../downloads/plugin.video.xvault-2026.10.26.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
+          <a class="download" href="../downloads/plugin.video.xvault-2026.10.28.1.zip" download data-umami-event="Handbuch Add-on ZIP heruntergeladen">Add-on herunterladen</a>
           <a class="secondary-download" href="../repository.xvault.zip" download data-umami-event="Handbuch Repository ZIP heruntergeladen">Repository-ZIP</a>
           <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur Startseite</a>
         </div>
@@ -350,7 +350,7 @@
         <li>Die aktuelle ZIP-Datei von der <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">xVAULT-Startseite</a> herunterladen.</li>
         <li>In Kodi <strong>Add-ons</strong> öffnen.</li>
         <li><strong>Aus ZIP-Datei installieren</strong> auswählen.</li>
-        <li>Die Datei <strong>plugin.video.xvault-2026.10.26.1.zip</strong> auswählen.</li>
+        <li>Die Datei <strong>plugin.video.xvault-2026.10.28.1.zip</strong> auswählen.</li>
         <li>xVAULT starten und die Erststart-Hinweise lesen.</li>
       </ol>
       <h3>Installation per Repository-ZIP</h3>
@@ -374,7 +374,7 @@
     <section id="hauptmenue" class="panel manual-section">
       <p class="section-kicker">Navigation</p>
       <h2>Hauptmenü</h2>
-      <p>Das Hauptmenü ist der zentrale Einstiegspunkt. Die Einträge sind auf die häufigsten Arbeitsabläufe ausgelegt: suchen, stöbern, LiveTV starten, Direktlinks abspielen und Werkzeuge öffnen.</p>
+      <p>Das Hauptmenü ist der zentrale Einstiegspunkt. Die Einträge sind auf die häufigsten Arbeitsabläufe ausgelegt: suchen, stöbern, LiveTV oder Radio starten und Werkzeuge öffnen.</p>
       <table class="manual-table">
         <thead>
           <tr><th>Menüpunkt</th><th>Funktion</th></tr>
@@ -389,7 +389,6 @@
           <tr><td>LiveTV</td><td>Öffnet den deutschen LiveTV-Bereich mit Kategorien, Logos, EPG-Vorschau, Favoriten und stabilisierter HLS-Wiedergabe.</td></tr>
           <tr><td>Radio (Nightly)</td><td>Deutsche Radiosender nach Genre, Senderfamilie oder Votes, mit Kodi-Favoriten und Abstimmung.</td></tr>
           <tr><td>LiveTV lite</td><td>Öffnet eine schlanke Senderliste für Deutsche TV, Österreichische TV und Schweizer TV auf Basis der 2ix2-Quelle.</td></tr>
-          <tr><td>Stream-URL abspielen</td><td>Spielt eine direkt eingegebene oder übergebene Stream-Adresse ab.</td></tr>
           <tr><td>Werkzeuge</td><td>Öffnet Support-Informationen, die Einstellungsreparatur, xVAULT-Einstellungen und Resolver-Einstellungen.</td></tr>
         </tbody>
       </table>
@@ -579,7 +578,7 @@
       <p>Nach dem Ende einer Wiedergabe aktualisiert xVAULT die aktuelle Liste nur einmal und lässt entweder die Serienlogik die erste ungesehene Folge auswählen oder stellt die vorherige Position wieder her. Dadurch springt die Auswahl nicht mehrfach zwischen alter und neuer Position.</p>
       <p>Beim Start einer Serienquelle verwendet xVAULT die vorhandene IMDb-Kennung unabhängig davon, ob sie als <strong>imdb_id</strong> oder <strong>imdbnumber</strong> aus einer Liste, einem Favoriten oder einem Kodi-Profil kommt. Fehlende optionale Metadaten verhindern dadurch nicht mehr, dass Kodi den Player-Eintrag erhält.</p>
       <p>VOE-Quellen können direkt in xVAULT aufgelöst werden, wenn die installierte ResolveURL-Version die aktuelle VOE-Ausweichdomain noch nicht kennt. Dadurch erhalten Windows, Linux und Android wieder einen echten MP4- oder HLS-Link statt nur die Hoster-Webseite.</p>
-      <p>VIXSTREAM-Quellen können HLS-Playlistadressen verwenden, die nicht wie klassische <strong>.m3u8</strong>-Dateien aussehen. xVAULT erkennt diese Playlistwege trotzdem als HLS und übergibt die nötigen Header an InputStream Adaptive. Ab Nightly <strong>2026.10.26.2</strong> erhält auch der separate Abruf des HLS-Entschlüsselungsschlüssels die Wiedergabe-Header passend zur Kodi-Version. Das behebt den unter Kodi 21 reproduzierten HTTP-403-Abbruch durch fehlende Schlüssel-Header. Der Release-Kanal steht auf <strong>2026.10.26.1</strong>; andere serverseitige Zugriffssperren können weiterhin eine Quelle unbrauchbar machen.</p>
+      <p>VIXSTREAM-Quellen können HLS-Playlistadressen verwenden, die nicht wie klassische <strong>.m3u8</strong>-Dateien aussehen. xVAULT erkennt diese Playlistwege trotzdem als HLS und übergibt die nötigen Header an InputStream Adaptive. Ab Nightly <strong>2026.10.26.2</strong> erhält auch der separate Abruf des HLS-Entschlüsselungsschlüssels die Wiedergabe-Header passend zur Kodi-Version. Das behebt den unter Kodi 21 reproduzierten HTTP-403-Abbruch durch fehlende Schlüssel-Header. Der Release-Kanal steht auf <strong>2026.10.28.1</strong>; andere serverseitige Zugriffssperren können weiterhin eine Quelle unbrauchbar machen.</p>
       <p>Zusätzlich prüft xVAULT bei VIXSTREAM die in der HLS-Playlist ausgewiesenen Audiospuren. Eine Quelle wird nur dann als Deutsch oder Englisch angezeigt, wenn diese Sprache als echte Tonspur vorhanden ist. Untertitel werden dabei nicht als Streamsprache gewertet.</p>
       <p>Wenn ein Hoster nur eine Webseite, aber keinen echten Direktstream liefert, wird diese Quelle übersprungen. So bekommt Kodi keine HTML-Seite als Video und kann mit weiteren Quellen fortfahren.</p>
       <p>Bereits vom Anbieter aufgelöste Direktstreams funktionieren auch ohne klassische Video-Dateiendung. xVAULT prüft ihre Mediendaten und löst sie nicht nochmals als Hoster-Seite auf. Ein kleiner GET-Abruf ersetzt die bisherige HEAD-Voraussetzung und erkennt auch HTML-/Werbeweiterleitungen hinter vermeintlichen HLS-Adressen. Eine gelöschte Datei oder ein nicht erreichbarer externer Video-Server bleibt unbrauchbar; soweit weitere Einträge verfügbar sind, versucht xVAULT eine Ersatzquelle.</p>
@@ -600,7 +599,7 @@
       <h3>Synchronisation anmelden</h3>
       <p>Im Bereich Konten kann ein xVAULT-Konto registriert, angemeldet, abgemeldet oder das Passwort zurückgesetzt werden. Nach erfolgreicher Anmeldung ist die erste Synchronisierung sofort verfügbar, ohne die Einstellungen verlassen und erneut öffnen zu müssen.</p>
       <h3>Originalstatus und Updatekanaele</h3>
-      <p>Unter Werkzeuge zeigt Originalstatus &amp; Updates den SHA-256-Dateiabgleich, die signierte Release-Referenz, erkannte KodiBox-Merkmale und unplausible Versionsnummern. Ein fehlender Serverkontakt ist kein Faelschungsnachweis. Die lokale Pruefung ersetzt keine Attestierung des Kodi-Hosts.</p>
+      <p>Unter <strong>Werkzeuge &gt; Updates und Version &gt; Version und Originalstatus anzeigen</strong> zeigt xVAULT den SHA-256-Dateiabgleich, die signierte Release-Referenz, erkannte KodiBox-Merkmale und unplausible Versionsnummern. Ein fehlender Serverkontakt ist kein Faelschungsnachweis.</p>
       <p>Release-Versionen enden auf .1, Nightlys auf Tagesrevisionen ab .2. Der Kanal wird pro Geraet gewaehlt. Die Hintergrundpruefung erfolgt bei Release alle sechs Stunden und bei Nightly stuendlich. Benachrichtigung ist Standard; automatische Vorwaertsupdates im Leerlauf sind optional. Rueckwechsel und Reparaturen werden ausdruecklich bestaetigt. Persoenliche Profile bleiben beim gesicherten Pakettausch erhalten.</p>
       <h3>Mehrere Geräte verwenden</h3>
       <p>Ab Version 2026.10.23.1 warten Hauptmenü und Zurück-Navigation nicht mehr auf den Geräteabgleich. Der Hintergrunddienst übernimmt den Auftrag; unveränderte Wiedergabe-/Gesehen-Stände werden nicht erneut lokal geschrieben. Vor einer Wiedergabe bleibt der Abgleich erhalten.</p>
@@ -751,6 +750,10 @@
       <p>Identische Streamadressen und im Hintergrund bestätigte Weiterleitungsziele werden zu einem Sender zusammengefasst. MP3-/AAC-Varianten bleiben als Alternativen erhalten. Bekannte Spartensender wie Rock, Dance oder regionale Programme bleiben getrennt. Vorhandene Favoriten funktionieren auch über ihre ursprünglichen Sender-IDs weiter.</p>
       <p>Der Kodi-Dienst prüft ähnliche Einträge im Leerlauf in kleinen Gruppen. Diese Streamprüfungen blockieren nicht das Öffnen einer Liste. Ergebnisse gelten 24 Stunden und werden beim nächsten Öffnen berücksichtigt. Der Sendercache gilt sechs Stunden; bei einem API-Ausfall kann eine höchstens 48 Stunden alte Liste mit Hinweis verwendet werden. Die Wiedergabe verlangt weiterhin eine aktuelle Prüfung. Bei einem API-Ausfall wartet xVAULT mit der nächsten automatischen Wiederholung fünf Minuten, damit nicht jeder Menüwechsel erneut eine Netzabfrage auslöst.</p>
       <p>Unter <strong>Einstellungen &gt; Radio</strong> lassen sich Sortierung und bevorzugtes Audioformat festlegen sowie die Senderliste aktualisieren. Radio Browser und Streamserver erhalten bei Abrufen die öffentliche IP-Adresse; auch die begrenzten Hintergrundprüfungen kontaktieren Streamserver.</p>
+      <h3>xVAULT-Visuals</h3>
+      <p>Release 2026.10.28.1 enthält die Anbindung des eigenständigen Visualisierungs-Add-ons xVAULT-Visuals. Der native Build 22.0.1 ist für <strong>Kodi 22 unter Windows 64 Bit</strong> verfügbar. Andere Plattformen können Radio ohne diese Visualisierung nutzen.</p>
+      <p>Sieben Modi stehen über Kodis native Presetliste (im Vollbild Taste <strong>P</strong>) bereit: Pastelllinien, Resonance, Liquid Emblem, Klangarchiv, Lichtgewebe, Eclipse und Gravity. Die Auswahl wird gespeichert; Bass, Mitten und Höhen steuern die Darstellung anhand des tatsächlichen Audiosignals. Die Pastelllinien zeigen drei weich auslaufende Frequenzlinien und eine feste himmelblaue Nulllinie.</p>
+      <p>Nach dem Start eines Radiosenders öffnet xVAULT die Visualisierung automatisch. Das lässt sich in den Radio-Einstellungen abschalten. Kodi verarbeitet Eingaben wie gewohnt; nach dem Radioende wird die vorherige Visualisierung wiederhergestellt, sofern sie nicht manuell geändert wurde. Shadertoy, Spectrum und Waveform werden dafür nicht benötigt.</p>
     </section>
 
     <section id="downloads" class="panel manual-section">
@@ -870,6 +873,9 @@
       <h3>Support-Informationen</h3>
       <p>Die Support-Informationen helfen beim Nachvollziehen von Version, Plattform und relevanten Add-on-Einstellungen. Sie sind nützlich, wenn ein Fehler reproduzierbar gemeldet werden soll.</p>
       <p>Angezeigt werden unter anderem Kodi-Version, Plattform, freier Speicher, aktiver Skin, xVAULT-Version, Installationsquelle, ResolveURL-Status und die von Kodi gemeldeten DNS-Server.</p>
+      <h3>Übersicht der Werkzeuge</h3>
+      <ul><li><strong>Einstellungen:</strong> xVAULT-Einstellungen öffnen, Anbieter-Zugänge verwalten und ResolveURL-Einstellungen (erweitert).</li><li><strong>Updates und Version:</strong> Version und Originalstatus anzeigen, nach Updates suchen, Update-Kanal wählen sowie xVAULT nach Bestätigung aktualisieren oder reparieren.</li><li><strong>Hilfe und Problembehebung:</strong> System- und Supportinformationen anzeigen, Einstellungen auf Fehler prüfen und ein Diagnosepaket erstellen und nach Bestätigung hochladen.</li></ul>
+      <p>Die Einträge zeigen Beschreibungen, den aktuellen Update-Kanal und den Status der Anbieter-Zugänge. Der bisherige Hauptmenüeintrag „Stream-URL abspielen“ entfällt.</p>
       <h3>Supportpaket erstellen</h3>
       <p>Das Supportpaket ist für reproduzierbare Fehler gedacht. xVAULT erstellt eine ZIP-Datei mit Diagnoseinformationen, zeigt vor dem Upload eine Inhaltsübersicht an und löscht die lokale ZIP-Datei nach Abschluss oder Abbruch wieder.</p>
       <table class="manual-table">
@@ -888,8 +894,6 @@
       <p>Wenn Kodi meldet, dass <strong>special://profile/addon_data/plugin.video.xvault/settings.xml</strong> nicht geladen werden kann, ist meistens die gespeicherte Einstellungsdatei leer, unvollständig oder kein gültiges XML mehr. xVAULT prüft diese Datei beim Pluginstart und bietet bei einem Fehler an, sie zuerst als Backup zu sichern und danach zu entfernen. Beim nächsten Kodi-Start erzeugt Kodi die Einstellungen aus der Add-on-Vorlage neu. Favoriten, Wiedergabestände, Cachedateien und andere Profildaten werden dabei nicht gelöscht.</p>
       <h3>Resolver-Einstellungen</h3>
       <p>Die Resolver-Einstellungen betreffen Hosterauflösung und Wiedergabevorbereitung. Wenn einzelne Hoster nicht funktionieren, sollte dort geprüft werden, ob der Resolver aktiv und aktuell ist.</p>
-      <h3>Stream-URL abspielen</h3>
-      <p>Dieser Menüpunkt ist für direkte Streamadressen gedacht. xVAULT übergibt die Adresse an Kodi und nutzt dabei die vorhandene Wiedergabelogik.</p>
       <h3>Einstellungen zurücksetzen</h3>
       <p>Das Zurücksetzen der Einstellungen erhält wichtige Kontenwerte und API-bezogene Eingaben, löscht aber die eigentliche Einstellungsdatei und lädt das Profil neu. Diese Funktion ist vor allem hilfreich, wenn ein beschädigtes Profil merkwürdige Anzeige- oder Auswahlfehler verursacht.</p>
     </section>
@@ -954,7 +958,7 @@
     <footer class="manual-footer">
       <a class="plain-link" href="../" data-umami-event="Handbuch Startseite geöffnet">Zur xVAULT-Startseite</a>
       <a class="plain-link" href="https://github.com/mojomedia1812/xVAULT" data-umami-event="Handbuch GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Handbuch zu xVAULT 2026.10.26.1</span>
+      <span>Handbuch zu xVAULT 2026.10.28.1</span>
     </footer>
   </main>
 </body>

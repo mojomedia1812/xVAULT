@@ -26,7 +26,6 @@ class navigator:
 		self.addDirectoryItem("LIVE-TV", 'liveTVNavigator', 'DefaultTVShows.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("LiveTV lite", 'liveTVLiteNavigator', 'DefaultTVShows.png', 'DefaultTVShows.png')
 		self.addDirectoryItem("Radio", 'radioNavigator', 'DefaultMusicSources.png', 'DefaultMusicSources.png')
-		self.addDirectoryItem("Stream-URL abspielen", 'playURL', '07_stream_url_abspielen.png', 'DefaultAddonWebSkin.png', isFolder=False)
 		self.addDirectoryItem("Werkzeuge", 'toolNavigator', '06_werkzeuge.png', 'DefaultAddonProgram.png')
 		self._endDirectory(content='', cache=False)
 
@@ -60,37 +59,68 @@ class navigator:
 		self._endDirectory()
 
 	def tools(self):
-		self.addDirectoryItem("[B]Originalstatus & Updates[/B]", 'distributionStatus', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False)
-		self.addDirectoryItem("[B]Updates[/B]: Jetzt pruefen", 'updateCheck', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
-		self.addDirectoryItem("[B]Updates[/B]: Kanal Release / Nightly", 'updateChannel', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
-		self.addDirectoryItem("[B]Updates[/B]: Originalpaket installieren / reparieren", 'updateInstall', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
-		self.addDirectoryItem("[B]Support[/B]: Information anzeigen", 'pluginInfo', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False)
-		self.addDirectoryItem("[B]Support[/B]: Paket erstellen und hochladen", 'supportUpload', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False)
-		self.addDirectoryItem("[B]Reparatur[/B]: Einstellungen prüfen", 'repairSettings', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
-		self.addDirectoryItem("[B]Anbieter[/B]: Zugangsdaten", 'providerLoginsNavigator', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png')
-		self.addDirectoryItem(control.addonName +": EINSTELLUNGEN", 'addonSettings', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
-		self.addDirectoryItem("[B]Resolver[/B]: EINSTELLUNGEN", 'resolverSettings', '06_03_resolver_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False)
-		self._endDirectory()
+		self.addDirectoryItem('Einstellungen', 'toolSettingsNavigator', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png',
+			description='xVAULT einrichten, Anbieter-Zugänge verwalten und erweiterte ResolveURL-Einstellungen öffnen.')
+		self.addDirectoryItem('Updates und Version', 'toolUpdatesNavigator', '06_werkzeuge.png', 'DefaultAddonProgram.png',
+			description='Installierte Version und Originalstatus prüfen, Updates suchen und den Update-Kanal auswählen.')
+		self.addDirectoryItem('Hilfe und Problembehebung', 'toolHelpNavigator', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png',
+			description='Systeminformationen anzeigen, Einstellungen auf Fehler prüfen und ein Diagnosepaket für den Support erstellen.')
+		self._endDirectory(category='Werkzeuge', cache=False)
+
+	def tools_settings(self):
+		self.addDirectoryItem('xVAULT-Einstellungen öffnen', 'addonSettings', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False,
+			description='Öffnet alle xVAULT-Einstellungen, darunter Wiedergabe, Quellen, Konten und Synchronisation, Radio und Datenschutz.')
+		self.addDirectoryItem('Anbieter-Zugänge verwalten', 'providerLoginsNavigator', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png',
+			description='Zugangsdaten für FlimmerStube, AniWorld und OpenSubtitles eingeben, ändern oder nach Bestätigung löschen.')
+		self.addDirectoryItem('ResolveURL-Einstellungen (erweitert)', 'resolverSettings', '06_03_resolver_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False,
+			description='Öffnet die technischen Einstellungen des separaten ResolveURL-Add-ons zur Auflösung von Streamquellen.')
+		self._endDirectory(category='Werkzeuge / Einstellungen', cache=False)
+
+	def tools_updates(self):
+		from resources.lib import updater
+		channel = 'Nightly' if updater.selected_channel() == 'nightly' else 'Release'
+		self.addDirectoryItem('Version und Originalstatus anzeigen', 'distributionStatus', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False,
+			description='Zeigt installierte Version, Originalprüfung, Update-Status und Supportstatus an.')
+		self.addDirectoryItem('Nach Updates suchen', 'updateCheck', '06_werkzeuge.png', 'DefaultAddonProgram.png', isFolder=False,
+			description='Prüft jetzt, welche Version im gewählten Update-Kanal verfügbar ist. Diese Prüfung startet selbst keine Installation.')
+		self.addDirectoryItem('Update-Kanal wählen: ' + channel, 'updateChannel', '06_werkzeuge.png', 'DefaultAddonProgram.png', isFolder=False,
+			description='Aktuell: %s. Zwischen freigegebenen Release-Versionen und Nightly-Testversionen wechseln. Ein Kanalwechsel wird bestätigt.' % channel)
+		self.addDirectoryItem('xVAULT aktualisieren oder reparieren …', 'updateInstall', '06_werkzeuge.png', 'DefaultAddonProgram.png', isFolder=False,
+			description='Installiert nach Bestätigung das angebotene Originalpaket des gewählten Kanals. Eine erneute Installation kann veränderte oder beschädigte Add-on-Dateien ersetzen.')
+		self._endDirectory(category='Werkzeuge / Updates und Version', cache=False)
+
+	def tools_help(self):
+		self.addDirectoryItem('System- und Supportinformationen anzeigen', 'pluginInfo', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False,
+			description='Zeigt technische Informationen zu Kodi, System, xVAULT, ResolveURL, TMDbHelper und Netzwerk für die Fehlersuche an.')
+		self.addDirectoryItem('Einstellungen auf Fehler prüfen …', 'repairSettings', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False,
+			description='Prüft, ob die gespeicherte Einstellungsdatei lesbar ist. Nur bei einem Schaden wird nach Bestätigung eine Sicherung und ein Zurücksetzen angeboten.')
+		self.addDirectoryItem('Diagnosepaket erstellen und hochladen …', 'supportUpload', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False,
+			description='Erstellt ein bereinigtes Diagnosepaket und zeigt dessen Zusammenfassung. Der Upload startet erst nach deiner Bestätigung; anschließend erhältst du eine Support-ID.')
+		self._endDirectory(category='Werkzeuge / Hilfe und Problembehebung', cache=False)
 
 	def provider_logins(self):
 		from resources.lib import provider_logins
 		for provider_id, provider_name in provider_logins.provider_items():
-			status = ' [COLOR green](gespeichert)[/COLOR]' if provider_logins.is_configured(provider_id) else ''
+			configured = provider_logins.is_configured(provider_id)
+			status = 'Eingerichtet' if configured else 'Nicht eingerichtet'
+			action = 'Zugangsdaten ändern' if configured else 'Zugangsdaten eingeben'
 			self.addDirectoryItem(
-				"[B]%s[/B] - Zugangsdaten eingeben / ändern%s" % (provider_name, status),
+				'%s: %s – %s' % (provider_name, action, status),
 				'providerLogin&provider=%s' % provider_id,
 				'06_02_xvault_einstellungen.png',
 				'DefaultAddonProgram.png',
 				isFolder=False,
+				description='%s: %s. Öffnet die Eingabe der Zugangsdaten; die Eingabe kann abgebrochen werden.' % (provider_name, status),
 			)
 			self.addDirectoryItem(
-				"[B]%s[/B] - Zugangsdaten löschen" % provider_name,
+				'%s: Zugangsdaten löschen …' % provider_name,
 				'providerLoginClear&provider=%s' % provider_id,
 				'06_02_xvault_einstellungen.png',
 				'DefaultAddonProgram.png',
 				isFolder=False,
+				description='Entfernt die gespeicherten Zugangsdaten für %s erst nach Bestätigung.' % provider_name,
 			)
-		self._endDirectory()
+		self._endDirectory(category='Werkzeuge / Einstellungen / Anbieter-Zugänge', cache=False)
 
 	def downloads(self):
 		movie_downloads = control.getSetting('download.movie.path')
@@ -101,7 +131,7 @@ class navigator:
 			self.addDirectoryItem("TV-Serien", tv_downloads, 'tvshows.png', 'DefaultTVShows.png', isAction=False)
 		self._endDirectory()
 
-	def addDirectoryItem(self, name, query, thumb, icon, context=None, queue=False, isAction=True, isFolder=True):
+	def addDirectoryItem(self, name, query, thumb, icon, context=None, queue=False, isAction=True, isFolder=True, description=None):
 		url = '%s?action=%s' % (sysaddon, query) if isAction else query
 		thumb = self.getMedia(thumb, icon)
 		listitem = control.item(name, offscreen=True)
@@ -113,8 +143,11 @@ class navigator:
 
 		isMatch, sPlot = cParser.parseSingleResult(query, "plot'.*?'([^']+)")
 		if not isMatch: sPlot = '[COLOR blue]{0}[/COLOR]'.format(name)
+		if description is not None: sPlot = description
+		info = {'plot': control.unquote_plus(sPlot)}
+		if isFolder: info['overlay'] = 4
+		listitem.setInfo('video', info)
 		if isFolder:
-			listitem.setInfo('video', {'overlay': 4, 'plot': control.unquote_plus(sPlot)})
 			listitem.setIsFolder(True)
 		else:
 			listitem.setProperty('IsPlayable', 'false')
@@ -128,9 +161,9 @@ class navigator:
 		except:
 			return False
 
-	def _endDirectory(self, content='', cache=True):
+	def _endDirectory(self, content='', cache=True, category=None):
 		control.content(syshandle, content)
-		control.plugincategory(syshandle, control.addonName + ' / '+ control.addonVersion)
+		control.plugincategory(syshandle, control.addonName + ' / ' + (category or control.addonVersion))
 		control.endofdirectory(syshandle, succeeded=True, cacheToDisc=cache)
 
 	def addFanart(self, listitem, query):
