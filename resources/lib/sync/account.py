@@ -155,7 +155,9 @@ def show_status():
 
 
 def finish_login(email, api_key, message):
-    storage.save_login(email, api_key)
+    if storage.save_login(email, api_key) is False:
+        control.infoDialog('Anmeldung konnte lokal nicht gespeichert werden. Bitte den freien Speicher und das Kodi-Profil prüfen.', icon='WARNING', time=6000)
+        return
     client = Client(api_key=api_key)
     if initial_sync(client, email):
         control.infoDialog(message + ' Erste Synchronisation abgeschlossen.', icon='INFO', time=6000)
@@ -253,8 +255,9 @@ def manage_devices():
             import json
             op = json.loads(event['operation_json'])
             result = json.loads(event['result_json'])
-            value = op.get('patch', {}).get('value', {})
-            label = op.get('patch', {}).get('label') or value.get('title') or op['key'][:12]
+            patch = op.get('patch') or {}
+            value = patch.get('value') or {}
+            label = patch.get('label') or value.get('title') or op['key'][:12]
             action = 'gelöscht' if op.get('deleted') else 'geändert'
             if result.get('unchanged'):
                 action = 'unverändert / Zwischenstand ignoriert'
@@ -277,9 +280,10 @@ def manage_devices():
         import json
         for conflict in conflicts:
             op = json.loads(conflict['operation_json'])
-            value = op.get('patch', {}).get('value', {})
+            patch = op.get('patch') or {}
+            value = patch.get('value') or {}
             kind = {'favorite': 'Favorit', 'progress': 'Wiedergabestand', 'watch': 'Gesehen-Status'}.get(op['kind'], op['kind'])
-            labels.append('%s · %s · %s' % (names.get(conflict['device_id'], conflict['device_id']), kind, op.get('patch', {}).get('label') or value.get('title') or op['key'][:12]))
+            labels.append('%s · %s · %s' % (names.get(conflict['device_id'], conflict['device_id']), kind, patch.get('label') or value.get('title') or op['key'][:12]))
         selected = control.dialog.select('Offene Sync-Konflikte', labels)
         if selected >= 0:
             conflict = conflicts[selected]

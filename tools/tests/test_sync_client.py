@@ -101,6 +101,28 @@ class DeviceClientTests(unittest.TestCase):
         self.engine.synchronize()
         self.assertNotIn('Added on A', self.favorites.read_favourites())
 
+    def test_empty_php_deletion_patch_keeps_sync_and_conflict_resolution_working(self):
+        self.add_favorite('Original')
+        self.engine.synchronize()
+        self.activate('B')
+        self.engine.synchronize()
+        self.activate('A')
+        self.favorites.write_favourites(self.favorites.read_favourites().replace('name="Original"', 'name="Renamed on A"'))
+        self.engine.synchronize()
+        self.activate('B')
+        self.favorites.write_favourites('<favourites />')
+        self.assertTrue(self.engine.synchronize())
+        conflict = self.engine.inspect()['conflicts'][0]
+        self.assertEqual(json.loads(conflict['operation_json'])['patch'], [])
+        self.assertTrue(self.engine.synchronize(), 'An open deletion conflict must not block later polls')
+        self.engine.resolve(conflict, use_local=True)
+        self.assertTrue(self.engine.synchronize())
+        self.assertFalse(self.engine.inspect()['conflicts'])
+        self.assertFalse(self.favorites._delta_entries())
+        self.activate('A')
+        self.assertTrue(self.engine.synchronize())
+        self.assertFalse(self.favorites._delta_entries())
+
     def test_outbox_survives_lost_response_and_module_restart(self):
         self.add_favorite('Offline')
         real = self.client_module.Client()
@@ -244,13 +266,30 @@ class DeviceClientTests(unittest.TestCase):
              patch.object(self.storage, 'write_json', wraps=self.storage.write_json) as write:
             self.engine.synchronize(client=Snapshot())
             apply.assert_not_called()
-            write.assert_not_called()
+            self.assertTrue(all(call.args[0] == 'sync_status.json' for call in write.call_args_list))
             # A single changed entity must not rewrite the other 999 entries.
             entities[25]['data']['value']['completed'] = False
             entities[25]['data']['value']['watch_state'] = 'unwatched'
             self.engine.synchronize(client=Snapshot())
             self.assertEqual(set(apply.call_args.args[0]), {'25'})
         self.assertEqual(self.playcounts.getPlaycount('movie', 'imdb_id', 'tt9000025'), 0)
+
+    def test_login_write_failure_does_not_claim_a_new_login(self):
+        with patch.object(self.storage, 'write_json', return_value=False):
+            self.assertFalse(self.storage.save_login('unsaved@example.com', 'unsaved-key'))
+        self.assertEqual(self.storage.email(), self.api.email)
+
+    def test_last_sync_recovers_after_stale_settings_are_restored(self):
+        for filename in ('sync_favorites_state.json', 'sync_binge_state.json'):
+            self.storage.write_json(filename, {'updated_at': '2020-01-01 00:00:00'})
+        self.storage.update_last_sync('2026-10-28 12:34:56')
+        self.settings[self.name]['sync.last_sync_at'] = '2020-01-01 00:00:00'
+        self.settings[self.name]['sync.status'] = 'Nicht angemeldet'
+        self.settings[self.name]['sync.logged_in'] = 'false'
+        self.storage.reconcile_auth_settings()
+        self.assertTrue(self.storage.is_logged_in())
+        self.assertEqual(self.settings[self.name]['sync.last_sync_at'], '2026-10-28 12:34:56')
+        self.assertTrue(self.settings[self.name]['sync.status'].startswith('Angemeldet als'))
 
     def test_background_request_is_nonblocking_and_scoped_to_account(self):
         properties = {}

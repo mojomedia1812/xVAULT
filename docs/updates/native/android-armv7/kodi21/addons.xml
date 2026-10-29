@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addons><addon id="visualization.xvault" version="21.0.2" name="xVAULT-Visuals" provider-name="xVAULT">
+  <requires>
+    <import addon="kodi.binary.global.main" minversion="2.0.0" version="2.0.2" />
+    <import addon="kodi.binary.instance.visualization" minversion="4.0.0" version="4.0.0" />
+  </requires>
+  <extension point="xbmc.player.musicviz" library_android="visualization.xvault.so" />
+  <extension point="xbmc.addon.metadata">
+    <summary lang="de_DE">Sieben Musikwelten mit nativer Preset-Auswahl</summary>
+    <summary lang="en_GB">Pastel audio currents with a sky-blue zero line</summary>
+    <description lang="de_DE">Eigenständige native Musikvisualisierung: Bass in Rosé, Mitten in Mint, Höhen in Lavendel. Bildschirmauflösung und geglättete Linien, ohne Shadertoy.</description>
+    <platform>android-armv7</platform>
+    <license>GPL-2.0-or-later</license>
+    <assets><icon>resources/icon.png</icon></assets>
+  </extension>
+</addon></addons>

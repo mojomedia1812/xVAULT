@@ -6,7 +6,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 Aktueller Release-Stand: `2026.10.28.1`
 
-Aktueller Nightly-Stand: `2026.10.29.2` (`plugin.video.xvault-2026.10.29.2.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
+Aktueller Nightly-Stand: `2026.10.29.3` (`plugin.video.xvault-2026.10.29.3.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
 
 Nightly `2026.10.29.2` prüft die Filmidentität zentral anhand der vom Anbieter gelieferten Daten. Widersprüchliche IDs oder Jahre werden ausgeschlossen; unbestätigte Filmquellen bleiben markiert zur manuellen Auswahl, jedoch nicht für Autoplay oder automatische Ersatzversuche. Wenn nur unbestätigte Treffer vorliegen, öffnet sich einmalig die manuelle Auswahl, ohne die gespeicherte Standard-Aktion zu ändern. Movie2k2, Filmpalast, Megakino, Filmo, MoFlix, Movie2k und ID-basierte OHA-/VIXSTREAM-Abfragen liefern zusätzliche Identitätsnachweise. Andere Scraper ohne solche Nachweise bleiben manuell nutzbar. Korrekte Anbietermetadaten garantieren nicht den Inhalt einer falsch belegten Videodatei; dafür blendet „Falscher Film: Quelle 24 Stunden ausblenden“ einen einzelnen Link nur für diesen Film und dieses Gerät aus. OHA (ehemals Huhu) verwendet ungecachte, begrenzte API-Abrufe mit getrennten Fehlergruppen und vorübergehender Pause nach Fehlern. Unter Einstellungen > Radio lässt sich Radio vollständig deaktivieren; gespeicherte Favoriten und Einstellungen bleiben erhalten. Der Release bleibt `2026.10.28.1`.
 
@@ -23,6 +23,8 @@ Nightly `2026.10.27.3` beschleunigt den Radio-Bereich mit vorbereitetem Senderin
 Nightly `2026.10.27.4` ergänzt das eigenständige xVAULT-Visuals. Der native Windows-Build `22.0.1` enthält sieben über Kodis Presetliste umschaltbare Modi; Details unter [`native/visualization.xvault/README.md`](native/visualization.xvault/README.md). Der stabile Release bleibt auf `2026.10.28.1`.
 
 Release `2026.10.28.1` ordnet die Werkzeuge in **Einstellungen**, **Updates und Version** und **Hilfe und Problembehebung**. Der Hauptmenüeintrag „Stream-URL abspielen“ entfällt. Der Release enthält auch Radio, die beschleunigten Radio-Menüs und xVAULT-Visuals aus den Nightlys vom 27.10.2026.
+
+Nightly `2026.10.29.3` ergänzt den freigegebenen xVAULT-Radio-Schriftzug in allen sieben Visuals und einen optimierten OpenGL-ES-Build für Fire OS / Android ARM32 mit Kodi 21. Passende native Pakete werden für Kodi 22 / Windows x86_64 (`22.0.2`) und Kodi 21 / Android ARM32 (`21.0.2`) über plattformbezogene Kodi-Repositorys automatisch nachgeladen. Andere Kombinationen werden übersprungen. Außerdem sind das korrigierte Suchzeitlimit und robustere Sync-Anmeldung/-Statusspeicherung enthalten. Der stabile Release bleibt `2026.10.28.1`.
 
 ## Radio (ab Nightly 2026.10.27.2)
 

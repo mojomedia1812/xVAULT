@@ -188,18 +188,16 @@ def _auth_logged_in(data):
 
 
 def save_login(user_email, token):
-    set_setting(ACCOUNT_EMAIL, user_email)
-    set_setting(API_KEY, token)
-    set_setting(LOGGED_IN, 'true')
-    set_setting(SYNC_ENABLED, 'true')
-    _write_auth({
+    if not token or not _write_auth({
         'email': user_email,
         'api_key': token,
         'logged_in': True,
         'updated_at': time.strftime('%Y-%m-%dT%H:%M:%S%z'),
-    })
+    }):
+        return False
+    # Persist the authoritative login before touching Kodi's UI settings.
     reconcile_auth_settings()
-    set_status('Angemeldet als %s' % user_email)
+    return True
 
 
 def clear_login():
@@ -221,13 +219,16 @@ def set_status(text):
 
 
 def update_last_sync(timestamp):
+    status = {'updated_at': timestamp}
+    if read_json('sync_status.json', {}) != status:
+        write_json('sync_status.json', status)
     set_setting(LAST_SYNC_AT, _display_sync_timestamp(timestamp))
 
 
 def repair_last_sync_from_state():
     current = get_setting(LAST_SYNC_AT)
     newest = current
-    for filename in ('sync_favorites_state.json', 'sync_binge_state.json'):
+    for filename in ('sync_favorites_state.json', 'sync_binge_state.json', 'sync_status.json'):
         updated_at = (read_json(filename, {}) or {}).get('updated_at')
         if _sync_timestamp_key(updated_at) > _sync_timestamp_key(newest):
             newest = updated_at

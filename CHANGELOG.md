@@ -1,5 +1,13 @@
 # Changelog
 
+## [2026.10.29.3] - 2026-10-29 (Nightly)
+
+- Freigegebener xVAULT-Schriftzug mit diagonalem Neon-Radio in allen sieben Visuals, einschließlich Pastelllinien.
+- Native Visualisierung für Kodi 21 / Android ARM32 (Fire OS), optimiert für volle Bildschirmauflösung; zusätzlich aktualisierter Windows-64-Bit-Build für Kodi 22.
+- Automatische Auswahl und Installation kompatibler Visuals-Pakete. Bestehende Pakete werden im Leerlauf anhand signierter Paketverweise und SHA-256 mit Sicherung und Rücksetzung aktualisiert.
+- Suchzeitlimit anhand tatsächlich verstrichener Zeit korrigiert.
+- Sync-Anmeldung dauerhaft speichern, Kodi-Einstellungen unmittelbar aktualisieren und letzten Sync-Zeitpunkt wiederherstellen. Offene Löschkonflikte mit leerem PHP-Patch blockieren Abgleich, Verlauf und Konfliktauswahl nicht mehr.
+
 ## [2026.10.29.2] - 2026-10-29 (Nightly)
 
 - Zentrale Filmidentitätsprüfung: widersprüchliche Anbieter-IDs oder Erscheinungsjahre verwerfen; unbestätigte Treffer kennzeichnen und nur manuell mit Bestätigung abspielen. Autoplay und automatische Ersatzversuche verwenden bestätigte Filmquellen. Bei ausschließlich unbestätigten Treffern einmalig zur manuellen Auswahl wechseln, ohne die Standard-Aktion zu überschreiben.

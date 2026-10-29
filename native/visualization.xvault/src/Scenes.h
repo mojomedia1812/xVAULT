@@ -22,12 +22,11 @@ float3 base(float2 p) {
   return float3(.012,.018,.032)+float3(.014,.018,.025)*exp(-dot(p,p)*2.5);
 }
 float3 wordmark(float2 p,float halfWidth,float intensity) {
-  float2 uv=float2(p.x/(halfWidth*2)+.5,p.y/(halfWidth*.34)+.5);
+  float2 uv=float2(p.x/(halfWidth*2)+.5,p.y/(halfWidth*.674)+.5);
   if(any(uv<0)||any(uv>1))return 0;
   // Sample the real xVAULT wordmark from the shipped icon, preserving its colours.
-  float3 c=emblem.SampleLevel(emblemSampler,float2(.135,.765)+uv*float2(.73,.122),0).rgb;
-  float mask=smoothstep(.16,.65,max(c.r,max(c.g,c.b)));
-  return c*mask*intensity;
+  float4 c=emblem.SampleLevel(emblemSampler,uv,0);
+  return c.rgb*c.a*intensity;
 }
 float3 resonance(float2 p) {
   float2 q=p;float r=length(q),a=atan2(q.y,q.x),t=screen.z;

@@ -1,0 +1,14 @@
+{
+  "algorithm": "RSA-PKCS1-SHA256",
+  "payload": {
+    "addon_id": "visualization.xvault",
+    "kind": "native-addon",
+    "package": "visualization.xvault/visualization.xvault-21.0.2.zip",
+    "profile": "android-armv7/kodi21",
+    "schema": 1,
+    "sha256": "49f91aa6a6372624bc93d131b5eb8d43c01cfba7b95cc37dff805290a5069ce9",
+    "size": 2881555,
+    "version": "21.0.2"
+  },
+  "signature": "VN4JriXzmpIZ7XvNRt+lYPdNLfbGh9N1BTgi2N7Qdx3L98jF09PQCpDqMnReL27dMFc73AvOZpUpVG/VSfb4eP4D62V3cx6vPQcMBuoeJdc9IK6AwwvCARrRtAoBQkRH98z6XDHbiLAiiQdLGK2Sc+xj12lUzSptGCRhUtIVVqKUZNzXd0/gAdDH24CP7F1ScStAKAmC0dhe5mwDeW8yq7AvMwTjdeJXEdVj9rlAZhzePdymvvj6xQZOfJN0oWYg4fuaB1yEdrDkkK3X5JaWlcAwE0XU8pC4CdBMM1Yl6fh1se9FCcLHusVegV3/WjxnnT8SIcS6AJexNR83HqNRKyO5nCZo3zi8KmDiwLwMy3X+Jnbdqlapv9oSYpmO++txGKSGkoJcBHsnvmI0R3bL/M8LASWBiNWOy4W/Hg29WsBjJAjie5sU46+HZvTTK30LPkPiyza55w3r20r/LQlQEcoWGF0uiexIxQrlCZq2gCRp0QfzNvXiYvs/htCmv5jl"
+}

@@ -169,7 +169,9 @@ def synchronize(client=None, apply_bookmarks=True, active=False):
             notices = []
             for conflict in response.get('conflicts', []):
                 op = json.loads(conflict['operation_json'])
-                notices.append('%s:%s:%s:%s' % (op['kind'], op['key'], conflict['device_id'], op.get('patch', {}).get('value', {}).get('session_id', '')))
+                # PHP encodes an empty deletion patch as [], not {}.
+                value = (op.get('patch') or {}).get('value') or {}
+                notices.append('%s:%s:%s:%s' % (op['kind'], op['key'], conflict['device_id'], value.get('session_id', '')))
             notify = bool(set(notices) - set(state.get('conflict_notice', [])))
             state['conflict_notice'] = notices
             if first:
@@ -288,7 +290,7 @@ def resolve(conflict, use_local):
     op = json.loads(conflict['operation_json'])
     with database() as (conn, state):
         current = _entity(state, op['kind'], op['key'])
-        patch = op['patch'] if use_local else (current or {}).get('data', {})
+        patch = (op['patch'] or {}) if use_local else ((current or {}).get('data') or {})
         deleted = op.get('deleted', False) if use_local else (current or {}).get('deleted', False)
         enqueue(conn, state, op['kind'], op['key'], patch, deleted, conflict['operation_id'])
 

@@ -276,9 +276,17 @@ def _writeSettingValue(setting_id, value):
 	return _writeSettingsRoot(root, path)
 
 def setSetting(id=None, value=None):
+	if not id:
+		return False
 	value = '' if value is None else str(value)
+	# Kodi owns the live settings and an open settings dialog. XML-only writes
+	# leave its cached values stale and can be overwritten when the dialog closes.
 	try:
-		if getSetting(id) == value:
+		addon = xbmcaddon.Addon(addonId)
+		if addon.getSetting(id) != value:
+			addon.setSetting(id, value)
+		if addon.getSetting(id) == value:
+			_invalidateSettingsCache()
 			return True
 	except Exception:
 		pass

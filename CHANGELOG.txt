@@ -1,3 +1,13 @@
+xVAULT 2026.10.29.3 (Nightly)
+Entwickler: mojomedia1812
+
+- xVAULT-Visuals: freigegebener metallischer xVAULT-Schriftzug mit schrägem Neon-Radio in allen sieben Modi, auch hinter den Pastelllinien.
+- Neuer nativer Fire-OS-/Android-ARM32-Build für Kodi 21 mit OpenGL ES 3, voller Bildschirmauflösung, sanftem Glow und optimierten Kurvenkonturen für alle sieben Musikwelten.
+- Passende Visuals-Pakete für Kodi 22 / Windows 64 Bit und Kodi 21 / Android ARM32 werden automatisch als optionale Abhängigkeit nachgeladen. Bestehende Pakete werden im Leerlauf signatur- und hashgeprüft mit Sicherung und Rücksetzung bei Fehlern aktualisiert. Andere Plattformen und Kodi-Versionen werden übersprungen; ein fehlendes Paket blockiert Radio nicht.
+- Quellensuche: das eingestellte Zeitlimit wird anhand der tatsächlich verstrichenen Zeit eingehalten statt bis zur vierfachen Dauer zu warten.
+- Synchronisation: Kodi-Einstellungs-API statt reiner XML-Schreibzugriffe; Anmeldung erst nach dauerhafter Speicherung als erfolgreich melden und letzten Sync-Zeitpunkt unabhängig von veralteten Einstellungswerten wiederherstellen.
+- Geräteabgleich: offene Löschkonflikte mit leerem PHP-Patch blockieren weder weitere Abgleiche noch Sync-Verlauf oder Konfliktauswahl.
+
 xVAULT 2026.10.29.2
 Entwickler: mojomedia1812
 

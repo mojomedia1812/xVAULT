@@ -57,6 +57,14 @@ def channel_template(template, channel):
     root.find('.//info').text = BASE_URL + prefix + 'addons.xml'
     root.find('.//checksum').text = BASE_URL + prefix + 'addons.xml.md5'
     root.find('.//datadir').text = BASE_URL
+    from resources.lib.native_visuals import profile
+    selected = profile()
+    if selected:
+        native_url = BASE_URL + 'updates/native/' + selected + '/'
+        directory = ET.SubElement(root.find("extension[@point='xbmc.addon.repository']"), 'dir')
+        ET.SubElement(directory, 'info', {'compressed': 'false'}).text = native_url + 'addons.xml'
+        ET.SubElement(directory, 'checksum').text = native_url + 'addons.xml.md5'
+        ET.SubElement(directory, 'datadir', {'zip': 'true'}).text = native_url
     return ET.tostring(root, encoding='unicode') + '\n'
 
 

@@ -170,6 +170,8 @@ class VisualisationDependenciesTests(unittest.TestCase):
     def test_install_uses_native_kodi_repository_command_without_external_download(self):
         with patch.object(self.module, '_has_addon', return_value=False), \
                 patch.object(self.module, '_refresh_addons') as refresh, \
+                patch.object(self.module, '_native_package_available', return_value=True), \
+                patch.object(self.module, '_ensure_native_repository'), \
                 patch.object(self.module, '_accept_install_dialog'), \
                 patch.object(self.module, '_wait_for_addon', return_value=True), \
                 patch.object(self.module, '_install_external_addon', side_effect=AssertionError('external source')):

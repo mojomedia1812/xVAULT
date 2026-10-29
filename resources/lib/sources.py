@@ -885,7 +885,10 @@ class sources:
         total_format = '[COLOR %s][B]%s[/B][/COLOR]'
         pdiag_format = ' 4K: %s | 1080p: %s | 720p: %s | SD: %s | %s: %s                                         '.split('|')
 
-        for i in range(0, 4 * timeout):
+        search_started = time.monotonic()
+        for i in range(0, max(1, 4 * timeout)):
+            if time.monotonic() - search_started >= timeout:
+                break
             try:
                 if control.abortRequested: return sys.exit()
                 try:
@@ -924,7 +927,7 @@ class sources:
                 try:
                     info = [name.upper() for future, name in futures.items() if not future.done()]
 
-                    percent = int(100 * float(i) / (2 * timeout) + 1)
+                    percent = min(100, max(1, int(100 * (time.monotonic() - search_started) / max(1, timeout))))
 
                     if quality in ['0']:
                         line1 = '|'.join(pdiag_format) % (source_4k_label, source_1080_label, source_720_label, source_sd_label, str(string4), source_total_label)
@@ -937,7 +940,7 @@ class sources:
                     else:
                         line1 = '|'.join(pdiag_format[3:]) % (source_sd_label, str(string4), source_total_label)
 
-                    if (i / 2) < timeout:
+                    if time.monotonic() - search_started < timeout:
                         string = "Verbleibende Indexseiten: %s"
                     else:
                         string = 'Waiting for: %s'
@@ -957,8 +960,6 @@ class sources:
                 control.sleep(1)
             except:
                 pass
-
-        time.sleep(1)
 
         for future, provider_name in futures.items():
             try:

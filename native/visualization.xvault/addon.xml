@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="visualization.xvault" version="22.0.1" name="xVAULT-Visuals" provider-name="xVAULT">
+<addon id="visualization.xvault" version="22.0.2" name="xVAULT-Visuals" provider-name="xVAULT">
   <requires>
     <import addon="kodi.binary.global.main" minversion="2.0.3" version="2.0.3"/>
     <import addon="kodi.binary.instance.visualization" minversion="5.0.0" version="5.0.0"/>

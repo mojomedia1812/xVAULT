@@ -77,6 +77,35 @@ def publish_repository(package, docs):
     return destination
 
 
+def publish_native_profile(package, docs, profile):
+    """Separate native Kodi repository, selected locally by OS, ABI and Kodi API."""
+    profiles = {'windows-x86_64/kodi22': ('windows-x86_64', '5.0.0'),
+                'android-armv7/kodi21': ('android-armv7', '4.0.0')}
+    if profile not in profiles:
+        raise ValueError('Unsupported native profile')
+    with ZipFile(package) as archive:
+        node = ET.fromstring(archive.read('visualization.xvault/addon.xml'))
+        platform, api = profiles[profile]
+        if node.find('./extension[@point="xbmc.addon.metadata"]/platform').text != platform:
+            raise ValueError('Native package platform mismatch')
+        dep = node.find('./requires/import[@addon="kodi.binary.instance.visualization"]')
+        if dep is None or dep.get('version') != api:
+            raise ValueError('Native package Kodi API mismatch')
+    root = docs / 'updates/native' / profile
+    destination = publish_repository(package, root)
+    addons = ET.Element('addons'); addons.append(node)
+    raw = b'<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(addons, encoding='utf-8') + b'\n'
+    (root / 'addons.xml').write_bytes(raw)
+    (root / 'addons.xml.md5').write_text(hashlib.md5(raw).hexdigest(), encoding='ascii')
+    from tools.release_packaging import sign, write_json
+    descriptor = dict(schema=1, kind='native-addon', addon_id=node.get('id'),
+                      profile=profile, version=node.get('version'),
+                      package='visualization.xvault/' + destination.name,
+                      sha256=hashlib.sha256(destination.read_bytes()).hexdigest(), size=destination.stat().st_size)
+    write_json(root / 'native.json', sign(descriptor))
+    return destination
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--toolchain', type=Path, required=True)

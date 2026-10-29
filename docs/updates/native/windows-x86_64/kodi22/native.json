@@ -1,0 +1,14 @@
+{
+  "algorithm": "RSA-PKCS1-SHA256",
+  "payload": {
+    "addon_id": "visualization.xvault",
+    "kind": "native-addon",
+    "package": "visualization.xvault/visualization.xvault-22.0.2.zip",
+    "profile": "windows-x86_64/kodi22",
+    "schema": 1,
+    "sha256": "9c3a034a62c2b076d48228cb8cfb504037d7a4230c05a96a5d2083396c161909",
+    "size": 1653738,
+    "version": "22.0.2"
+  },
+  "signature": "ZM9GBGXZkmv3bJJ6I9Q2xBbwG3074WeCHW47uo60mdbFr7e5q6XX8uy3y84SqWGNbPnxdlEfTpXXkZ0y/qLjAV4eyNnp/egYf06F0U8/ITr1kj8wmNgd1XKxgR0eNwH+iLjov9ZVpVqiy4EHLmiAjql106U/OnqQ1Xj9kFJYHdrtgKWLMLCE9JyFLyX+lf9SbIx8UDqqebcu+mgHMoMalAmczM3ReitHI8h4Xa0Y2/9pWceLsnIVLaLj7L10VRvRVwMJDdSGzSKFd51mSKwk+1XINE2aPlePGv6KVJQLFj6EQ+CIrr7TCwR7brpbkTTqbonCFRF2anXQO+IeNwuAPkE2vF9UUB3/hLL4Yz0CTz4LxGAPKGQSeyI+EtgaIvF7sgtDVDAHW7QRfKMsi6KpqH7Oghb1Db5PPJB4d3PZHEUMOLQq3M7Z2EMDPvMf3XDlPJ62q3eFy4rnpluAiCuwzl79Uw6vFg0zSf8WuEDqat8/p9GTXAj/OErYSCetVTnS"
+}

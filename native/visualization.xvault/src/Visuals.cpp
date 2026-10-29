@@ -23,7 +23,7 @@ struct P { float4 pos:SV_POSITION; float4 color:COLOR; float distance:TEXCOORD; 
 P vs(V v) { P p;p.pos=float4(v.pos,0,1);p.color=v.color;p.distance=v.distance;return p; }
 float4 ps(P p):SV_TARGET {
   if(p.distance < -900) {
-    if(screen.w<0.5)return p.color;
+    if(screen.w<0.5){float2 pos=(p.pos.xy-transition.zw-screen.xy*.5)/screen.y;return float4(p.color.rgb+wordmark(pos,.30,.38),1);}
     float2 pos=(p.pos.xy-transition.zw-screen.xy*.5)/screen.y;
     float3 color=scene(int(screen.w+.5),pos);
     if(transition.y<1 && transition.x>0.5)
@@ -117,7 +117,7 @@ class XVaultVisuals : public kodi::addon::CAddonBase, public kodi::addon::CInsta
     IWICBitmapFrameDecode* frame=nullptr;IWICFormatConverter* converter=nullptr;
     ID3D11Texture2D* texture=nullptr;
     HRESULT hr=CoCreateInstance(CLSID_WICImagingFactory,nullptr,CLSCTX_INPROC_SERVER,IID_PPV_ARGS(&factory));
-    std::string path=kodi::addon::GetAddonPath("resources/icon.png");
+    std::string path=kodi::addon::GetAddonPath("resources/radio-wordmark.png");
     int chars=MultiByteToWideChar(CP_UTF8,0,path.c_str(),-1,nullptr,0);
     std::vector<wchar_t> wide(chars>0?chars:1);
     if(chars>0)MultiByteToWideChar(CP_UTF8,0,path.c_str(),-1,wide.data(),chars);
