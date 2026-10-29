@@ -619,6 +619,11 @@ elif action == 'playItem':
     from resources.lib import sources
     sources.sources().playItem(title, source, params)
 
+elif action == 'rejectMovieSource':
+    from resources.lib import sources
+    sources.sources().rejectMovieSource(source)
+    _finish_action()
+
 elif action == "settings":  # alle Quellen aktivieren / deaktivieren
     from resources import settings
     settings.run(params)

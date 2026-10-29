@@ -1,3 +1,12 @@
+xVAULT 2026.10.29.2
+Entwickler: mojomedia1812
+
+- Filmidentität zentral prüfen: widersprüchliche IDs/Jahre ausschließen; unbestätigte Treffer nur manuell mit Bestätigung, nicht per Autoplay oder automatischer Ersatzquelle.
+- Gleichnamige Filmkandidaten bei Movie2k2 und Megakino weiterprüfen; zusätzliche Identitätsdaten aus wichtigen Scrapern und ID-basierten Anfragen nutzen.
+- Falsch belegte Filmquellen über das Kontextmenü für 24 Stunden lokal ausblenden.
+- OHA (ehemals Huhu): API-Abrufe begrenzen, nicht cachen, HTTPS prüfen, Fehler getrennt protokollieren und nach Fehlern pausieren; Quellen-Schalter auch bei alten Einträgen beachten.
+- Radio aktivieren/deaktivieren: Menü, direkte Aufrufe, Hintergrund-Netzwerkprüfungen und automatische Visualisierung steuern; Favoriten und Einstellungen erhalten. Release bleibt 2026.10.28.1.
+
 xVAULT 2026.10.28.2
 Entwickler: mojomedia1812
 

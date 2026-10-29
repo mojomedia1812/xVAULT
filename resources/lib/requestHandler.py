@@ -247,6 +247,48 @@ class cRequestHandler:
         return p.geturl()
 
     
+    def request_bounded(self, timeout=5, budget=12, limit=1024 * 1024, cancelled=lambda: False):
+        """Small API replies only: preserve DoH/cookies, never challenge-loop or cache."""
+        deadline = time.monotonic() + budget
+        def check():
+            if cancelled() or time.monotonic() >= deadline:
+                raise TimeoutError('bounded request cancelled or expired')
+        check()
+        ip_override = self.__getDnsOverride()
+        check()
+        jar = LWPCookieJar(filename=self._cookiePath)
+        try:
+            jar.load(ignore_discard=False, ignore_expires=False)
+        except (OSError, ValueError):
+            pass
+        opener = self.__getOpener(urlparse(self._sUrl).netloc, ip_override, jar)
+        req = Request(self._sUrl)
+        for key, value in self._headerEntries.items():
+            req.add_header(key, value)
+        req.add_header('Accept-Encoding', 'identity')
+        try:
+            response = opener.open(req, timeout=min(timeout, max(0.1, deadline - time.monotonic())))
+        except HTTPError as exc:
+            exc.close()
+            raise
+        with response:
+            check()
+            chunks, size = [], 0
+            while True:
+                check()
+                # read1 returns available data rather than waiting to fill a large buffer.
+                block = response.read1(16384) if hasattr(response, 'read1') else response.read(1)
+                if not block:
+                    break
+                size += len(block)
+                if size > limit:
+                    raise ValueError('bounded response too large')
+                chunks.append(block)
+            check()
+            self._Status, self._sRealUrl = response.getcode(), response.geturl()
+            self._sResponseHeader = response.info()
+            return b''.join(chunks).decode('utf-8', 'replace')
+
     def request(self):
         if self.caching and self.cacheTime > 0:
             if self.isMemoryCacheActive:

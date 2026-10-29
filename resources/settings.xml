@@ -75,7 +75,7 @@
         <setting id="provider.fhdfilme" type="bool" label="FHD Filme" default="true" />
         <setting id="provider.fhdfilme.domain" label="[B][COLOR red]FHD Filme: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.fhdfilme.check" label="FHD Filme Check" type="bool" default="true" visible="false" />
-        <setting id="provider.huhu" type="bool" label="OHA" default="true" />
+        <setting id="provider.huhu" type="bool" label="OHA (ehemals Huhu)" default="true" />
         <setting id="provider.huhu.domain" label="[B][COLOR red]OHA: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.huhu.check" label="OHA Check" type="bool" default="true" visible="false" />
         <setting id="provider.kinoger" type="bool" label="KinoGer" default="true" />
@@ -260,6 +260,7 @@
     <category label="Radio">
         <setting type="lsep" label="Radio Browser · Deutschland" />
         <setting type="text" label="Nur deutsche Sender mit positivem letztem Streamcheck." />
+        <setting id="radio.enabled" type="bool" label="Radio aktivieren" default="true" />
         <setting id="radio.sort" type="enum" label="Sender sortieren" values="Meiste Votes|Name A–Z|Höchste Bitrate" default="0" />
         <setting id="radio.codec" type="enum" label="Bevorzugtes Audioformat" values="Automatisch (MP3 bevorzugt)|MP3|AAC" default="0" />
         <setting id="radio.visualisation" type="enum" label="Visualisierung beim Radiostart" values="xVAULT-Visuals|Aus" default="0" />

@@ -223,6 +223,10 @@ def _is_required(addon_id, optional):
 
 
 def _should_install(addon_id, optional):
+    if addon_id in AUTO_INSTALL_VISUALIZATIONS:
+        import xbmcaddon
+        if xbmcaddon.Addon('plugin.video.xvault').getSetting('radio.enabled') == 'false':
+            return False
     if addon_id in AUTO_INSTALL_VISUALIZATIONS and not native_visuals_supported():
         return False
     if optional and addon_id in SKIP_OPTIONAL_INSTALL:

@@ -139,6 +139,12 @@ class VisualisationDependenciesTests(unittest.TestCase):
         self.native = Mock()
         self.gui = Mock()
         self.module = types.ModuleType('dependencies_under_test')
+        self.addon_settings = {}
+        native_addon = types.SimpleNamespace(Addon=lambda ident: types.SimpleNamespace(
+            getSetting=lambda name: self.addon_settings.get(name, '')))
+        module_patch = patch.dict(sys.modules, {'xbmcaddon': native_addon})
+        module_patch.start()
+        self.addCleanup(module_patch.stop)
         self.module.__file__ = str(ROOT / 'resources/lib/dependencies.py')
         with patch.dict(sys.modules, {'xbmc': self.native, 'xbmcgui': self.gui, 'xbmcvfs': Mock()}):
             exec(compile(Path(self.module.__file__).read_text(encoding='utf8'), self.module.__file__, 'exec'), self.module.__dict__)
@@ -155,6 +161,11 @@ class VisualisationDependenciesTests(unittest.TestCase):
         for addon in ('visualization.shadertoy', 'visualization.spectrum', 'visualization.waveform'):
             self.assertNotIn(addon, imports)
             self.assertFalse(self.module._should_install(addon, optional=True))
+
+    def test_disabled_radio_never_auto_installs_its_native_visualizer(self):
+        self.native.getInfoLabel.return_value = '22.0-RC1'
+        self.addon_settings['radio.enabled'] = 'false'
+        self.assertFalse(self.module._should_install(IDS[0], optional=True))
 
     def test_install_uses_native_kodi_repository_command_without_external_download(self):
         with patch.object(self.module, '_has_addon', return_value=False), \

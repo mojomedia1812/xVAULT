@@ -367,6 +367,15 @@ class KodiTests(unittest.TestCase):
         self.assertEqual(self.radio.favorite_id(f), ID)
         self.assertEqual(self.radio.favorite_id(dict(f, path=f['path'].replace('xvault', 'other'))), '')
 
+    def test_disabled_radio_does_not_fetch_or_resolve_and_keeps_settings(self):
+        self.settings.update({'radio.enabled': 'false', 'radio.history': '{"kept":1}'})
+        with patch.object(self.radio, 'catalog', side_effect=AssertionError('network')):
+            self.radio.dispatch('radioNavigator', {})
+            self.radio.dispatch('radioPlay', {'id': ID})
+        self.plugin.setResolvedUrl.assert_called_once()
+        self.assertFalse(self.plugin.setResolvedUrl.call_args.args[1])
+        self.assertEqual(self.settings['radio.history'], '{"kept":1}')
+
     def test_old_variant_favourite_matches_program(self):
         programs = rb.group_stations([row(), row(stationuuid=OTHER, votes=50)])
         self.assertEqual(self.radio.find(ID, programs)['id'], OTHER)

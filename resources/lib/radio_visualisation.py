@@ -32,6 +32,8 @@ def rpc(method, params):
 
 
 def selected():
+    if xbmcaddon.Addon('plugin.video.xvault').getSetting('radio.enabled') == 'false':
+        return ''
     return VISUALIZERS[0] if choice() == 0 else ''
 
 
@@ -86,6 +88,10 @@ class RadioPlayer(xbmc.Player):
 
     def onAVStarted(self):
         try:
+            if not selected():
+                window().clearProperty(PENDING)
+                self.restore()
+                return
             target = self.getPlayingFile().split('|', 1)[0]
             request = pending()
             if not self.isPlayingAudio() or not request or target != request['target']:

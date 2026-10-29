@@ -10,6 +10,7 @@ from resources.lib.requestHandler import cRequestHandler
 from resources.lib.tools import logger
 from resources.lib.utils import isBlockedHoster
 from scrapers.modules import cleantitle
+from resources.lib import movie_identity
 
 SITE_IDENTIFIER = 'filmo'
 SITE_DOMAIN = 'filmo.to'
@@ -40,9 +41,14 @@ class source:
                 if not page:
                     continue
                 title = self._page_title(page) or candidate.get('title')
+                found = movie_identity.from_html(page, title, self._year(page))
+                if movie_identity.classify(titles, year, imdb, found) == 'conflict':
+                    continue
                 if not self._matches(title, clean_titles, year, page):
                     continue
+                start = len(self.sources)
                 self._add_chips(candidate.get('url'), page)
+                self.sources[start:] = movie_identity.annotate(self.sources[start:], titles, year, imdb, found)
                 if len(self.sources) >= 20:
                     break
         except Exception as exc:

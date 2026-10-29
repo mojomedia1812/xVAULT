@@ -7,6 +7,7 @@ from resources.lib.control import getSetting
 from resources.lib.requestHandler import cRequestHandler
 from resources.lib.tools import logger
 from scrapers.modules import cleantitle
+from resources.lib import movie_identity
 
 SITE_IDENTIFIER = 'filmpalast'
 SITE_DOMAIN = 'filmpalast.to'
@@ -46,6 +47,8 @@ class source:
         sources = []
         url = ''
         moviecontent = ''
+        identity = {}
+        is_movie = getattr(self, 'mediatype', None) != 'tvshow' and not season
 
         try:
             titles = [t for t in titles if t and str(t).lower() != 'none']
@@ -65,14 +68,18 @@ class source:
                     page_data = self._request(page_url, self.base_link)
                     if not page_data:
                         continue
-                    if year and not self._year_matches(page_data, year):
+                    observed = movie_identity.from_html(page_data, m_title, self._extract_year(page_data))
+                    status = movie_identity.classify(titles, year, imdb, observed) if is_movie else ''
+                    if status == 'conflict':
+                        continue
+                    if not is_movie and year and not self._year_matches(page_data, year):
                         continue
 
-                    candidates.append((score, page_url, page_data))
+                    candidates.append((status == 'verified', score, page_url, page_data, observed))
 
                 if candidates:
-                    candidates.sort(key=lambda item: item[0], reverse=True)
-                    _score, url, moviecontent = candidates[0]
+                    candidates.sort(key=lambda item: item[:2], reverse=True)
+                    _verified, _score, url, moviecontent, identity = candidates[0]
                     logger.info('[Filmpalast] Treffer: %s' % url)
                     break
 
@@ -114,7 +121,7 @@ class source:
                 })
 
             logger.info('[Filmpalast] %d Quellen gefunden' % len(sources))
-            return sources
+            return movie_identity.annotate(sources, titles, year, imdb, identity) if is_movie else sources
 
         except Exception as e:
             logger.error('[Filmpalast] Fehler: %s' % e)

@@ -20,6 +20,7 @@ BASE = 'plugin://plugin.video.xvault/'
 CACHE_PROPERTY = 'xvault.radio.catalog.v2'
 IDENTITY_REQUEST = 'xvault.radio.identities.requested'
 _identity_thread = None
+_enabled_addon = None
 INDEX_PROPERTY = 'xvault.radio.index.v1'
 RAW_STAMP_PROPERTY = 'xvault.radio.raw.stamp'
 INDEX_SCHEMA = 1
@@ -31,6 +32,13 @@ SORT_LABELS = ('Meiste Votes', 'Name A–Z', 'Höchste Bitrate')
 
 def addon():
     return xbmcaddon.Addon('plugin.video.xvault')
+
+
+def enabled():
+    global _enabled_addon
+    if _enabled_addon is None:
+        _enabled_addon = addon()
+    return _enabled_addon.getSetting('radio.enabled') != 'false'
 
 
 def handle():
@@ -238,10 +246,16 @@ def identity_worker():
     from resources.lib import update_maintenance
     monitor, win = xbmc.Monitor(), xbmcgui.Window(10000)
     def stopped():
-        return monitor.abortRequested() or update_maintenance.requested()
-    while not stopped():
+        return monitor.abortRequested() or update_maintenance.requested() or not enabled()
+    while not monitor.abortRequested() and not update_maintenance.requested():
         if monitor.waitForAbort(2):
             break
+        from resources.lib import radio_visualisation
+        if not enabled():
+            win.clearProperty(IDENTITY_REQUEST)
+            radio_visualisation.stop_monitor()
+            continue
+        radio_visualisation.start_monitor()
         if not win.getProperty(IDENTITY_REQUEST) or xbmc.Player().isPlaying():
             continue
         try:
@@ -261,14 +275,17 @@ def identity_worker():
             xbmc.log('xVAULT Radio identity scan: %s' % type(exc).__name__, xbmc.LOGWARNING)
         # Network probes stay outside directory construction, with idle time per batch.
         for _ in range(15):
-            if stopped() or monitor.waitForAbort(1):
+            if monitor.abortRequested() or update_maintenance.requested() or monitor.waitForAbort(1):
                 return
+            if not enabled():
+                break
 
 
 def start_background():
     global _identity_thread
     from resources.lib import radio_visualisation
-    radio_visualisation.start_monitor()
+    if enabled():
+        radio_visualisation.start_monitor()
     if _identity_thread and _identity_thread.is_alive():
         return
     _identity_thread = threading.Thread(target=identity_worker, name='xvault-radio-identities', daemon=True)
@@ -602,6 +619,13 @@ def dispatch(action, params):
     folders = {'radioNavigator', 'radioGenres', 'radioFamilies', 'radioList', 'radioSearch',
                'radioFavorites', 'radioRecent'}
     try:
+        if not enabled():
+            notify('Radio ist in den Add-on-Einstellungen deaktiviert.')
+            if action in folders:
+                xbmcplugin.endOfDirectory(handle(), succeeded=True, cacheToDisc=False)
+            elif action == 'radioPlay':
+                xbmcplugin.setResolvedUrl(handle(), False, xbmcgui.ListItem())
+            return
         if action == 'radioNavigator':
             home()
         elif action == 'radioGenres':

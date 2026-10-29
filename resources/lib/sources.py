@@ -10,7 +10,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from html import unescape as html_unescape
 from urllib.parse import urlencode, urljoin, urlparse
-from resources.lib import log_utils, utils, control, playback_settings, hoster_compat
+from resources.lib import log_utils, utils, control, playback_settings, hoster_compat, movie_identity
 from resources.lib.control import py2_decode, py2_encode, quote_plus, parse_qsl
 # from functools import reduce
 from resources.lib.control import getKodiVersion
@@ -252,6 +252,10 @@ class sources:
             self.last_source_error = 'no_sources'
             self._telemetryEvent('source_collection_started', 'sources', self._sourceTelemetryPayload())
             items = self.getSources(title, year, imdb, season, episode, originaltitle, premiered, episode_title=episode_title, episode_premiered=episode_premiered)
+            if (getattr(self, 'mediatype', None) == 'movie' and select == '2' and items
+                    and not any(i.get('identity_status') == 'verified' for i in items)):
+                control.infoDialog('Filmidentität nicht bestätigt: bitte Quelle manuell prüfen.', icon='WARNING')
+                select = '0'
             self._telemetryEvent('source_collection_finished', 'sources', self._sourceTelemetryPayload(len(items)))
             ## unnötig
             #select = '1' if control.getSetting('downloads') == 'true' and not (control.getSetting('download.movie.path') == '' or control.getSetting('download.tv.path') == '') else select
@@ -408,6 +412,9 @@ class sources:
                 if control.getSetting('pyload_enabled') == 'true':
                     cm.append(("Sende zu PyLoad", 'RunPlugin(%s?action=sendToPyLoad&name=%s&source=%s)' % (sysaddon, sysname, syssource)))
                 cm.append(("Medien-Info", 'RunPlugin(%s?action=mediaInfo&source=%s)' % (sysaddon, syssource)))
+                if items[i].get('identity_target'):
+                    cm.append(('Falscher Film: Quelle 24 Stunden ausblenden',
+                               'RunPlugin(%s?action=rejectMovieSource&source=%s)' % (sysaddon, syssource)))
                 cm.append(('Einstellungen', 'RunPlugin(%s?action=addonSettings)' % sysaddon))
                 item.addContextMenuItems(cm)
 
@@ -527,6 +534,9 @@ class sources:
             progressDialog.update(0)
 
             item = json.loads(source)[0]
+            if not self._confirmMovieSource(item):
+                progressDialog.close()
+                return
             #if isDebug: log_utils.log('playItem 237', log_utils.LOGWARNING)
             if item['source'] == None: raise Exception()
             
@@ -631,6 +641,8 @@ class sources:
 
     def _playFallbackSource(self, title, meta, failed_item):
         candidates = self._fallbackSourceItems(failed_item)
+        if isinstance(meta, dict) and meta.get('mediatype') == 'movie':
+            candidates = [i for i in candidates if i.get('identity_status') == 'verified']
         if not candidates:
             return False
 
@@ -823,7 +835,8 @@ class sources:
         series_key = self._seriesCacheKey(title, year, imdb, originaltitle, premiered)
         cached, stale = self._readSourceCache(cache_key, allow_stale=True)
         if cached and not force_refresh:
-            self.sources = self._filterTemporarilyBlockedHosters(cached)
+            self.sources = movie_identity.without_rejected(os.path.join(control.dataPath, 'wrong-content.json'),
+                                                          self._filterTemporarilyBlockedHosters(cached))
             if stale:
                 log_utils.log('Quellen-Cache verwendet (stale): %s Treffer' % len(self.sources), log_utils.LOGINFO)
                 self._scheduleSourceCacheRefresh(cache_key, title, year, imdb, season, episode, originaltitle, premiered, episode_title, episode_premiered)
@@ -1377,6 +1390,14 @@ class sources:
             if sources == None or sources == []:
                 return {'provider': source, 'count': 0, 'status': 'empty'}
             sources = self._stableUniqueSources(sources)
+            if getattr(self, 'mediatype', None) == 'movie':
+                accepted = []
+                for item in sources:
+                    accepted.extend(movie_identity.annotate([item], titles, year, imdb, item.get('movie_identity') or {}))
+                if len(accepted) != len(sources):
+                    log_utils.log('Filmidentitaet: %s widerspruechliche Treffer bei %s verworfen' %
+                                  (len(sources) - len(accepted), source), log_utils.LOGINFO)
+                sources = accepted
             for i in sources:
                 i.update({'provider': source})
                 i.update({'provider_display': self._providerDisplayName(source, call)})
@@ -1725,9 +1746,12 @@ class sources:
         if control.getSetting('hosts.sort.priority') == 'true' and self.mediatype == 'tvshow': self.sources = sorted(self.sources, key=lambda k: (k.get('prioHoster', 0) >= 999, k['priority']), reverse=False)
 
         self._applyLanguagePreference()
+        if getattr(self, 'mediatype', None) == 'movie':
+            self.sources.sort(key=lambda i: i.get('identity_status') != 'verified')
         self.sources = self._dedupeSources(self.sources)
         self.sources = self._applyHosterExclusions(self.sources)
         self.sources = self._filterTemporarilyBlockedHosters(self.sources)
+        self.sources = movie_identity.without_rejected(os.path.join(control.dataPath, 'wrong-content.json'), self.sources)
 
         if str(control.getSetting('hosts.limit')) == 'true':
             self.sources = self.sources[:int(control.getSetting('hosts.limit.num'))]
@@ -1736,6 +1760,8 @@ class sources:
 
         for i in range(len(self.sources)):
             p = self.sources[i]['provider']
+            if p == 'huhu':
+                p = 'OHA (ehemals Huhu)'
             q = self.sources[i]['quality']
             s = self.sources[i]['source']
             ## s = s.rsplit('.', 1)[0]
@@ -1757,6 +1783,8 @@ class sources:
 
             if self.sources[i].get('prioHoster', 0) >= 999:
                 label += ' | [COLOR red]CAPTCHA[/COLOR]'
+            if self.sources[i].get('identity_status') == 'unknown':
+                label += ' | [COLOR orange]Filmidentität nicht bestätigt[/COLOR]'
             self.sources[i]['label'] = label.upper()
 
             # ## EMBY shown as premium link ##
@@ -1778,10 +1806,18 @@ class sources:
             local = item.get('local', False)
             provider_media = False
             provider = item['provider']
+            if provider == 'huhu' and control.getSetting('provider.huhu') == 'false':
+                return None
+            if provider == 'huhu' and not self._filterTemporarilyBlockedProviders([(provider, None)]):
+                return None
             try:
                 call = [i[1] for i in self.sourceDict if i[0] == provider][0]
                 url = call.resolve(url)
             except Exception as exc:
+                if provider == 'huhu' and getattr(exc, 'xvault_provider_reason', None):
+                    self._markProviderTemporarilyBlocked(provider, exc.xvault_provider_reason,
+                                                        getattr(exc, 'xvault_provider_ttl', PROVIDER_ERROR_TTL))
+                    return None
                 host = (urlparse(str(raw_url).split('|', 1)[0]).hostname or '').lower()
                 if not hoster_compat.is_supported_host(host):
                     raise
@@ -2037,12 +2073,14 @@ class sources:
 
         select = control.selectDialog(labels)
         if select == -1: return 'close://'
+        if not self._confirmMovieSource(items[select]):
+            return 'close://'
 
         next = [y for x,y in enumerate(items) if x >= select]
         prev = [y for x,y in enumerate(items) if x < select][::-1]
 
         items = [items[select]]
-        items = [i for i in items+next+prev][:40]
+        items = [i for i in items+next[1:]+prev if i is items[0] or i.get('identity_status') != 'unknown'][:40]
 
         header = control.addonInfo('name')
         header2 = header.upper()
@@ -2164,6 +2202,8 @@ class sources:
             return min(3, len(items))
 
     def _resolveAutoplayCandidates(self, items, progressDialog=None, header2=''):
+        if getattr(self, 'mediatype', None) == 'movie':
+            items = [item for item in items if item.get('identity_status') == 'verified']
         self._ensureExecutor()
         max_items = min(len(items), 40)
         prefetch_window = self._autoplayPrefetchWindow(items[:max_items])
@@ -2257,6 +2297,27 @@ class sources:
 
         self._cancelFutures([state['future'] for state in pending.values()])
         return None, None
+
+    def _confirmMovieSource(self, item):
+        if item.get('identity_status') != 'unknown':
+            return True
+        return control.yesnoDialog('Die Filmidentität dieser Quelle ist nicht bestätigt.',
+                                   'Titel oder Erscheinungsjahr konnten nicht eindeutig geprüft werden.',
+                                   'Diese Quelle trotzdem abspielen?')
+
+    def rejectMovieSource(self, source):
+        item = json.loads(source)[0]
+        if not item.get('identity_target'):
+            return
+        if control.yesnoDialog('Diese Quelle liefert den falschen Film?',
+                              'Sie wird für diesen Film 24 Stunden lokal ausgeblendet.',
+                              'Andere Quellen und Geräte bleiben unverändert.'):
+            movie_identity.reject(os.path.join(control.dataPath, 'wrong-content.json'), item)
+            raw = control.window.getProperty(self.itemsProperty)
+            if raw:
+                control.window.setProperty(self.itemsProperty, json.dumps(movie_identity.without_rejected(
+                    os.path.join(control.dataPath, 'wrong-content.json'), json.loads(raw))))
+            control.execute('Container.Refresh')
 
 
     def sourcesAutoplay(self, items, title, meta):

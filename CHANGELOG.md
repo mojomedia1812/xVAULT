@@ -1,5 +1,13 @@
 # Changelog
 
+## [2026.10.29.2] - 2026-10-29 (Nightly)
+
+- Zentrale Filmidentitätsprüfung: widersprüchliche Anbieter-IDs oder Erscheinungsjahre verwerfen; unbestätigte Treffer kennzeichnen und nur manuell mit Bestätigung abspielen. Autoplay und automatische Ersatzversuche verwenden bestätigte Filmquellen. Bei ausschließlich unbestätigten Treffern einmalig zur manuellen Auswahl wechseln, ohne die Standard-Aktion zu überschreiben.
+- Movie2k2 und Megakino prüfen mehrere gleichnamige Kandidaten. Filmpalast, Filmo, MoFlix, Movie2k sowie die ID-basierten OHA-/VIXSTREAM-Abfragen geben Identitätsnachweise an die gemeinsame Prüfung weiter. Neue Add-on-Version invalidiert alte Quellenlisten.
+- Einzelne falsch belegte Filmquellen können über das Quellen-Kontextmenü für 24 Stunden lokal ausgeblendet werden. Die Sperrdatei enthält nur Hashes und Ablaufzeiten.
+- OHA (ehemals Huhu) klar benannt und auch für alte Quellenkontexte abschaltbar. API-Abrufe ohne Antwortcache, mit expliziten Verbindungs-/Lesegrenzen, Antwortgrößenlimit, Zeitbudget für den Antwortkörper, Abbruchprüfung und HTTPS-Verifikation. Fehlergruppen DNS, HTTP, TLS, Timeout und Antwortformat getrennt protokollieren; bei API-Fehlern weitere OHA-Versuche vorübergehend aussetzen.
+- Neuer Schalter „Radio aktivieren“: Menü und direkte Radioaufrufe abschalten, Hintergrund-Netzwerkprüfungen aussetzen sowie automatische Visualisierung und deren automatische Installation unterbinden. Favoriten und lokale Vorgaben erhalten; Aktivierung ohne Änderung globaler Kodi-Einstellungen.
+
 ## [2026.10.28.2] - 2026-10-28 (Nightly)
 
 - Radio-Senderlisten funktionieren auch bei leerer Kodi-Favoritenverwaltung. JSON `null` wird als leere Liste behandelt; vorhandene Radiofavoriten bleiben unverändert erhalten.

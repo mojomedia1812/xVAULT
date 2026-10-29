@@ -337,6 +337,9 @@ class source:
                     'direct': False,
                     'info': language_label if verified_language != 'unknown' else 'Sprache unbekannt'
                 })
+                if getattr(self, 'mediatype', None) != 'tvshow' and not season:
+                    # The stream's TMDb ID was obtained by the successful IMDb lookup.
+                    self.sources[-1]['movie_identity'] = {'imdb': imdb}
                 logger.info('[%s] Quelle gefunden: tmdb=%s, lang=%s' % (SITE_NAME, tmdb_id, language))
 
         except Exception as exc:

@@ -4,6 +4,7 @@ import re, json
 from resources.lib.control import getSetting, quote_plus
 from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import cleantitle
+from resources.lib import movie_identity
 
 SITE_IDENTIFIER = 'movie2k'
 SITE_DOMAIN = 'movie2k.ch' 
@@ -54,7 +55,10 @@ class source:
             if url:
                 language = jSearch[i].get('_xvault_language', 'de')
                 language_label = jSearch[i].get('_xvault_language_label', '')
-                self.sources.append({'source': hoster, 'quality': quality, 'language': language, 'url': url, 'direct': False, 'prioHoster': prioHoster, 'info': language_label})
+                entry = {'source': hoster, 'quality': quality, 'language': language, 'url': url, 'direct': False, 'prioHoster': prioHoster, 'info': language_label}
+                if not season:
+                    entry['movie_identity'] = jSearch[i].get('_xvault_identity') or {}
+                self.sources.append(entry)
                 total += 1
                 if total == 10: break
         return self.sources
@@ -170,6 +174,8 @@ class source:
                             streams = [i for i in streams if i.get('e', False) and str(i.get('e')) == str(episode)]
 
                         for stream in streams:
+                            stream['_xvault_identity'] = {'title': match.get('title'), 'year': match.get('year'),
+                                                         'imdb': watch.get('imdb') or match.get('imdb')}
                             stream['_xvault_language'] = language
                             stream['_xvault_language_label'] = language_label
                             jSearch.append(stream)

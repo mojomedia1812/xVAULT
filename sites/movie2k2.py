@@ -6,6 +6,7 @@ from resources.lib.control import getSetting
 from resources.lib.requestHandler import cRequestHandler
 from resources.lib.tools import logger, cParser
 from scrapers.modules import cleantitle
+from resources.lib import movie_identity
 
 try:
     from urllib import parse as urllib_parse
@@ -45,6 +46,12 @@ class source:
                 if not html:
                     continue
 
+                found = movie_identity.from_html(html)
+                is_movie = getattr(self, 'mediatype', None) != 'tvshow' and not season
+                if is_movie and movie_identity.classify(titles, year, imdb, found) == 'conflict':
+                    logger.info('[Movie2k2] Filmidentitaet widerspricht der Anfrage; Treffer verworfen')
+                    continue
+
                 pattern = r"loadMirror\s*\(\s*'([^']+)'\s*\).*?>\s*(?:&nbsp;)*\s*([^<|\s|&]+)"
                 isMatch, aResult = cParser().parse(html, pattern)
 
@@ -57,14 +64,15 @@ class source:
                         isBlocked, hoster, sFinalUrl, prioHoster = isBlockedHoster(sStreamUrl, isResolve=False)
                         if isBlocked: continue
 
-                        sources.append({
+                        entry = {
                             'source': hoster or sHosterName.replace('.com','').replace('.to','').strip(),
                             'quality': 'HD' if 'hd.gif' in html.lower() else 'SD',
                             'language': 'de',
                             'url': sFinalUrl,
                             'direct': False,
                             'prioHoster': prioHoster
-                        })
+                        }
+                        sources.extend(movie_identity.annotate([entry], titles, year, imdb, found) if is_movie else [entry])
             except Exception as e:
                 logger.info('Load %s - Error in hoster parsing: %s' % (SITE_NAME, str(e)))
         
@@ -108,7 +116,8 @@ class source:
                         
                         logger.info('Load %s - Match found in list: %s' % (SITE_NAME, sName))
                         results.append(full_url)
-                        break
+                        if len(results) >= 10:
+                            break
 
             if not results:
                 short_term = search_term.split(' ')[0]
@@ -132,7 +141,8 @@ class source:
                                 else:
                                     full_url = self.base_link + ('' if sPath.startswith('/') else '/') + sPath
                                 results.append(full_url)
-                                break
+                                if len(results) >= 10:
+                                    break
             
         except Exception as e:
             logger.info('Load %s - Search error: %s' % (SITE_NAME, str(e)))

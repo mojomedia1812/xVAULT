@@ -11,6 +11,7 @@ from resources.lib.requestHandler import cRequestHandler
 from resources.lib.tools import logger
 from resources.lib.utils import isBlockedHoster
 from scrapers.modules import cleantitle
+from resources.lib import movie_identity
 
 
 SITE_IDENTIFIER = 'moflix'
@@ -54,6 +55,10 @@ class source:
                 videos = self._title_videos(item)
 
             self._add_videos(videos)
+            if getattr(self, 'mediatype', None) != 'tvshow' and not season:
+                found = {'title': item.get('name') or item.get('title') or item.get('original_title'),
+                         'year': self._year(item), 'imdb': item.get('imdb_id')}
+                self.sources = movie_identity.annotate(self.sources, titles, year, imdb, found)
             if self.sources:
                 self._mark_available()
         except MoflixTemporarilyUnavailable as exc:

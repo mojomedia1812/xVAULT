@@ -6,6 +6,7 @@ from scrapers.modules.tools import cParser
 from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import cleantitle, dom_parser, source_utils
 from resources.lib.control import getSetting
+from resources.lib import movie_identity
 
 def get_url():
     url = "https://raw.githubusercontent.com/mr-evil1/megakino/main/megakino-url.json"
@@ -58,7 +59,7 @@ class source:
         except:
             return ""
 
-    def _search_and_match(self, search_term, t, titles):
+    def _search_and_match(self, search_term, t, titles, year=None, imdb='', is_movie=False):
         try:
             search_url = self.search_link % search_term
             sHtmlContent = self.get_html(search_url)
@@ -68,11 +69,27 @@ class source:
             isMatch, aResult = cParser.parse(sHtmlContent, pattern)
             if not isMatch:
                 return None
-            for sUrl, sName in aResult:
+            fallback = None
+            for sUrl, sName in aResult[:10]:
                 if not sUrl.startswith('http'):
                     sUrl = self.base_link + sUrl
                 if cleantitle.get(sName) in t or any(cleantitle.get(x) in cleantitle.get(sName) for x in titles):
-                    return sUrl
+                    if not is_movie:
+                        return sUrl
+                    page = self.get_html(sUrl)
+                    if not page:
+                        continue
+                    found = movie_identity.from_html(page, sName)
+                    status = movie_identity.classify(titles, year, imdb, found)
+                    if status == 'conflict':
+                        continue
+                    if status == 'verified':
+                        self._found_identity, self._found_html = found, page
+                        return sUrl
+                    fallback = fallback or (sUrl, found, page)
+            if fallback:
+                self._found_identity, self._found_html = fallback[1:]
+                return fallback[0]
         except:
             pass
         return None
@@ -83,25 +100,29 @@ class source:
             t = [cleantitle.get(i) for i in set(titles) if i]
 
             found_url = None
+            is_movie = getattr(self, 'mediatype', None) != 'tvshow' and not season
+            self._found_identity, self._found_html = {}, ''
 
             if imdb:
-                found_url = self._search_and_match(imdb, t, titles)
+                found_url = self._search_and_match(imdb, t, titles, year, imdb, is_movie)
 
             if not found_url:
                 for sSearchText in titles:
-                    found_url = self._search_and_match(sSearchText, t, titles)
+                    found_url = self._search_and_match(sSearchText, t, titles, year, imdb, is_movie)
                     if found_url:
                         break
 
             if found_url:
                 self.get_sources(found_url, year, season, episode, hostDict)
+                if is_movie:
+                    self.sources = movie_identity.annotate(self.sources, titles, year, imdb, self._found_identity)
 
         except:
             pass
         return self.sources
 
     def get_sources(self, url, year, season, episode, hostDict):
-        html = self.get_html(url)
+        html = getattr(self, '_found_html', '') or self.get_html(url)
         if not html: return
         quality = '720p'
         if '1080' in html: quality = '1080p'

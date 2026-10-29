@@ -81,6 +81,8 @@ mitinstalliert.
 
 ## xVAULT-Visuals (Nightly 2026.10.27.4)
 
+Ab Nightly 2026.10.29.2 wird das native Visualisierungs-Add-on nicht automatisch nachinstalliert, wenn „Radio aktivieren“ deaktiviert ist. Bereits installierte Add-ons werden nicht deinstalliert oder global abgeschaltet. Die neuen Filmidentitäts- und OHA-Prüfungen benötigen keine zusätzlichen Python-Pakete.
+
 `visualization.xvault` ist eine optionale native Abhängigkeit. Die Radio-Anbindung öffnet nach dem tatsächlichen Audiostart Kodis Visualisierungsfenster und stellt die vorherige globale Auswahl nach dem Stoppen wieder her. Einstellungen > Radio bietet xVAULT-Visuals und Aus. Fehlt das native Paket auf einer Plattform, bleibt Radio nutzbar.
 
 Shadertoy, Spectrum und Waveform werden weder benötigt noch automatisch installiert. Bereits vorhandene Add-ons werden nicht deinstalliert oder verändert. Es gibt keinen fremden Shader-Renderer, keine Audioaufnahme und kein Python-Audiopolling.

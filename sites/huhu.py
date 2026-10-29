@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 import json
+import socket
+import ssl
 import urllib.parse
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from resources.lib.requestHandler import cRequestHandler
+from resources.lib.control import getSetting
+from resources.lib.tools import logger
 
 try:
     import xbmc
@@ -15,24 +20,42 @@ from scrapers.modules import source_utils
 SITE_IDENTIFIER = 'huhu'
 DOMAIN = 'oha.to'
 SITE_DOMAIN = DOMAIN
-SITE_NAME = 'OHA'
+SITE_NAME = 'OHA (ehemals Huhu)'
 URL_MAIN = f'https://{DOMAIN}/'
 URL_VOD = URL_MAIN + 'vod'
 URL_SOURCE = URL_VOD + '/source/%s/%s.json'
 URL_RESOLVE = URL_VOD + '/resolve?url=%s'
 
 
+class ProviderNetworkError(Exception):
+    xvault_provider_ttl = 300
+
+    def __init__(self, reason):
+        self.xvault_provider_reason = reason
+        super().__init__('OHA: ' + reason)
+
+
 def _request_json(url, headers=None):
     try:
-        request = cRequestHandler(url, caching=True)
+        if getSetting('provider.huhu') == 'false':
+            return None
+        request = cRequestHandler(url, caching=False, ssl_verify=True, follow_redirects=False)
         for key, value in (headers or {}).items():
             request.addHeaderEntry(key, value)
-        payload = request.request()
+        monitor = xbmc.Monitor() if KODI_AVAILABLE else None
+        payload = request.request_bounded(timeout=5, budget=12, cancelled=lambda:
+            (monitor and monitor.abortRequested()) or getSetting('provider.huhu') == 'false')
         if not payload:
             return None
         return json.loads(payload)
-    except:
-        return None
+    except Exception as exc:
+        reason = exc.reason if isinstance(exc, URLError) else exc
+        group = ('http' if isinstance(exc, HTTPError) else 'dns' if isinstance(reason, socket.gaierror)
+                 else 'timeout' if isinstance(reason, (TimeoutError, socket.timeout))
+                 else 'tls' if isinstance(reason, ssl.SSLError) else 'response' if isinstance(exc, ValueError)
+                 else 'network')
+        logger.warning('[OHA] %s beim API-Abruf' % group)
+        raise ProviderNetworkError(group) from None
 
 
 def _request_real_url(url, headers=None):
@@ -60,10 +83,7 @@ def make_request(url):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     }
     
-    try:
-        return _request_json(url, headers)
-    except:
-        return None
+    return _request_json(url, headers)
 
 def parse_quality(name):
     if not name:
@@ -198,6 +218,8 @@ class source:
                         'debridonly': False,
                         'info': link_name
                     }
+                    if getattr(self, 'mediatype', None) != 'tvshow' and not season:
+                        source_entry['movie_identity'] = {'imdb': link.get('imdb') or imdb}
                     
                     sources.append(source_entry)
                 
@@ -206,7 +228,9 @@ class source:
             
             return sources
         
-        except:
+        except ProviderNetworkError:
+            raise
+        except Exception:
             return sources
     
     def resolve(self, url):
@@ -221,5 +245,7 @@ class source:
                 return resolved.get('url')
             return url
         
-        except:
+        except ProviderNetworkError:
+            raise
+        except Exception:
             return None
