@@ -81,6 +81,8 @@ mitinstalliert.
 
 ## xVAULT-Visuals (Nightly 2026.10.27.4)
 
+Nightly 2026.10.30.2 ergänzt Kodi 21 / Android ARM64 mit eigenem Profil `android-aarch64/kodi21`. Paketinstallation, alle sieben Modi, Radiostart und Ein/Aus sind auf einem Galaxy Note20 5G mit Android 13 / Kodi 21.3 geprüft. Der ARM64-Index wird mit diesem Nightly veröffentlicht. Ein 32-Bit-Kodi auf einem ARM64-Kernel erhält weiterhin das ARM32-Paket. Frisch installierte Python-Abhängigkeiten werden anhand ihrer Kodi-Modulmanifeste auch dem laufenden Dienst zugänglich gemacht.
+
 Ab Nightly 2026.10.29.2 wird das native Visualisierungs-Add-on nicht automatisch nachinstalliert, wenn „Radio aktivieren“ deaktiviert ist. Bereits installierte Add-ons werden nicht deinstalliert oder global abgeschaltet. Die neuen Filmidentitäts- und OHA-Prüfungen benötigen keine zusätzlichen Python-Pakete.
 
 `visualization.xvault` ist eine optionale native Abhängigkeit. Die Radio-Anbindung öffnet nach dem tatsächlichen Audiostart Kodis Visualisierungsfenster und stellt die vorherige globale Auswahl nach dem Stoppen wieder her. Einstellungen > Radio bietet xVAULT-Visuals und Aus. Fehlt das native Paket auf einer Plattform, bleibt Radio nutzbar.

@@ -80,7 +80,8 @@ def publish_repository(package, docs):
 def publish_native_profile(package, docs, profile):
     """Separate native Kodi repository, selected locally by OS, ABI and Kodi API."""
     profiles = {'windows-x86_64/kodi22': ('windows-x86_64', '5.0.0'),
-                'android-armv7/kodi21': ('android-armv7', '4.0.0')}
+                'android-armv7/kodi21': ('android-armv7', '4.0.0'),
+                'android-aarch64/kodi21': ('android-aarch64', '4.0.0')}
     if profile not in profiles:
         raise ValueError('Unsupported native profile')
     with ZipFile(package) as archive:

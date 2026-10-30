@@ -70,7 +70,14 @@ class NativeProfileTests(unittest.TestCase):
             ('win32', 8, 'AMD64', '22.0-RC1', False, 'windows-x86_64/kodi22'),
             ('linux', 4, 'armv7l', '21.3', True, 'android-armv7/kodi21'),
             ('linux', 4, 'armv7l', '21.2', True, 'android-armv7/kodi21'),
-            ('linux', 8, 'aarch64', '21.3', True, ''),
+            ('linux', 8, 'aarch64', '21.3', True, 'android-aarch64/kodi21'),
+            ('linux', 8, 'arm64', '21.2', True, 'android-aarch64/kodi21'),
+            ('linux', 4, 'aarch64', '21.3', True, 'android-armv7/kodi21'),
+            ('linux', 4, 'arm64', '21.3', True, 'android-armv7/kodi21'),
+            ('linux', 8, 'armv7l', '21.3', True, ''),
+            ('linux', 8, 'x86_64', '21.3', True, ''),
+            ('linux', 8, 'aarch64', '22.0', True, ''),
+            ('linux', 8, 'aarch64', '21.3', False, ''),
             ('linux', 4, 'armv7l', '22.0', True, ''),
             ('linux', 4, 'armv7l', '21.3', False, ''),
             ('linux', 4, 'i686', '21.3', True, ''),
@@ -103,6 +110,23 @@ class NativeProfileTests(unittest.TestCase):
             self.assertFalse((root / 'docs/addons.xml').exists())
             with self.assertRaises(ValueError):
                 publish_native_profile(package, root / 'docs', 'windows-x86_64/kodi22')
+
+    def test_arm64_feed_cannot_deliver_an_arm32_library(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            package = root / 'native.zip'
+            xml = ('<addon id="visualization.xvault" version="21.0.2">'
+                   '<requires><import addon="kodi.binary.instance.visualization" version="4.0.0"/></requires>'
+                   '<extension point="xbmc.addon.metadata"><platform>android-aarch64</platform></extension></addon>')
+            with ZipFile(package, 'w') as archive:
+                archive.writestr('visualization.xvault/addon.xml', xml)
+            with patch('tools.release_packaging.sign', side_effect=lambda payload: {'payload': payload}):
+                target = publish_native_profile(package, root / 'docs', 'android-aarch64/kodi21')
+            reference = json.loads((target.parent.parent / 'native.json').read_text())['payload']
+            self.assertEqual(reference['profile'], 'android-aarch64/kodi21')
+            self.assertEqual(reference['sha256'], hashlib.sha256(package.read_bytes()).hexdigest())
+            with self.assertRaises(ValueError):
+                publish_native_profile(package, root / 'docs', 'android-armv7/kodi21')
 
 
 if __name__ == '__main__':

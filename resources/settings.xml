@@ -264,7 +264,8 @@
         <setting id="radio.sort" type="enum" label="Sender sortieren" values="Meiste Votes|Name A–Z|Höchste Bitrate" default="0" />
         <setting id="radio.codec" type="enum" label="Bevorzugtes Audioformat" values="Automatisch (MP3 bevorzugt)|MP3|AAC" default="0" />
         <setting id="radio.visualisation" type="enum" label="Visualisierung beim Radiostart" values="xVAULT-Visuals|Aus" default="0" />
-        <setting type="text" label="xVAULT-Visuals: derzeit für Kodi 22 auf Windows (64 Bit)." />
+        <setting type="text" label="xVAULT-Visuals: Windows 64 Bit (Kodi 22), Android / Fire OS (Kodi 21)." />
+        <setting type="text" label="Passende ARM32-/ARM64-Pakete werden automatisch nachgeladen, sobald verfügbar." />
         <setting label="Senderliste aktualisieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=radioRefresh)" />
         <setting label="Über Radio" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=radioAbout)" />
         <setting id="radio.history" type="text" label="Zuletzt gehörte Sender" default="" visible="false" />

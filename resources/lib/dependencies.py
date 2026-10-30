@@ -152,6 +152,7 @@ def ensure_all_dependencies():
             _install_addon(addon_id, version)
 
         _enable_addons([addon_id for addon_id, optional, version in installable])
+        _refresh_python_module_paths([addon_id for addon_id, optional, version in installable])
 
         still_missing = [
             addon_id
@@ -187,10 +188,45 @@ def install_addon(addon_id, min_version=None):
 
         _enable_addons([addon_id])
         _refresh_addons()
+        _refresh_python_module_paths([addon_id])
         return _has_addon(addon_id, min_version)
     except Exception as e:
         _log('On-demand install failed for %s: %s' % (addon_id, str(e)), xbmc.LOGERROR)
         return False
+
+
+def _refresh_python_module_paths(addon_ids):
+    """Expose modules installed after Kodi created this Python interpreter.
+
+    Kodi supplies paths at interpreter startup. Its installer stays responsible
+    for packages; read installed module manifests for their declared libraries.
+    """
+    import importlib
+    import xbmcaddon
+    pending, visited = list(addon_ids), set()
+    while pending:
+        addon_id = pending.pop()
+        if addon_id in visited or not addon_id.startswith('script.module.'):
+            continue
+        visited.add(addon_id)
+        try:
+            addon = xbmcaddon.Addon(addon_id)
+            base = os.path.realpath(_translate_path(addon.getAddonInfo('path')))
+            root = ET.parse(os.path.join(base, 'addon.xml')).getroot()
+            if root.get('id') != addon_id:
+                continue
+            module = root.find("extension[@point='xbmc.python.module']")
+            if module is None:
+                continue
+            library = os.path.realpath(os.path.join(base, module.get('library', 'lib')))
+            if os.path.commonpath([base, library]) != base:
+                continue
+            if os.path.isdir(library) and library not in sys.path:
+                sys.path.append(library)
+            pending.extend(node.get('addon', '') for node in root.findall('./requires/import'))
+        except (OSError, ValueError, RuntimeError, ET.ParseError):
+            continue
+    importlib.invalidate_caches()
 
 
 def _dependencies_from_manifest():

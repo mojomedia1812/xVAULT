@@ -1,3 +1,10 @@
+xVAULT 2026.10.30.2 (Nightly)
+Entwickler: mojomedia1812
+
+- Android: Visuals-Hinweis in den Radio-Einstellungen ergänzt; ARM32 und ARM64 werden passend zum Kodi-Prozess ausgewählt, auch auf einem 64-Bit-Kernel mit 32-Bit-Kodi.
+- Separater nativer ARM64-Build für Kodi 21 mit allen sieben Visuals, Neon-Radio-Schriftzug und automatischer optionaler Installation über den passenden Plattformindex.
+- Erstinstallation: frisch nachgeladene Python-Module samt ihren Abhängigkeiten stehen dem bereits laufenden Kodi-Dienst sofort zur Verfügung; der Radio-Visualisierungsmonitor startet dadurch auch ohne zusätzlichen Neustart.
+
 xVAULT 2026.10.29.3 (Nightly)
 Entwickler: mojomedia1812
 

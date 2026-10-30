@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026.10.30.2] - 2026-10-30 (Nightly)
+
+- Visuals-Einstellung um Android / Fire OS ergänzt. Eigenes Android-ARM64-Paket für Kodi 21; die Prozessarchitektur entscheidet auch bei 32-Bit-Kodi auf einem 64-Bit-Kernel.
+- Alle sieben Modi mit dem Neon-Radio-Schriftzug im ARM64-Build; automatische optionale Installation aus dem passenden Plattformindex.
+- Nach der Erstinstallation werden die von Kodi deklarierten Python-Modulpfade einschließlich transitiver Abhängigkeiten auch im laufenden Dienst verfügbar gemacht. Das verhindert dessen Abbruch durch fehlende Importe unmittelbar nach dem automatischen Nachladen.
+
 ## [2026.10.29.3] - 2026-10-29 (Nightly)
 
 - Freigegebener xVAULT-Schriftzug mit diagonalem Neon-Radio in allen sieben Visuals, einschließlich Pastelllinien.
