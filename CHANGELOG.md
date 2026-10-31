@@ -1,5 +1,13 @@
 # Changelog
 
+## [2026.10.31.2] - 2026-10-31 (Nightly)
+
+- „Mein xVAULT“ mit Weiterschauen, nächsten Serienfolgen, zuletzt gehörten Sendern und direktem Zugang zu Radiofavoriten. Persönliche Vorschauen direkt im Hauptmenü, ohne Netzwerkanfragen beim Aufbau.
+- Wiedergabestand auch ohne Sync-Konto alle 30 Sekunden speichern; beim Gerätewechsel den vorhandenen konfliktgesicherten Abgleich verwenden und ID-basierte Positionen unabhängig vom lokalen Wiedergabetitel übernehmen.
+- Serien-Radar über das Serien-Kontextmenü: ausgestrahlte Folgen, Staffelwechsel, sechs Stunden Cache und begrenzte Hintergrundprüfungen. Deutsche Quellen als Anbieterbeobachtung kennzeichnen; keine behauptete Tonspurbestätigung.
+- Radio-Einschlaftimer über Kodis Alarmfunktion; Senderfavoriten direkt erreichbar und einer der sieben Visualisierungsmodi pro Sender speicherbar. Andere Wiedergaben und bewusst geänderte globale Vorgaben schützen.
+- Zentraler Systemcheck für Updates, Originalstatus, Sync, Abhängigkeiten und explizite Diensteprüfung mit passenden Hilfs-/Reparaturaktionen.
+
 ## [2026.10.30.2] - 2026-10-30 (Nightly)
 
 - Visuals-Einstellung um Android / Fire OS ergänzt. Eigenes Android-ARM64-Paket für Kodi 21; die Prozessarchitektur entscheidet auch bei 32-Bit-Kodi auf einem 64-Bit-Kernel.

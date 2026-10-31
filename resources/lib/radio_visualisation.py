@@ -37,9 +37,10 @@ def selected():
     return VISUALIZERS[0] if choice() == 0 else ''
 
 
-def arm(target):
+def arm(target, station_id=None):
     """No network or add-on installation on the playback-critical path."""
     win = window()
+    win.setProperty('xvault.radio.next', json.dumps(dict(target=target, station_id=station_id, created=time.time())))
     win.clearProperty(PENDING)
     visualizer = selected()
     if not visualizer:
@@ -52,7 +53,11 @@ def arm(target):
         xbmcgui.Dialog().notification('xVAULT Radio', 'Visualisierung nicht verfügbar: ' + visualizer.split('.')[-1],
                                       xbmcgui.NOTIFICATION_INFO, 5000)
         return
-    win.setProperty(PENDING, json.dumps(dict(token=uuid.uuid4().hex, target=target,
+    preset = None
+    if station_id:
+        from resources.lib.radio_tools import preset as station_preset
+        preset = station_preset(station_id)
+    win.setProperty(PENDING, json.dumps(dict(token=uuid.uuid4().hex, target=target, preset=preset,
                                            visualizer=visualizer,
                                            created=time.time())))
 
@@ -83,16 +88,35 @@ class RadioPlayer(xbmc.Player):
             # Preserve a deliberate visualizer change through Kodi's own controls.
             if current == active['visualizer']:
                 rpc('Settings.SetSettingValue', {'setting': SETTING, 'value': active['previous']})
+            if 'previous_preset' in active:
+                addon = xbmcaddon.Addon(active['visualizer'])
+                if addon.getSetting('preset') == str(active.get('preset')):
+                    addon.setSetting('preset', active['previous_preset'])
         except Exception as exc:
             xbmc.log('xVAULT radio visualisation restore: ' + type(exc).__name__, xbmc.LOGWARNING)
 
     def onAVStarted(self):
         try:
+            target = self.getPlayingFile().split('|', 1)[0]
+            try:
+                radio = json.loads(window().getProperty('xvault.radio.next') or '{}')
+                if self.isPlayingAudio() and radio.get('target') == target and 0 <= time.time() - radio.get('created', 0) < 120:
+                    window().setProperty('xvault.radio.current', json.dumps(radio))
+                    window().clearProperty('xvault.radio.next')
+                    sleep = json.loads(window().getProperty('xvault.radio.sleep') or '{}')
+                    if sleep and sleep.get('target') != target:
+                        window().clearProperty('xvault.radio.sleep')
+                        xbmc.executebuiltin('CancelAlarm(xvault_radio_sleep,true)')
+                else:
+                    current = json.loads(window().getProperty('xvault.radio.current') or '{}')
+                    if current.get('target') != target:
+                        window().clearProperty('xvault.radio.current')
+            except (ValueError, TypeError):
+                pass
             if not selected():
                 window().clearProperty(PENDING)
                 self.restore()
                 return
-            target = self.getPlayingFile().split('|', 1)[0]
             request = pending()
             if not self.isPlayingAudio() or not request or target != request['target']:
                 if self.active and target != self.active['target']:
@@ -102,6 +126,11 @@ class RadioPlayer(xbmc.Player):
             self.restore()
             previous = rpc('Settings.GetSettingValue', {'setting': SETTING}).get('value', '')
             self.active = dict(request, previous=previous)
+            preset = request.get('preset')
+            if isinstance(preset, int) and 0 <= preset < 7:
+                addon = xbmcaddon.Addon(request['visualizer'])
+                self.active['previous_preset'] = addon.getSetting('preset')
+                addon.setSetting('preset', str(preset))
             result = rpc('Settings.SetSettingValue', {'setting': SETTING, 'value': request['visualizer']})
             if result is not True:
                 self.restore()
@@ -113,12 +142,15 @@ class RadioPlayer(xbmc.Player):
 
     def onPlayBackStopped(self):
         self.restore()
+        window().clearProperty('xvault.radio.current')
+        window().clearProperty('xvault.radio.sleep')
+        xbmc.executebuiltin('CancelAlarm(xvault_radio_sleep,true)')
 
     def onPlayBackEnded(self):
-        self.restore()
+        self.onPlayBackStopped()
 
     def onPlayBackError(self):
-        self.restore()
+        self.onPlayBackStopped()
 
 
 def start_monitor():

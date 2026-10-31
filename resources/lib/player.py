@@ -119,6 +119,8 @@ class player(xbmc.Player):
                     self._sync_watch_base = engine.playback_base(key, 'watch')
             except Exception as exc:
                 log_utils.log('xVAULT sync: pre-playback sync pending: %s' % exc, log_utils.LOGWARNING)
+            from resources.lib.sync import binge_sync
+            binge_sync.prepare_resume(meta, self.name, self.year)
             self.offset = bookmarks().get(self.name, self.year)
 
             from glob import glob
@@ -386,15 +388,15 @@ class player(xbmc.Player):
         self._syncCheckpoint()
 
     def _syncCheckpoint(self, completed=None):
-        if not getattr(self, '_sync_session', None):
-            return
+        self._safePlayerTime()
+        self._safePlayerTotal()
         self._sync_sequence += 1
         self._sync_checkpoint_at = time.monotonic()
         try:
             from resources.lib.sync import binge_sync
             binge_sync.record_playback(
                 self.meta, self.name, self.year, self.currentTime, self.totalTime,
-                completed=completed, push=True, session_id=self._sync_session,
+                completed=completed, push=bool(self._sync_session), session_id=self._sync_session,
                 base_revision=self._sync_base, sequence=self._sync_sequence,
                 watch_base_revision=self._sync_watch_base,
                 record_completion=not self._sync_watch_recorded)

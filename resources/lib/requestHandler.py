@@ -17,6 +17,20 @@ import ipaddress
 import socket
 import zlib
 import http.client
+import threading
+from contextlib import contextmanager
+
+_request_budget = threading.local()
+
+
+@contextmanager
+def bounded_requests(deadline):
+    previous = getattr(_request_budget, 'deadline', None)
+    _request_budget.deadline = deadline
+    try:
+        yield
+    finally:
+        _request_budget.deadline = previous
 
 from resources.lib.control import dataPath, addonName, getSetting, quote_plus
 
@@ -290,6 +304,12 @@ class cRequestHandler:
             return b''.join(chunks).decode('utf-8', 'replace')
 
     def request(self):
+        deadline = getattr(_request_budget, 'deadline', None)
+        if deadline is not None:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError('Background request budget exhausted')
+            return self.request_bounded(timeout=min(3, remaining), budget=remaining)
         if self.caching and self.cacheTime > 0:
             if self.isMemoryCacheActive:
                 sContent = self.__readVolatileCache(self.getRequestUri(), self.cacheTime)

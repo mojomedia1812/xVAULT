@@ -390,6 +390,11 @@ def run_service():
 		pass
 	from resources.lib import updater
 	try:
+		from resources.lib import personal
+		personal.start_background()
+	except Exception as exc:
+		if isLogger: logger.warning('[service]: Persönlicher Startbereich: %s' % type(exc).__name__)
+	try:
 		from resources.lib import distribution
 		distribution.checkpoint('service-start', rehash=True)
 		updater.start_background()

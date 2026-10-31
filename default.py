@@ -135,6 +135,33 @@ if action is None or action == 'root':
         control.infoDialog('Startmenue konnte nicht geladen werden', icon='ERROR', time=4000)
         _finish_action()
 
+elif action in ('personalHome', 'personalContinue', 'personalNext', 'seriesRadar', 'radarToggle', 'radarRefresh', 'radarSources', 'personalPlay', 'personalInfo'):
+    from resources.lib import personal
+    if action == 'personalHome':
+        personal.home()
+    elif action in ('personalContinue', 'personalNext', 'seriesRadar'):
+        personal.show(action)
+    elif action == 'personalPlay':
+        personal.play(json.loads(params.get('sysmeta') or '{}'))
+    elif action == 'radarToggle':
+        personal.toggle(json.loads(params.get('sysmeta') or '{}'))
+    elif action == 'radarRefresh':
+        personal.request_refresh(force=True)
+        control.infoDialog('Serienprüfung angefordert; Ergebnisse erscheinen im Hintergrund.')
+    elif action == 'radarSources':
+        personal.source_check(params.get('id'))
+    else:
+        control.infoDialog('Fortschritt wird bei Wiedergabe gespeichert. Serien im Serien-Kontextmenü vormerken.')
+
+elif action in ('systemCheck', 'systemNetwork', 'systemRepairDependencies'):
+    from resources.lib import system_check
+    if action == 'systemCheck':
+        system_check.home()
+    elif action == 'systemNetwork':
+        system_check.network()
+    else:
+        system_check.repair_dependencies()
+
 elif action == 'pluginInfo':
     from resources.lib import supportinfo
     supportinfo.pluginInfo()
@@ -195,7 +222,7 @@ elif action == 'tvNavigator':
 
 elif action in ('radioNavigator', 'radioGenres', 'radioFamilies', 'radioList', 'radioSearch',
                 'radioFavorites', 'radioRecent', 'radioPlay', 'radioFavoriteToggle',
-                'radioVote', 'radioInfo', 'radioSort', 'radioRefresh', 'radioAbout'):
+                'radioVote', 'radioInfo', 'radioSort', 'radioRefresh', 'radioAbout', 'radioPreset', 'radioSleep', 'radioSleepExpire'):
     from resources.lib import radio
     radio.dispatch(action, params)
     if action not in ('radioNavigator', 'radioGenres', 'radioFamilies', 'radioList',

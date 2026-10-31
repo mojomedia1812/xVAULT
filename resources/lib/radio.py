@@ -420,6 +420,10 @@ def finish(title, cache=True):
 
 
 def home():
+    quick_favorites()
+    from resources.lib import radio_tools
+    sleep = radio_tools.sleep_status()
+    command('Einschlaftimer' + (' · bis ' + time.strftime('%H:%M', time.localtime(sleep['until'])) if sleep else ' · aus'), 'radioSleep')
     folder('Nach Genre', 'radioGenres')
     folder('Nach Senderfamilie', 'radioFamilies')
     folder('Meiste Votes', 'radioList', sort='votes')
@@ -430,7 +434,42 @@ def home():
     command('Sortierung: ' + SORT_LABELS[setting_index('radio.sort', 3)], 'radioSort')
     command('Senderliste aktualisieren', 'radioRefresh')
     command('Über Radio · Deutschland', 'radioAbout')
-    finish('Deutschland')
+    finish('Deutschland', cache=False)
+
+
+def quick_favorites(limit=3):
+    """Direct favourites from Kodi's own records; no catalog/network on entry."""
+    try:
+        entries = list(favorites().items())[:limit]
+    except Exception as exc:
+        xbmc.log('xVAULT Radio favourites preview: ' + type(exc).__name__, xbmc.LOGWARNING)
+        return
+    for identifier, favorite in entries:
+        title = favorite.get('title') or 'Radiosender'
+        item = xbmcgui.ListItem(label='★ ' + title, offscreen=True)
+        item.getMusicInfoTag().setTitle('★ ' + title)
+        item.setArt({'thumb': favorite.get('thumbnail') or 'DefaultMusicSources.png'})
+        item.setProperty('IsPlayable', 'true')
+        item.addContextMenuItems([('Visualisierung für diesen Sender', 'RunPlugin(%s)' % url('radioPreset', id=identifier)),
+                                 ('Einschlaftimer', 'RunPlugin(%s)' % url('radioSleep'))])
+        xbmcplugin.addDirectoryItem(handle(), url('radioPlay', id=identifier), item, False)
+
+
+def recent_programs():
+    try:
+        with xbmcvfs.File(os.path.join(os.path.dirname(cache_path()), 'radio-recent.json')) as stream:
+            rows = json.loads(stream.read())
+        return rows if isinstance(rows, list) else []
+    except (OSError, ValueError, RuntimeError, TypeError):
+        return []
+
+
+def remember_program(station):
+    try:
+        rows = [station] + [s for s in recent_programs() if s.get('id') != station['id']][:9]
+        atomic_json(os.path.join(os.path.dirname(cache_path()), 'radio-recent.json'), json.dumps(rows))
+    except (OSError, ValueError, RuntimeError, TypeError) as exc:
+        xbmc.log('xVAULT Radio recent preview: ' + type(exc).__name__, xbmc.LOGWARNING)
 
 
 def show_genres(params):
@@ -485,6 +524,8 @@ def show_list(params, mode='all'):
                    ('Für diesen Sender abstimmen', 'RunPlugin(%s)' % url('radioVote', id=identifier)),
                    ('Senderinformationen', 'RunPlugin(%s)' % url('radioInfo', id=identifier))]
         item.addContextMenuItems(context)
+        item.addContextMenuItems([('Visualisierung für diesen Sender', 'RunPlugin(%s)' % url('radioPreset', id=identifier)),
+                                 ('Einschlaftimer', 'RunPlugin(%s)' % url('radioSleep'))])
         items.append((url('radioPlay', id=identifier), item, False))
     if items:
         xbmcplugin.addDirectoryItems(handle(), items, totalItems=len(items))
@@ -599,12 +640,13 @@ def play(identifier):
                 progress.close()
                 try:
                     from resources.lib import radio_visualisation
-                    radio_visualisation.arm(target)
+                    radio_visualisation.arm(target, station_id=station['id'])
                 except Exception as exc:
                     xbmc.log('xVAULT Radio visualisation unavailable: ' + type(exc).__name__, xbmc.LOGWARNING)
                 xbmcplugin.setResolvedUrl(handle(), True, item)
                 resolved = True
                 remember('radio.history', station['id'])
+                remember_program(station)
                 threading.Thread(target=api.register_play, args=(fresh['id'],), name='xvault-radio-click', daemon=True).start()
                 return
             raise rb.RadioError('Keine erreichbare Streamvariante gefunden. Bitte später erneut versuchen.')
@@ -619,6 +661,10 @@ def dispatch(action, params):
     folders = {'radioNavigator', 'radioGenres', 'radioFamilies', 'radioList', 'radioSearch',
                'radioFavorites', 'radioRecent'}
     try:
+        if action == 'radioSleepExpire':
+            from resources.lib import radio_tools
+            radio_tools.expire(params.get('token'))
+            return
         if not enabled():
             notify('Radio ist in den Add-on-Einstellungen deaktiviert.')
             if action in folders:
@@ -628,6 +674,14 @@ def dispatch(action, params):
             return
         if action == 'radioNavigator':
             home()
+        elif action == 'radioSleep':
+            from resources.lib import radio_tools
+            radio_tools.set_sleep()
+        elif action == 'radioPreset':
+            from resources.lib import radio_tools
+            station = find(params.get('id'), catalog())
+            if station:
+                radio_tools.choose_preset(station['id'])
         elif action == 'radioGenres':
             show_genres(params)
         elif action == 'radioFamilies':

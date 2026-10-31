@@ -269,6 +269,7 @@
         <setting label="Senderliste aktualisieren" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=radioRefresh)" />
         <setting label="Über Radio" type="action" action="RunPlugin(plugin://plugin.video.xvault/?action=radioAbout)" />
         <setting id="radio.history" type="text" label="Zuletzt gehörte Sender" default="" visible="false" />
+        <setting id="radio.presets" type="text" label="Visualisierung je Sender" default="" visible="false" />
         <setting id="radio.votes" type="text" label="Bestätigte Radio-Stimmen" default="" visible="false" />
     </category>
 

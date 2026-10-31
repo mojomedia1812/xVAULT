@@ -35,9 +35,10 @@ def record_playback(meta, name, year, current_time, total_time, completed=None, 
         'provider': 'xvault',
         'updated_at': iso_now(),
         'extra': {
-            'mediatype': meta.get('mediatype'),
-            'imdb_id': meta.get('imdb_id') or meta.get('imdb'),
+            'mediatype': ('episode' if meta.get('mediatype') != 'movie' and _maybe_int(meta.get('episode')) is not None and _maybe_int(meta.get('season')) is not None else meta.get('mediatype')),
+            'imdb_id': meta.get('imdb_id') or meta.get('imdbnumber') or meta.get('imdb'),
             'tmdb_id': meta.get('tmdb_id'),
+            'meta': {k: meta[k] for k in ('title', 'originaltitle', 'year', 'mediatype', 'tmdb_id', 'imdb_id', 'imdbnumber', 'season', 'episode', 'episode_title', 'episode_premiered', 'poster', 'fanart', 'plot', 'premiered', 'number_of_seasons') if k in meta},
         },
     }
     item['sequence'] = sequence
@@ -88,8 +89,8 @@ def item_key(meta, name, year):
     suffix = '%s:%s' % (season if season is not None else '', episode if episode is not None else '')
     if meta.get('tmdb_id'):
         base = '%s:tmdb:%s:%s' % (kind, meta.get('tmdb_id'), suffix)
-    elif meta.get('imdb_id') or meta.get('imdb'):
-        base = '%s:imdb:%s:%s' % (kind, meta.get('imdb_id') or meta.get('imdb'), suffix)
+    elif meta.get('imdb_id') or meta.get('imdbnumber') or meta.get('imdb'):
+        base = '%s:imdb:%s:%s' % (kind, meta.get('imdb_id') or meta.get('imdbnumber') or meta.get('imdb'), suffix)
     else:
         base = '%s:name:%s:%s:%s' % (kind, (meta.get('title') or name).strip(), year, suffix)
     return hashlib.sha256(base.encode('utf-8')).hexdigest()
@@ -106,6 +107,32 @@ def normalize_legacy_item(item):
 def load_items():
     data = storage.read_json(FILENAME, {'items': []})
     return data.get('items', [])
+
+
+def prepare_resume(meta, name, year):
+    """Apply an ID-matched account position to this device's playback label."""
+    if control.getSetting('bookmarks') != 'true':
+        return
+    extra = dict(meta)
+    extra['imdb_id'] = extra.get('imdb_id') or extra.get('imdbnumber') or extra.get('imdb')
+    probe = {'extra': extra, 'title': meta.get('title') or name, 'name': name,
+             'year': year, 'season': meta.get('season'), 'episode': meta.get('episode')}
+    keys = set(_candidate_keys(probe))
+    def compatible(item):
+        other = item.get('extra') or {}
+        for field in ('tmdb_id', 'imdb_id'):
+            if extra.get(field) and other.get(field) and str(extra[field]) != str(other[field]):
+                return False
+        return bool(keys.intersection(_candidate_keys(item)))
+    matches = [item for item in load_items() if compatible(item)]
+    if not matches:
+        return
+    latest = max(matches, key=lambda i: i.get('updated_at') or '')
+    bookmark = _bookmark_id(name, year)
+    if latest.get('completed') or _is_unwatched_marker(latest):
+        bookmarkDB.remove_query(bookmark, 'bookmarks')
+    elif watch_progress.should_store_resume(latest.get('position_seconds'), latest.get('duration_seconds')):
+        bookmarkDB.save_query(bookmark, str(latest['position_seconds']), 'bookmarks')
 
 
 def save_items(items):
@@ -164,8 +191,11 @@ def _candidate_keys(item):
         keys.append('season:name:%s:%s' % (_norm_title(item.get('title')), season if season is not None else ''))
     if mediatype == 'episode':
         tmdb_id = str(extra.get('tmdb_id') or '')
+        imdb_id = str(extra.get('imdb_id') or '')
         season = _maybe_int(item.get('season'))
         episode = _maybe_int(item.get('episode'))
+        if imdb_id and season is not None and episode is not None:
+            keys.append('episode:imdb:%s:%s:%s' % (imdb_id, season, episode))
         if tmdb_id and season is not None and episode is not None:
             keys.append('episode:tmdb:%s:%s:%s' % (tmdb_id, season, episode))
         keys.append('episode:name:%s:%s:%s' % (_norm_title(item.get('title')), season if season is not None else '', episode if episode is not None else ''))
@@ -546,6 +576,8 @@ def _item_completed(item):
 def _item_mediatype(item):
     extra = item.get('extra') or {}
     mediatype = extra.get('mediatype')
+    if mediatype != 'movie' and item.get('season') is not None and _maybe_int(item.get('episode')) is not None and _maybe_int(item.get('episode')) > 0:
+        return 'episode'
     if mediatype in ('movie', 'episode', 'season', 'tvshow'):
         return mediatype
     if mediatype == 'movie':

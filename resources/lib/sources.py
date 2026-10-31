@@ -33,7 +33,7 @@ _RESOLVEURL_PLUGIN_DOMAINS = None
 _RESOLVEURL_MODULE = None
 
 # für self.sysmeta - zur späteren verwendung als meta
-_params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 1 else dict()
+_params = dict(parse_qsl(sys.argv[2].replace('?',''))) if len(sys.argv) > 2 else dict()
 
 def _resolveurl():
     global _RESOLVEURL_MODULE

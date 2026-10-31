@@ -179,6 +179,29 @@ class DeviceClientTests(unittest.TestCase):
         self.assertFalse(self.binge.completed_items())
         self.assertFalse(self.binge.load_items()[0]['completed'])
 
+    def test_resume_on_other_device_with_localized_title_uses_stable_identity(self):
+        self.progress(1200)
+        self.activate('B')
+        self.assertTrue(self.engine.synchronize())
+        self.settings['B']['bookmarks'] = 'true'
+        original = self.binge.load_items()[0]
+        meta = dict(original['extra'], title='Anderer lokaler Titel', mediatype='movie')
+        self.binge.prepare_resume(meta, 'Anderer lokaler Titel (2026)', '2026')
+        key = self.binge._bookmark_id('Anderer lokaler Titel (2026)', '2026')
+        self.assertEqual(self.bookmarks.get_query(key, 'bookmarks')[1], '1200')
+        # Identical names must not transfer a bookmark to a different TMDb item.
+        other = dict(meta, tmdb_id='definitely-another-id')
+        self.binge.prepare_resume(other, 'Wrong item (2026)', '2026')
+        self.assertFalse(self.bookmarks.get_query(self.binge._bookmark_id('Wrong item (2026)', '2026'), 'bookmarks'))
+
+    def test_episode_metadata_from_series_lists_keeps_episodes_separate(self):
+        for episode in (1, 2):
+            meta = dict(title='Series', tmdb_id='123', mediatype='tvshow', season=1, episode=episode, year=2026)
+            self.binge.record_playback(meta, 'Series S01E%02d' % episode, '2026', 500, 3600, completed=False, push=False)
+        items = self.binge.load_items()
+        self.assertEqual(len(items), 2)
+        self.assertEqual({self.binge._item_mediatype(item) for item in items}, {'episode'})
+
     def test_parallel_playback_conflict_keeps_both_positions(self):
         self.progress(1200, session='a')
         self.activate('B')

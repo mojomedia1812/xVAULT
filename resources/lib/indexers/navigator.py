@@ -13,6 +13,14 @@ addonFanart = control.addonFanart()
 
 class navigator:
 	def root(self):
+		self.addDirectoryItem('Mein xVAULT', 'personalHome', 'DefaultRecentlyAddedEpisodes.png', 'DefaultTVShows.png')
+		try:
+			from resources.lib import personal
+			personal.render_preview()
+			personal.request_refresh()
+		except Exception as exc:
+			from resources.lib import log_utils
+			log_utils.log('xVAULT Startbereich: ' + type(exc).__name__, log_utils.LOGWARNING)
 		from resources.lib import distribution
 		status = distribution.cached_status()
 		if status and (status.get('kodibox', {}).get('detected') or status.get('version_warning') or status.get('integrity', {}).get('state') in ('modified', 'invalid_reference')):
@@ -91,6 +99,7 @@ class navigator:
 		self._endDirectory(category='Werkzeuge / Updates und Version', cache=False)
 
 	def tools_help(self):
+		self.addDirectoryItem('Systemcheck und passende Hilfen', 'systemCheck', 'DefaultAddonProgram.png', 'DefaultAddonProgram.png')
 		self.addDirectoryItem('System- und Supportinformationen anzeigen', 'pluginInfo', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False,
 			description='Zeigt technische Informationen zu Kodi, System, xVAULT, ResolveURL, TMDbHelper und Netzwerk für die Fehlersuche an.')
 		self.addDirectoryItem('Einstellungen auf Fehler prüfen …', 'repairSettings', '06_02_xvault_einstellungen.png', 'DefaultAddonProgram.png', isFolder=False,

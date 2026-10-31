@@ -175,6 +175,8 @@ class tvshows:
 					pass
 				cm.append(('Einstellungen', 'RunPlugin(%s?action=addonSettings)' % sysaddon))
 				item.addContextMenuItems(cm)
+				from resources.lib import personal
+				item.addContextMenuItems([personal.context(sysmeta)])
 
 				sysmeta = control.quote_plus(json.dumps(sysmeta))
 				url = '%s?action=seasons&sysmeta=%s' % (sysaddon, sysmeta)
