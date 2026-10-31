@@ -4,7 +4,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
-Aktueller Release-Stand: `2026.10.28.1`
+Aktueller Release-Stand: `2026.11.01.1`
 
 Aktueller Nightly-Stand: `2026.10.31.2` (`plugin.video.xvault-2026.10.31.2.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
 
@@ -27,6 +27,10 @@ Release `2026.10.28.1` ordnet die Werkzeuge in **Einstellungen**, **Updates und 
 Nightly `2026.10.29.3` ergänzt den freigegebenen xVAULT-Radio-Schriftzug in allen sieben Visuals und einen optimierten OpenGL-ES-Build für Fire OS / Android ARM32 mit Kodi 21. Passende native Pakete werden für Kodi 22 / Windows x86_64 (`22.0.2`) und Kodi 21 / Android ARM32 (`21.0.2`) über plattformbezogene Kodi-Repositorys automatisch nachgeladen. Andere Kombinationen werden übersprungen. Außerdem sind das korrigierte Suchzeitlimit und robustere Sync-Anmeldung/-Statusspeicherung enthalten. Der stabile Release bleibt `2026.10.28.1`.
 
 Nightly `2026.10.30.2` ergänzt Kodi 21 / Android ARM64 mit automatischer Paketauswahl passend zur Kodi-Prozessarchitektur. Alle sieben Visuals, Radiostart, Ein/Aus und gespeicherter Modus sind auf dem Galaxy Note20 5G mit Android 13 / Kodi 21.3 live geprüft. Frisch installierte Python-Abhängigkeiten stehen jetzt auch dem laufenden Dienst zur Verfügung, damit die Radio-Visualisierung nach der Erstinstallation ohne zusätzlichen Neustart startet.
+
+## Release 2026.11.01.1
+
+Stabile Freigabe des Funktionsstands von Nightly 2026.10.30.2 (Commit 91284d4). Das Release-Paket enthält keine späteren Erweiterungen aus Nightly 2026.10.31.2. Der Hauptbranch und der Nightly-Kanal bleiben auf dem neueren Funktionsstand.
 
 ## Mein xVAULT (Nightly 2026.10.31.2)
 

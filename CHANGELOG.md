@@ -1,5 +1,14 @@
 # Changelog
 
+## [2026.11.01.1] - 2026-11-01 (Release)
+
+- Stabiler Release auf Basis der geprüften Nightly 2026.10.30.2; spätere Nightly-Erweiterungen bleiben im Nightly-Kanal.
+- xVAULT-Visuals für Kodi 21 / Android ARM32 und ARM64 sowie Kodi 22 / Windows 64 Bit: sieben Modi mit dem xVAULT-Neon-Radio-Schriftzug, automatische Auswahl passender Plattformpakete und verlässliches Nachladen bei der Erstinstallation.
+- Synchronisation: Anmeldung dauerhaft speichern, Status und letzten Abgleich korrekt anzeigen; offene Löschkonflikte blockieren den Geräteabgleich nicht mehr.
+- Quellensuche: eingestelltes Zeitlimit tatsächlich einhalten. Filmidentität über Anbieter-IDs und Jahr prüfen, widersprüchliche Treffer verwerfen und unbestätigte Quellen nur zur bewussten manuellen Auswahl anbieten.
+- OHA-Anfragen mit HTTPS-Prüfung, begrenzter Antwortgröße und Zeitbudget; Radio kann vollständig deaktiviert werden. Gespeicherte Einstellungen und Favoriten bleiben erhalten.
+- Enthält weiterhin Radio Browser mit deutschen Sendern, Senderfamilien, Genres, Votes und Dublettenerkennung sowie die übersichtliche Werkzeuge-Neugliederung.
+
 ## [2026.10.31.2] - 2026-10-31 (Nightly)
 
 - „Mein xVAULT“ mit Weiterschauen, nächsten Serienfolgen, zuletzt gehörten Sendern und direktem Zugang zu Radiofavoriten. Persönliche Vorschauen direkt im Hauptmenü, ohne Netzwerkanfragen beim Aufbau.
