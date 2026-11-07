@@ -11,6 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 from html import unescape as html_unescape
 from urllib.parse import urlencode, urljoin, urlparse
 from resources.lib import log_utils, utils, control, playback_settings, hoster_compat, movie_identity
+from resources.lib import provider_scope
 from resources.lib.control import py2_decode, py2_encode, quote_plus, parse_qsl
 # from functools import reduce
 from resources.lib.control import getKodiVersion
@@ -526,6 +527,7 @@ class sources:
             meta = self._playbackMetaForSourceItem(params or {})
             if not isinstance(meta, dict):
                 raise Exception('Wiedergabe-Kontext fehlt')
+            self._provider_media = {key: meta.get(key) for key in ('mediatype', 'season', 'episode')}
 
             header = control.addonInfo('name')
             # control.idle() #ok
@@ -826,7 +828,8 @@ class sources:
 #TODO
         self.sources = []
         self.hostDict = self._getHostDict()
-        sourceDict = self.sourceDict
+        self._provider_media = dict(mediatype=getattr(self, 'mediatype', None), season=season, episode=episode)
+        sourceDict = [(name, call) for name, call in self.sourceDict if provider_scope.allowed(name, **self._provider_media)]
         sourceDict = [(i[0], i[1], i[1].priority) for i in sourceDict]
         random.shuffle(sourceDict)
         sourceDict = sorted(sourceDict, key=lambda i: i[2])
@@ -834,6 +837,7 @@ class sources:
         cache_key = self._sourceCacheKey(title, year, imdb, season, episode, originaltitle, premiered, episode_title, episode_premiered, sourceDict)
         series_key = self._seriesCacheKey(title, year, imdb, originaltitle, premiered)
         cached, stale = self._readSourceCache(cache_key, allow_stale=True)
+        cached = [item for item in (cached or []) if provider_scope.allowed(item.get('provider'), **self._provider_media)]
         if cached and not force_refresh:
             self.sources = movie_identity.without_rejected(os.path.join(control.dataPath, 'wrong-content.json'),
                                                           self._filterTemporarilyBlockedHosters(cached))
@@ -1377,6 +1381,8 @@ class sources:
 
 
     def _getSource(self, titles, year, season, episode, imdb, source, call, episode_title=None, episode_premiered=None):
+        if not provider_scope.allowed(source, getattr(self, 'mediatype', None), season, episode):
+            return {'provider': source, 'count': 0, 'status': 'unsupported'}
         try:
             try:
                 call.mediatype = getattr(self, 'mediatype', None)
@@ -1801,6 +1807,13 @@ class sources:
         try:
             if set_url:
                 self.url = None
+            if item.get('provider') == 'movie2k2':
+                media = getattr(self, '_provider_media', None)
+                if media is None:
+                    meta = self._playbackMetaForSourceItem({})
+                    media = {key: meta.get(key) for key in ('mediatype', 'season', 'episode')}
+                if not provider_scope.allowed('movie2k2', **media):
+                    return None
             raw_url = item['url']
             url = raw_url
             direct = item['direct']

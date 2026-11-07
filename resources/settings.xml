@@ -97,7 +97,7 @@
         <setting id="provider.movie2k" type="bool" label="Movie2k" default="true" />
         <setting id="provider.movie2k.domain" label="[B][COLOR red]Movie2k: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.movie2k.check" label="Movie2k Check" type="bool" default="true" visible="false" />
-        <setting id="provider.movie2k2" type="bool" label="Movie2k2" default="true" />
+        <setting id="provider.movie2k2" type="bool" label="Movie2k2 (nur Filme)" default="true" />
         <setting id="provider.movie2k2.domain" label="[B][COLOR red]Movie2k2: PluginError oder Domain nicht erreichbar[/COLOR][/B]" type="text" default="" visible="eq(1,false)" />
         <setting id="provider.movie2k2.check" label="Movie2k2 Check" type="bool" default="true" visible="false" />
         <setting id="provider.movie4k" type="bool" label="Movie4k" default="true" />

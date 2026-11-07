@@ -5,6 +5,7 @@ import random
 import types
 import unittest
 from unittest.mock import Mock
+from resources.lib import provider_scope
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -36,7 +37,7 @@ class SettingsAndSearchTests(unittest.TestCase):
             clock[0] += seconds
         control = types.SimpleNamespace(getSetting=lambda k: {'scrapers.timeout': '35', 'hosts.quality': '0'}.get(k, ''),
                                         abortRequested=False, sleep=sleep)
-        scope = dict(time=types.SimpleNamespace(monotonic=lambda: clock[0]), control=control, random=random,
+        scope = dict(time=types.SimpleNamespace(monotonic=lambda: clock[0]), control=control, random=random, provider_scope=provider_scope,
                      utils=types.SimpleNamespace(getAliases=lambda *a: ([], ''), get_titles_for_search=lambda *a: []),
                      log_utils=types.SimpleNamespace(log=Mock(), LOGERROR=1), PROVIDER_TIMEOUT_TTL=60)
         exec(compile(ast.Module(body=[method], type_ignores=[]), 'sources.py', 'exec'), scope)

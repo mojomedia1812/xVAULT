@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026.11.07.2] - 2026-11-07 (Nightly)
+
+- Movie2k2 ausschließlich für Filme verwenden. Bei Serien, Episoden und Specials den Anbieter vor dem Start der Quellensuche auslassen; auch gespeicherte Quellen und alte Serien-Wiedergabeeinträge können die Einschränkung nicht umgehen. Direkte Aufrufe und der Legacy-Scraper beachten dieselbe Regel.
+- Anbieter in den Einstellungen als „Movie2k2 (nur Filme)“ kennzeichnen. Die Filmsuche und andere Serienanbieter bleiben verfügbar.
+- Movie2k2: den technischen Zusatz „Qualität:“ aus dem erkannten Filmkopf entfernen, damit passende Filmquellen nicht irrtümlich an der Titelprüfung scheitern. Widersprüchliche IDs und Jahre weiterhin ausschließen.
+
 ## [2026.11.01.1] - 2026-11-01 (Release)
 
 - Stabiler Release auf Basis der geprüften Nightly 2026.10.30.2; spätere Nightly-Erweiterungen bleiben im Nightly-Kanal.

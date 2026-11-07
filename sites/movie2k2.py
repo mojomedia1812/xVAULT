@@ -7,6 +7,7 @@ from resources.lib.requestHandler import cRequestHandler
 from resources.lib.tools import logger, cParser
 from scrapers.modules import cleantitle
 from resources.lib import movie_identity
+from resources.lib import provider_scope
 
 try:
     from urllib import parse as urllib_parse
@@ -27,6 +28,8 @@ class source:
         self.ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 
     def run(self, titles, year, season=0, episode=0, imdb=''):
+        if not provider_scope.allowed(SITE_IDENTIFIER, getattr(self, 'mediatype', None), season, episode):
+            return []
         sources = []
         logger.info('Load %s - Start run for: %s' % (SITE_NAME, titles[0]))
         
@@ -47,6 +50,8 @@ class source:
                     continue
 
                 found = movie_identity.from_html(html)
+                # Movie2k2 includes its quality badge inside the film heading.
+                found['title'] = re.sub(r'\s+Qualität\s*:\s*$', '', found.get('title') or '', flags=re.I).strip()
                 is_movie = getattr(self, 'mediatype', None) != 'tvshow' and not season
                 if is_movie and movie_identity.classify(titles, year, imdb, found) == 'conflict':
                     logger.info('[Movie2k2] Filmidentitaet widerspricht der Anfrage; Treffer verworfen')
@@ -79,6 +84,8 @@ class source:
         return sources
 
     def search(self, titles, year, season, episode):
+        if not provider_scope.allowed(SITE_IDENTIFIER, getattr(self, 'mediatype', None), season, episode):
+            return []
         results = []
         search_term = titles[0]
         target_tokens = [cleantitle.get(token) for token in re.split(r'\W+', search_term) if len(cleantitle.get(token)) > 2]

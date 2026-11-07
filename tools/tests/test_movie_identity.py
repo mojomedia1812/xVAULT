@@ -7,6 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from resources.lib import movie_identity as identity
+from resources.lib import provider_scope
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -19,7 +20,7 @@ class IdentityTests(unittest.TestCase):
         nodes = [n for n in tree.body if n in nodes or (isinstance(n, ast.ImportFrom) and n.module in ('html', 'urllib.parse'))]
         parser = types.SimpleNamespace(parse=lambda html, pattern: (bool(re.findall(pattern, html, re.S)), re.findall(pattern, html, re.S)))
         parser_factory = type('Parser', (), {'parse': staticmethod(parser.parse)})
-        scope = dict(movie_identity=identity, getSetting=lambda key, default='': default,
+        scope = dict(movie_identity=identity, provider_scope=provider_scope, getSetting=lambda key, default='': default,
             cleantitle=types.SimpleNamespace(get=identity.title_key), cParser=parser_factory,
             logger=types.SimpleNamespace(**{k: lambda *a: None for k in ('info', 'warning', 'error')}),
             isBlockedHoster=lambda url, **kw: (False, 'Fixture', url, 1),
@@ -76,7 +77,7 @@ class IdentityTests(unittest.TestCase):
         tree = ast.parse((ROOT / 'resources/lib/sources.py').read_text(encoding='utf8'))
         cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'sources')
         method = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == '_getSource')
-        scope = {'movie_identity': identity,
+        scope = {'movie_identity': identity, 'provider_scope': provider_scope,
                  'log_utils': types.SimpleNamespace(log=lambda *a: None, LOGINFO=1)}
         exec(compile(ast.Module(body=[method], type_ignores=[]), 'sources.py', 'exec'), scope)
         for media, expected in [('movie', 0), ('tvshow', 1)]:
@@ -95,7 +96,7 @@ class IdentityTests(unittest.TestCase):
         from urllib import parse
         parser = types.SimpleNamespace(parse=lambda html, pattern: (True, [('/stream/old', 'Buddy'), ('/stream/new', 'Buddy')]))
         req = lambda url: types.SimpleNamespace(addHeaderEntry=lambda *a: None, request=lambda: 'list')
-        scope = dict(re=re, urllib_parse=parse, cRequestHandler=req, cParser=lambda: parser,
+        scope = dict(re=re, urllib_parse=parse, cRequestHandler=req, cParser=lambda: parser, provider_scope=provider_scope, SITE_IDENTIFIER='movie2k2',
                      cleantitle=types.SimpleNamespace(get=identity.title_key), SITE_NAME='Fixture',
                      logger=types.SimpleNamespace(info=lambda *a: None))
         exec(compile(ast.Module(body=[search], type_ignores=[]), 'movie2k2.py', 'exec'), scope)
@@ -132,6 +133,17 @@ class IdentityTests(unittest.TestCase):
         found = scraper.run(['Buddy'], 2026)
         self.assertEqual(len(found), 1)
         self.assertEqual(found[0]['url'], 'https://fixture.test/new')
+        self.assertEqual(found[0]['identity_status'], 'verified')
+
+    def test_movie2k2_quality_badge_is_not_a_title_and_does_not_bypass_year_check(self):
+        scraper, scope = self.provider('movie2k2')
+        scraper.mediatype = 'movie'
+        scraper.search = lambda *a: ['old', 'new']
+        pages = {key: '<h1>Buddy <span>Qualität:</span></h1>Jahr: %s<a onclick="loadMirror(\'https://fixture.test/%s\')">VOE</a>' % (year, key)
+                 for key, year in [('old', 2013), ('new', 2026)]}
+        scope['cRequestHandler'] = lambda url: types.SimpleNamespace(addHeaderEntry=lambda *a: None, request=lambda: pages[url])
+        found = scraper.run(['Buddy'], 2026)
+        self.assertEqual([item['url'] for item in found], ['https://fixture.test/new'])
         self.assertEqual(found[0]['identity_status'], 'verified')
 
     def test_filmpalast_run_selects_correct_year(self):
