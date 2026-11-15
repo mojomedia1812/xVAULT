@@ -1,5 +1,10 @@
 # Changelog
 
+## [2026.11.15.2] - 2026-11-15 (Nightly)
+
+- Fehlerhafte Quellen einzeln statt eines ganzen Hosters sperren. Eindeutige Löschmeldungen 24 Stunden, HTTP 404/410 30 Minuten und vorübergehende Netzwerk-, TLS- oder Serverfehler fünf Minuten merken. Erkannte Fehler nicht erneut mit denselben Resolvern versuchen; gespeicherte Quellen und automatische Ersatzquellen beachten die Sperre. Zertifikatsprüfung bleibt aktiv.
+- Collections: Film-Einträge starten die Quellenauswahl ohne vorzeitige Kennzeichnung als abspielbarer Stream. Dadurch meldet Kodi bei „Standardaktion Verzeichnis“ keinen Wiedergabefehler mehr, bevor eine Quelle gewählt wurde. Dialog und Autoplay bleiben verfügbar.
+
 ## [2026.11.07.2] - 2026-11-07 (Nightly)
 
 - Movie2k2 ausschließlich für Filme verwenden. Bei Serien, Episoden und Specials den Anbieter vor dem Start der Quellensuche auslassen; auch gespeicherte Quellen und alte Serien-Wiedergabeeinträge können die Einschränkung nicht umgehen. Direkte Aufrufe und der Legacy-Scraper beachten dieselbe Regel.

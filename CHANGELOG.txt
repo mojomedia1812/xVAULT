@@ -1,3 +1,11 @@
+xVAULT 2026.11.15.2 (Nightly)
+Entwickler: mojomedia1812
+
+- Collections: Bei Standardaktion Verzeichnis die Quellenliste ohne vorzeitigen Kodi-Wiedergabeversuch öffnen. Dialog und Autoplay bleiben verfügbar.
+- Fehlerhafte Quellen einzeln statt eines ganzen Hosters sperren; andere Uploads desselben Hosters bleiben verfügbar.
+- Eindeutige Löschmeldungen 24 Stunden, HTTP 404/410 30 Minuten und vorübergehende Netzwerk-, TLS- oder Serverfehler fünf Minuten speichern. Erkannte Fehler nicht wiederholt mit denselben Resolvern versuchen; auch gespeicherte Quellen und Ersatzquellen beachten die Sperre.
+- Gleichzeitige Fehlermeldungen aus Autoplay-Prefetch sicher verarbeiten. Zertifikatsprüfung bleibt aktiv. Gelöschte Dateien und externe Server werden dadurch nicht repariert.
+
 xVAULT 2026.11.07.2 (Nightly)
 Entwickler: mojomedia1812
 

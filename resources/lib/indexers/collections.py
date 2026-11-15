@@ -160,7 +160,9 @@ class collections:
 				'plot': self._movie_plot(title, item_data),
 				'overlay': 6,
 			})
-			item.setProperty('IsPlayable', 'true')
+			# This entry starts source selection, just like a regular movie result.
+			# Only the selected source is playable; otherwise Kodi waits for a
+			# resolved video while we open a directory and reports playback failure.
 			item.addContextMenuItems([('Einstellungen', 'RunPlugin(%s?action=addonSettings)' % sysaddon)])
 			url = '%s?action=collectionPlay&slug=%s&title=%s&poster=%s' % (
 				sysaddon,

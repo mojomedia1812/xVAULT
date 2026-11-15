@@ -88,7 +88,7 @@ class StreamTests(unittest.TestCase):
         names = ('sourcesResolve', '_isUsableResolvedUrl', '_looksLikeDirectMediaUrl')
         cls.body = [n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name in names]
         compat = types.SimpleNamespace(is_supported_host=lambda host: False, resolve=lambda url: None)
-        scope = dict(urlparse=urlparse, re=re,
+        scope = dict(urlparse=urlparse, re=re, HOSTER_ERROR_TTL=300,
                      utils=types.SimpleNamespace(test_stream=stream_probe.is_media_stream),
                      hoster_compat=compat, log_utils=types.SimpleNamespace(log=lambda *a: None, LOGWARNING=1, LOGERROR=2))
         exec(compile(ast.Module(body=[cls], type_ignores=[]), 'sources.py', 'exec'), scope)
@@ -98,6 +98,8 @@ class StreamTests(unittest.TestCase):
         resolver._isKnownHosterUrl = lambda url: known_hoster
         resolver._resolveVoeDirect = lambda *a: None
         resolver._resolveWithResolveUrl = lambda *a, **k: None
+        resolver._filterTemporarilyBlockedHosters = lambda rows: rows
+        resolver._markHosterTemporarilyBlocked = lambda *a: None
         return resolver
 
     def item(self, direct=False):

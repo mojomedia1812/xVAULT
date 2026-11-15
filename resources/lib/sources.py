@@ -637,7 +637,8 @@ class sources:
                     selected_index = index
                     break
             ordered = items[selected_index + 1:] + items[:selected_index]
-            return [candidate for candidate in ordered if self._sourceItemKey(candidate) != selected_key]
+            return self._filterTemporarilyBlockedHosters(
+                [candidate for candidate in ordered if self._sourceItemKey(candidate) != selected_key])
         except:
             return []
 
@@ -1184,10 +1185,13 @@ class sources:
                 provider_health.pop(key, None)
         for key, entry in list(hoster_health.items()):
             try:
-                if int(entry.get('blocked_until', 0)) <= now:
+                if not key.startswith('link:') or int(entry.get('blocked_until', 0)) <= now:
                     hoster_health.pop(key, None)
             except:
                 hoster_health.pop(key, None)
+        while len(hoster_health) > 500:
+            oldest = min(hoster_health, key=lambda key: int(hoster_health[key].get('timestamp', 0)))
+            hoster_health.pop(oldest, None)
         while len(series) > SERIES_CACHE_LIMIT:
             oldest = sorted(series.items(), key=lambda item: int(item[1].get('timestamp', 0)))[0][0]
             series.pop(oldest, None)
@@ -1237,13 +1241,12 @@ class sources:
     def _hosterHealthKey(self, item):
         try:
             provider = str(item.get('provider') or '').strip().lower()
-            hoster = self._streamDisplayText(item.get('source') or '').strip().lower()
-            if not hoster:
-                hoster = (urlparse(str(item.get('url') or '').split('|', 1)[0]).hostname or '').lower()
-            hoster = hoster.replace('www.', '')
-            if not provider or not hoster:
+            url = str(item.get('url') or '').strip()
+            if not provider or not url:
                 return ''
-            return '%s|%s' % (provider, hoster)
+            # One removed upload must never suppress other uploads on this host.
+            # Keep query/header identity, but persist only its digest.
+            return 'link:' + hashlib.sha256((provider + '\n' + url).encode('utf-8')).hexdigest()
         except:
             return ''
 
@@ -1264,34 +1267,40 @@ class sources:
                     continue
                 result.append(item)
             if skipped:
-                log_utils.log('Temporär gesperrte Hoster übersprungen: %s' % ', '.join(skipped), log_utils.LOGINFO)
+                log_utils.log('Temporär gesperrte Quellen übersprungen: %s' % ', '.join(skipped), log_utils.LOGINFO)
             return result
         except:
             return items
 
     def _markHosterTemporarilyBlocked(self, item, reason, ttl):
-        try:
-            key = self._hosterHealthKey(item)
-            if not key:
-                return
-            payload = self._readSourceCachePayload()
-            hoster_health = payload.get('hoster_health')
-            if not isinstance(hoster_health, dict):
-                hoster_health = {}
-            hoster_health[key] = {
-                'reason': str(reason or 'error'),
-                'blocked_until': int(time.time()) + int(ttl),
-                'timestamp': int(time.time())
-            }
-            payload['hoster_health'] = hoster_health
-            self._writeSourceCachePayload(payload)
-            log_utils.log(
-                'Hoster temporär gesperrt: Provider %s / Hoster %s (%s)' %
-                (item.get('provider'), item.get('source'), reason),
-                log_utils.LOGWARNING
-            )
-        except:
-            pass
+        from resources.lib.source_failures import HEALTH_LOCK
+        # Autoplay prefetch can report several failures concurrently.
+        with HEALTH_LOCK:
+            try:
+                key = self._hosterHealthKey(item)
+                if not key:
+                    return
+                payload = self._readSourceCachePayload()
+                hoster_health = payload.get('hoster_health')
+                if not isinstance(hoster_health, dict):
+                    hoster_health = {}
+                previous = hoster_health.get(key) or {}
+                if int(previous.get('blocked_until', 0)) > int(time.time()) + int(ttl):
+                    return  # Do not shorten a deleted-link hold in generic callers.
+                hoster_health[key] = {
+                    'reason': str(reason or 'error'),
+                    'blocked_until': int(time.time()) + int(ttl),
+                    'timestamp': int(time.time())
+                }
+                payload['hoster_health'] = hoster_health
+                self._writeSourceCachePayload(payload)
+                log_utils.log(
+                    'Quelle temporär gesperrt: Provider %s / Hoster %s (%s)' %
+                    (item.get('provider'), item.get('source'), reason),
+                    log_utils.LOGWARNING
+                )
+            except:
+                pass
 
     def _promoteSeriesProviders(self, sourceDict, series_key):
         if not series_key:
@@ -1804,6 +1813,7 @@ class sources:
 
 
     def sourcesResolve(self, item, info=False, check_stream=False, set_url=True):
+        from resources.lib import source_failures
         try:
             if set_url:
                 self.url = None
@@ -1824,6 +1834,8 @@ class sources:
                 return None
             if provider == 'huhu' and not self._filterTemporarilyBlockedProviders([(provider, None)]):
                 return None
+            if not self._filterTemporarilyBlockedHosters([item]):
+                return None
             try:
                 call = [i[1] for i in self.sourceDict if i[0] == provider][0]
                 url = call.resolve(url)
@@ -1832,6 +1844,9 @@ class sources:
                     self._markProviderTemporarilyBlocked(provider, exc.xvault_provider_reason,
                                                         getattr(exc, 'xvault_provider_ttl', PROVIDER_ERROR_TTL))
                     return None
+                failure = source_failures.classify(exc)
+                if failure:
+                    raise failure
                 host = (urlparse(str(raw_url).split('|', 1)[0]).hostname or '').lower()
                 if not hoster_compat.is_supported_host(host):
                     raise
@@ -1870,6 +1885,8 @@ class sources:
                             url = resolved_url
                             resolved = True
                             if url == False or url == None or url == '': url = None # raise Exception()
+                    except source_failures.SourceFailure:
+                        raise
                     except:
                         url = None
                     if not resolved:
@@ -1911,7 +1928,10 @@ class sources:
                 return url
             else:
                 raise Exception()
-        except:
+        except Exception as exc:
+            failure = source_failures.classify(exc)
+            self._markHosterTemporarilyBlocked(item, failure.reason if failure else 'resolve_failed',
+                                              failure.ttl if failure else HOSTER_ERROR_TTL)
             if info: self.errorForSources()
             return
 
@@ -1962,7 +1982,12 @@ class sources:
                 return None
             return self._resolveHostedMediaFileAutoPick(hmf)
         except Exception as e:
-            log_utils.log('ResolveURL-Aufloesung fehlgeschlagen: %s' % str(e), log_utils.LOGWARNING)
+            from resources.lib import source_failures
+            failure = source_failures.classify(e)
+            log_utils.log('ResolveURL-Aufloesung fehlgeschlagen: %s' %
+                          (failure.reason if failure else type(e).__name__), log_utils.LOGWARNING)
+            if failure:
+                raise failure
             return None
 
     def _resolveHostedMediaFileAutoPick(self, hmf):
