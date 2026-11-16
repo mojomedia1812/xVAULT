@@ -28,6 +28,13 @@ Meldezeitpunkt in Serverzeit. Sie ist eine Bestandsübersicht, unabhängig vom
 Zeitraum der Diagramme. Beim Update einer Installation wechselt ihr aktueller
 Versionsstand; dies ist keine historische Download- oder Ereigniszählung.
 
+Ein GET-Formular über der Versionsliste grenzt sie nach Release, Nightly, Alpha
+oder Unbekannt ein; „Alle“ hebt den Filter auf. Die Anzeige nennt die Zahl der
+sichtbaren Versionsstände. Der Filter benötigt kein JavaScript, lässt sich per
+`?channel=nightly#xvault-versionen` verlinken und erhält beim Absenden die gewählte
+Diagrammperiode sowie die OS-Auswahl. Andere Tabellen und Diagramme bleiben
+ungefiltert. Ungültige oder als Array übergebene Kanalparameter zeigen „Alle“.
+
 Prüfung: `python -B -m unittest tools.tests.test_stats_channels -v`.
 Die Tests verwenden ausschließlich eine lokale SQLite-Datenbank mit PHP/PDO.
 Live-Abnahme: [16.11.2026](../../tools/diagnostics/STATS_CHANNELS_2026-11-16.md).

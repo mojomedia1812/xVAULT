@@ -52,3 +52,20 @@ Live über HTTPS auf all-stats.de geprüft:
 Private Sicherung des bisherigen Dashboards, Vorher-/Nachher-Aggregate,
 Testnachweise und serverseitige HTML-Ausgabe liegen ausschließlich unter
 `tools/diagnostics/private/2026-11-16/stats/`.
+
+## Ergänzung: Kanalfilter
+
+Über der vollständigen Versionsliste steht ein serverseitiges GET-Formular mit
+„Alle“, „Release“, „Nightly“, „Alpha“ und „Unbekannt“. Die Tabelle nennt sichtbare
+und gesamte Versionsstände. Diagrammzeitraum und OS-Auswahl bleiben beim Anwenden
+erhalten; der Anker führt zur Versionsliste zurück. Kein JavaScript nötig.
+
+Vier lokale Tests einschließlich Filterwechsel, Zurücksetzen, leerer Auswahl,
+ungültiger Parameter und Array-Parameter bestanden. Produktiv den tatsächlich
+bereitgestellten Dashboard-Code über einen temporären geschützten QA-Zugang
+gerendert und alle Filter geprüft: Alle 82, Release 62, Nightly 16, Alpha 1 und
+Unbekannt 3 Versionsstände. Ungültige Parameter ergaben korrekt die gesamte Liste.
+Die Werte sind Momentaufnahmen. Bestehender Dashboard-Code, Authentifizierung,
+Konfiguration und API blieben bytegleich; nur das Statistikmodul wurde ersetzt.
+Keine Datenbankänderungen. QA-Zugang entfernt und HTTP 404 bestätigt.
+Private Prüfbelege liegen im Unterordner `stats/filter/`.

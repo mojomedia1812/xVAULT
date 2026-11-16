@@ -75,6 +75,37 @@ $variantRows = query_rows($pdo, "SELECT variant");
         with self.assertRaises(ValueError):
             upgrade('<?php unexpected_layout();')
 
+    def test_channel_filter_and_reset_keep_sort_order_and_other_selections(self):
+        result = self.php('''
+            $_GET=['range'=>'month','os'=>'Android'];
+            $rows=[
+                ['version'=>'2026.11.16.3','channel'=>'Nightly','installations'=>10,'last_seen'=>''],
+                ['version'=>'2026.11.16.2','channel'=>'Alpha','installations'=>2,'last_seen'=>''],
+                ['version'=>'2026.11.01.1','channel'=>'Release','installations'=>100,'last_seen'=>''],
+            ];
+            $result=[];
+            foreach (['','release','nightly','alpha','unknown','invalid'] as $channel) {
+                $result[$channel]=xvault_stats_versions_html($rows,$channel);
+            }
+            $_GET['channel']=['nightly'];
+            $result['array']=xvault_stats_versions_html($rows);
+            $_GET['channel']='nightly';
+            $result['query']=xvault_stats_versions_html($rows);
+            echo json_encode($result);
+        ''')
+        for channel, label in [('release', 'Release'), ('nightly', 'Nightly'), ('alpha', 'Alpha')]:
+            html = result[channel]
+            self.assertEqual(html.count('data-channel='), 1)
+            self.assertIn('data-channel="' + label + '"', html)
+            self.assertIn('1 von 3 Versionsständen', html)
+            self.assertIn('value="' + channel + '" selected', html)
+            self.assertIn('name="range" value="month"', html)
+            self.assertIn('name="os" value="Android"', html)
+        for channel in ['', 'invalid', 'array']:
+            self.assertEqual(result[channel].count('data-channel='), 3)
+        self.assertIn('Keine Versionsdaten für diesen Kanal', result['unknown'])
+        self.assertEqual(result['query'].count('data-channel='), 1)
+
 
 if __name__ == '__main__':
     unittest.main()
