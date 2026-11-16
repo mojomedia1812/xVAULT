@@ -1,3 +1,10 @@
+xVAULT 2026.11.16.5 (Nightly)
+Entwickler: mojomedia1812
+
+- Film-/Serienstart nach erfolgreicher Quellenauflösung reparieren. Nightly 2026.11.16.3 konnte wegen eines verdeckten uuid-Imports keine Wiedergabe starten; der vollständige Startpfad ist nun zusätzlich mit und ohne angemeldeten Geräte-Sync geprüft.
+- Resident Evil, Matchbox und The Fix im lokalen Kodi über VOE und Byse geprüft, einschließlich der auf der Webseite deutsch markierten Byse-Links. Die Absicherung des direkten Wiedergabewechsels bleibt enthalten.
+- Identischer Programmcode zum lokal geprüften privaten Testbuild 2026.11.16.4; öffentliche Freigabe als höhere Nightly.
+
 xVAULT 2026.11.16.3 (Nightly)
 Entwickler: mojomedia1812
 

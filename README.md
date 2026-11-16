@@ -4,11 +4,13 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
+Nightly `2026.11.16.5` korrigiert den allgemeinen Film-/Serienstartfehler aus `2026.11.16.3`. Erfolgreich aufgelöste Quellen konnten wegen eines verdeckten `uuid`-Imports nicht starten. Der vollständige Startpfad ist mit und ohne Geräte-Sync abgesichert; Resident Evil, Matchbox und The Fix wurden lokal über VOE und Byse geprüft. Der Programmcode entspricht dem privaten Testbuild `2026.11.16.4`. Nutzer der betroffenen Nightly sollten auf `2026.11.16.5` aktualisieren.
+
 Nightly `2026.11.16.3`: Sitzungszuordnung für Film-/Serienwiedergaben beim direkten Wechsel zwischen laufenden Videos. Ein abgelöster Player darf die neue Wiedergabe nicht steuern. Untersuchung und lokale Testnachweise: [Wiedergabewechsel](tools/diagnostics/PLAYBACK_OWNERSHIP_2026-11-16.md).
 
 Aktueller Release-Stand: `2026.11.01.1`
 
-Aktueller Nightly-Stand: `2026.11.16.3` (`plugin.video.xvault-2026.11.16.3.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
+Aktueller Nightly-Stand: `2026.11.16.5` (`plugin.video.xvault-2026.11.16.5.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
 
 Nightly `2026.10.29.2` prüft die Filmidentität zentral anhand der vom Anbieter gelieferten Daten. Widersprüchliche IDs oder Jahre werden ausgeschlossen; unbestätigte Filmquellen bleiben markiert zur manuellen Auswahl, jedoch nicht für Autoplay oder automatische Ersatzversuche. Wenn nur unbestätigte Treffer vorliegen, öffnet sich einmalig die manuelle Auswahl, ohne die gespeicherte Standard-Aktion zu ändern. Movie2k2, Filmpalast, Megakino, Filmo, MoFlix, Movie2k und ID-basierte OHA-/VIXSTREAM-Abfragen liefern zusätzliche Identitätsnachweise. Andere Scraper ohne solche Nachweise bleiben manuell nutzbar. Korrekte Anbietermetadaten garantieren nicht den Inhalt einer falsch belegten Videodatei; dafür blendet „Falscher Film: Quelle 24 Stunden ausblenden“ einen einzelnen Link nur für diesen Film und dieses Gerät aus. OHA (ehemals Huhu) verwendet ungecachte, begrenzte API-Abrufe mit getrennten Fehlergruppen und vorübergehender Pause nach Fehlern. Unter Einstellungen > Radio lässt sich Radio vollständig deaktivieren; gespeicherte Favoriten und Einstellungen bleiben erhalten. Der Release bleibt `2026.10.28.1`.
 

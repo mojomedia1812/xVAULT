@@ -1,5 +1,9 @@
 # Changelog
 
+## [2026.11.16.5] - 2026-11-16 (Nightly)
+
+- Wiedergabestart nach dem Sitzungswechsel-Fix reparieren: Einen späteren lokalen `uuid`-Import entfernen, der den bereits davor benötigten Modulnamen verdeckte. Dadurch scheiterte der vollständige Film-/Serienstart in Nightly 2026.11.16.3 trotz korrekt aufgelöster Quellen mit `UnboundLocalError`. Den vollständigen Startpfad mit und ohne Geräte-Sync zusätzlich absichern.
+
 ## [2026.11.16.3] - 2026-11-16 (Nightly)
 
 - Wiedergabewechsel absichern: Beim direkten Start eines anderen Films oder einer anderen Folge wird der bisherige Player abgelöst. Alte Kodi-Callbacks dürfen weder die neue Wiedergabe verschieben oder stoppen noch eine alte Quelle wiederaufnehmen oder die Navigation zurücksetzen. Fortschritt des bisherigen Titels getrennt speichern; den asynchronen Übergang zwischen beiden Videos berücksichtigen.

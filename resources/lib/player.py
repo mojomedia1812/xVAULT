@@ -121,7 +121,6 @@ class player(xbmc.Player):
             self._sync_watch_recorded = False
             self._sync_checkpoint_at = time.monotonic()
             try:
-                import uuid
                 from resources.lib.sync import engine, binge_sync, storage
                 if storage.is_enabled() and storage.is_logged_in():
                     self._sync_session = str(uuid.uuid4())
