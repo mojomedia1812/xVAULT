@@ -1,5 +1,21 @@
 # Changelog
 
+## [2026.11.17.1] - 2026-11-17 (Release)
+
+- Stabiler Release mit dem vollständigen geprüften Funktionsstand der Nightly 2026.11.16.5. Alle Erweiterungen seit Release 2026.11.01.1 enthalten; Nightly-Kanal bleibt getrennt.
+- Mein xVAULT: persönlicher Startbereich mit Weiterschauen, nächster Serienfolge, zuletzt gehörten Sendern, Radiofavoriten und Serien-Radar direkt beim Einstieg.
+- Gerätewechsel mit Wiedergabeposition: Fortschritt über stabile Inhalts-IDs und den vorhandenen Geräte-Sync übertragen, lokale Zwischenstände regelmäßig sichern und konkurrierende Wiedergaben getrennt behandeln.
+- Serien-Radar: vorgemerkte Serien auf neue Folgen prüfen, Ergebnisse zwischenspeichern und zeitlich begrenzt nach gemeldeten deutschen Quellen suchen. Anbieterangaben bestätigen nicht die tatsächliche Tonspur.
+- Radio-Hörbereich: Einschlaftimer über Kodi, direkter Start der Lieblingssender und bevorzugter Modus aus den sieben xVAULT-Visuals je Sender. Bestehende Visuals-Pakete für Windows, Android und Fire OS bleiben verfügbar.
+- Systemcheck: Updatezustand, Originalstatus, Geräte-Sync, Erreichbarkeit und Abhängigkeiten zentral mit passenden Hilfs- und Reparaturaktionen anzeigen.
+- Movie2k2 ausschließlich bei Filmen nutzen, auch bei alten Quellenkontexten und direkten Aufrufen. Technische Qualitätszusätze verhindern keine korrekte Filmzuordnung mehr.
+- Collections: bei Standardaktion Verzeichnis die Quellenliste ohne vorzeitigen Kodi-Wiedergabeversuch öffnen.
+- Defekte Quellen einzeln zwischenspeichern statt ganze Hoster zu sperren. Gelöschte Uploads und vorübergehende Netzwerkfehler unterschiedlich behandeln; gespeicherte Quellen und Ersatzversuche berücksichtigen die Sperre.
+- Unterbrochene Film-/Serienstreams mit derselben frisch aufgelösten Quelle an der letzten Position fortsetzen. Maximal zwei Versuche, begrenzte Wartezeiten und abbrechbarer Dialog; unter Wiedergabe abschaltbar.
+- Signature: achtsekündiges xVAULT-Startvideo, unter Schnellstart abschaltbar. Keine Unterbrechung laufender Medien und kein erneuter Start bei Zurück-Navigation; automatische Untertitelsuche für diesen Clip unterdrücken.
+- Einschalten: vollständige Titel-, Jahres- und Detailseiten-Metadaten zur Filmidentität auswerten, korrekte Quellen bestätigen und widersprüchliche Treffer weiterhin ausschließen.
+- Direkten Wechsel zwischen laufenden Filmen und Folgen absichern: alte Player dürfen das neue Video weder verschieben oder stoppen noch alte Quellen neu starten. Den UUID-Startfehler der Nightly 2026.11.16.3 beheben; VOE und Byse mit Resident Evil, Matchbox und The Fix lokal geprüft.
+
 ## [2026.11.16.5] - 2026-11-16 (Nightly)
 
 - Wiedergabestart nach dem Sitzungswechsel-Fix reparieren: Einen späteren lokalen `uuid`-Import entfernen, der den bereits davor benötigten Modulnamen verdeckte. Dadurch scheiterte der vollständige Film-/Serienstart in Nightly 2026.11.16.3 trotz korrekt aufgelöster Quellen mit `UnboundLocalError`. Den vollständigen Startpfad mit und ohne Geräte-Sync zusätzlich absichern.

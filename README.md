@@ -4,11 +4,13 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
+Release `2026.11.17.1` übernimmt den vollständigen geprüften Funktionsstand der Nightly `2026.11.16.5`: persönlicher Startbereich, Gerätewechsel mit Fortschritt, Serien-Radar, Radio-Hörbereich und Systemcheck sowie die nachfolgenden Quellen-, Collections-, Wiederaufnahme-, Signature- und Wiedergabekorrekturen. Der Nightly-Kanal bleibt unabhängig.
+
 Nightly `2026.11.16.5` korrigiert den allgemeinen Film-/Serienstartfehler aus `2026.11.16.3`. Erfolgreich aufgelöste Quellen konnten wegen eines verdeckten `uuid`-Imports nicht starten. Der vollständige Startpfad ist mit und ohne Geräte-Sync abgesichert; Resident Evil, Matchbox und The Fix wurden lokal über VOE und Byse geprüft. Der Programmcode entspricht dem privaten Testbuild `2026.11.16.4`. Nutzer der betroffenen Nightly sollten auf `2026.11.16.5` aktualisieren.
 
 Nightly `2026.11.16.3`: Sitzungszuordnung für Film-/Serienwiedergaben beim direkten Wechsel zwischen laufenden Videos. Ein abgelöster Player darf die neue Wiedergabe nicht steuern. Untersuchung und lokale Testnachweise: [Wiedergabewechsel](tools/diagnostics/PLAYBACK_OWNERSHIP_2026-11-16.md).
 
-Aktueller Release-Stand: `2026.11.01.1`
+Aktueller Release-Stand: `2026.11.17.1` (`plugin.video.xvault-2026.11.17.1.zip`)
 
 Aktueller Nightly-Stand: `2026.11.16.5` (`plugin.video.xvault-2026.11.16.5.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
 
