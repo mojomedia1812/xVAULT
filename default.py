@@ -135,6 +135,12 @@ if action is None or action == 'root':
         control.infoDialog('Startmenue konnte nicht geladen werden', icon='ERROR', time=4000)
         _finish_action()
 
+    try:
+        from resources.lib import signature
+        signature.play_on_start()
+    except Exception as exc:
+        _log_startup_warning('signature: %s' % type(exc).__name__)
+
 elif action in ('personalHome', 'personalContinue', 'personalNext', 'seriesRadar', 'radarToggle', 'radarRefresh', 'radarSources', 'personalPlay', 'personalInfo'):
     from resources.lib import personal
     if action == 'personalHome':

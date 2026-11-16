@@ -299,7 +299,7 @@ class sources:
 
             self._shutdownExecutor()
             from resources.lib.player import player
-            if not player().run(title, url, meta):
+            if not player().run(title, url, meta, refresh_source=self._recoveryResolver(getattr(self, 'selectedSourceItem', None))):
                 self.errorForSources('playback_start_failed')
         except Exception as e:
             log_utils.log('Error %s' % str(e), log_utils.LOGERROR)
@@ -602,7 +602,7 @@ class sources:
             meta = self._mergeSelectedStreamMeta(meta, item)
             self._shutdownExecutor()
             from resources.lib.player import player
-            if not player().run(title, self.url, meta):
+            if not player().run(title, self.url, meta, refresh_source=self._recoveryResolver(item)):
                 if self._playFallbackSource(title, meta, item):
                     return self.url
                 self.errorForSources('playback_start_failed')
@@ -611,6 +611,14 @@ class sources:
             log_utils.log('Error %s' % str(e), log_utils.LOGERROR)
         finally:
             self._shutdownExecutor()
+
+    def _recoveryResolver(self, item):
+        if not isinstance(item, dict) or not item.get('url'):
+            return None
+        # Hold the original provider/hoster link only in memory. Never re-use
+        # the resolved CDN URL, a search cache, or a different language/upload.
+        original = dict(item)
+        return lambda: self.sourcesResolve(dict(original), False, True, False)
 
     def _sourceItemKey(self, item):
         try:
@@ -683,7 +691,7 @@ class sources:
                 fallback_meta = self._mergeSelectedStreamMeta(fallback_meta, candidate)
                 self._shutdownExecutor()
                 from resources.lib.player import player
-                if player().run(title, self.url, fallback_meta):
+                if player().run(title, self.url, fallback_meta, refresh_source=self._recoveryResolver(candidate)):
                     return True
 
                 self._ensureExecutor()
@@ -2401,7 +2409,7 @@ class sources:
                     log_utils.LOGINFO
                 )
                 self._shutdownExecutor()
-                if player().run(title, url, playback_meta):
+                if player().run(title, url, playback_meta, refresh_source=self._recoveryResolver(item)):
                     return True
                 self._ensureExecutor()
 

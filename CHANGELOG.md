@@ -1,5 +1,11 @@
 # Changelog
 
+## [2026.11.16.2] - 2026-11-16 (Nightly)
+
+- Einschalten: vollständigen Filmtitel und Jahr der Anbieter-Suchergebnisse sowie Metadaten der Detailseite an die zentrale Identitätsprüfung übergeben. Passende Filme dadurch bestätigt; Titelpräfixe allein reichen nicht mehr. Widersprüchliche Jahre oder IMDb-IDs ausschließen, bei einer falschen Detailseite weitere passende Kandidaten prüfen. Suchbegriffe korrekt URL-kodieren.
+- Signature: bereitgestelltes achtsekündiges xVAULT-Video beim Einstieg abspielen. Unter Werkzeuge > Einstellungen > xVAULT-Einstellungen > Schnellstart als „Signature“ abschaltbar. Kein erneuter Start beim Zurückgehen innerhalb des Add-ons und keine Unterbrechung laufender Medien. Automatische Untertitelsuche nur für dieses Video über die begleitende noautosubs-Datei unterdrücken.
+- Automatische Wiederaufnahme unterbrochener Film-/Serienstreams: dieselbe gewählte Quelle frisch auflösen und mit Kodis StartOffset an der letzten Position fortsetzen. Höchstens zwei Versuche je Sitzung, abbrechbarer Dialog und begrenzte Auflösung. Bewusstes Stoppen, andere neu gestartete Videos, reguläre Enden und Live-Streams werden ausgenommen. Unter Wiedergabe abschaltbar.
+
 ## [2026.11.15.2] - 2026-11-15 (Nightly)
 
 - Fehlerhafte Quellen einzeln statt eines ganzen Hosters sperren. Eindeutige Löschmeldungen 24 Stunden, HTTP 404/410 30 Minuten und vorübergehende Netzwerk-, TLS- oder Serverfehler fünf Minuten merken. Erkannte Fehler nicht erneut mit denselben Resolvern versuchen; gespeicherte Quellen und automatische Ersatzquellen beachten die Sperre. Zertifikatsprüfung bleibt aktiv.

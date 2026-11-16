@@ -3,7 +3,7 @@
 #2021-11-22
 #edit 2025-03-02
 
-import sys, re, json, time
+import sys, re, json, time, threading
 import hashlib,os,codecs
 from sqlite3 import dbapi2 as database
 import xbmc, xbmcplugin
@@ -65,11 +65,21 @@ class player(xbmc.Player):
         self.isdebug = True if control.getSetting('status.debug') == 'true' else False
 
 
-    def run(self, title, url, meta):
+    def run(self, title, url, meta, refresh_source=None):
         from resources.lib import distribution
         distribution.checkpoint('player-start')
         import xbmc
         try:
+            from resources.lib.playback_recovery import RecoveryState
+            self._recovery = RecoveryState()
+            self._refresh_source = refresh_source
+            self._recovery_pending = None
+            self._recovery_internal_stop = False
+            self._recovering = False
+            self._recovery_open_failed = False
+            self._recovery_open_requested = False
+            self._user_stopped = False
+            self._active_stream_url = ''
             self.meta = control.sanitizeMetaArtwork(meta)
             meta = self.meta
             self.mediatype = meta['mediatype']
@@ -148,58 +158,69 @@ class player(xbmc.Player):
                 if self.episode != None:
                     Info.setdefault('Episode', self.episode)
 
-            item = control.item(label=self.playback_name)
-
-            # TS: video/mp2t
-            # HLS: application/x-mpegURL or application/vnd.apple.mpegurl
-            # Dash: application/dash+xml
-            kodiver = int(xbmc.getInfoLabel("System.BuildVersion").split(".")[0])
-            stream_probe_url = url.split('|', 1)[0].split('?', 1)[0].lower()
-            is_hls_manifest = ".m3u" in stream_probe_url or re.search(r'/playlist/\d+(?:/|$)', stream_probe_url) != None
-            is_dash_manifest = '.mpd' in stream_probe_url
-            if is_hls_manifest or is_dash_manifest:
-                adaptive_enabled = _addon_enabled("inputstream.adaptive")
-                if not adaptive_enabled and is_dash_manifest:
-                    log_utils.log('DASH playback requested without enabled InputStream Adaptive', log_utils.LOGWARNING)
-                if adaptive_enabled:
-                    item.setProperty("inputstream", "inputstream.adaptive")
-                    if is_dash_manifest:
-                        if kodiver < 21: item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
-                        item.setMimeType('application/dash+xml')
-                    else:
-                        if kodiver < 21: item.setProperty('inputstream.adaptive.manifest_type', 'hls')
-                        # item.setMimeType("application/vnd.apple.mpegurl")
-                        item.setMimeType('application/x-mpegURL')
-                else:
-                    item.setMimeType('application/dash+xml' if is_dash_manifest else 'application/x-mpegURL')
-                item.setContentLookup(False)
-                if adaptive_enabled and '|' in url:
-                    original_url = url
-                    stream_url, strhdr = url.split('|', 1)
-                    item.setProperty('inputstream.adaptive.common_headers', strhdr)
-                    item.setProperty('inputstream.adaptive.stream_headers', strhdr)
-                    if kodiver > 19: item.setProperty('inputstream.adaptive.manifest_headers', strhdr)
-                    if is_hls_manifest and self._needsManifestHeadersInPath(stream_url):
-                        self._setHlsKeyHeaders(item, strhdr, kodiver)
-                    # Vixcloud lehnt Kodis ersten Manifest-Zugriff ohne die Pipe-Header ab.
-                    url = original_url if self._needsManifestHeadersInPath(stream_url) else stream_url
-
-            item.setPath(url)
-            try:
-                item.setArt({'poster': control.posterArtwork(meta.get('poster'), meta.get('cover_url'))})
-                item.setInfo(type='Video', infoLabels=Info)
-            except:
-                pass
-            item.setProperty('IsPlayable', 'true')
-
-            if int(sys.argv[1]) > 0:
-                xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, item)
-            else:
-                xbmc.Player().play(url, item)
+            self._stream_info = Info
+            self._openStream(url, initial=True)
             return self.keepPlaybackAlive()
         except Exception as e:
             log_utils.log('Playback start failed: %s' % str(e), log_utils.LOGERROR)
             return False
+
+    def _openStream(self, url, initial=False):
+        meta, Info = self.meta, self._stream_info
+        item = control.item(label=self.playback_name)
+
+        # TS: video/mp2t
+        # HLS: application/x-mpegURL or application/vnd.apple.mpegurl
+        # Dash: application/dash+xml
+        kodiver = int(xbmc.getInfoLabel("System.BuildVersion").split(".")[0])
+        stream_probe_url = url.split('|', 1)[0].split('?', 1)[0].lower()
+        is_hls_manifest = ".m3u" in stream_probe_url or re.search(r'/playlist/\d+(?:/|$)', stream_probe_url) != None
+        is_dash_manifest = '.mpd' in stream_probe_url
+        if is_hls_manifest or is_dash_manifest:
+            adaptive_enabled = _addon_enabled("inputstream.adaptive")
+            if not adaptive_enabled and is_dash_manifest:
+                log_utils.log('DASH playback requested without enabled InputStream Adaptive', log_utils.LOGWARNING)
+            if adaptive_enabled:
+                item.setProperty("inputstream", "inputstream.adaptive")
+                if is_dash_manifest:
+                    if kodiver < 21: item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+                    item.setMimeType('application/dash+xml')
+                else:
+                    if kodiver < 21: item.setProperty('inputstream.adaptive.manifest_type', 'hls')
+                    # item.setMimeType("application/vnd.apple.mpegurl")
+                    item.setMimeType('application/x-mpegURL')
+            else:
+                item.setMimeType('application/dash+xml' if is_dash_manifest else 'application/x-mpegURL')
+            item.setContentLookup(False)
+            if adaptive_enabled and '|' in url:
+                original_url = url
+                stream_url, strhdr = url.split('|', 1)
+                item.setProperty('inputstream.adaptive.common_headers', strhdr)
+                item.setProperty('inputstream.adaptive.stream_headers', strhdr)
+                if kodiver > 19: item.setProperty('inputstream.adaptive.manifest_headers', strhdr)
+                if is_hls_manifest and self._needsManifestHeadersInPath(stream_url):
+                    self._setHlsKeyHeaders(item, strhdr, kodiver)
+                # Vixcloud lehnt Kodis ersten Manifest-Zugriff ohne die Pipe-Header ab.
+                url = original_url if self._needsManifestHeadersInPath(stream_url) else stream_url
+
+        item.setPath(url)
+        try:
+            item.setArt({'poster': control.posterArtwork(meta.get('poster'), meta.get('cover_url'))})
+            item.setInfo(type='Video', infoLabels=Info)
+        except:
+            pass
+        item.setProperty('IsPlayable', 'true')
+        # Kodi applies the offset before decoding. This also works on Kodi 21
+        # when a replacement stream's AV callback is delayed or missing.
+        self._resume_via_item = getattr(self, '_recovering', False)
+        if self._resume_via_item:
+            item.setProperty('StartOffset', str(self.offset))
+
+        self._active_stream_url = url
+        if initial and int(sys.argv[1]) > 0:
+            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, item)
+        else:
+            xbmc.Player().play(url, item)
 
     def _playbackLabel(self, name, meta):
         try:
@@ -296,10 +317,24 @@ class player(xbmc.Player):
         last_position = -1.0
         last_progress_at = time.time()
         while (not monitor.abortRequested()) & (not self.streamFinished):
+            if getattr(self, '_recovery_pending', None):
+                if self._tryRecovery(monitor):
+                    stopped_without_callback = 0
+                    last_position = self.currentTime
+                    last_progress_at = time.time()
+                    continue
+                self.playback_failed = not self._user_stopped
+                self.currentTime, self.totalTime = self._recovery.position, self._recovery.duration
+                self._finishPlayback(True, playback_ended=False)
+                if self.playback_failed:
+                    control.infoDialog('Stream konnte nicht fortgesetzt werden. Wiedergabeposition gespeichert.',
+                                       icon='WARNING', time=5000)
+                break
             if self.isPlayingVideo():
                 stopped_without_callback = 0
-                self.totalTime = self.getTotalTime()
-                self.currentTime = self.getTime()
+                self._safePlayerTotal()
+                self._safePlayerTime()
+                self._recovery.observe(self.currentTime, self.totalTime)
                 if time.monotonic() - getattr(self, '_sync_checkpoint_at', 0) >= 30:
                     self._syncCheckpoint()
                 if self._isPlaybackPaused():
@@ -308,6 +343,8 @@ class player(xbmc.Player):
                     last_position = self.currentTime
                     last_progress_at = time.time()
                 elif time.time() - last_progress_at >= PLAYBACK_STALL_TIMEOUT:
+                    if self._requestRecovery('stall'):
+                        continue
                     self.playback_failed = True
                     self.streamFinished = True
                     log_utils.log(
@@ -330,11 +367,120 @@ class player(xbmc.Player):
                     log_utils.log('Playback ohne Stop-Callback beendet: %s' % getattr(self, 'playback_name', ''), log_utils.LOGWARNING)
                     self._finishPlayback(True, playback_ended=False)
                     break
-            monitor.waitForAbort(3)
+            monitor.waitForAbort(1)
 
         self._runDeferredNavigationRestore()
         if self.isdebug: log_utils.log('Ende - keepPlaybackAlive', log_utils.LOGINFO)
-        return not self.playback_failed
+        # Once playback has started, never switch to a different upload after
+        # a mid-stream failure. Recovery owns the error and saved position.
+        return self.playback_started or not self.playback_failed
+
+    def _requestRecovery(self, reason):
+        state = getattr(self, '_recovery', None)
+        if (not state or not callable(getattr(self, '_refresh_source', None))
+                or control.getSetting('playback.recovery.enabled') == 'false'
+                or not state.interrupted(reason, getattr(self, 'mediatype', None),
+                                         getattr(self, '_user_stopped', False))):
+            return False
+        self._recovery_pending = reason
+        return True
+
+    def _ownsRecoveryPlayback(self):
+        try:
+            if not self.isPlaying():
+                return True
+            actual = self.getPlayingFile().split('|', 1)[0]
+            return actual in (self._active_stream_url.split('|', 1)[0],
+                              getattr(self, '_owned_playing_file', '').split('|', 1)[0])
+        except Exception:
+            return False
+
+    def _tryRecovery(self, monitor):
+        state = self._recovery
+        target = state.position
+        reason = self._recovery_pending
+        self._recovery_pending = None
+        self._recovering = True
+        recovered = False
+        dialog = control.progressDialog
+        try:
+            dialog.create(control.addonName, 'Stream unterbrochen – Quelle wird neu aufgelöst …')
+            while state.begin():
+                def cancelled():
+                    if monitor.abortRequested() or self._user_stopped or dialog.iscanceled():
+                        self._user_stopped = True
+                        return True
+                    if not self._ownsRecoveryPlayback():
+                        self._user_stopped = True
+                        return True
+                    return False
+                if cancelled():
+                    return False
+                self._recovery_open_requested = False
+                log_utils.log('Stream-Wiederaufnahme: Versuch %s / %s, Grund %s, Position %.1fs' %
+                              (state.attempts, state.MAX_ATTEMPTS, reason, target), log_utils.LOGINFO)
+                self._syncCheckpoint(completed=False)
+                self._recovery_internal_stop = True
+                if self.isPlaying():
+                    self.stop()
+                    monitor.waitForAbort(.25)
+                self._recovery_internal_stop = False
+                result = []
+                def refresh():
+                    try:
+                        result.append(self._refresh_source())
+                    except Exception:
+                        result.append(None)
+                worker = threading.Thread(target=refresh, name='xvault-stream-recovery', daemon=True)
+                worker.start()
+                deadline = time.monotonic() + state.RESOLVE_TIMEOUT
+                while worker.is_alive() and time.monotonic() < deadline:
+                    if cancelled():
+                        return False
+                    monitor.waitForAbort(.1)
+                if cancelled():
+                    return False
+                # A timed-out worker may finish later, but never gets to start
+                # playback or mutate this attempt's result/state.
+                if worker.is_alive():
+                    return False
+                url = result[0] if result else None
+                if not url or url in ('close://', 'abort://'):
+                    continue
+                self.offset = str(target)
+                self._recovery_av_started = False
+                self._recovery_open_failed = False
+                self._recovery_open_requested = True
+                self._openStream(url, initial=False)
+                deadline = time.monotonic() + PLAYBACK_START_TIMEOUT
+                while time.monotonic() < deadline and not self._recovery_open_failed:
+                    if cancelled():
+                        return False
+                    if self.isPlayingVideo():
+                        try:
+                            position = self.getTime()
+                            if target - .5 <= position <= target + 5:
+                                self.currentTime = position
+                                self.playback_failed = False
+                                log_utils.log('Stream-Wiederaufnahme erfolgreich bei %.1fs' % position,
+                                              log_utils.LOGINFO)
+                                recovered = True
+                                return True
+                        except Exception:
+                            pass
+                    monitor.waitForAbort(.1)
+                self._recovery_open_requested = False
+            return False
+        finally:
+            self._recovery_internal_stop = False
+            self._recovery_open_requested = False
+            # Stop only our failed replacement, never a newly selected video.
+            if not recovered and self._ownsRecoveryPlayback():
+                self._recovery_internal_stop = True
+                self._stopFailedPlayback()
+                self._recovery_internal_stop = False
+            self._recovering = False
+            dialog.close()
 
     def _closePlaybackBusyDialogs(self):
         try:
@@ -369,11 +515,26 @@ class player(xbmc.Player):
 
 
     def onAVStarted(self):
+        if getattr(self, '_recovering', False):
+            try:
+                if (not self._recovery_open_requested or
+                        self.getPlayingFile().split('|', 1)[0] != self._active_stream_url.split('|', 1)[0]):
+                    self._user_stopped = True
+                    return
+            except Exception:
+                self._user_stopped = True
+                return
         if self.isdebug: log_utils.log('Start - onAVStarted', log_utils.LOGINFO)
         self.playback_started = True
         self._telemetryEvent('playback_started')
         control.execute('Dialog.Close(all,true)')
-        if not self.offset == '0': self.seekTime(float(self.offset))
+        try:
+            self._owned_playing_file = self.getPlayingFile()
+        except Exception:
+            pass
+        if not self.offset == '0' and not getattr(self, '_resume_via_item', False):
+            self.seekTime(float(self.offset))
+        self._recovery_av_started = True
         self.idleForPlayback()
         if control.getSetting('subtitles') == 'true':
             subtitles().get(self.name, self.imdb, self.season, self.episode)
@@ -409,13 +570,28 @@ class player(xbmc.Player):
         self._traktStart()
 
     def onPlayBackStopped(self):
+        if getattr(self, '_recovery_internal_stop', False):
+            return
+        self._user_stopped = True
+        self._recovery_pending = None
         self._finishPlayback(True, playback_ended=False)
 
     def onPlayBackEnded(self):
+        if getattr(self, '_recovering', False):
+            if self._recovery_open_requested:
+                self._recovery_open_failed = True
+            return
+        if self._requestRecovery('eof'):
+            return
         self._finishPlayback(not self.queue_playback or self.queue_last, playback_ended=True)
         if self.isdebug: log_utils.log('Ende - onPlayBackEnded', log_utils.LOGINFO)
 
     def onPlayBackError(self):
+        if getattr(self, '_recovering', False):
+            self._recovery_open_failed = True
+            return
+        if self._requestRecovery('error'):
+            return
         log_utils.log('Playback-Fehler vor oder waehrend der Wiedergabe: %s' % getattr(self, 'playback_name', ''), log_utils.LOGWARNING)
         self.playback_failed = True
         self._telemetryEvent('playback_failed', 'player_error')
@@ -431,7 +607,7 @@ class player(xbmc.Player):
         if self.isdebug: log_utils.log('Start - onPlayBackStopped', log_utils.LOGINFO)
         self.runVideoDB()
         self.streamFinished = True
-        completed = self._completed(playback_ended)
+        completed = False if self.playback_failed else self._completed(playback_ended)
         if completed:
             self.currentTime = self.totalTime if self.totalTime else self.currentTime
             if not self.watcher_control:

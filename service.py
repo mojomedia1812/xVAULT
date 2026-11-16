@@ -439,6 +439,11 @@ def run_service():
 
 
 if __name__ == "__main__":
+    try:
+        from resources.lib import signature
+        signature.start_monitor()
+    except Exception:
+        pass
     from resources.lib import update_maintenance
     update_maintenance.started()
     try:

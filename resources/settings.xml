@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
     <category label="Schnellstart">
+        <setting id="signature.enabled" type="bool" label="Signature" default="true" />
         <setting label="Standard-Aktion für Streams wählen" type="action" action="RunPlugin(&quot;plugin://plugin.video.xvault/?action=setPlaybackMode&quot;)" />
         <setting id="progress.dialog" type="enum" label="Fortschrittsdialog" values="Vordergrund|Hintergrund" default="1" />
         <setting id="fanart" type="bool" label="Fanart verwenden" default="true" />
@@ -20,6 +21,8 @@
         <setting type="lsep" label="Fortsetzen" />
         <setting id="bookmarks" type="bool" label="Wiedergabeposition speichern" default="true" />
         <setting id="bookmarks.auto" type="bool" label="Automatisch an letzter Position fortsetzen" default="true" enable="!eq(-1,false)" />
+        <setting id="playback.recovery.enabled" type="bool" label="Streamabbrüche automatisch wiederaufnehmen" default="true" />
+        <setting type="text" label="Dieselbe Quelle frisch auflösen und fortsetzen. Höchstens zwei Versuche; bei Stop oder regulärem Ende kein Neustart." />
         <setting type="lsep" label="Gesehen-Status" />
         <setting type="text" label="[COLOR blue]Auf leistungsschwachen Geräten kann die Statusanzeige etwas mehr Zeit benötigen.[/COLOR]" />
         <setting id="status.refresh.movies" type="bool" label="Filme: Gesehen-Status aktualisieren" default="true" />

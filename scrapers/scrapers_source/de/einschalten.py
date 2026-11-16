@@ -5,10 +5,11 @@ import json
 from scrapers.modules.tools import cParser
 from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import cleantitle, dom_parser, source_utils
-from resources.lib.control import getSetting, setSetting, urljoin
+from resources.lib.control import getSetting, setSetting, urljoin, quote_plus
 from resources.lib.utils import isBlockedHoster
 import xbmc
 import xbmcgui
+from resources.lib import movie_identity
 
 SITE_IDENTIFIER = 'einschalten'
 import sys, os; sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..")); from resources.lib import log_utils
@@ -26,11 +27,17 @@ class source:
         self.sources = []
 
     def run(self, titles, year, season=0, episode=0, imdb='', hostDict=None):
-        t = [cleantitle.get(i) for i in set(titles) if i]
+        self.sources = []
+        queries = list(dict.fromkeys(i for i in titles if i))
+        t = [cleantitle.get(i) for i in queries]
         links = []
+        seen = set()
+        is_movie = (getattr(self, 'mediatype', 'movie') not in ('tvshow', 'episode', 'season', 'tv')
+                    and str(season) in ('0', '', 'None') and str(episode) in ('0', '', 'None'))
+
         try:
-            for sSearchText in set(titles):
-                URL_SEARCH = self.search_link % sSearchText
+            for sSearchText in queries:
+                URL_SEARCH = self.search_link % quote_plus(sSearchText)
                 oRequest = cRequestHandler(URL_SEARCH, caching=True)
                 sHtmlContent = oRequest.request()
                 pattern = r'class="group.*?title="([^"]+).*?href="([^"]+).*?span>(\d+)'
@@ -39,23 +46,35 @@ class source:
                 for sName, sUrl, sYear in aResult:
                     sYear = int(sYear) if sYear.isdigit() else 0
 
-                    if season == 0:
-                        if cleantitle.get(sName.split('-')[0].strip()) in t and sYear == int(year):
-                            links.append(sUrl)
-                            break
-                    else:
-                        if cleantitle.get(sName.split('-')[0].strip()) in t and f'staffel {str(season)}' in sName.lower():
-                            links.append(sUrl)
-                            break
+                    observed = {'title': movie_identity.text(sName), 'year': movie_identity.year_value(sYear)}
+                    if is_movie:
+                        if movie_identity.classify(titles, year, imdb, observed) != 'verified':
+                            continue
+                    elif not (cleantitle.get(sName.split('-')[0].strip()) in t and f'staffel {str(season)}' in sName.lower()):
+                        continue
+                    if sUrl not in seen:
+                        seen.add(sUrl)
+                        links.append((sUrl, observed))
                 if len(links) > 0: break
             if len(links) == 0:
                 return self.sources
-            for link in links:
+            for link, observed in links:
                 try:
+                    found = observed
+                    if is_movie:
+                        try:
+                            detail = cRequestHandler(urljoin(self.base_link, link), caching=True).request()
+                        except Exception:
+                            detail = ''
+                        # Fallbacks are observed provider-card values, never the
+                        # requested label/year. Detail conflicts always win.
+                        found = movie_identity.from_html(detail, observed['title'], observed['year'])
+                        if movie_identity.classify(titles, year, imdb, found) == 'conflict':
+                            continue
                     sUrl = self.base_link + '/api' + link + '/watch'
                     sHtmlContent = cRequestHandler(sUrl).request()
                     if 'streamUrl' not in sHtmlContent:
-                        log_utils.log(f'[EINSCHALTEN DEBUG] API-Antwort enthält kein "streamUrl": {sHtmlContent[:100]}...', xbmc.LOGWARNING)
+                        log_utils.log('[EINSCHALTEN] API-Antwort enthält keinen Stream', xbmc.LOGWARNING)
                         continue
                     jResult = json.loads(sHtmlContent)
                     releaseName = jResult.get('releaseName', '')
@@ -79,7 +98,13 @@ class source:
                     isBlocked, hoster, url, prioHoster = isBlockedHoster(streamUrl)
                     if isBlocked:
                         continue
-                    self.sources.append({'source': hoster, 'quality': quality, 'language': 'de', 'url': streamUrl, 'direct': False, 'prioHoster': prioHoster})
+                    row = {'source': hoster, 'quality': quality, 'language': 'de', 'url': streamUrl, 'direct': False, 'prioHoster': prioHoster}
+                    if is_movie:
+                        self.sources.extend(movie_identity.annotate([row], titles, year, imdb, found))
+                    else:
+                        self.sources.append(row)
+                    if self.sources:
+                        break
                 except Exception as e:
                     continue
             return self.sources

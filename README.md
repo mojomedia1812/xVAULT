@@ -6,7 +6,7 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 Aktueller Release-Stand: `2026.11.01.1`
 
-Aktueller Nightly-Stand: `2026.11.15.2` (`plugin.video.xvault-2026.11.15.2.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
+Aktueller Nightly-Stand: `2026.11.16.2` (`plugin.video.xvault-2026.11.16.2.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
 
 Nightly `2026.10.29.2` prüft die Filmidentität zentral anhand der vom Anbieter gelieferten Daten. Widersprüchliche IDs oder Jahre werden ausgeschlossen; unbestätigte Filmquellen bleiben markiert zur manuellen Auswahl, jedoch nicht für Autoplay oder automatische Ersatzversuche. Wenn nur unbestätigte Treffer vorliegen, öffnet sich einmalig die manuelle Auswahl, ohne die gespeicherte Standard-Aktion zu ändern. Movie2k2, Filmpalast, Megakino, Filmo, MoFlix, Movie2k und ID-basierte OHA-/VIXSTREAM-Abfragen liefern zusätzliche Identitätsnachweise. Andere Scraper ohne solche Nachweise bleiben manuell nutzbar. Korrekte Anbietermetadaten garantieren nicht den Inhalt einer falsch belegten Videodatei; dafür blendet „Falscher Film: Quelle 24 Stunden ausblenden“ einen einzelnen Link nur für diesen Film und dieses Gerät aus. OHA (ehemals Huhu) verwendet ungecachte, begrenzte API-Abrufe mit getrennten Fehlergruppen und vorübergehender Pause nach Fehlern. Unter Einstellungen > Radio lässt sich Radio vollständig deaktivieren; gespeicherte Favoriten und Einstellungen bleiben erhalten. Der Release bleibt `2026.10.28.1`.
 
@@ -97,6 +97,16 @@ Zum Bauen wird Python mit `cryptography` sowie der private Release-Schluessel au
 - Gesehene Folgen, Staffeln und Serien werden aus den aktuellen Wiedergabeständen abgeleitet.
 
 ## Funktionen
+
+### Nightly 2026.11.16.2
+
+**Einschalten:** Die Filmerkennung übergibt den vollständigen Titel und das Jahr der gefundenen Anbieterkarte sowie Metadaten der verlinkten Detailseite an die zentrale Identitätsprüfung. Ein gemeinsamer Titelanfang vor einem Bindestrich reicht nicht mehr. Jahr-/IMDb-Widersprüche bleiben ausgeschlossen. Ist die Detailseite vorübergehend nicht erreichbar, werden ausschließlich die bereits beobachteten Werte der Anbieterkarte verwendet, keine Daten aus der Suchanfrage erfunden. Im lokalen Kodi mit „Alien – Das unheimliche Wesen aus einer fremden Welt“ (1979) live geprüft.
+
+**Signature:** Das mitgelieferte achtsekündige 1080p-Video wird beim Einstieg in xVAULT mit Kodis Player abgespielt. Unter Werkzeuge > Einstellungen > xVAULT-Einstellungen > Schnellstart > Signature lässt sich die standardmäßig aktivierte Funktion abschalten. Die Navigation innerhalb desselben Add-on-Besuchs startet das Video nicht erneut; nach dem Verlassen wird der nächste Einstieg wieder freigegeben. Bereits laufende Medien werden nicht ersetzt. Die Videodatei bleibt unverändert und liegt lokal im Add-on; keine externe Videoverbindung ist erforderlich. Eine begleitende `signature.noautosubs` verhindert bei unterstützenden Untertitel-Diensten die automatische Suche für diesen kurzen Clip.
+
+Die automatische Stream-Wiederaufnahme löst bei einem erkannten Fehler, vorzeitigem Ende oder 90 Sekunden Stillstand dieselbe zuvor gewählte Film-/Serienquelle frisch auf. Kodis native StartOffset-Eigenschaft übernimmt die letzte Position ohne neue Fortsetzen-Abfrage. Maximal zwei Versuche pro Sitzung; die Auflösung ist auf 20 Sekunden je Versuch begrenzt, der Start auf 45 Sekunden. Der Dialog ist abbrechbar. Live-Streams und Quellen ohne bekannte Dauer werden nicht neu gestartet. In den letzten zehn Sekunden beziehungsweise letzten zwei Prozent erfolgt kein automatischer Neustart. Stoppen oder der Start eines anderen Videos beendet die Wiederherstellung. Nach erfolgter Wiedergabe wird nicht unbemerkt auf eine andere Quelle gewechselt. Unter Einstellungen > Wiedergabe > Streamabbrüche automatisch wiederaufnehmen kann die Funktion abgeschaltet werden. Lokal auf Kodi 22 RC1 und Fire TV / Kodi 21.3 mit kontrollierten Verbindungsabbrüchen geprüft.
+
+### Veröffentlichte Funktionen
 
 - Suche und Wiedergabe von Filmen, TV-Serien und LiveTV.
 - Film- und Serienlisten können über TMDb-Watch-Provider nach Streaming-Anbietern im deutschen Markt gefiltert werden; danach nutzt xVAULT weiterhin die normale Quellen- und Resolverlogik.

@@ -96,7 +96,7 @@ class CollectionSourceSelectionTests(unittest.TestCase):
             control=control, json=json, sys=types.SimpleNamespace(argv=['plugin://plugin.video.xvault/', '7', '']),
             quote_plus=quote_plus, py2_encode=lambda v: v,
             playback_settings=types.SimpleNamespace(get_mode=lambda: mode, normalize_mode=lambda v, default=None: v),
-            log_utils=Mock()), methods=('get', 'play'))
+            log_utils=Mock()), methods=('get', 'play', '_recoveryResolver'))
         obj = cls()
         obj._enforceStreamLanguageSelectionMode = lambda value: value
         obj.getSources = Mock(return_value=[{'identity_status': 'verified'}])

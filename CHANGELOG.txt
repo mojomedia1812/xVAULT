@@ -1,3 +1,10 @@
+xVAULT 2026.11.16.2 (Nightly)
+Entwickler: mojomedia1812
+
+- Unterbrochene Film-/Serienstreams automatisch wiederaufnehmen: dieselbe gewählte Quelle frisch auflösen und an der letzten Position fortsetzen. Maximal zwei Versuche je Sitzung; Stoppen, Abbrechen, andere neu gestartete Videos und reguläre Enden werden berücksichtigt. Unter Wiedergabe abschaltbar.
+- Signature: bereitgestelltes achtsekündiges xVAULT-Startvideo mit Ton. Unter Schnellstart als Signature abschaltbar. Kein Doppelstart beim Zurückgehen oder Menüaufbau; bestehende Medien werden nicht unterbrochen. Automatische Untertitelsuche nur für diesen Clip unterdrücken.
+- Einschalten: vollständigen Anbietertitel und Jahr sowie Detailseiten-Metadaten an die zentrale Filmidentitätsprüfung übergeben. Passende Quellen bestätigt, widersprüchliche Jahre/IMDb-IDs und bloße Titelpräfixe ausgeschlossen. Suchbegriffe korrekt kodieren und weitere passende Kandidaten bei fehlerhafter Detailseite prüfen.
+
 xVAULT 2026.11.15.2 (Nightly)
 Entwickler: mojomedia1812
 
