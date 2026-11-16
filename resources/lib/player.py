@@ -4,7 +4,7 @@
 #edit 2025-03-02
 
 import sys, re, json, time, threading
-import hashlib,os,codecs
+import hashlib,os,codecs,uuid
 from sqlite3 import dbapi2 as database
 import xbmc, xbmcplugin
 from resources.lib.control import py2_encode, translatePath, executebuiltin
@@ -24,6 +24,8 @@ PLAYBACK_START_TIMEOUT = 45
 PLAYBACK_STALL_TIMEOUT = 90
 ANDROID_NAVIGATION_RESTORE_DELAY = 8
 CONTAINER_IDLE_TIMEOUT = 18
+PLAYBACK_OWNER = 'plugin.video.xvault.playback.owner'
+PLAYBACK_INTENT = 'plugin.video.xvault.playback.intent'
 
 
 def _addon_enabled(addon_id):
@@ -62,6 +64,9 @@ class player(xbmc.Player):
         self.restore_navigation_pending = False
         self.restore_position_pending = False
         self._last_container_restore_updated = False
+        self._playback_token = None
+        self._intent_token = None
+        self._superseded = False
         self.isdebug = True if control.getSetting('status.debug') == 'true' else False
 
 
@@ -70,6 +75,8 @@ class player(xbmc.Player):
         distribution.checkpoint('player-start')
         import xbmc
         try:
+            self._intent_token = uuid.uuid4().hex
+            control.window.setProperty(PLAYBACK_INTENT, self._intent_token)
             from resources.lib.playback_recovery import RecoveryState
             self._recovery = RecoveryState()
             self._refresh_source = refresh_source
@@ -159,13 +166,20 @@ class player(xbmc.Player):
                     Info.setdefault('Episode', self.episode)
 
             self._stream_info = Info
-            self._openStream(url, initial=True)
+            if self._openStream(url, initial=True) is False:
+                return True  # A newer playback request superseded this one.
             return self.keepPlaybackAlive()
         except Exception as e:
             log_utils.log('Playback start failed: %s' % str(e), log_utils.LOGERROR)
             return False
 
     def _openStream(self, url, initial=False):
+        if initial or not getattr(self, '_playback_token', None):
+            if not self._claimPlaybackOwnership():
+                return False
+        elif not self._hasPlaybackOwnership():
+            self._retirePlayback()
+            return False
         meta, Info = self.meta, self._stream_info
         item = control.item(label=self.playback_name)
 
@@ -216,11 +230,61 @@ class player(xbmc.Player):
         if self._resume_via_item:
             item.setProperty('StartOffset', str(self.offset))
 
+        if not self._hasPlaybackOwnership():
+            self._retirePlayback()
+            return False
         self._active_stream_url = url
         if initial and int(sys.argv[1]) > 0:
             xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, item)
         else:
             xbmc.Player().play(url, item)
+
+    def _claimPlaybackOwnership(self):
+        token = getattr(self, '_intent_token', None)
+        if token and control.window.getProperty(PLAYBACK_INTENT) != token:
+            self._retirePlayback()
+            return False
+        if not token:
+            token = uuid.uuid4().hex
+            self._intent_token = token
+            control.window.setProperty(PLAYBACK_INTENT, token)
+        self._playback_token = token
+        control.window.setProperty(PLAYBACK_OWNER, token)
+        return True
+
+    def _hasPlaybackOwnership(self):
+        token = getattr(self, '_playback_token', None)
+        return (not getattr(self, '_superseded', False) and bool(token)
+                and control.window.getProperty(PLAYBACK_OWNER) == token)
+
+    def _retirePlayback(self):
+        # Keep A's last sampled progress. Never read B's time, stop B, or
+        # schedule A's navigation/recovery after ownership has moved on.
+        self._superseded = True
+        self._user_stopped = True
+        self._recovery_pending = None
+        self.restore_navigation_pending = False
+        self.restore_position_pending = False
+        if not self.streamFinished:
+            self._finishPlayback(False, playback_ended=False)
+        self.streamFinished = True
+
+    def _acceptPlaybackCallback(self):
+        if not getattr(self, '_playback_token', None):
+            return False  # This player is still preparing its own stream.
+        if not self._hasPlaybackOwnership():
+            self._retirePlayback()
+            return False
+        if not self.playback_started:
+            # Kodi still exposes A while the asynchronous open of B is pending.
+            # Its final callbacks must neither finish B nor make B adopt A.
+            if not self.isPlaying() or not self._ownsRecoveryPlayback():
+                return False
+        if (getattr(self, '_owned_playing_file', None) and self.isPlaying()
+                and not self._ownsRecoveryPlayback()):
+            self._retirePlayback()
+            return False
+        return not self.streamFinished
 
     def _playbackLabel(self, name, meta):
         try:
@@ -286,9 +350,12 @@ class player(xbmc.Player):
         if self.isdebug: log_utils.log('Start - keepPlaybackAlive', log_utils.LOGINFO)
         started = False
         for i in range(0, PLAYBACK_START_TIMEOUT):
+            if not self._hasPlaybackOwnership():
+                self._retirePlayback()
+                return True
             if self.streamFinished:
                 break
-            if self.isPlayingVideo():
+            if self.isPlayingVideo() and self._ownsRecoveryPlayback():
                 started = True
                 self.playback_started = True
                 break
@@ -317,6 +384,9 @@ class player(xbmc.Player):
         last_position = -1.0
         last_progress_at = time.time()
         while (not monitor.abortRequested()) & (not self.streamFinished):
+            if not self._ownsRecoveryPlayback():
+                self._retirePlayback()
+                break
             if getattr(self, '_recovery_pending', None):
                 if self._tryRecovery(monitor):
                     stopped_without_callback = 0
@@ -376,6 +446,8 @@ class player(xbmc.Player):
         return self.playback_started or not self.playback_failed
 
     def _requestRecovery(self, reason):
+        if not self._hasPlaybackOwnership():
+            return False
         state = getattr(self, '_recovery', None)
         if (not state or not callable(getattr(self, '_refresh_source', None))
                 or control.getSetting('playback.recovery.enabled') == 'false'
@@ -386,6 +458,8 @@ class player(xbmc.Player):
         return True
 
     def _ownsRecoveryPlayback(self):
+        if not self._hasPlaybackOwnership():
+            return False
         try:
             if not self.isPlaying():
                 return True
@@ -491,6 +565,8 @@ class player(xbmc.Player):
             pass
 
     def _stopFailedPlayback(self):
+        if not self._ownsRecoveryPlayback():
+            return
         try:
             if self.isPlaying():
                 self.stop()
@@ -515,6 +591,8 @@ class player(xbmc.Player):
 
 
     def onAVStarted(self):
+        if not self._acceptPlaybackCallback():
+            return
         if getattr(self, '_recovering', False):
             try:
                 if (not self._recovery_open_requested or
@@ -545,6 +623,8 @@ class player(xbmc.Player):
         if self.isdebug: log_utils.log('Ende - onAVStarted', log_utils.LOGINFO)
 
     def onPlayBackPaused(self):
+        if not self._acceptPlaybackCallback():
+            return
         self._traktPause()
         self._syncCheckpoint()
 
@@ -567,9 +647,13 @@ class player(xbmc.Player):
             log_utils.log('xVAULT sync: playback checkpoint pending: %s' % exc, log_utils.LOGWARNING)
 
     def onPlayBackResumed(self):
+        if not self._acceptPlaybackCallback():
+            return
         self._traktStart()
 
     def onPlayBackStopped(self):
+        if not self._acceptPlaybackCallback():
+            return
         if getattr(self, '_recovery_internal_stop', False):
             return
         self._user_stopped = True
@@ -577,6 +661,8 @@ class player(xbmc.Player):
         self._finishPlayback(True, playback_ended=False)
 
     def onPlayBackEnded(self):
+        if not self._acceptPlaybackCallback():
+            return
         if getattr(self, '_recovering', False):
             if self._recovery_open_requested:
                 self._recovery_open_failed = True
@@ -587,6 +673,8 @@ class player(xbmc.Player):
         if self.isdebug: log_utils.log('Ende - onPlayBackEnded', log_utils.LOGINFO)
 
     def onPlayBackError(self):
+        if not self._acceptPlaybackCallback():
+            return
         if getattr(self, '_recovering', False):
             self._recovery_open_failed = True
             return
@@ -605,7 +693,8 @@ class player(xbmc.Player):
             self.streamFinished = True
             return
         if self.isdebug: log_utils.log('Start - onPlayBackStopped', log_utils.LOGINFO)
-        self.runVideoDB()
+        if self._hasPlaybackOwnership():
+            self.runVideoDB()
         self.streamFinished = True
         completed = False if self.playback_failed else self._completed(playback_ended)
         if completed:
@@ -628,7 +717,7 @@ class player(xbmc.Player):
             trakt.record_playback(self.meta, self.currentTime, self.totalTime, completed=completed)
         except:
             pass
-        if restore_navigation:
+        if restore_navigation and self._hasPlaybackOwnership():
             if self.isdebug: log_utils.log('vor parentDir - onPlayBackStopped', log_utils.LOGINFO)
             self.restore_navigation_pending = True
             self.restore_position_pending = self._shouldRestoreListPosition()
@@ -644,6 +733,8 @@ class player(xbmc.Player):
 
 
     def _restoreSourceContainer(self):
+        if not self._hasPlaybackOwnership():
+            return False
         self._last_container_restore_updated = False
         path = str(getattr(self, 'container_path', '') or '').strip()
         if not self._isSafeXvaultContainerPath(path):
@@ -658,6 +749,8 @@ class player(xbmc.Player):
                 return False
 
             current_path = control.getInfoLabel('Container.FolderPath') or ''
+            if not self._hasPlaybackOwnership():
+                return False
             if current_path == path:
                 return True
 
@@ -703,6 +796,8 @@ class player(xbmc.Player):
             deadline = time.time() + timeout
             stable_checks = 0
             while time.time() < deadline and not monitor.abortRequested():
+                if not self._hasPlaybackOwnership():
+                    return False
                 busy = False
                 try:
                     busy = self.isPlaying() or \
@@ -726,6 +821,9 @@ class player(xbmc.Player):
 
 
     def _runDeferredNavigationRestore(self):
+        if not self._hasPlaybackOwnership():
+            self.restore_navigation_pending = self.restore_position_pending = False
+            return
         if not getattr(self, 'restore_navigation_pending', False):
             return
         self.restore_navigation_pending = False
@@ -736,9 +834,11 @@ class player(xbmc.Player):
             self.restore_position_pending = False
             return
         try:
+            if not self._hasPlaybackOwnership():
+                return
             self.parentDir()
         finally:
-            if getattr(self, 'restore_position_pending', False):
+            if self._hasPlaybackOwnership() and getattr(self, 'restore_position_pending', False):
                 try:
                     from resources.lib.utils import restoreListPosition
                     restoreListPosition(self.list_position, self.list_content, __name__)
@@ -767,6 +867,8 @@ class player(xbmc.Player):
 
 
     def _traktStart(self):
+        if not self._hasPlaybackOwnership():
+            return
         try:
             from resources.lib import trakt
             trakt.scrobble_start(self.meta, self._safePlayerTime(), self._safePlayerTotal())
@@ -775,6 +877,8 @@ class player(xbmc.Player):
 
 
     def _traktPause(self):
+        if not self._hasPlaybackOwnership():
+            return
         try:
             from resources.lib import trakt
             trakt.scrobble_pause(self.meta, self._safePlayerTime(), self._safePlayerTotal())
@@ -783,6 +887,8 @@ class player(xbmc.Player):
 
 
     def _safePlayerTime(self):
+        if not self._hasPlaybackOwnership() or not self._ownsRecoveryPlayback():
+            return self.currentTime
         try:
             self.currentTime = self.getTime()
         except:
@@ -791,6 +897,8 @@ class player(xbmc.Player):
 
 
     def _safePlayerTotal(self):
+        if not self._hasPlaybackOwnership() or not self._ownsRecoveryPlayback():
+            return self.totalTime
         try:
             self.totalTime = self.getTotalTime()
         except:
@@ -802,12 +910,16 @@ class player(xbmc.Player):
         refreshtime = 2
         restored_container_update = False
         control.sleep(refreshtime)
+        if not self._hasPlaybackOwnership():
+            return
         ccont = ''
         if playback_settings.get_mode() == '1': # Liste der Streams (Hosterliste) als Verzeichnis
             count = 0
             # prÃ¼fen ob Hosterliste aktiv ist - content ist da 'videos'
             for count in range(1, 25+1):
                 control.sleep(2)
+                if not self._hasPlaybackOwnership():
+                    return
                 ccont = control.getInfoLabel("Container.Content")
                 if ccont == 'videos': break
 
@@ -840,9 +952,13 @@ class player(xbmc.Player):
 
 
     def refreshContainer(self):
+        if not self._hasPlaybackOwnership():
+            return
         if self._isAndroidPlatform() and not self._waitForContainerNavigationIdle(0, 12):
             if self.isdebug:
                 log_utils.log(__name__ + ' - Container.Refresh uebersprungen: Kodi noch nicht idle', log_utils.LOGWARNING)
+            return
+        if not self._hasPlaybackOwnership():
             return
         if self.mediatype != 'movie':
             if not self._isSafeXvaultContainerPath(self.container_path):

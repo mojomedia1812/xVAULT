@@ -1,3 +1,9 @@
+xVAULT 2026.11.16.3 (Nightly)
+Entwickler: mojomedia1812
+
+- Direkten Wechsel zwischen laufenden Filmen und Folgen absichern: Der bisherige Player darf die neue Wiedergabe weder verschieben oder stoppen noch seine alte Quelle wiederaufnehmen oder die Navigation zurücksetzen.
+- Fortschritt pro Wiedergabesitzung getrennt halten. Verspätete Kodi-Ereignisse und das asynchrone Öffnen des neuen Videos berücksichtigen.
+
 xVAULT 2026.11.16.2 (Nightly)
 Entwickler: mojomedia1812
 

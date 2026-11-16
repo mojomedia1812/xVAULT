@@ -19,14 +19,20 @@ class RecoveryTests(unittest.TestCase):
         cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'player')
         cls.bases = []
         names = ('_requestRecovery', '_tryRecovery', '_ownsRecoveryPlayback',
+                 '_hasPlaybackOwnership', '_acceptPlaybackCallback', '_retirePlayback',
                  'onPlayBackStopped', 'onPlayBackEnded', 'onPlayBackError')
         cls.body = [n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name in names]
         control = Mock()
         control.progressDialog.iscanceled.return_value = False
-        scope = dict(control=control, threading=threading, time=time, log_utils=Mock(), PLAYBACK_START_TIMEOUT=.05)
+        props = {'qa.owner': 'session-a'}
+        control.window.getProperty.side_effect = lambda k: props.get(k, '')
+        scope = dict(control=control, threading=threading, time=time, log_utils=Mock(), PLAYBACK_START_TIMEOUT=.05,
+                     PLAYBACK_OWNER='qa.owner')
         exec(compile(ast.Module(body=[cls], type_ignores=[]), 'player.py', 'exec'), scope)
         p = scope['player']()
         p._recovery = RecoveryState()
+        p._playback_token = 'session-a'
+        p.streamFinished = False
         p._recovery.observe(30, 120)
         p._refresh_source = refresh or Mock(return_value='https://new.invalid/token2.mp4')
         p._recovering = False
@@ -118,6 +124,8 @@ class RecoveryTests(unittest.TestCase):
         scope = dict(control=control, xbmc=xbmc, xbmcplugin=plugin, sys=types.SimpleNamespace(argv=['plugin://qa', '12']), re=__import__('re'))
         exec(compile(ast.Module(body=[method], type_ignores=[]), 'player.py', 'exec'), scope)
         p = types.SimpleNamespace(meta={}, _stream_info={}, playback_name='QA', offset='326.5', _recovering=True)
+        p._playback_token = 'session-a'
+        p._hasPlaybackOwnership = lambda: True
         scope['_openStream'](p, 'https://fresh.invalid/video.mp4', initial=False)
         control.item.return_value.setProperty.assert_any_call('StartOffset', '326.5')
         xbmc.Player.return_value.play.assert_called_once()

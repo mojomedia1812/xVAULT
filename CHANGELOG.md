@@ -1,5 +1,9 @@
 # Changelog
 
+## [2026.11.16.3] - 2026-11-16 (Nightly)
+
+- Wiedergabewechsel absichern: Beim direkten Start eines anderen Films oder einer anderen Folge wird der bisherige Player abgelöst. Alte Kodi-Callbacks dürfen weder die neue Wiedergabe verschieben oder stoppen noch eine alte Quelle wiederaufnehmen oder die Navigation zurücksetzen. Fortschritt des bisherigen Titels getrennt speichern; den asynchronen Übergang zwischen beiden Videos berücksichtigen.
+
 ## [2026.11.16.2] - 2026-11-16 (Nightly)
 
 - Einschalten: vollständigen Filmtitel und Jahr der Anbieter-Suchergebnisse sowie Metadaten der Detailseite an die zentrale Identitätsprüfung übergeben. Passende Filme dadurch bestätigt; Titelpräfixe allein reichen nicht mehr. Widersprüchliche Jahre oder IMDb-IDs ausschließen, bei einer falschen Detailseite weitere passende Kandidaten prüfen. Suchbegriffe korrekt URL-kodieren.
