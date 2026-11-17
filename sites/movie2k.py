@@ -12,6 +12,7 @@ SITE_NAME = SITE_IDENTIFIER.upper()
 UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 
 class source:
+    cache_version = 1
     def __init__(self):
         self.priority = 1
         self.language = ['de', 'en']
@@ -22,7 +23,7 @@ class source:
         self.sources = []
 
     def run(self, titles, year, season=0, episode=0, imdb=''):
-        jSearch = self.search(titles, year, season, episode)
+        jSearch = self.search(titles, year, season, episode, imdb)
         if jSearch == [] or jSearch == 0: return
         jSearch = sorted(jSearch, key=lambda k: k.get('added', ''), reverse=True)
         total = 0
@@ -137,8 +138,28 @@ class source:
             pass
         return True
 
-    def search(self, titles, year, season, episode):
+    @staticmethod
+    def _series_identity_matches(match, watch, imdb, year):
+        def identifier(value):
+            found = re.search(r'\btt\d{5,12}\b', str(value or ''), re.I)
+            return found.group(0).lower() if found else ''
+        requested = identifier(imdb)
+        ids = {identifier(row.get(key)) for row in (match, watch) for key in ('imdb', 'imdb_id', 'imdbid')}
+        # Embedded IDs are evidence too, including wrong-series external links.
+        ids.update(identifier(row.get('stream')) for row in watch.get('streams', []) if isinstance(row, dict))
+        ids.discard('')
+        if requested and ids:
+            return ids == {requested}
+        # Without an ID, require a matching explicit series year; never title alone.
+        try:
+            candidate = int(watch.get('year') or match.get('year') or 0)
+            return candidate > 0 and int(year or 0) == candidate
+        except (ValueError, TypeError):
+            return False
+
+    def search(self, titles, year, season, episode, imdb=''):
         jSearch = []
+        requested_year = year
         mtype = 'movies'
         if season > 0:
             year = ''
@@ -167,6 +188,8 @@ class source:
                         if not watch:
                             continue
 
+                        if season > 0 and not self._series_identity_matches(match, watch, imdb, requested_year):
+                            continue
                         language, language_label = self._language_from_watch(watch, match.get('title', ''))
                         streams = watch.get('streams', [])
 

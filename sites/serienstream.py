@@ -113,7 +113,7 @@ def _titles_match(search_variants, scraped_title):
 
 
 class source:
-    cache_version = 2
+    cache_version = 3
 
     def __init__(self):
         self.priority = 4
@@ -464,6 +464,13 @@ class source:
         try:
             oRequest = cRequestHandler(full_url, caching=not fresh)
             oRequest.addHeaderEntry('User-Agent', 'Mozilla/5.0')
+            deadline = getattr(self, '_fallback_deadline', None)
+            if deadline is not None:
+                import time
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    return ''
+                return oRequest.request_bounded(timeout=min(3, remaining), budget=remaining) or ''
             return oRequest.request() or ''
         except Exception as e:
             if log_utils:
@@ -517,6 +524,16 @@ class source:
         return False
 
     def _find_matching_episode_page(self, series_url, season=0, episode=0, episode_title=None, episode_premiered=None, direct_url=''):
+        import time
+        self.search_incomplete = False
+        self._fallback_deadline = time.monotonic() + 8
+        try:
+            return self._scan_matching_episode_page(series_url, season, episode, episode_title, episode_premiered, direct_url)
+        finally:
+            self._fallback_deadline = None
+
+    def _scan_matching_episode_page(self, series_url, season=0, episode=0, episode_title=None, episode_premiered=None, direct_url=''):
+        import time
         if not episode_title:
             return None
 
@@ -533,7 +550,11 @@ class source:
 
         direct_path = self._normalise_episode_path(direct_url)
         title_matches = {}
+        checked = 0
         for season_number in season_numbers:
+            if time.monotonic() >= self._fallback_deadline:
+                self.search_incomplete = True
+                return None
             season_url = '%s/staffel-%d' % (series_url.rstrip('/'), int(season_number))
             season_full_url = urljoin(self.base_link, season_url)
 
@@ -546,6 +567,11 @@ class source:
                 continue
 
             for episode_url in episode_links:
+                if checked >= 24 or time.monotonic() >= self._fallback_deadline:
+                    # An incomplete scan cannot establish a unique alternate episode.
+                    self.search_incomplete = True
+                    return None
+                checked += 1
                 if self._normalise_episode_path(episode_url) == direct_path:
                     continue
 

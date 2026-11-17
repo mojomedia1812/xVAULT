@@ -839,6 +839,7 @@ class sources:
     def getSources(self, title, year, imdb, season, episode, originaltitle, premiered, quality='HD', timeout=30, episode_title=None, episode_premiered=None, force_refresh=False, quiet=False):
 #TODO
         self.sources = []
+        self._missing_providers = set()
         self.hostDict = self._getHostDict()
         self._provider_media = dict(mediatype=getattr(self, 'mediatype', None), season=season, episode=episode)
         sourceDict = [(name, call) for name, call in self.sourceDict if provider_scope.allowed(name, **self._provider_media)]
@@ -980,6 +981,7 @@ class sources:
         for future, provider_name in futures.items():
             try:
                 if not future.done():
+                    self._missing_providers.add(provider_name)
                     self._markProviderTemporarilyBlocked(provider_name, 'timeout', PROVIDER_TIMEOUT_TTL)
             except:
                 pass
@@ -1022,7 +1024,7 @@ class sources:
             settings[setting] = control.getSetting(setting)
 
         key = {
-            'version': 9,
+            'version': 10,
             'addon': control.addonVersion,
             'mediatype': getattr(self, 'mediatype', None),
             'title': py2_decode(title),
@@ -1065,7 +1067,14 @@ class sources:
             entry = (cache.get('entries') or {}).get(cache_key)
             if not entry:
                 return None, False
-            age = int(time.time()) - int(entry.get('timestamp', 0))
+            now = int(time.time())
+            if entry.get('missing_providers'):
+                health = cache.get('provider_health') or {}
+                if now >= int(entry.get('retry_after', 0)) or any(
+                        not health.get(name) or int(health[name].get('blocked_until', 0)) <= now
+                        for name in entry.get('blocked_providers', [])):
+                    return None, False
+            age = now - int(entry.get('timestamp', 0))
             if age > SOURCE_CACHE_TTL:
                 if not allow_stale or age > SOURCE_CACHE_STALE_TTL:
                     return None, False
@@ -1117,6 +1126,15 @@ class sources:
                 'timestamp': now,
                 'items': items
             }
+            missing = sorted(getattr(self, '_missing_providers', set()))
+            if missing:
+                health = payload.get('provider_health') or {}
+                blocked = {name: int(health[name].get('blocked_until', 0)) for name in missing
+                           if name in health and int(health[name].get('blocked_until', 0)) > now
+                           and not (name == 'serienstream' and health[name].get('reason') == 'timeout')}
+                retry = list(blocked.values()) + [now + 60 for name in missing if name not in blocked]
+                entries[cache_key].update(missing_providers=missing, retry_after=min(retry),
+                                         blocked_providers=list(blocked))
             for key, entry in list(entries.items()):
                 if now - int(entry.get('timestamp', 0)) > SOURCE_CACHE_STALE_TTL:
                     entries.pop(key, None)
@@ -1226,7 +1244,12 @@ class sources:
         skipped = []
         for provider in sourceDict:
             state = provider_health.get(provider[0])
+            if provider[0] == 'serienstream' and state and state.get('reason') == 'timeout':
+                state = None
             if state and int(state.get('blocked_until', 0)) > now:
+                if not hasattr(self, '_missing_providers'):
+                    self._missing_providers = set()
+                self._missing_providers.add(provider[0])
                 skipped.append(provider[0])
                 continue
             filtered.append(provider)
@@ -1237,6 +1260,8 @@ class sources:
     def _markProviderTemporarilyBlocked(self, provider, reason, ttl):
         try:
             if not provider:
+                return
+            if provider == 'serienstream' and reason == 'timeout':
                 return
             payload = self._readSourceCachePayload()
             provider_health = payload.get('provider_health')
@@ -1418,6 +1443,8 @@ class sources:
                 sources = call.run(titles, year, season, episode, imdb, hostDict=self.hostDict)
             else:
                 sources = call.run(titles, year, season, episode, imdb)
+            if getattr(call, 'search_incomplete', False):
+                self._missing_providers.add(source)
             if sources == None or sources == []:
                 return {'provider': source, 'count': 0, 'status': 'empty'}
             sources = self._stableUniqueSources(sources)
@@ -1439,6 +1466,9 @@ class sources:
         except Exception as e:
             reason = getattr(e, 'xvault_provider_reason', 'error')
             ttl = getattr(e, 'xvault_provider_ttl', PROVIDER_ERROR_TTL)
+            if not hasattr(self, '_missing_providers'):
+                self._missing_providers = set()
+            self._missing_providers.add(source)
             self._markProviderTemporarilyBlocked(source, reason, ttl)
             log_utils.log('Indexseite Fehler: %s / %s' % (source, str(e)), log_utils.LOGWARNING)
             return {'provider': source, 'count': 0, 'status': 'error'}

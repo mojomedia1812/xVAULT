@@ -106,7 +106,9 @@ def enabledCheck(module_name):
         if control.getSetting('provider.' + module_name) == 'false':
             return False
         if module_name not in _CHECK_OPTIONAL_PROVIDERS and control.getSetting('provider.' + module_name + '.check') == 'false':
-            return False
+            # The legacy www alias returned 404 although the canonical API works.
+            if not (module_name == 'huhu' and control.getSetting('provider.huhu.domain').lower() == 'www.oha.to'):
+                return False
     return True
 
 

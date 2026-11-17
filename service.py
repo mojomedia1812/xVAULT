@@ -52,6 +52,7 @@ addonVersion = addonInfo('version')
 _settingsLock = threading.Lock()
 SERIENSTREAM_OLD_DOMAIN = '.'.join(('s', 'to'))
 PROVIDER_DOMAIN_REPLACEMENTS = {
+    ('huhu', 'www.oha.to'): 'oha.to',
     ('movie4k', 'movie4k-to.cfd'): 'movie4k.sx',
     ('movie4k', 'www.movie4k-to.cfd'): 'movie4k.sx',
     ('movie4k', 'movie4k.to'): 'movie4k.sx',

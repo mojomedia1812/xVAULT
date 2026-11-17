@@ -1,5 +1,12 @@
 # Changelog
 
+## [2026.11.17.5] - 2026-11-17 (Nightly)
+
+- OHA: veraltete Domain www.oha.to auf oha.to migrieren; die alte 404-Markierung verhindert die Suche nicht mehr. Bewusst deaktivierte Anbieter bleiben deaktiviert.
+- SerienStream: Zeitlimits einer einzelnen Episodensuche sperren nicht mehr den gesamten Anbieter. Alte globale Timeout-Sperren ignorieren; alternative Episodensuche zeitlich und nach Seitenzahl begrenzen und bei unvollständiger Prüfung keine andere Folge zuordnen.
+- Quellen-Cache: bei ausgelassenen oder fehlgeschlagenen Anbietern den unvollständigen Stand kennzeichnen. Nach Ende einer echten Anbietersperre neu suchen, reine Suchzeitlimits nach einer Minute erneut prüfen; vollständige Listen behalten ihre normale Laufzeit.
+- Movie2K: Serien anhand angeforderter IMDb-ID und belegbarer Anbieter-/Stream-Identität prüfen. Ohne ID ist ein passendes explizites Serienjahr erforderlich; Titel und Staffel allein reichen nicht. Verhindert die Verwechslung von Scrubs (2026) mit Scrubs (2001).
+
 ## [2026.11.17.3] - 2026-11-17 (Nightly)
 
 - Persönlicher Startbereich: Aus / nur Mein xVAULT (Standard) / zusätzliche Hauptseiten-Vorschau. Einzelne Bereiche schaltbar, doppelte Vorschau aus dem persönlichen Menü entfernt.
