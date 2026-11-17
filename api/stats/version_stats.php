@@ -41,7 +41,9 @@ function xvault_stats_versions(PDO $pdo): array
     }
     $versions = array_values($versions);
     usort($versions, static function (array $a, array $b): int {
-        return version_compare($b['version'], $a['version']) ?: strcmp($a['channel'], $b['channel']);
+        return ($b['installations'] <=> $a['installations'])
+            ?: version_compare($b['version'], $a['version'])
+            ?: strcmp($a['channel'], $b['channel']);
     });
     $channelRows = [];
     foreach ($channels as $label => $count) {
@@ -66,7 +68,7 @@ function xvault_stats_versions_html(array $rows, ?string $channel = null): strin
         $rows = array_values(array_filter($rows, static fn(array $row): bool => $row['channel'] === $options[$selected]));
     }
     $html = '<section id="xvault-versionen" class="panel" style="grid-column:1/-1"><h2>xVAULT-Versionen – vollständig</h2>';
-    $html .= '<p class="muted">Alle aktuell gemeldeten Installationsstände, neueste Version zuerst. '
+    $html .= '<p class="muted">Alle aktuell gemeldeten Installationsstände, nach Anzahl der Installationen absteigend sortiert. '
         . 'Der gewählte Diagrammzeitraum begrenzt diese Bestandsliste nicht. '
         . 'Versionen vor dem 24.10.2026 folgen dem damaligen Release-/Alpha-Schema.</p>';
     $html .= '<form method="get" action="#xvault-versionen" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:16px 0">';

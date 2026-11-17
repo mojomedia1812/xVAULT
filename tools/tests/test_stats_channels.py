@@ -37,7 +37,7 @@ class StatsChannelsTests(unittest.TestCase):
                           'echo json_encode(array_map(fn($r)=>xvault_stats_channel(...$r),$rows));')
         self.assertEqual(result, ['Release', 'Nightly', 'Alpha', 'Alpha', 'Alpha', 'Release', 'Unbekannt', 'Unbekannt'])
 
-    def test_all_versions_aggregate_variants_sort_numerically_and_escape_html(self):
+    def test_all_versions_aggregate_sort_by_installations_then_version_and_escape_html(self):
         data = self.php('''
             $pdo=new PDO('sqlite::memory:');
             $pdo->exec('CREATE TABLE telemetry_installations(current_addon_version TEXT, addon_variant TEXT, current_addon_id TEXT,last_seen_at TEXT)');
@@ -52,7 +52,9 @@ class StatsChannelsTests(unittest.TestCase):
         versions = data['data']['versions']
         self.assertEqual(len(versions), 32)
         numeric = [r['version'] for r in versions if r['channel'] == 'Nightly']
-        self.assertEqual(numeric[0], '2026.11.16.30')
+        self.assertEqual(numeric[:2], ['2026.11.16.3', '2026.11.16.30'])
+        counts = [r['installations'] for r in versions]
+        self.assertEqual(counts, sorted(counts, reverse=True))
         row = next(r for r in versions if r['version'] == '2026.11.16.3' and r['channel'] == 'Nightly')
         self.assertEqual(row['installations'], 2)
         self.assertEqual(row['last_seen'], '2026-11-16 13:00:00')
