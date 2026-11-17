@@ -178,7 +178,9 @@ class seasons:
 						cm.append(rate_item)
 				except:
 					pass
-				item.addContextMenuItems(cm)
+				from resources.lib import playback_state
+				playback_meta = dict(sysmeta)
+				item.addContextMenuItems(playback_state.merge_context(cm, sysmeta))
 
 				sysmeta = control.quote_plus(json.dumps(sysmeta))
 				url = '%s?action=episodes&sysmeta=%s' % (sysaddon, sysmeta)
@@ -225,6 +227,7 @@ class seasons:
 					info_tag.set_cast(aActors)
 
 
+				playback_state.decorate(item, playback_meta)
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=True)
 			except Exception as e:
 				#print(e) #TODO LOG

@@ -223,7 +223,9 @@ class movies:
 				except:
 					pass
 				cm.append(('Einstellungen', 'RunPlugin(%s?action=addonSettings)' % sysaddon))
-				item.addContextMenuItems(cm)
+				from resources.lib import playback_state
+				playback_meta = dict(meta)
+				item.addContextMenuItems(playback_state.merge_context(cm, meta))
 
 				if 'plot' in i:
 					plot = i['plot']
@@ -287,6 +289,7 @@ class movies:
 					info_tag.set_stream_details(stream_details)
 					info_tag.set_cast(aActors)
 
+				playback_state.decorate(item, playback_meta)
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=False)
 			except Exception as e:
 				print(e)

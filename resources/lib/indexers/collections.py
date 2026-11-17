@@ -163,13 +163,16 @@ class collections:
 			# This entry starts source selection, just like a regular movie result.
 			# Only the selected source is playable; otherwise Kodi waits for a
 			# resolved video while we open a directory and reports playback failure.
-			item.addContextMenuItems([('Einstellungen', 'RunPlugin(%s?action=addonSettings)' % sysaddon)])
+			from resources.lib import playback_state
+			playback_meta = dict(item_data, mediatype='movie')
+			item.addContextMenuItems(playback_state.merge_context([('Einstellungen', 'RunPlugin(%s?action=addonSettings)' % sysaddon)], playback_meta))
 			url = '%s?action=collectionPlay&slug=%s&title=%s&poster=%s' % (
 				sysaddon,
 				control.quote_plus(item_data['slug']),
 				control.quote_plus(label),
 				control.quote_plus(poster),
 			)
+			playback_state.decorate(item, playback_meta)
 			control.addItem(syshandle, url, item, False)
 
 		if self._has_next_page(html, '/collections/%s' % slug, page):

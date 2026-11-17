@@ -208,6 +208,7 @@ class person:
 				meta.pop('id', None)
 				meta.pop('name', None)
 				meta.pop('popularity', None)
+				playback_meta = dict(meta)
 				meta.pop('tmdb_id', None)
 				meta.pop('genre_ids', None)
 				meta.pop('originallanguage', None)
@@ -223,8 +224,9 @@ class person:
 						year,
 						control.quote_plus(str(poster)),
 					)))
-				if cm:
-					item.addContextMenuItems(cm)
+				from resources.lib import playback_state
+				item.addContextMenuItems(playback_state.merge_context(cm, playback_meta))
+				playback_state.decorate(item, playback_meta)
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=False)
 			except Exception as e:
 				print(e)

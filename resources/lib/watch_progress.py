@@ -35,6 +35,8 @@ def resume_for_meta(meta, fallback_title=None):
         name, year = playback_identity(meta, fallback_title)
         if not name:
             return 0
+        from resources.lib.sync import binge_sync
+        binge_sync.prepare_resume(meta, name, year)
         return resume_for_identity(name, year)
     except Exception:
         return 0

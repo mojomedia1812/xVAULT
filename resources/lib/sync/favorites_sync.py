@@ -521,6 +521,8 @@ def monitor_changes(interval=5):
         import xbmc
         class SyncMonitor(xbmc.Monitor):
             def onNotification(self, sender, method, data):
+                from resources.lib import library_state
+                library_state.notify(method, data)
                 if method in ('System.OnWake', 'System.OnScreensaverDeactivated'):
                     from resources.lib.sync import engine
                     engine.on_wake()
@@ -534,6 +536,8 @@ def monitor_changes(interval=5):
         while not monitor.abortRequested() and not update_maintenance.requested():
             if monitor.waitForAbort(1):
                 break
+            from resources.lib import library_state
+            library_state.poll()
             now = time.time()
             if now < next_attempt:
                 continue

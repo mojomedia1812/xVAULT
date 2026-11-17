@@ -22,6 +22,8 @@ SITE_DOMAIN = get_url()
 SITE_NAME = SITE_IDENTIFIER.upper()
 
 class source:
+    cache_version = 1
+
     def __init__(self):
         self.priority = 1
         self.language = ['de']
@@ -75,6 +77,10 @@ class source:
                     sUrl = self.base_link + sUrl
                 if cleantitle.get(sName) in t or any(cleantitle.get(x) in cleantitle.get(sName) for x in titles):
                     if not is_movie:
+                        wanted = getattr(self, '_requested_season', 0)
+                        seasons = self._season_numbers(sName + ' ' + sUrl)
+                        if wanted and seasons and seasons != {wanted}:
+                            continue
                         return sUrl
                     page = self.get_html(sUrl)
                     if not page:
@@ -96,6 +102,7 @@ class source:
 
     def run(self, titles, year, season=0, episode=0, imdb='', hostDict=None):
         self.sources = []
+        self._requested_season = int(season or 0)
         try:
             t = [cleantitle.get(i) for i in set(titles) if i]
 
@@ -124,6 +131,11 @@ class source:
     def get_sources(self, url, year, season, episode, hostDict):
         html = getattr(self, '_found_html', '') or self.get_html(url)
         if not html: return
+        if int(season or 0) > 0:
+            headings = ' '.join(re.findall(r'<h1\b[^>]*>(.*?)</h1>', html, re.I | re.S))
+            seasons = self._season_numbers(url + ' ' + headings)
+            if seasons and seasons != {int(season)}:
+                return
         quality = '720p'
         if '1080' in html: quality = '1080p'
         if season > 0:
@@ -145,3 +157,9 @@ class source:
 
     def resolve(self, url):
         return url
+
+    @staticmethod
+    def _season_numbers(text):
+        values = re.findall(r'(?:staffel|season)[\s_.:-]*(\d+)\b', text, re.I)
+        values += re.findall(r'\b(\d+)[\s_.:-]*(?:staffel|season)\b', text, re.I)
+        return {int(value) for value in values if 0 <= int(value) <= 99}

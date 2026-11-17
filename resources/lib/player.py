@@ -5,7 +5,6 @@
 
 import sys, re, json, time, threading
 import hashlib,os,codecs,uuid
-from sqlite3 import dbapi2 as database
 import xbmc, xbmcplugin
 from resources.lib.control import py2_encode, translatePath, executebuiltin
 from resources.lib import log_utils, control, playcountDB, playback_settings, provider_logins, watch_progress
@@ -138,12 +137,6 @@ class player(xbmc.Player):
             from resources.lib.sync import binge_sync
             binge_sync.prepare_resume(meta, self.name, self.year)
             self.offset = bookmarks().get(self.name, self.year)
-
-            from glob import glob
-            os.chdir(os.path.join(control.translatePath('special://database/')))
-            self.videoDB = os.path.join(control.translatePath('special://database/'), sorted(glob("MyVideos*.db"), reverse=True)[0])
-
-            self.fileID = self.getVideoDB()
 
             plot = control.unquote(meta['plot']) if 'plot' in meta else ''
 
@@ -603,6 +596,12 @@ class player(xbmc.Player):
                 return
         if self.isdebug: log_utils.log('Start - onAVStarted', log_utils.LOGINFO)
         self.playback_started = True
+        if not getattr(self, '_recovering', False):
+            try:
+                from resources.lib import playback_state
+                playback_state.started(self.meta)
+            except Exception as exc:
+                log_utils.log('xVAULT playback visibility: ' + type(exc).__name__, log_utils.LOGWARNING)
         self._telemetryEvent('playback_started')
         control.execute('Dialog.Close(all,true)')
         try:
@@ -640,6 +639,9 @@ class player(xbmc.Player):
                 base_revision=self._sync_base, sequence=self._sync_sequence,
                 watch_base_revision=self._sync_watch_base,
                 record_completion=not self._sync_watch_recorded)
+            from resources.lib import library_state
+            library_state.write(self.meta, completed=True if completed else None,
+                                position=0 if completed else self.currentTime, total=self.totalTime)
             if completed or (completed is None and watch_progress.is_completed_position(self.currentTime, self.totalTime)):
                 self._sync_watch_recorded = True
         except Exception as exc:
@@ -692,8 +694,6 @@ class player(xbmc.Player):
             self.streamFinished = True
             return
         if self.isdebug: log_utils.log('Start - onPlayBackStopped', log_utils.LOGINFO)
-        if self._hasPlaybackOwnership():
-            self.runVideoDB()
         self.streamFinished = True
         completed = False if self.playback_failed else self._completed(playback_ended)
         if completed:
@@ -968,28 +968,6 @@ class player(xbmc.Player):
             return
         control.execute('Container.Refresh')
 
-# keine EintrÃ¤ge fÃ¼r bookmarks und files in die Kodi DB 'MyVideos116.db' anlegen bzw. sofort lÃ¶schen
-    def runVideoDB(self):
-        idFile = self.getVideoDB()
-        if idFile != self.fileID:
-            self.removeVideoDB(idFile)
-
-    def getVideoDB(self):
-        dbcon = database.connect(self.videoDB)
-        dbcur = dbcon.cursor()
-        dbcur.execute("SELECT * FROM files")
-        match = dbcur.fetchall()
-        dbcon.close()
-        if match and len(match) > 0: idFile = len(match)
-        else: idFile = 0
-        return idFile
-
-    def removeVideoDB(self, idFile):
-        dbcon = database.connect(self.videoDB)
-        dbcur = dbcon.cursor()
-        dbcur.execute("DELETE FROM files WHERE idFile = '%s'" % idFile) # in DB vorhandener Trigger lÃ¶scht auch den bookmark
-        dbcon.commit()
-        dbcon.close()
 
 
 class subtitles:

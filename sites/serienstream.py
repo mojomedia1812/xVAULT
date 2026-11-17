@@ -2,7 +2,7 @@
 import re
 import sys
 import datetime
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode, parse_qs
 from resources.lib.control import getSetting, urljoin, setSetting
 from resources.lib.requestHandler import cRequestHandler
 from scrapers.modules import cleantitle, dom_parser
@@ -113,6 +113,8 @@ def _titles_match(search_variants, scraped_title):
 
 
 class source:
+    cache_version = 2
+
     def __init__(self):
         self.priority = 4
         self.language = ['de', 'en']
@@ -416,7 +418,7 @@ class source:
                     if not link_id or not play_url or not provider_name or not language:
                         continue
 
-                    redirect_url = urljoin(self.base_link, play_url)
+                    redirect_url = self._stable_source_url(full_url, link_id, provider_name, language_id)
 
                     quality = 'SD'
                     try:
@@ -458,9 +460,9 @@ class source:
                 logger.info('SerienStream - Fatal: %s' % str(e))
             return self.sources
 
-    def _request_page(self, full_url):
+    def _request_page(self, full_url, fresh=False):
         try:
-            oRequest = cRequestHandler(full_url)
+            oRequest = cRequestHandler(full_url, caching=not fresh)
             oRequest.addHeaderEntry('User-Agent', 'Mozilla/5.0')
             return oRequest.request() or ''
         except Exception as e:
@@ -922,8 +924,41 @@ class source:
                 return target
         return None
 
+    @staticmethod
+    def _stable_source_url(page_url, link_id, hoster, language_id):
+        return page_url.split('#', 1)[0] + '#' + urlencode({
+            'xvault-link': link_id, 'hoster': hoster, 'language': language_id})
+
+    def _refresh_source_url(self, url):
+        parsed = urlparse(url)
+        reference = parse_qs(parsed.fragment)
+        if 'xvault-link' not in reference:
+            return url
+        base_host = (urlparse(self.base_link).hostname or '').lower()
+        if parsed.scheme != 'https' or (parsed.hostname or '').lower() != base_host:
+            return None
+        numbers = re.search(r'/staffel-(\d+)/episode-(\d+)/?$', parsed.path)
+        if not numbers or parsed.query:
+            return None
+        page_url = url.split('#', 1)[0]
+        page = self._request_page(page_url, fresh=True)
+        if self._episode_numbers(page) != tuple(int(n) for n in numbers.groups()):
+            return None
+        for tag in self._parse_stream_link_buttons(page):
+            if (self._attr(tag, 'data-link-id') == reference['xvault-link'][0]
+                    and self._attr(tag, 'data-provider-name').lower() == reference.get('hoster', [''])[0].lower()
+                    and self._attr(tag, 'data-language-id') == reference.get('language', [''])[0]):
+                play_url = self._attr(tag, 'data-play-url')
+                if play_url:
+                    self.episode_referer = page_url
+                    return urljoin(self.base_link, play_url)
+        return None
+
     def resolve(self, url):
         try:
+            url = self._refresh_source_url(url)
+            if not url:
+                return None
             if log_utils:
                 logger.info('SerienStream - Resolving: %s' % url[:80])
 

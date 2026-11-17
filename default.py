@@ -153,11 +153,11 @@ elif action in ('personalHome', 'personalContinue', 'personalNext', 'seriesRadar
         personal.toggle(json.loads(params.get('sysmeta') or '{}'))
     elif action == 'radarRefresh':
         personal.request_refresh(force=True)
-        control.infoDialog('Serienprüfung angefordert; Ergebnisse erscheinen im Hintergrund.')
+        control.infoDialog('SerienprÃ¼fung angefordert; Ergebnisse erscheinen im Hintergrund.')
     elif action == 'radarSources':
         personal.source_check(params.get('id'))
     else:
-        control.infoDialog('Fortschritt wird bei Wiedergabe gespeichert. Serien im Serien-Kontextmenü vormerken.')
+        control.infoDialog('Fortschritt wird bei Wiedergabe gespeichert. Serien im Serien-KontextmenÃ¼ vormerken.')
 
 elif action in ('systemCheck', 'systemNetwork', 'systemRepairDependencies'):
     from resources.lib import system_check
@@ -393,7 +393,7 @@ elif action in ('sendToJD', 'sendToJD2', 'sendToMyJD', 'sendToPyLoad'):
 elif action == 'mediaInfo':
     import xbmcgui
     dialog = xbmcgui.DialogProgress()
-    dialog.create('Medien-Info', 'Löse Stream-URL auf...')
+    dialog.create('Medien-Info', 'LÃ¶se Stream-URL auf...')
     dialog.update(0)
     from resources.lib import sources
     sources.sources().mediaInfo(source, dialog)
@@ -524,21 +524,25 @@ elif action == 'playTrailer':
     except Exception:
         control.infoDialog('Trailer-Suche fehlgeschlagen', sound=True, icon='WARNING')
 
+elif action == 'playbackManage':
+    from resources.lib import playback_state
+    playback_state.manage()
+
+elif action == 'playbackAction':
+    from resources.lib import playback_state
+    playback_state.dispatch(params)
+    _finish_action()
+
 elif action == 'UpdatePlayCount':
-    from resources.lib import playcountDB
-    playcountDB.UpdatePlaycount(params)
+    import ast
+    from resources.lib import playback_state
+    raw = params.get('meta') or '{}'
     try:
-        from resources.lib import trakt
-        trakt.update_watch_status_from_params(params, silent=True)
-    except Exception:
-        pass
-    try:
-        from resources.lib.sync import binge_sync
-        binge_sync.update_watch_status_from_params(params, push=False)
-        binge_sync.push_local(silent=True)
-    except Exception:
-        pass
-    control.execute('Container.Refresh')
+        meta = json.loads(raw)
+    except (ValueError, TypeError):
+        meta = ast.literal_eval(raw)
+    playback_state.dispatch({'operation': 'watched' if str(params.get('playCount')) == '1' else 'unwatched', 'sysmeta': json.dumps(meta)})
+    _finish_action()
 
 elif action == 'listings':
     from resources.lib.indexers import listings

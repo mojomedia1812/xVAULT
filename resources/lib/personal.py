@@ -79,6 +79,8 @@ def item_meta(item):
     for field in ('mediatype', 'tmdb_id', 'imdb_id'):
         if extra.get(field) and not meta.get(field):
             meta[field] = extra[field]
+    if item.get('name'):
+        meta['sysname'] = item['name']
     meta.update(title=meta.get('title') or item.get('title') or item.get('name'), year=item.get('year') or meta.get('year') or '0')
     if item.get('season') is not None and item.get('episode') is not None:
         meta.update(mediatype='episode', season=item['season'], episode=item['episode'])
@@ -93,8 +95,9 @@ def progress_items():
 
 
 def continuing(items=None):
+    from resources.lib import playback_state
     return [i for i in (progress_items() if items is None else items)
-            if not i.get('completed') and watch_progress.should_store_resume(i.get('position_seconds'), i.get('duration_seconds'))][:30]
+            if not i.get('progress_reset') and not playback_state.hidden(item_meta(i)) and not i.get('completed') and watch_progress.should_store_resume(i.get('position_seconds'), i.get('duration_seconds'))][:30]
 
 
 def last_episodes(items):
@@ -179,7 +182,7 @@ def worker():
             continue
         win.clearProperty('xvault.personal.refresh')
         next_check = time.monotonic() + 30
-        if xbmc.Player().isPlayingVideo():
+        if xbmc.Player().isPlayingVideo() or control.getSetting('personal.display', '1') == '0':
             continue
         try:
             cache = cached()
@@ -231,25 +234,34 @@ def add(label, action, meta=None, folder=False, description='', context_items=No
     item.setArt({'thumb': (meta or {}).get('poster') or 'DefaultTVShows.png', 'fanart': (meta or {}).get('fanart') or control.addonFanart()})
     item.setInfo('video', {'title': label, 'plot': description or (meta or {}).get('plot', '')})
     item.setProperty('IsPlayable', 'true' if action in ('personalPlay', 'play') else 'false')
+    if meta:
+        from resources.lib import playback_state
+        context_items = playback_state.merge_context(context_items or [], meta)
+        from resources.lib.sync import binge_sync
+        state = next((i for i in progress_items() if playback_state.matches(playback_state.probe(meta), i)), None)
+        if state:
+            item.setInfo('video', {'mediatype': playback_state.normalize(meta)['mediatype'], 'playcount': 1 if state.get('completed') else 0})
+            if not state.get('completed') and not state.get('progress_reset'):
+                item.getVideoInfoTag().setResumePoint(float(state.get('position_seconds') or 0), float(state.get('duration_seconds') or 0))
     if context_items:
         item.addContextMenuItems(context_items)
     xbmcplugin.addDirectoryItem(int(sys.argv[1]), target, item, folder)
 
 
 def render_preview():
-    for item in continuing()[:3]:
+    for item in (continuing()[:3] if enabled('continue') else []):
         add('Weiterschauen · %s · %s' % (item.get('name') or item['title'], watch_progress.format_time(item['position_seconds'])), 'personalPlay', item_meta(item))
-    for entry in list(cached().values())[:3]:
+    for entry in (list(cached().values())[:3] if enabled('next') else []):
         if entry.get('episode') and entry.get('last') and entry['last'][2]:
             meta = entry['meta']
             add('Nächste Folge · %s · S%02dE%02d' % (meta['title'], int(meta['season']), int(meta['episode'])), 'personalPlay', meta)
     subscribed = {str(m['tmdb_id']) for m in subscriptions()}
-    for key, entry in list(cached().items()):
+    for key, entry in (list(cached().items()) if enabled('radar') else []):
         if key in subscribed and entry.get('episode'):
             meta = entry['meta']
             add('Serien-Radar · %s · S%02dE%02d · %s' % (meta['title'], int(meta['season']), int(meta['episode']), entry.get('source_status', 'nicht geprüft')), 'personalPlay', meta)
             break
-    if control.getSetting('radio.enabled', 'true') != 'false':
+    if enabled('radio') and control.getSetting('radio.enabled', 'true') != 'false':
         from resources.lib import radio
         index = radio.recent_programs()
         if index:
@@ -262,18 +274,25 @@ def render_preview():
                     xbmcplugin.addDirectoryItem(int(sys.argv[1]), radio.url('radioPlay', id=station['id']), radio.music_item(station, 'Zuletzt gehört · ' + station['name']), False)
 
 
+def enabled(section):
+    return control.getSetting('personal.' + section, 'true') != 'false'
+
+
 def home():
     import xbmcplugin
-    add('Weiterschauen', 'personalContinue', folder=True)
-    add('Nächste Serienfolgen', 'personalNext', folder=True)
-    add('Serien-Radar · vorgemerkte Serien', 'seriesRadar', folder=True)
-    if control.getSetting('radio.enabled', 'true') != 'false':
+    if enabled('continue'):
+        add('Weiterschauen', 'personalContinue', folder=True)
+    if enabled('next'):
+        add('Nächste Serienfolgen', 'personalNext', folder=True)
+    if enabled('radar'):
+        add('Serien-Radar · vorgemerkte Serien', 'seriesRadar', folder=True)
+    if enabled('radio') and control.getSetting('radio.enabled', 'true') != 'false':
         add('Meine Radiofavoriten', 'radioFavorites', folder=True)
         add('Zuletzt gehörte Sender', 'radioRecent', folder=True)
         from resources.lib import radio
         radio.quick_favorites()
     add('Systemcheck', 'systemCheck', folder=True)
-    render_preview()
+    add('Wiedergabedaten verwalten', 'playbackManage', folder=True)
     xbmcplugin.setPluginCategory(int(sys.argv[1]), 'Mein xVAULT')
     xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_UNSORTED)
     xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)

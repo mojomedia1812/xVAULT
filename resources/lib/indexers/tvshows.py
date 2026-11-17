@@ -174,7 +174,9 @@ class tvshows:
 				except:
 					pass
 				cm.append(('Einstellungen', 'RunPlugin(%s?action=addonSettings)' % sysaddon))
-				item.addContextMenuItems(cm)
+				from resources.lib import playback_state
+				playback_meta = dict(sysmeta)
+				item.addContextMenuItems(playback_state.merge_context(cm, sysmeta))
 				from resources.lib import personal
 				item.addContextMenuItems([personal.context(sysmeta)])
 
@@ -229,6 +231,7 @@ class tvshows:
 					info_tag.set_stream_details(stream_details)
 					info_tag.set_cast(aActors)
 
+				playback_state.decorate(item, playback_meta)
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=True)
 			except Exception as e:
 				print(e)

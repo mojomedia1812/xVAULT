@@ -129,7 +129,7 @@ def prepare_resume(meta, name, year):
         return
     latest = max(matches, key=lambda i: i.get('updated_at') or '')
     bookmark = _bookmark_id(name, year)
-    if latest.get('completed') or _is_unwatched_marker(latest):
+    if latest.get('progress_reset') or latest.get('completed') or (_is_unwatched_marker(latest) and not latest.get('position_seconds')):
         bookmarkDB.remove_query(bookmark, 'bookmarks')
     elif watch_progress.should_store_resume(latest.get('position_seconds'), latest.get('duration_seconds')):
         bookmarkDB.save_query(bookmark, str(latest['position_seconds']), 'bookmarks')
@@ -414,7 +414,7 @@ def apply_to_bookmarks(items):
             log_sync_warning('failed to apply bookmark state: %s' % exc)
 
 
-def apply_local_states(items, clear_bookmarks=()):
+def apply_local_states(items, clear_bookmarks=(), apply_library=True):
     """Apply only changed keys, with one playcount commit and bookmark flush."""
     updates, removed = {}, set()
     with playcountDB.batch_updates():
@@ -426,11 +426,17 @@ def apply_local_states(items, clear_bookmarks=()):
             else:
                 if _is_unwatched_marker(item):
                     apply_to_unwatched(item, strict=True)
-                if key in clear_bookmarks:
+                if key in clear_bookmarks or item.get('progress_reset'):
                     removed.add(bookmark)
                 elif item.get('position_seconds'):
                     updates[bookmark] = str(item['position_seconds'])
         bookmarkDB.update_queries(updates, removed, 'bookmarks')
+    if apply_library:
+        from resources.lib import library_state, personal
+        for item in items.values():
+            library_state.write(personal.item_meta(item), completed=bool(item.get('completed')),
+                                position=0 if item.get('completed') or item.get('progress_reset') else item.get('position_seconds') or 0,
+                                total=item.get('duration_seconds') or 0)
 
 
 def apply_to_playcount(item, strict=False):
@@ -628,10 +634,14 @@ def _bookmark_id(name, year):
 
 
 def is_newer(candidate, current):
+    # Reset and intentional later playback are explicit session transitions.
+    if candidate.get('progress_reset') or current.get('progress_reset'):
+        return (candidate.get('updated_at') or '') >= (current.get('updated_at') or '')
+
     if _is_unwatched_marker(candidate):
         return (candidate.get('updated_at') or '') >= (current.get('updated_at') or '')
     if _is_unwatched_marker(current) and not candidate.get('completed'):
-        return False
+        return candidate.get('provider') == 'xvault' and (candidate.get('updated_at') or '') >= (current.get('updated_at') or '')
     if current.get('completed') and not candidate.get('completed'):
         return False
     if candidate.get('completed') and not current.get('completed'):

@@ -37,7 +37,10 @@ class CollectionSourceSelectionTests(unittest.TestCase):
         obj._has_next_page = Mock(return_value=False)
         obj._set_info = Mock()
         obj._movie_plot = Mock(return_value='Plot')
-        with patch.object(sys, 'argv', ['plugin://plugin.video.xvault/', '7', '']):
+        shared = Mock()
+        shared.merge_context.side_effect = lambda items, meta: items
+        with patch.dict(sys.modules, {'resources.lib.playback_state': shared}), \
+             patch.object(sys, 'argv', ['plugin://plugin.video.xvault/', '7', '']):
             obj._movies_directory([{'title': 'Alien', 'slug': 'alien', 'year': 1979}],
                                   'alien-collection', 1, '', 'Alien Collection')
         args = self.control.addItem.call_args.args

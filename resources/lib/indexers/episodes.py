@@ -110,7 +110,7 @@ class episodes:
 
 				systitle = sysmeta['title']
 				sysname = systitle + ' S%02dE%02d' % (season, episode)
-				sysmeta.update({'episode': episode})
+				sysmeta.update({'season': season, 'episode': episode})
 				sysmeta.update({'sysname': sysname})
 				if i.get('title'):
 					sysmeta.update({'episode_title': i['title']})
@@ -189,7 +189,9 @@ class episodes:
 				except:
 					pass
 				cm.append(('Einstellungen', 'RunPlugin(%s?action=addonSettings)' % sysaddon))
-				item.addContextMenuItems(cm)
+				from resources.lib import playback_state
+				playback_meta = dict(sysmeta)
+				item.addContextMenuItems(playback_state.merge_context(cm, sysmeta))
 
 				sysmeta = control.quote_plus(json.dumps(sysmeta))
 				url = '%s?action=play&sysmeta=%s' % (sysaddon, sysmeta)
@@ -236,6 +238,7 @@ class episodes:
 					info_tag.set_stream_details(stream_details)
 					info_tag.set_cast(aActors)
 
+				playback_state.decorate(item, playback_meta)
 				control.addItem(handle=syshandle, url=url, listitem=item, isFolder=False)
 			except:
 				pass

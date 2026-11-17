@@ -7,7 +7,7 @@ from pathlib import Path
 import re
 import types
 import unittest
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urlencode, parse_qs
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,6 +24,7 @@ def load_scraper():
     clean_definitions = [n for n in clean_tree.body if isinstance(n, ast.FunctionDef)]
     exec(compile(ast.Module(body=clean_definitions, type_ignores=[]), 'cleantitle.py', 'exec'), clean_scope)
     namespace = {'re': re, 'datetime': datetime, 'urljoin': urljoin, 'urlparse': urlparse,
+                 'urlencode': urlencode, 'parse_qs': parse_qs,
                  'html_unescape': html.unescape, 'cleantitle': types.SimpleNamespace(**clean_scope),
                  'SITE_DOMAIN': 'serienstream.to', 'SITE_IDENTIFIER': 'serienstream',
                  'LEGACY_DOMAINS': set(), 'log_utils': False,
@@ -125,6 +126,24 @@ class SerienStreamEpisodeTests(unittest.TestCase):
         scraper = self.scraper({})
         scraper.episode_title = 'Nachahmungstäter'
         self.assertTrue(scraper._should_find_matching_episode(page('(Falsetto)', episode=5), 8, 18))
+
+    def test_cached_reference_refreshes_only_exact_episode_hoster_and_language(self):
+        scraper = self.scraper({})
+        target = 'https://serienstream.to/serie/daryl/staffel-2/episode-6'
+        reference = scraper._stable_source_url(target, '123', 'VOE', '1')
+        self.assertNotIn('/r?', reference)
+        calls = []
+        def request(url, fresh=False):
+            calls.append((url, fresh))
+            return page('Au Revoir Les Enfants', '1', season=2, episode=6).replace('fixture','new-token')
+        scraper._request_page = request
+        self.assertEqual(scraper._refresh_source_url(reference), 'https://serienstream.to/r?t=new-token')
+        self.assertEqual(calls, [(target, True)])
+        scraper._request_page = lambda *a, **kw: page('Coming Home','1',season=1,episode=6)
+        self.assertIsNone(scraper._refresh_source_url(reference))
+        scraper._request_page = lambda *a, **kw: page('Au Revoir Les Enfants','2',season=2,episode=6)
+        self.assertIsNone(scraper._refresh_source_url(reference))
+        self.assertIsNone(scraper._refresh_source_url(reference.replace('serienstream.to','other.invalid')))
 
 
 if __name__ == '__main__':

@@ -17,7 +17,17 @@
         <setting type="text" label="Release: alle 6 Stunden. Nightly: stuendlich. Wiedergaben werden nicht unterbrochen." />
     </category>
 
+    <category label="Mein xVAULT">
+        <setting id="personal.display" type="enum" label="Persönlichen Startbereich anzeigen" values="Aus|Nur Mein xVAULT|Mit Startseiten-Vorschau" default="1" />
+        <setting id="personal.continue" type="bool" label="Weiterschauen anzeigen" default="true" />
+        <setting id="personal.next" type="bool" label="Nächste Serienfolgen anzeigen" default="true" />
+        <setting id="personal.radar" type="bool" label="Serien-Radar anzeigen" default="true" />
+        <setting id="personal.radio" type="bool" label="Radioverlauf und Radiofavoriten anzeigen" default="true" />
+        <setting type="action" label="Wiedergabedaten verwalten" action="ActivateWindow(Videos,plugin://plugin.video.xvault/?action=playbackManage,return)" />
+    </category>
+
     <category label="Wiedergabe">
+        <setting id="playback.library" type="bool" label="Mit Kodis Bibliotheksstatus abgleichen (eindeutige IDs)" default="true" />
         <setting type="lsep" label="Fortsetzen" />
         <setting id="bookmarks" type="bool" label="Wiedergabeposition speichern" default="true" />
         <setting id="bookmarks.auto" type="bool" label="Automatisch an letzter Position fortsetzen" default="true" enable="!eq(-1,false)" />

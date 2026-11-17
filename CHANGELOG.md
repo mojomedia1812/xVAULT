@@ -1,5 +1,16 @@
 # Changelog
 
+## [2026.11.17.3] - 2026-11-17 (Nightly)
+
+- Persönlicher Startbereich: Aus / nur Mein xVAULT (Standard) / zusätzliche Hauptseiten-Vorschau. Einzelne Bereiche schaltbar, doppelte Vorschau aus dem persönlichen Menü entfernt.
+- Einheitliche Gesehen-/Ungesehen-, Ausblenden- und Fortschrittsaktionen in allen Medienansichten; Positionen und Status konsistent in Kodi-ListItems anzeigen.
+- Wiedergabedaten gezielt verwalten: ausgeblendete Titel wieder anzeigen, Positionen bzw. Gesehen-Status mit Bestätigung und Sicherung zurücksetzen, lokalen Radioverlauf leeren. Favoriten und Konten erhalten.
+- Zurücksetzungen als dauerhafte Sync-Änderung mit neuer Sitzung vormerken; verspätete alte Wiedergaben dürfen den gelöschten Fortschritt nicht wiederherstellen. Erneutes Fortschrittstracking nach Ungesehen-Markierung korrigiert.
+- Direkte Löschzugriffe auf Kodis Videodatenbank entfernt. Bibliotheksstatus und Positionen über JSON-RPC und eindeutige Inhalts-IDs mit xVAULT verbinden, Änderungen per Kodi-Benachrichtigung übernehmen.
+- Megakino: bei Serien die angeforderte Staffel mit Titel und Seitenadresse abgleichen. Treffer anderer Staffeln auslassen und widersprüchliche Detailseiten nicht als gewünschte Folge anbieten.
+- SerienStream: stabile Verweise auf Episodenseite, Hoster, Link-ID und Sprache zwischenspeichern. Den kurzlebigen Weiterleitungslink erst bei Auswahl frisch laden und Episodennummer sowie Hoster/Sprache erneut prüfen.
+- Quellen-Cache: einzelne alte kurzlebige Redirects entfernen, statt eine gesamte Liste mit weiteren stabilen Quellen zu verwerfen. Quellenlisten bleiben im RAM und auf Datenträger nutzbar; getrennte Staffeln haben getrennte Cache-Schlüssel.
+
 ## [2026.11.17.1] - 2026-11-17 (Release)
 
 - Stabiler Release mit dem vollständigen geprüften Funktionsstand der Nightly 2026.11.16.5. Alle Erweiterungen seit Release 2026.11.01.1 enthalten; Nightly-Kanal bleibt getrennt.

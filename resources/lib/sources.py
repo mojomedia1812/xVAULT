@@ -370,6 +370,7 @@ class sources:
         meta = control.window.getProperty(self.metaProperty)
         meta = json.loads(meta)
         source_context = self._writeSourceContext(meta)
+        playback_meta = dict(meta)
 #TODO
         if meta['mediatype'] == 'movie':
             # downloads = True if control.getSetting('downloads') == 'true' and control.exists(control.translatePath(control.getSetting('download.movie.path'))) else False
@@ -417,7 +418,8 @@ class sources:
                     cm.append(('Falscher Film: Quelle 24 Stunden ausblenden',
                                'RunPlugin(%s?action=rejectMovieSource&source=%s)' % (sysaddon, syssource)))
                 cm.append(('Einstellungen', 'RunPlugin(%s?action=addonSettings)' % sysaddon))
-                item.addContextMenuItems(cm)
+                from resources.lib import playback_state
+                item.addContextMenuItems(playback_state.merge_context(cm, playback_meta))
 
                 url = "%s?action=playItem&title=%s&source=%s" % (sysaddon, systitle, syssource)
                 if source_context:
@@ -508,6 +510,7 @@ class sources:
                     info_tag.set_stream_details(stream_details)
                     # info_tag.set_cast(aActors)
 
+                playback_state.decorate(item, playback_meta)
                 control.addItem(handle=syshandle, url=url, listitem=item, isFolder=False)
             except:
                 pass
@@ -1073,8 +1076,10 @@ class sources:
             if not isinstance(items, list) or len(items) == 0:
                 return None, False
             if self._hasVolatileSourceUrls(items):
-                log_utils.log('Quellen-Cache wegen kurzlebiger Redirects verworfen', log_utils.LOGINFO)
-                return None, False
+                items = [item for item in items if not self._hasVolatileSourceUrls([item])]
+                if not items:
+                    return None, False
+                log_utils.log('Kurzlebige Redirects aus Quellen-Cache entfernt; stabile Treffer bleiben erhalten', log_utils.LOGINFO)
             return items, stale
         except Exception as e:
             log_utils.log('Quellen-Cache konnte nicht gelesen werden: %s' % str(e), log_utils.LOGWARNING)
@@ -1099,8 +1104,10 @@ class sources:
             if not isinstance(items, list) or len(items) == 0:
                 return
             if self._hasVolatileSourceUrls(items):
-                log_utils.log('Quellen-Cache wegen kurzlebiger Redirects nicht gespeichert', log_utils.LOGINFO)
-                return
+                items = [item for item in items if not self._hasVolatileSourceUrls([item])]
+                if not items:
+                    return
+                log_utils.log('Nur stabile Quellen zwischengespeichert; kurzlebige Redirects ausgelassen', log_utils.LOGINFO)
             payload = self._readSourceCachePayload()
             entries = payload.get('entries')
             if not isinstance(entries, dict):

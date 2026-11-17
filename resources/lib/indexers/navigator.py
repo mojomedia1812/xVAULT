@@ -13,11 +13,14 @@ addonFanart = control.addonFanart()
 
 class navigator:
 	def root(self):
-		self.addDirectoryItem('Mein xVAULT', 'personalHome', 'DefaultRecentlyAddedEpisodes.png', 'DefaultTVShows.png')
+		if control.getSetting('personal.display', '1') != '0':
+			self.addDirectoryItem('Mein xVAULT', 'personalHome', 'DefaultRecentlyAddedEpisodes.png', 'DefaultTVShows.png')
 		try:
 			from resources.lib import personal
-			personal.render_preview()
-			personal.request_refresh()
+			if control.getSetting('personal.display', '1') == '2':
+				personal.render_preview()
+			if control.getSetting('personal.display', '1') != '0':
+				personal.request_refresh()
 		except Exception as exc:
 			from resources.lib import log_utils
 			log_utils.log('xVAULT Startbereich: ' + type(exc).__name__, log_utils.LOGWARNING)
@@ -99,6 +102,7 @@ class navigator:
 		self._endDirectory(category='Werkzeuge / Updates und Version', cache=False)
 
 	def tools_help(self):
+		self.addDirectoryItem('Wiedergabedaten verwalten', 'playbackManage', 'DefaultAddonProgram.png', 'DefaultAddonProgram.png', description='Weiterschauen, Wiedergabepositionen, Gesehen-Status und Radioverlauf gezielt verwalten. Favoriten und Anmeldungen bleiben erhalten.')
 		self.addDirectoryItem('Systemcheck und passende Hilfen', 'systemCheck', 'DefaultAddonProgram.png', 'DefaultAddonProgram.png')
 		self.addDirectoryItem('System- und Supportinformationen anzeigen', 'pluginInfo', '06_01_support_informationen_anzeigen.png', 'DefaultAddonProgram.png', isFolder=False,
 			description='Zeigt technische Informationen zu Kodi, System, xVAULT, ResolveURL, TMDbHelper und Netzwerk für die Fehlersuche an.')
