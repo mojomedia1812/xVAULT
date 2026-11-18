@@ -4,6 +4,8 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
+Release `2026.11.18.1` übernimmt Nightly `2026.11.17.5`: konfigurierbarer persönlicher Bereich, einheitliche Wiedergabedaten-Verwaltung mit robustem Sync und Kodi-Bibliotheksabgleich sowie Staffel-, Cache-, OHA-, SerienStream- und Movie2K-Korrekturen. Der Nightly-Kanal bleibt unabhängig.
+
 Nightly `2026.11.17.5`: OHA-Domain normalisieren, SerienStream-Timeouts einzelner Episoden von echten Anbieterausfällen trennen und unvollständige Quellenlisten nach Wiederverfügbarkeit erneut prüfen. Movie2K gleicht Serien-IDs ab und verhindert Treffer der alten Scrubs-Serie bei einer Suche nach Scrubs (2026). Lokal und auf dem Fire TV mit identischen 14 Quellen für Scrubs (2026) S02E01 geprüft; gleicher Programmcode wie im privaten Testbuild 2026.11.17.4.
 
 Nightly `2026.11.17.3`: Der persönliche Startbereich ist unter **Mein xVAULT** abschaltbar oder um eine Hauptseiten-Vorschau erweiterbar; Standard ist nur der eigene Menüpunkt, ohne doppelte Vorschau im Untermenü. Weiterschauen, nächste Folgen, Radar und Radio sind einzeln schaltbar. Einheitliche Kontextaktionen sind in persönlichen Listen, Film-/Seriensuche, Staffeln, Folgen, Collections, Personensuche und Quellen vorhanden: gesehen/ungesehen, aus Weiterschauen ausblenden (Position behalten), Position zurücksetzen.
@@ -20,7 +22,7 @@ Nightly `2026.11.16.5` korrigiert den allgemeinen Film-/Serienstartfehler aus `2
 
 Nightly `2026.11.16.3`: Sitzungszuordnung für Film-/Serienwiedergaben beim direkten Wechsel zwischen laufenden Videos. Ein abgelöster Player darf die neue Wiedergabe nicht steuern. Untersuchung und lokale Testnachweise: [Wiedergabewechsel](tools/diagnostics/PLAYBACK_OWNERSHIP_2026-11-16.md).
 
-Aktueller Release-Stand: `2026.11.17.1` (`plugin.video.xvault-2026.11.17.1.zip`)
+Aktueller Release-Stand: `2026.11.18.1` (`plugin.video.xvault-2026.11.18.1.zip`)
 
 Aktueller Nightly-Stand: `2026.11.17.5` (`plugin.video.xvault-2026.11.17.5.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
 

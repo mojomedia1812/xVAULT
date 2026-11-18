@@ -1,3 +1,18 @@
+xVAULT 2026.11.18.1 (Release)
+Entwickler: mojomedia1812
+
+- Stabiler Release des vollständig geprüften Funktionsstands von Nightly 2026.11.17.5. Enthält alle Korrekturen seit Release 2026.11.17.1; der Nightly-Kanal bleibt unabhängig.
+- Mein xVAULT ist abschaltbar oder optional als Vorschau im Hauptmenü sichtbar. Weiterschauen, nächste Folgen, Serien-Radar und Radio lassen sich einzeln einstellen; doppelte Vorschauen entfallen.
+- Einheitliche Kontextaktionen für gesehen/ungesehen, Ausblenden aus Weiterschauen bei erhaltener Position und Zurücksetzen des Fortschritts in persönlichen Listen, Suche, Staffeln, Folgen, Collections und Quellen.
+- Wiedergabedaten unter Werkzeuge > Hilfe und Problembehebung verwalten: ausgeblendete Titel wiederanzeigen, Positionen oder Gesehen-Status zurücksetzen und lokalen Radioverlauf löschen. Bestätigung und lokale Sicherung schützen umfangreiche Änderungen; Favoriten und Anmeldungen bleiben erhalten.
+- Robuste Geräte-Synchronisation von Zurücksetzungen: veraltete Geräte-Updates dürfen gelöschten Fortschritt nicht wiederherstellen; Änderungen werden auch offline vorgemerkt. Manuelle Änderungen während laufender Videos sind gesperrt.
+- Kodi-Bibliotheksabgleich über eindeutige IMDb-/TMDb-IDs und bei Folgen Staffel/Folge. Bibliotheksänderungen werden übernommen; direkte Löschzugriffe auf Kodis Videodatenbank entfallen. Für reine Plugin-Einträge stehen die xVAULT-Kontextaktionen bereit.
+- Megakino prüft die Staffel anhand von Treffer und Detailseite. SerienStream speichert genaue Episoden-/Hosterreferenzen und löst kurzlebige Links erst bei Auswahl frisch auf. Quellenlisten bleiben im RAM- und Datenträger-Cache wiederverwendbar.
+- OHA migriert alte www.oha.to-Adressen auf oha.to; alte 404-Markierungen blockieren den Anbieter nicht mehr. Bewusst deaktivierte Anbieter bleiben deaktiviert.
+- SerienStream behandelt einzelne Such-Zeitüberschreitungen nicht als globalen Anbieterausfall. Alternative Episodenprüfungen sind zeitlich und in ihrer Anzahl begrenzt; unvollständige Prüfungen bestätigen keine falschen Folgen.
+- Unvollständige Quellenlisten werden nach vorübergehenden Fehlern gezielt erneut geprüft; vollständige Listen behalten ihren normalen Cache. Alte pauschale SerienStream-Timeouts werden ignoriert.
+- Movie2K gleicht Serienidentitäten ab und verwirft widersprüchliche IDs beziehungsweise unpassende Serienjahre. So erscheinen keine Treffer von Scrubs (2001) bei Scrubs (2026).
+
 xVAULT 2026.11.17.5 (Nightly)
 Entwickler: mojomedia1812
 

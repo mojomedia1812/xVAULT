@@ -40,12 +40,12 @@
         <tr><th></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th></tr>
         <tr><th colspan="4"><hr></th></tr>
         <tr><td>[PARENTDIR]</td><td><a href="../" data-umami-event="Verzeichnisnavigation geöffnet">Parent Directory</a></td><td align="right">-</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">17.Nov.2026 00:07:14</td><td align="right">-</td></tr>
-        <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geöffnet">repository.xvault/</a></td><td align="right">17.Nov.2026 00:06:03</td><td align="right">-</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">17.Nov.2026 00:07:14</td><td align="right">4.60 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">17.Nov.2026 00:07:14</td><td align="right">32.00 B</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">17.Nov.2026 00:07:14</td><td align="right">330.06 KB</td></tr>
-        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.3.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.3.zip</a></td><td align="right">17.Nov.2026 00:07:14</td><td align="right">330.06 KB</td></tr>
+        <tr><td>[DIR]</td><td><a href="plugin.video.xvault/" data-umami-event="Verzeichnis geöffnet">plugin.video.xvault/</a></td><td align="right">18.Nov.2026 12:49:46</td><td align="right">-</td></tr>
+        <tr><td>[DIR]</td><td><a href="repository.xvault/" data-umami-event="Verzeichnis geöffnet">repository.xvault/</a></td><td align="right">18.Nov.2026 12:49:03</td><td align="right">-</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml" data-umami-event="Repository-Metadaten geöffnet">addons.xml</a></td><td align="right">18.Nov.2026 12:49:46</td><td align="right">4.60 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="addons.xml.md5" data-umami-event="Checksum geöffnet">addons.xml.md5</a></td><td align="right">18.Nov.2026 12:49:46</td><td align="right">32.00 B</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault.zip" data-umami-event="Datei heruntergeladen">repository.xvault.zip</a></td><td align="right">18.Nov.2026 12:49:46</td><td align="right">330.06 KB</td></tr>
+        <tr><td>[FILE]</td><td><a href="repository.xvault-1.0.3.zip" data-umami-event="Datei heruntergeladen">repository.xvault-1.0.3.zip</a></td><td align="right">18.Nov.2026 12:49:46</td><td align="right">330.06 KB</td></tr>
         <tr><th colspan="4"><hr></th></tr>
       </tbody>
     </table>
@@ -61,10 +61,10 @@
 
         <div class="release">
           <span>Aktuelle Version</span>
-          <strong>2026.11.17.1</strong>
+          <strong>2026.11.18.1</strong>
         </div>
 
-        <a class="download" href="downloads/plugin.video.xvault-2026.11.17.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
+        <a class="download" href="downloads/plugin.video.xvault-2026.11.18.1.zip" download data-umami-event="Add-on ZIP heruntergeladen">
           Installations-ZIP herunterladen
         </a>
 
@@ -130,6 +130,24 @@
     </section>
 
     <!-- release-notes:start -->
+    <section class="panel update-panel">
+      <p class="section-kicker">Neu in 2026.11.18.1</p>
+      <h2>Wiedergabedaten, Staffelzuordnung und Quellen verbessert</h2>
+      <ul class="update-list">
+        <li>Stabiler Release des vollständig geprüften Funktionsstands von Nightly 2026.11.17.5. Enthält alle Korrekturen seit Release 2026.11.17.1; der Nightly-Kanal bleibt unabhängig.</li>
+        <li>Mein xVAULT ist abschaltbar oder optional als Vorschau im Hauptmenü sichtbar. Weiterschauen, nächste Folgen, Serien-Radar und Radio lassen sich einzeln einstellen; doppelte Vorschauen entfallen.</li>
+        <li>Einheitliche Kontextaktionen für gesehen/ungesehen, Ausblenden aus Weiterschauen bei erhaltener Position und Zurücksetzen des Fortschritts in persönlichen Listen, Suche, Staffeln, Folgen, Collections und Quellen.</li>
+        <li>Wiedergabedaten unter Werkzeuge &gt; Hilfe und Problembehebung verwalten: ausgeblendete Titel wiederanzeigen, Positionen oder Gesehen-Status zurücksetzen und lokalen Radioverlauf löschen. Bestätigung und lokale Sicherung schützen umfangreiche Änderungen; Favoriten und Anmeldungen bleiben erhalten.</li>
+        <li>Robuste Geräte-Synchronisation von Zurücksetzungen: veraltete Geräte-Updates dürfen gelöschten Fortschritt nicht wiederherstellen; Änderungen werden auch offline vorgemerkt. Manuelle Änderungen während laufender Videos sind gesperrt.</li>
+        <li>Kodi-Bibliotheksabgleich über eindeutige IMDb-/TMDb-IDs und bei Folgen Staffel/Folge. Bibliotheksänderungen werden übernommen; direkte Löschzugriffe auf Kodis Videodatenbank entfallen. Für reine Plugin-Einträge stehen die xVAULT-Kontextaktionen bereit.</li>
+        <li>Megakino prüft die Staffel anhand von Treffer und Detailseite. SerienStream speichert genaue Episoden-/Hosterreferenzen und löst kurzlebige Links erst bei Auswahl frisch auf. Quellenlisten bleiben im RAM- und Datenträger-Cache wiederverwendbar.</li>
+        <li>OHA migriert alte www.oha.to-Adressen auf oha.to; alte 404-Markierungen blockieren den Anbieter nicht mehr. Bewusst deaktivierte Anbieter bleiben deaktiviert.</li>
+        <li>SerienStream behandelt einzelne Such-Zeitüberschreitungen nicht als globalen Anbieterausfall. Alternative Episodenprüfungen sind zeitlich und in ihrer Anzahl begrenzt; unvollständige Prüfungen bestätigen keine falschen Folgen.</li>
+        <li>Unvollständige Quellenlisten werden nach vorübergehenden Fehlern gezielt erneut geprüft; vollständige Listen behalten ihren normalen Cache. Alte pauschale SerienStream-Timeouts werden ignoriert.</li>
+        <li>Movie2K gleicht Serienidentitäten ab und verwirft widersprüchliche IDs beziehungsweise unpassende Serienjahre. So erscheinen keine Treffer von Scrubs (2001) bei Scrubs (2026).</li>
+      </ul>
+    </section>
+
     <section class="panel update-panel">
       <p class="section-kicker">Neu in 2026.10.28.1</p>
       <h2>Änderungen im Überblick</h2>
@@ -252,15 +270,15 @@
     <section class="panel checksum">
       <h2>Dateiprüfung</h2>
       <p>SHA-256</p>
-      <code>77003D8B3044780FB872AE622E390AFA8B02D657A21119185308E043056EACD3</code>
+      <code>772BE54873611BFB10E6690DDB1975EEDBAAE7C6C38729DB7DD6A5109197A5C2</code>
     </section>
 
     <section class="panel archive">
       <h2>Vorherige Versionen</h2>
       <ul class="archive-list">
         <!-- previous-downloads:start -->
+        <li><a href="downloads/plugin.video.xvault-2026.11.17.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.11.17.1 herunterladen</a><span>15,9 MB</span></li>
         <li><a href="downloads/plugin.video.xvault-2026.11.01.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.11.01.1 herunterladen</a><span>12,8 MB</span></li>
-        <li><a href="downloads/plugin.video.xvault-2026.10.28.1.zip" download data-umami-event="Vorherige Version heruntergeladen">Version 2026.10.28.1 herunterladen</a><span>12,8 MB</span></li>
         <!-- previous-downloads:end -->
       </ul>
     </section>
@@ -268,7 +286,7 @@
     <footer>
       <a href="handbuch/" data-umami-event="Handbuch geöffnet">Handbuch</a>
       <a href="https://github.com/mojomedia1812/xVAULT" data-umami-event="GitHub Repo geöffnet">Quellcode auf GitHub</a>
-      <span>Version 2026.11.17.1</span>
+      <span>Version 2026.11.18.1</span>
     </footer>
   </main>
 </body>
