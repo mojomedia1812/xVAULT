@@ -4,6 +4,8 @@ xVAULT ist ein Kodi-Video-Add-on zum Durchsuchen und Wiedergeben von Filmen, TV-
 
 ## Aktuelle Version
 
+Nightly `2026.11.23.2`: Der lokale JDownloader 2 erhält Paketnamen aus Film-/Episodenmetadaten und bekannter Qualität sowie auf Wunsch einen Zielordner auf dem JD2-Rechner. Ohne Zielordner bleiben die JD2-Vorgaben erhalten. Keine pauschale Dateiumbenennung; optionale Paketverwalter-Regel im Handbuch. HTTP-Formular und andere Download-Manager mit isoliertem lokalen Endpunkt geprüft, kein erneuter JD2-/LibreELEC-Livetest.
+
 Release `2026.11.18.1` übernimmt Nightly `2026.11.17.5`: konfigurierbarer persönlicher Bereich, einheitliche Wiedergabedaten-Verwaltung mit robustem Sync und Kodi-Bibliotheksabgleich sowie Staffel-, Cache-, OHA-, SerienStream- und Movie2K-Korrekturen. Der Nightly-Kanal bleibt unabhängig.
 
 Nightly `2026.11.17.5`: OHA-Domain normalisieren, SerienStream-Timeouts einzelner Episoden von echten Anbieterausfällen trennen und unvollständige Quellenlisten nach Wiederverfügbarkeit erneut prüfen. Movie2K gleicht Serien-IDs ab und verhindert Treffer der alten Scrubs-Serie bei einer Suche nach Scrubs (2026). Lokal und auf dem Fire TV mit identischen 14 Quellen für Scrubs (2026) S02E01 geprüft; gleicher Programmcode wie im privaten Testbuild 2026.11.17.4.
@@ -24,7 +26,7 @@ Nightly `2026.11.16.3`: Sitzungszuordnung für Film-/Serienwiedergaben beim dire
 
 Aktueller Release-Stand: `2026.11.18.1` (`plugin.video.xvault-2026.11.18.1.zip`)
 
-Aktueller Nightly-Stand: `2026.11.17.5` (`plugin.video.xvault-2026.11.17.5.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
+Aktueller Nightly-Stand: `2026.11.23.2` (`plugin.video.xvault-2026.11.23.2.zip`). Endnummer `.1` gehört zum Release-Kanal; alle anderen Endnummern gehören zum Nightly-Kanal. Der VIXSTREAM-Schlüsselheader-Fix und die Korrektur automatischer Vorwaertsupdates beim Kanalwechsel sind auch im Release 2026.10.28.1 enthalten.
 
 Nightly `2026.10.29.2` prüft die Filmidentität zentral anhand der vom Anbieter gelieferten Daten. Widersprüchliche IDs oder Jahre werden ausgeschlossen; unbestätigte Filmquellen bleiben markiert zur manuellen Auswahl, jedoch nicht für Autoplay oder automatische Ersatzversuche. Wenn nur unbestätigte Treffer vorliegen, öffnet sich einmalig die manuelle Auswahl, ohne die gespeicherte Standard-Aktion zu ändern. Movie2k2, Filmpalast, Megakino, Filmo, MoFlix, Movie2k und ID-basierte OHA-/VIXSTREAM-Abfragen liefern zusätzliche Identitätsnachweise. Andere Scraper ohne solche Nachweise bleiben manuell nutzbar. Korrekte Anbietermetadaten garantieren nicht den Inhalt einer falsch belegten Videodatei; dafür blendet „Falscher Film: Quelle 24 Stunden ausblenden“ einen einzelnen Link nur für diesen Film und dieses Gerät aus. OHA (ehemals Huhu) verwendet ungecachte, begrenzte API-Abrufe mit getrennten Fehlergruppen und vorübergehender Pause nach Fehlern. Unter Einstellungen > Radio lässt sich Radio vollständig deaktivieren; gespeicherte Favoriten und Einstellungen bleiben erhalten. Der Release bleibt `2026.10.28.1`.
 

@@ -408,7 +408,7 @@ class sources:
                 if control.getSetting('jd_enabled') == 'true':
                     cm.append(("Sende zum JDownloader", 'RunPlugin(%s?action=sendToJD&name=%s&source=%s)' % (sysaddon, sysname, syssource)))
                 if control.getSetting('jd2_enabled') == 'true':
-                    cm.append(("Sende zum JDownloader2", 'RunPlugin(%s?action=sendToJD2&name=%s&source=%s)' % (sysaddon, sysname, syssource)))
+                    cm.append(("Sende zum JDownloader2", 'RunPlugin(%s?action=sendToJD2&name=%s&source=%s&context=%s)' % (sysaddon, sysname, syssource, quote_plus(source_context))))
                 if control.getSetting('myjd_enabled') == 'true':
                     cm.append(("Sende zu My.JDownloader", 'RunPlugin(%s?action=sendToMyJD&name=%s&source=%s)' % (sysaddon, sysname, syssource)))
                 if control.getSetting('pyload_enabled') == 'true':
@@ -743,7 +743,7 @@ class sources:
         if not isinstance(meta, dict):
             return {}
         keep = [
-            'title', 'originaltitle', 'year', 'mediatype', 'imdb_id', 'imdbnumber',
+            'title', 'originaltitle', 'tvshowtitle', 'year', 'mediatype', 'imdb_id', 'imdbnumber',
             'imdb', 'tmdb_id', 'tvdb_id', 'season', 'episode', 'number_of_seasons',
             'number_of_episodes', 'episode_title', 'episode_premiered', 'premiered',
             'poster', 'fanart', 'backdrop_url', 'plot', 'playcount', 'overlay',

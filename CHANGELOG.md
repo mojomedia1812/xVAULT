@@ -1,5 +1,9 @@
 # Changelog
 
+## [2026.11.23.2] - 2026-11-23 (Nightly)
+
+- Lokaler JDownloader 2: Film-/Episodenmetadaten über den Quellenkontext erhalten und Titel mit bekanntem Jahr beziehungsweise SxxExx sowie bekannter Quellenqualität als Paketnamen übergeben. Optionaler Zielordner gilt auf dem JD2-Rechner; leer bewahrt dessen Vorgaben. Keine pauschale Dateiumbenennung und keine Änderung anderer Download-Manager.
+
 ## [2026.11.18.1] - 2026-11-18 (Release)
 
 - Stabiler Release des vollständig geprüften Funktionsstands von Nightly 2026.11.17.5. Enthält alle Korrekturen seit Release 2026.11.17.1; der Nightly-Kanal bleibt unabhängig.

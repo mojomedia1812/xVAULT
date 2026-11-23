@@ -122,11 +122,17 @@
     </section>
 
     <section class="panel update-panel">
-      <p class="section-kicker">Nightly 2026.11.17.5</p>
-      <h2>Gleiche Serienquellen auf Fire TV und Windows</h2>
-      <p>OHA verwendet wieder die richtige Domain oha.to; alte 404-Markierungen des www-Alias verhindern die Suche nicht mehr. SerienStream sperrt nach dem Zeitlimit einer einzelnen Episodensuche nicht mehr den gesamten Anbieter. Alternative Episodenprüfungen sind begrenzt und ordnen bei unvollständigem Ergebnis keine andere Folge zu. Unvollständige Quellenlisten werden nach Wiederverfügbarkeit eines Anbieters oder nach kurzer Wiederholungsfrist erneut geprüft; vollständige Listen behalten ihre normale Cache-Laufzeit. Movie2K prüft Serien-IDs beziehungsweise belegbare Serienjahre und verwechselt Scrubs (2026) nicht mehr mit der ursprünglichen Serie. Live im lokalen Kodi und auf dem Fire TV: jeweils dieselben 14 Quellen für Scrubs (2026) S02E01 – 8 OHA und 6 SerienStream – auch aus RAM- und Datenträger-Cache ohne erneute Anbieterabfrage. Die Movie2K-Gegenprobe für Scrubs (2001) liefert auf beiden Geräten weiterhin zwei Quellen. 51 gezielte Regressionstests und 24 Paket-/Updateprüfungen bestanden. Signiertes Originalpaket mit unverändertem Programmcode zum privaten Testbuild 2026.11.17.4. Der stabile Release bleibt 2026.11.17.1.</p>
-      <a class="plain-link" href="downloads/plugin.video.xvault-2026.11.17.5.zip" download data-umami-event="Nightly ZIP heruntergeladen">Nightly 2026.11.17.5 herunterladen</a>
-      <p><a class="plain-link" href="updates/native/windows-x86_64/kodi22/visualization.xvault/visualization.xvault-22.0.2.zip" download>xVAULT-Visuals 22.0.2 für Kodi 22 / Windows 64 Bit</a> · <a class="plain-link" href="updates/native/android-armv7/kodi21/visualization.xvault/visualization.xvault-21.0.2.zip" download>xVAULT-Visuals 21.0.2 für Kodi 21 / Android ARM32</a> · <a class="plain-link" href="updates/native/android-aarch64/kodi21/visualization.xvault/visualization.xvault-21.0.2.zip" download>xVAULT-Visuals 21.0.2 für Kodi 21 / Android ARM64</a></p>
+      <p class="section-kicker">Nightly 2026.11.23.2</p>
+      <h2>JDownloader 2: Paketnamen und optionaler Zielordner</h2>
+      <ul class="update-list">
+        <li>JDownloader 2 erhält den Paketnamen aus Filmtitel und bekanntem Jahr oder Serientitel mit SxxExx. Eine bekannte Quellenqualität wird ergänzt; fehlende Angaben werden nicht erfunden.</li>
+        <li>Der vorhandene Quellenkontext reicht Film-/Folgenmetadaten bis zum lokalen JD2-Handler durch. Der Paketname wird im /flash/add-Formular als package übertragen.</li>
+        <li>Optionaler Zielordner unter Download-Manager &gt; JDownloader 2: Der Pfad gilt auf dem JD2-Rechner, auch wenn Kodi unter LibreELEC auf einem anderen Gerät läuft. Leer bleiben die JD2-Vorgaben erhalten.</li>
+        <li>Bestehende Auswahl von JD-freundlicher URL, Roh-URL und Referer sowie bisherige Formularfelder beibehalten. Keine Änderung an JD1, My.JDownloader, PyLoad oder internen Downloads.</li>
+        <li>Paketnamen gruppieren Links, ohne Dateien pauschal umzubenennen. Das Handbuch beschreibt eine optionale, auf kryptische Dateinamen begrenzte JD2-Paketverwalter-Regel; lesbare Originaldateinamen bleiben erhalten.</li>
+      </ul>
+      <p>40 gezielte Tests bestanden: Unicode-Formularübertragung gegen einen isolierten lokalen HTTP-Endpunkt, Film/Jahr, SxxExx einschließlich Specials, bekannte/unbekannte Qualität, Zielordner gesetzt/leer und unveränderte URL-Auswahl. Kein erneuter echter JD2-/LibreELEC-Livetest. Der stabile Release bleibt 2026.11.18.1.</p>
+      <a class="secondary-download" href="downloads/plugin.video.xvault-2026.11.23.2.zip" download data-umami-event="Nightly ZIP heruntergeladen">Nightly 2026.11.23.2 herunterladen</a>
     </section>
 
     <!-- release-notes:start -->

@@ -306,6 +306,7 @@
         <setting id="jd2_enabled" type="bool" label="JDownloader 2 aktivieren" default="false" />
         <setting id="jd2_host" type="text" label="Host" default="127.0.0.1" enable="!eq(-1,false)" />
         <setting id="jd2_port" type="number" label="Port" default="9666" enable="!eq(-2,false)" />
+        <setting id="jd2_directory" type="text" label="Zielordner auf dem JD2-Rechner (optional)" default="" enable="!eq(-3,false)" />
         <setting type="lsep" label="My.JDownloader" />
         <setting id="myjd_enabled" type="bool" label="My.JDownloader aktivieren" default="false" />
         <setting id="myjd_device" type="text" label="Gerätename" default="JDownloader@Device" enable="!eq(-1,false)" />

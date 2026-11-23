@@ -1,3 +1,12 @@
+xVAULT 2026.11.23.2 (Nightly)
+Entwickler: mojomedia1812
+
+- JDownloader 2 erhält den Paketnamen aus Filmtitel und bekanntem Jahr oder Serientitel mit SxxExx. Eine bekannte Quellenqualität wird ergänzt; fehlende Angaben werden nicht erfunden.
+- Der vorhandene Quellenkontext reicht Film-/Folgenmetadaten bis zum lokalen JD2-Handler durch. Der Paketname wird im /flash/add-Formular als package übertragen.
+- Optionaler Zielordner unter Download-Manager > JDownloader 2: Der Pfad gilt auf dem JD2-Rechner, auch wenn Kodi unter LibreELEC auf einem anderen Gerät läuft. Leer bleiben die JD2-Vorgaben erhalten.
+- Bestehende Auswahl von JD-freundlicher URL, Roh-URL und Referer sowie bisherige Formularfelder beibehalten. Keine Änderung an JD1, My.JDownloader, PyLoad oder internen Downloads.
+- Paketnamen gruppieren Links, ohne Dateien pauschal umzubenennen. Das Handbuch beschreibt eine optionale, auf kryptische Dateinamen begrenzte JD2-Paketverwalter-Regel; lesbare Originaldateinamen bleiben erhalten.
+
 xVAULT 2026.11.18.1 (Release)
 Entwickler: mojomedia1812
 

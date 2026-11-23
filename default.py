@@ -382,7 +382,9 @@ elif action in ('sendToJD', 'sendToJD2', 'sendToMyJD', 'sendToPyLoad'):
             cJDownloaderHandler().sendToJDownloader(url)
         elif action == 'sendToJD2':
             from resources.lib.handler.jdownloader2Handler import cJDownloader2Handler
-            cJDownloader2Handler().sendToJDownloader2(url)
+            from resources.lib import sources
+            metadata = sources.sources()._readSourceContext(params.get('context'))
+            cJDownloader2Handler().sendToJDownloader2(url, metadata=metadata, source=item, name=name)
         elif action == 'sendToMyJD':
             from resources.lib.handler.myjdownloaderHandler import cMyJDownloaderHandler
             cMyJDownloaderHandler().sendToMyJDownloader(url, name, source_url)
